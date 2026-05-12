@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix that a network exception while encrypting an event could lead to a sendError in the outbox
+
 ### Security
 
 ## 5.5.2

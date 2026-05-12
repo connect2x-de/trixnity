@@ -1,22 +1,27 @@
 package de.connect2x.trixnity.client.room
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import de.connect2x.trixnity.client.key.KeyBackupService
 import de.connect2x.trixnity.client.key.OutgoingRoomKeyRequestEventHandler
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.RoomStateStore
+import de.connect2x.trixnity.client.store.RoomStore
+import de.connect2x.trixnity.client.store.getByStateKey
+import de.connect2x.trixnity.client.store.waitForInboundMegolmSession
 import de.connect2x.trixnity.client.user.LoadMembersService
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
 
 private val log = Logger("de.connect2x.trixnity.client.room.MegolmRoomEventEncryptionService")
@@ -43,7 +48,7 @@ class MegolmRoomEventEncryptionService(
 
         loadMembersService(roomId, wait = true)
 
-        return olmEncryptionService.encryptMegolm(content, roomId, encryptionEventContent)
+        return olmEncryptionService.encryptMegolmCatching(content, roomId, encryptionEventContent)
     }
 
     override suspend fun decrypt(event: RoomEvent.MessageEvent<*>): Result<MessageEventContent>? {
@@ -69,17 +74,17 @@ class MegolmRoomEventEncryptionService(
         @Suppress("UNCHECKED_CAST")
         val encryptedEvent = event as RoomEvent<MegolmEncryptedMessageEventContent>
 
-        val decryptEventAttempt = olmEncryptionService.decryptMegolm(encryptedEvent)
+        val decryptEventAttempt = olmEncryptionService.decryptMegolmCatching(encryptedEvent)
         val exception = decryptEventAttempt.exceptionOrNull()
         val decryptedEvent =
-            if (exception is OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex) {
+            if (exception is RoomEventEncryptionServiceError && exception.cause is OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex) {
                 log.debug { "unknwon message index, so we request key backup and start to wait for inbound megolm session to decrypt $eventId in $roomId again" }
                 waitForInboundMegolmSessionAndRequest(
                     roomId,
                     content.sessionId,
                     firstKnownIndexLessThen = firstKnownIndex
                 )
-                olmEncryptionService.decryptMegolm(encryptedEvent)
+                olmEncryptionService.decryptMegolmCatching(encryptedEvent)
             } else decryptEventAttempt
         log.trace { "decrypted TimelineEvent $eventId in $roomId" }
         return decryptedEvent.map { it.content }
@@ -95,5 +100,23 @@ class MegolmRoomEventEncryptionService(
             else keyBackupService.loadMegolmSession(roomId, sessionId)
         }
     }
+
+    private suspend fun OlmEncryptionService.encryptMegolmCatching(
+        content: MessageEventContent,
+        roomId: RoomId,
+        settings: EncryptionEventContent
+    ): Result<MegolmEncryptedMessageEventContent> =
+        encryptMegolm(content, roomId, settings).recoverCatching { e ->
+            if (e is OlmEncryptionService.EncryptMegolmError) throw RoomEventEncryptionServiceError(e)
+            else throw e
+        }
+
+    private suspend fun OlmEncryptionService.decryptMegolmCatching(
+        encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
+    ): Result<DecryptedMegolmEvent<*>> =
+        decryptMegolm(encryptedEvent).recoverCatching { e ->
+            if (e is OlmEncryptionService.DecryptMegolmError) throw RoomEventEncryptionServiceError(e)
+            else throw e
+        }
 }
 
