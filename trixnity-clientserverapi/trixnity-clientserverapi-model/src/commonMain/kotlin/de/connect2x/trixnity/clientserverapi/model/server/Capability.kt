@@ -8,7 +8,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.jvm.JvmInline
 
 sealed interface Capability {
@@ -89,6 +94,16 @@ sealed interface Capability {
         }
     }
 
+    @Serializable
+    data class AccountModeration(
+        @SerialName("lock") val lock: Boolean? = null,
+        @SerialName("suspend") val suspend: Boolean? = null,
+    ) : Capability {
+        companion object {
+            const val name = "m.account_moderation"
+        }
+    }
+
     data class Unknown(val name: String, val raw: JsonElement) : Capability
 }
 
@@ -127,6 +142,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                         Capability.GetLoginToken.name ->
                             decoder.json.decodeFromJsonElement<Capability.GetLoginToken>(value)
 
+                        Capability.AccountModeration.name ->
+                            decoder.json.decodeFromJsonElement<Capability.AccountModeration>(value)
+
                         else -> Capability.Unknown(key, value)
                     }
                 }.toSet()
@@ -160,6 +178,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
 
                             is Capability.ThirdPartyChanges ->
                                 Capability.ThirdPartyChanges.name to encoder.json.encodeToJsonElement(element)
+
+                            is Capability.AccountModeration ->
+                                Capability.AccountModeration.name to encoder.json.encodeToJsonElement(element)
 
                             is Capability.Unknown -> element.name to element.raw
                         }
@@ -199,3 +220,7 @@ val Capabilities.thirdPartyChanges: Capability.ThirdPartyChanges
 val Capabilities.getLoginToken: Capability.GetLoginToken
     get() = filterIsInstance<Capability.GetLoginToken>().firstOrNull()
         ?: Capability.GetLoginToken(false)
+
+val Capabilities.accountModeration: Capability.AccountModeration
+    get() = filterIsInstance<Capability.AccountModeration>().firstOrNull()
+        ?: Capability.AccountModeration()
