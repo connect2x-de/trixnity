@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.apache2
+import de.connect2x.conventions.applyKtfmt
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
@@ -23,6 +24,7 @@ plugins {
     alias(sharedLibs.plugins.dokka)
     alias(sharedLibs.plugins.mavenPublish) apply false
     alias(sharedLibs.plugins.kotlinx.kover)
+    alias(sharedLibs.plugins.ktfmt) apply false
 
     alias(libs.plugins.download) apply false
 
@@ -36,6 +38,11 @@ plugins {
 }
 
 updateAbiFilesFromReportZip()
+
+applyKtfmt()
+tasks
+    .named { it == "ktfmtCheck" }
+    .configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
 
 allprojects {
     group = "de.connect2x.trixnity"
@@ -56,6 +63,7 @@ subprojects {
     apply<MavenPublishPlugin>()
     apply<DokkaPlugin>()
     apply<KoverGradlePlugin>()
+    applyKtfmt()
 
     defaultPublishing()
 
