@@ -20,6 +20,8 @@ interface RoomEventEncryptionService {
     suspend fun decrypt(event: RoomEvent.MessageEvent<*>): Result<MessageEventContent>?
 }
 
+class RoomEventEncryptionServiceError(cause: Throwable) : IllegalStateException(cause)
+
 /**
  * Decrypts given event. Returns null, when encryption algorithm is not supported by any [RoomEventEncryptionService].
  *
