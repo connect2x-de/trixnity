@@ -240,7 +240,7 @@ class AuthenticationApiClientImpl(
                 initialDeviceDisplayName = initialDeviceDisplayName,
                 inhibitLogin = inhibitLogin,
                 refreshToken = refreshToken,
-                type = if (isAppservice) LoginType.AppService else null
+                type = if (isAppservice) LoginType.AppService.name else null
             )
         )
 

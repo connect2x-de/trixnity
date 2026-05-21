@@ -77,6 +77,6 @@ sealed interface IdentifierType {
             )
         }
 
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("LoginType")
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("IdentifierType")
     }
 }
