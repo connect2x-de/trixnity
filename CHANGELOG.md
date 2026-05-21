@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added MatrixClient::deleteProfileField
+
 ### Changed
+
+- Add update loop for own profile data
 
 ### Deprecated
 
@@ -17,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Removed unnecessary println
 - Fix that a network exception while encrypting an event could lead to a sendError in the outbox
 
 ### Security
