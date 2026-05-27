@@ -2020,7 +2020,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
                     )
                     assertEquals(HttpMethod.Post, request.method)
                     assertEquals(
-                        """{"reason":"someReason","score":-100}""",
+                        """{"reason":"someReason"}""",
                         request.body.toByteArray().decodeToString()
                     )
                     respond(
@@ -2034,7 +2034,6 @@ class RoomApiClientTest : TrixnityBaseTest() {
             roomId = RoomId("!room:server"),
             eventId = EventId("\$eventToRedact"),
             reason = "someReason",
-            score = -100
         ).getOrThrow()
     }
 
