@@ -3,7 +3,6 @@ package de.connect2x.trixnity.clientserverapi.model.authentication.oauth2
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.MSC4191
 
 @Serializable
 data class ServerMetadata(
@@ -17,8 +16,14 @@ data class ServerMetadata(
     @SerialName("response_types_supported") val responseTypesSupported: Set<ResponseType>,
     @SerialName("revocation_endpoint") val revocationEndpoint: Url,
     @SerialName("token_endpoint") val tokenEndpoint: Url,
-
-    @SerialName("account_management_actions_supported")
-    @MSC4191 @OptIn(MSC4191::class) val accountManagementActionsSupported: Set<OAuth2AccountManagementAction>? = null,
-    @MSC4191 @SerialName("account_management_uri") val accountManagementUri: Url? = null
+    @SerialName("account_management_actions_supported") val accountManagementActionsSupported: Set<OAuth2AccountManagementAction>? = null,
+    @SerialName("account_management_uri") val accountManagementUri: Url? = null,
 )
+
+fun ServerMetadata.accountManagementUri(action: OAuth2AccountManagementAction, deviceId: String? = null): Url? =
+    URLBuilder(accountManagementUri ?: return null)
+        .apply {
+            parameters.append("action", action.value)
+            if (deviceId != null) parameters.append("device_id", deviceId)
+        }
+        .build()

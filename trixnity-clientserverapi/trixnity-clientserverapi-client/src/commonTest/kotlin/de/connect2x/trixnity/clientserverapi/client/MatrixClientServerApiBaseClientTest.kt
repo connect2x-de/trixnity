@@ -1,5 +1,27 @@
 package de.connect2x.trixnity.clientserverapi.client
 
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2MatrixClientAuthProvider
+import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.MatrixUIAEndpoint
+import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
+import de.connect2x.trixnity.core.Auth
+import de.connect2x.trixnity.core.AuthRequired
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.HttpMethod
+import de.connect2x.trixnity.core.HttpMethodType.POST
+import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.scheduleSetup
+import de.connect2x.trixnity.testutils.scopedMockEngine
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -21,24 +43,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2MatrixClientAuthProvider
-import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
-import de.connect2x.trixnity.clientserverapi.model.uia.MatrixUIAEndpoint
-import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
-import de.connect2x.trixnity.core.*
-import de.connect2x.trixnity.core.HttpMethod
-import de.connect2x.trixnity.core.HttpMethodType.POST
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.scheduleSetup
-import de.connect2x.trixnity.testutils.scopedMockEngine
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
@@ -272,7 +276,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token`() = runTest {
         var refreshCalled = false
         val oAuth2AuthProvider =
@@ -437,7 +440,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token and logout`() = runTest {
         var refreshCalled = false
         val oAuth2AuthProvider =
@@ -598,7 +600,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token and not logout`() = runTest {
         var refreshCalled = false
         val oAuth2AuthProvider =
@@ -745,7 +746,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token with old refresh token`() = runTest {
         var refreshCalled = 0
         val oAuth2AuthProvider =
@@ -1076,7 +1076,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token with parallel requests and rethrow exceptions`() = runTest {
         val refreshCalled = MutableStateFlow(false)
         val continueRefresh = MutableStateFlow(false)
@@ -1253,7 +1252,6 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun `OAuth 2 - should refresh token with parallel requests and handle request abort`() = runTest {
         val refreshCalled = MutableStateFlow(false)
         val continueRefresh = MutableStateFlow(false)

@@ -8,9 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.MSC4191
 
-@MSC4191
 @Serializable(with = OAuth2AccountManagementAction.Serializer::class)
 sealed interface OAuth2AccountManagementAction {
     val value: String
@@ -19,20 +17,20 @@ sealed interface OAuth2AccountManagementAction {
         override val value: String = "org.matrix.profile"
     }
 
-    object ListSessions : OAuth2AccountManagementAction {
-        override val value: String = "org.matrix.sessions_list"
+    object ListDevices : OAuth2AccountManagementAction {
+        override val value: String = "org.matrix.devices_list"
     }
 
-    object ViewSession : OAuth2AccountManagementAction {
-        override val value: String = "org.matrix.session_view"
+    object ViewDevice : OAuth2AccountManagementAction {
+        override val value: String = "org.matrix.device_view"
     }
 
-    object EndSession : OAuth2AccountManagementAction {
-        override val value: String = "org.matrix.session_end"
+    object DeleteDevice : OAuth2AccountManagementAction {
+        override val value: String = "org.matrix.device_delete"
     }
 
     object DeactivateAccount : OAuth2AccountManagementAction {
-        override val value: String = "org.matrix.deactivate_account"
+        override val value: String = "org.matrix.account_deactivate"
     }
 
     object ResetCrossSigning : OAuth2AccountManagementAction {
@@ -41,7 +39,6 @@ sealed interface OAuth2AccountManagementAction {
 
     data class Unknown(override val value: String) : OAuth2AccountManagementAction
 
-    @OptIn(MSC4191::class)
     object Serializer : KSerializer<OAuth2AccountManagementAction> {
         @OptIn(InternalSerializationApi::class)
         override val descriptor: SerialDescriptor =
@@ -50,9 +47,9 @@ sealed interface OAuth2AccountManagementAction {
         override fun deserialize(decoder: Decoder): OAuth2AccountManagementAction =
             when (val value = decoder.decodeString().lowercase()) {
                 ViewProfile.value -> ViewProfile
-                ListSessions.value -> ListSessions
-                ViewSession.value -> ViewSession
-                EndSession.value -> EndSession
+                ListDevices.value -> ListDevices
+                ViewDevice.value -> ViewDevice
+                DeleteDevice.value -> DeleteDevice
                 DeactivateAccount.value -> DeactivateAccount
                 ResetCrossSigning.value -> ResetCrossSigning
                 else -> Unknown(value)

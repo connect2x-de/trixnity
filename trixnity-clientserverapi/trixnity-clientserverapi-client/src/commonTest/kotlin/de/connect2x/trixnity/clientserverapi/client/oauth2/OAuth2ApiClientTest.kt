@@ -2,8 +2,12 @@ package de.connect2x.trixnity.clientserverapi.client.oauth2
 
 import de.connect2x.trixnity.clientserverapi.client.trimToFlatJson
 import de.connect2x.trixnity.clientserverapi.model.authentication.TokenTypeHint
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.*
-import de.connect2x.trixnity.core.MSC4191
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.testutils.scopedMockEngine
 import de.connect2x.trixnity.utils.nextString
@@ -17,7 +21,6 @@ import kotlin.test.Test
 
 class OAuth2ApiClientTest {
 
-    @OptIn(MSC4191::class)
     private val serverMetadata = ServerMetadata(
         issuer = Url("https://auth.matrix.host"),
         authorizationEndpoint = Url("https://auth.matrix.host/authorize"),
@@ -32,7 +35,6 @@ class OAuth2ApiClientTest {
     )
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldRegisterClient() = runTest {
         val clientMetadata = ClientMetadata(
             applicationType = ApplicationType.Web,
@@ -106,7 +108,6 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldGetToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
@@ -153,7 +154,6 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldRefreshToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
@@ -197,7 +197,6 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldRevokeToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
