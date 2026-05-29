@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Add update loop for own profile data
+- Use shell runner for linux
 
 ### Deprecated
 
@@ -23,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed unnecessary println
 - Fix that a network exception while encrypting an event could lead to a sendError in the outbox
-- Fixed a cache race where an old database value could be reloaded into the cache during deletion, causing a deleted value to remain cached.
+- Fixed a cache race where an old database value could be reloaded into the cache during deletion, causing a deleted
+  value to remain cached.
 
 ### Security
 
