@@ -196,7 +196,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
                         MutableStateFlow(CacheValue.Init())
                     }
                 cacheEntry.set(key, value, cacheTransaction, persist)?.also { (oldValue, newValue) ->
-                    possiblyRemoveFromCache(oldValue, newValue, key)
+                    cacheTransaction.onCommitActions.write { add { possiblyRemoveFromCache(oldValue, newValue, key) } }
                 }
             }
         }
@@ -261,7 +261,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
                 { store.get(key) },
                 persist
             )
-            possiblyRemoveFromCache(oldValue, newValue, key)
+            cacheTransaction.onCommitActions.write { add { possiblyRemoveFromCache(oldValue, newValue, key) } }
         }
     }
 

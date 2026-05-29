@@ -378,6 +378,40 @@ class ObservableCacheTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `write » removeFromCacheOnNull enabled » keep null value cached until transaction commit`() = runTest {
+        val transactionManager = TransactionManagerImpl(NoOpRepositoryTransactionManager)
+        val cut = ObservableCache("test", cacheStore, backgroundScope, testClock, removeFromCacheOnNull = true)
+
+        cacheStore.persist("key", "old value")
+        cut.get("key").first() shouldBe "old value"
+
+        val deleteStarted = CompletableDeferred<Unit>()
+        val allowCommit = CompletableDeferred<Unit>()
+        val deleteJob = launch {
+            transactionManager.writeTransaction {
+                cut.set("key", null)
+                // simulate that the deletion in the database has not gone through yet
+                cacheStore.persist("key", "old value")
+                deleteStarted.complete(Unit)
+                allowCommit.await()
+                cacheStore.persist("key", null) // now the value is deleted
+            }
+        }
+
+        deleteStarted.await()
+
+        try {
+            cut.get("key").first() shouldBe null
+        } finally {
+            // we need to clean up the job in case the assertion above fails
+            allowCommit.complete(Unit)
+            deleteJob.join()
+        }
+
+        cut.get("key").first() shouldBe null
+    }
+
+    @Test
     fun `update cache entry when read during transaction after transaction`() = runTest {
         val transactionManager = TransactionManagerImpl(NoOpRepositoryTransactionManager)
         launch {
