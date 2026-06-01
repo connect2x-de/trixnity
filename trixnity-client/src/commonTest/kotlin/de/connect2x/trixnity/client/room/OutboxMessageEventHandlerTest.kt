@@ -47,11 +47,13 @@ import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.beInstanceOf
+import io.ktor.http.*
 import io.ktor.http.ContentType.Image.PNG
-import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +74,14 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     private val room = simpleRoom.roomId
 
     private val currentSyncState = MutableStateFlow(SyncState.RUNNING)
-    private val roomEventDecryptionServiceMock = RoomEventEncryptionServiceMock(useInput = true)
+    private val roomEventDecryptionServiceMock = RoomEventEncryptionServiceMock(useInput = true).apply {
+        scheduleSetup {
+            encryptCounter = 0
+            returnEncrypt = null
+            returnEncryptList.clear()
+        }
+    }
+
     private val mediaServiceMock = MediaServiceMock()
     private val userService = UserServiceMock().apply {
         scheduleSetup {
@@ -238,6 +247,65 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
         outboxMessages.first().sentAt shouldNotBe null
 
         sendMessageEventCalled shouldBe true
+    }
+
+    @Test
+    fun `processOutboxMessages » retry on unexpected encryption error`() = runTest {
+        currentSyncState.value = SyncState.RUNNING
+        val message =
+            RoomOutboxMessage(
+                room,
+                "transaction",
+                RoomMessageEventContent.TextBased.Text("hi"),
+                testClock.now()
+            )
+        roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
+        apiConfig.endpoints {
+            matrixJsonEndpoint(
+                SendMessageEvent(room, "m.room.encrypted", "transaction"),
+            ) {
+                SendEventResponse(EventId("event"))
+            }
+        }
+        val megolmEventContent =
+            MegolmEncryptedMessageEventContent(
+                MegolmMessageValue("cipher"),
+                Curve25519KeyValue("key"),
+                "device",
+                "session"
+            )
+
+        roomEventDecryptionServiceMock.returnEncryptList.add(Result.failure(RuntimeException("unexpected")))
+        roomEventDecryptionServiceMock.returnEncryptList.add(Result.success(megolmEventContent))
+
+        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+        delay(1.seconds)
+        roomEventDecryptionServiceMock.encryptCounter shouldBe 2
+    }
+
+    @Test
+    fun `processOutboxMessages » handle RoomEventEncryptionServiceError`() = runTest {
+        currentSyncState.value = SyncState.RUNNING
+        val message =
+            RoomOutboxMessage(
+                room,
+                "transaction",
+                RoomMessageEventContent.TextBased.Text("hi"),
+                testClock.now()
+            )
+        roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
+
+        roomEventDecryptionServiceMock.returnEncrypt =
+            Result.failure(RoomEventEncryptionServiceError(RuntimeException("expected")))
+
+        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+        delay(1.seconds)
+        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+        outboxMessages shouldHaveSize 1
+        outboxMessages.first().sendError should beInstanceOf<RoomOutboxMessage.SendError.EncryptionError>()
+        roomEventDecryptionServiceMock.encryptCounter shouldBe 1
     }
 
     @Test
@@ -770,5 +838,4 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
             outboxMessages2 shouldHaveSize 1
             outboxMessages2.first().sentAt shouldNotBe null
         }
-
 }

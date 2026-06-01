@@ -217,10 +217,10 @@ class OutboxMessageEventHandler(
             }
             return sendError
         }
-        val contentResult = roomEventEncryptionServices.encrypt(uploadedContent, roomId)
+        val encryptedContent = roomEventEncryptionServices.encrypt(uploadedContent, roomId)
 
         val content = when {
-            contentResult == null -> {
+            encryptedContent == null -> {
                 log.warn { "cannot send message, because encryption algorithm not supported" }
                 roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
                     it?.copy(sendError = SendError.EncryptionAlgorithmNotSupported)
@@ -228,16 +228,19 @@ class OutboxMessageEventHandler(
                 return SendError.EncryptionAlgorithmNotSupported
             }
 
-            contentResult.isFailure -> {
-                val sendError = SendError.EncryptionError(contentResult.exceptionOrNull()?.message)
-                log.warn(contentResult.exceptionOrNull()) { "cannot send message" }
-                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                    it?.copy(sendError = sendError)
-                }
-                return sendError
+            encryptedContent.isFailure -> {
+                val exception = encryptedContent.exceptionOrNull()
+                if (exception == null || exception is RoomEventEncryptionServiceError) {
+                    val sendError = SendError.EncryptionError(exception?.message)
+                    log.warn(encryptedContent.exceptionOrNull()) { "cannot send message" }
+                    roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                        it?.copy(sendError = sendError)
+                    }
+                    return sendError
+                } else throw exception
             }
 
-            else -> contentResult.getOrThrow()
+            else -> encryptedContent.getOrThrow()
         }
         val eventId = try {
             log.debug { "send outbox message $transactionId into $roomId" }

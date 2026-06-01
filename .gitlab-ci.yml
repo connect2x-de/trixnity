@@ -7,23 +7,10 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 
 stages:
-  - changelog
-  - prepare-build
-  - build
+  - compile
+  - check
   - test
-  - security
   - publish
-  - website
-
-variables:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx1g
-  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-base:latest
-  TRIVY_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
-
-.docker-variables: &docker-variables
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_DRIVER: overlay2
 
 .artifact-reports: &artifact-reports
   name: reports
@@ -49,8 +36,8 @@ variables:
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   - if: '$CI_COMMIT_BRANCH =~ /^v-\d+.\d+.\d+.*/'
 
-build:mac:
-  stage: build
+compile:mac:
+  stage: compile
   interruptible: true
   tags: [ "connect2x-mac" ]
   rules:
@@ -61,95 +48,27 @@ build:mac:
       compileTestKotlin{IosSimulatorArm64,IosX64,MacosArm64,MacosX64}
       --stacktrace
 
-build:linux:
-  stage: build
+compile:linux:
+  stage: compile
   interruptible: true
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
+  tags: [ "connect2x-linux-shell" ]
   rules:
     - *if-merge-request
   script:
-    - gradle
+    - ./gradlew
       compileKotlin{Jvm,Js,WasmJs,LinuxX64,MingwX64}
       compileReleaseKotlinAndroid
       compileTestKotlin{Jvm,Js,WasmJs,LinuxX64,MingwX64}
       compileReleaseUnitTestKotlinAndroid
       --stacktrace
 
-test:mac:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:mac" ]
-  tags: [ "connect2x-mac" ]
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  script:
-    - ./gradlew
-      {iosSimulatorArm64,iosX64,macosArm64,macosX64}Test
-      --stacktrace
-
-test:linux:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  script:
-    - gradle
-      {jvm,js,wasmJs,linuxX64,mingwX64,testReleaseUnit}Test -x :trixnity-client:integration-tests:jvmTest
-      testCoverage
-      --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
-
-test:integration-test:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  services:
-    - name: docker:dind
-      command: [ "--tls=false" ]
-  variables: *docker-variables
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  script:
-    - gradle
-      :trixnity-client:integration-tests:jvmTest
-      -Dkotlinx.coroutines.debug
-      --stacktrace
-
-# requires macOS since it can build/emulate all other targets
-checkAbi:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:mac" ]
-  tags: [ "connect2x-mac" ]
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  script:
-    - ./gradlew dumpLegacyAbi --stacktrace
-    - ./gradlew checkLegacyAbi --stacktrace
-
-security:dependencies:
-  stage: security
+check:vulnerable-dependencies:
+  stage: check
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "connect2x-linux" ]
-  image: $TRIVY_LINUX_IMAGE_NAME
+  tags: [ "connect2x-linux-shell-small" ]
   variables:
-    TRIVY_CACHE_DIR: ".trivycache/"
     WITH_LOCK: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -168,11 +87,11 @@ security:dependencies:
     - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
 
-changelog:
-  stage: changelog
+check:changelog:
+  stage: check
   interruptible: true
   timeout: 5m
-  tags: [ "connect2x-linux" ]
+  tags: [ "connect2x-linux-shell-small" ]
   image:
     name: alpine/git:latest
     entrypoint: [ "" ] # tell gitlab to use `sh` instead of `git sh`
@@ -188,30 +107,127 @@ changelog:
         exit 1
       fi
 
-publish:mac-dev:
+# requires macOS since it can build/emulate all other targets
+check:abi:
+  stage: check
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:mac" ]
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew checkLegacyAbi --stacktrace
+
+test:unit:ios:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:mac" ]
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      {iosSimulatorArm64,iosX64}Test
+      testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:unit:mac:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:mac" ]
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      {macosArm64,macosX64}Test
+      testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:unit:jvm:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:linux" ]
+  tags: [ "connect2x-linux-shell" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      {jvm,testReleaseUnit}Test -x :trixnity-client:integration-tests:jvmTest
+      testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:unit:linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:linux" ]
+  tags: [ "connect2x-linux-shell" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      {linuxX64,mingwX64}Test
+      testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:unit:js:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:linux" ]
+  tags: [ "connect2x-linux-shell" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      {js,wasmJs}Test
+      testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:integration:jvm:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "compile:linux" ]
+  tags: [ "connect2x-linux-shell" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      :trixnity-client:integration-tests:jvmTest
+      -Dkotlinx.coroutines.debug
+      --stacktrace
+
+publish:snapshot:
   stage: publish
   tags: [ "connect2x-mac" ]
   timeout: 2h
-  rules:
-    - *if-dev-release
-  script:
-    - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64,MacosArm64,MacosX64}PublicationToGitLabRepository
-      --stacktrace
-
-publish:linux-dev:
-  stage: publish
-  tags: [ "connect2x-linux" ]
-  timeout: 2h
-  image: $BUILD_LINUX_IMAGE_NAME
   rules:
     - *if-dev-release
   artifacts:
     paths:
       - website/static/api/
   script:
-    - gradle
-      publish{KotlinMultiplatform,Jvm,Js,WasmJs,LinuxX64,MingwX64,AndroidRelease,TrixnityPlatform}PublicationToGitLabRepository
+    - ./gradlew
+      publishAllPublicationsToGitLabRepository
       dokkaHtmlToWebsite
       --stacktrace
 
@@ -228,7 +244,8 @@ publish:release:
       --stacktrace
 
 pages:
-  stage: website
+  stage: publish
+  tags: [ "connect2x-linux" ]
   image: node:lts
   rules:
     - *if-dev-release
