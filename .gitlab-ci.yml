@@ -216,20 +216,9 @@ test:integration:jvm:
       -Dkotlinx.coroutines.debug
       --stacktrace
 
-publish:mac-dev:
+publish:snapshot:
   stage: publish
   tags: [ "connect2x-mac" ]
-  timeout: 2h
-  rules:
-    - *if-dev-release
-  script:
-    - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64,MacosArm64,MacosX64}PublicationToGitLabRepository
-      --stacktrace
-
-publish:linux-dev:
-  stage: publish
-  tags: [ "connect2x-linux-shell" ]
   timeout: 2h
   rules:
     - *if-dev-release
@@ -238,7 +227,7 @@ publish:linux-dev:
       - website/static/api/
   script:
     - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,WasmJs,LinuxX64,MingwX64,AndroidRelease,TrixnityPlatform}PublicationToGitLabRepository
+      publishAllPublicationsToGitLabRepository
       dokkaHtmlToWebsite
       --stacktrace
 
