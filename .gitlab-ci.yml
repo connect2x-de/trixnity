@@ -256,7 +256,7 @@ publish:release:
 
 pages:
   stage: publish
-  tags: [ "connect2x-linux-small" ]
+  tags: [ "connect2x-linux" ]
   image: node:lts
   rules:
     - *if-dev-release
