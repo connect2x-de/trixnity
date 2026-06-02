@@ -3,6 +3,7 @@ import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.apache2
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.defaultDependencyLocking
 import de.connect2x.conventions.defaultPublishing
 import de.connect2x.conventions.enableAbiChecker
@@ -42,6 +43,12 @@ allprojects {
 }
 
 subprojects {
+    plugins.withId(PluginIds.KOTLIN_MULTIPLATFORM) {
+        extensions.configure<KotlinMultiplatformExtension> {
+            defaultCompilerOptions()
+        }
+    }
+
     if (!project.name.startsWith("trixnity-") || !buildFile.exists()) return@subprojects
 
     apply<MavenPublishPlugin>()
