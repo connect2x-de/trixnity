@@ -331,6 +331,13 @@ sealed interface ErrorResponse {
     data class AppserviceLoginUnsupported(override val error: String) : ErrorResponse
 
     /**
+     *  indicate that one of the homeservers of the invited users rejected the invite due to invite blocking.
+     */
+    @Serializable
+    @SerialName("M_INVITE_BLOCKED")
+    data class InviteBlocked(override val error: String) : ErrorResponse
+
+    /**
      * All ErrorResponses, that we cannot map to a subtype of ErrorResponse.
      */
     @Serializable

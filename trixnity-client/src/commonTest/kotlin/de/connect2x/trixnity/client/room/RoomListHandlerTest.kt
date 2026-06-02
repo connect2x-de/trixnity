@@ -1,9 +1,16 @@
 package de.connect2x.trixnity.client.room
 
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.MatrixClientConfiguration.DeleteRooms
+import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
+import de.connect2x.trixnity.client.getInMemoryRoomStateStore
+import de.connect2x.trixnity.client.getInMemoryRoomStore
+import de.connect2x.trixnity.client.getInMemoryServerDataStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.mocks.TransactionManagerMock
+import de.connect2x.trixnity.client.simpleRoom
+import de.connect2x.trixnity.client.simpleUserInfo
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomDisplayName
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -20,7 +27,13 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
-import de.connect2x.trixnity.core.model.events.m.room.*
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
@@ -46,7 +59,7 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     private val roomStore = getInMemoryRoomStore()
     private val roomStateStore = getInMemoryRoomStateStore()
     private val globalAccountDataStore = getInMemoryGlobalAccountDataStore()
-    private val roomAccountDataStore = getInMemoryRoomAccountDataStore()
+    private val serverDataStore = getInMemoryServerDataStore()
 
     private val config = MatrixClientConfiguration()
     private val forgetRooms = mutableListOf<RoomId>()
@@ -58,7 +71,7 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         roomStore = roomStore,
         roomStateStore = roomStateStore,
         globalAccountDataStore = globalAccountDataStore,
-        roomAccountDataStore = roomAccountDataStore,
+        serverDatastore = serverDataStore,
         forgetRoomService = { roomId, _ -> forgetRooms.add(roomId) },
         roomService = roomServiceMock,
         userInfo = simpleUserInfo,

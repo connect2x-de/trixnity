@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IdentityServerEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.InvitePermissionConfigEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
@@ -149,6 +150,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     globalAccountDataOf<DehydratedDeviceEventContent>("org.matrix.msc3814")
     globalAccountDataOf<IgnoredUserListEventContent>("m.ignored_user_list")
     globalAccountDataOf<RecentEmojiEventContent>("m.recent_emoji")
+    globalAccountDataOf<InvitePermissionConfigEventContent>("m.invite_permission_config")
 
     roomAccountDataOf<FullyReadEventContent>("m.fully_read")
     roomAccountDataOf<MarkedUnreadEventContent>("m.marked_unread")
