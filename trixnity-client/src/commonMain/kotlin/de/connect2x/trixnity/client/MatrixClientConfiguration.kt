@@ -4,6 +4,7 @@ import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import de.connect2x.trixnity.clientserverapi.client.sync
+import de.connect2x.trixnity.clientserverapi.model.server.Capability.ForgetForcedUponLeave
 import de.connect2x.trixnity.clientserverapi.model.user.Filters
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4354
@@ -39,7 +40,8 @@ data class MatrixClientConfiguration(
     var autoJoinUpgradedRooms: Boolean = true,
 
     /**
-     * How to handle left rooms. See [DeleteRooms]. Convention is [DeleteRooms.WhenNotJoined].
+     * How to handle left rooms. See [DeleteRooms] for the options.
+     * When [ForgetForcedUponLeave] is enabled by the homeserver, Trixnity acts like [DeleteRooms.OnLeave].
      */
     var deleteRooms: DeleteRooms = DeleteRooms.WhenNotJoined,
 
