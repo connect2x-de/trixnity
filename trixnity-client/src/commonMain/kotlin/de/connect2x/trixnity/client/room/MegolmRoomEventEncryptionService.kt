@@ -16,6 +16,7 @@ import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import kotlinx.coroutines.flow.collectLatest
@@ -45,6 +46,7 @@ class MegolmRoomEventEncryptionService(
         }
         if (encryptionEventContent?.algorithm != EncryptionAlgorithm.Megolm) return null
         if (content is ReactionEventContent) return Result.success(content)
+        if (content is RedactionEventContent) return Result.success(content)
 
         loadMembersService(roomId, wait = true)
 
