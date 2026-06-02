@@ -18,6 +18,7 @@ import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
+import de.connect2x.trixnity.core.model.events.m.RecentEmojiEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.TagEventContent
@@ -147,6 +148,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     @OptIn(MSC3814::class)
     globalAccountDataOf<DehydratedDeviceEventContent>("org.matrix.msc3814")
     globalAccountDataOf<IgnoredUserListEventContent>("m.ignored_user_list")
+    globalAccountDataOf<RecentEmojiEventContent>("m.recent_emoji")
 
     roomAccountDataOf<FullyReadEventContent>("m.fully_read")
     roomAccountDataOf<MarkedUnreadEventContent>("m.marked_unread")
