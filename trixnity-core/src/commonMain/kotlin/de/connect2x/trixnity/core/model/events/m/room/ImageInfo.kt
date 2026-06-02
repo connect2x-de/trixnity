@@ -22,6 +22,8 @@ data class ImageInfo(
     val thumbnailFile: EncryptedFile? = null,
     @SerialName("thumbnail_info")
     val thumbnailInfo: ThumbnailInfo? = null,
+    @SerialName("is_animated")
+    val isAnimated: Boolean? = null,
     @MSC2448
     @OptIn(ExperimentalSerializationApi::class)
     @JsonNames("blurhash")
