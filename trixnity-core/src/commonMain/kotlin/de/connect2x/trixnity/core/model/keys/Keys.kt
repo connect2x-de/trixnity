@@ -1,14 +1,25 @@
 package de.connect2x.trixnity.core.model.keys
 
+import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
+import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.Key.SignedCurve25519Key
+import de.connect2x.trixnity.core.model.keys.Key.UnknownKey
+import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
+import de.connect2x.trixnity.core.model.keys.KeyValue.SignedCurve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.KeyValue.UnknownKeyValue
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.model.keys.Key.*
-import de.connect2x.trixnity.core.model.keys.KeyValue.*
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import kotlin.jvm.JvmInline
 
 @Serializable(with = Keys.Serializer::class)
@@ -43,7 +54,7 @@ value class Keys(
                         is KeyAlgorithm.Unknown ->
                             UnknownKey(
                                 id = keyId,
-                                value = decoder.json.decodeFromJsonElement<UnknownKeyValue>(value),
+                                value = UnknownKeyValue(value),
                                 algorithm = KeyAlgorithm.Unknown(algorithm.name)
                             )
                     }

@@ -1,17 +1,27 @@
 package de.connect2x.trixnity.crypto
 
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent.CiphertextInfo
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent.CiphertextInfo.OlmMessageType
 import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.MacValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.core.model.keys.OlmMessageValue
-import de.connect2x.trixnity.core.model.keys.SessionKeyValue
-import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent.CiphertextInfo
-import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent.CiphertextInfo.OlmMessageType
-import de.connect2x.trixnity.core.model.keys.Key
-import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData
-import de.connect2x.trixnity.crypto.driver.keys.*
-import de.connect2x.trixnity.crypto.driver.megolm.*
+import de.connect2x.trixnity.core.model.keys.SessionKeyValue
+import de.connect2x.trixnity.crypto.driver.keys.Curve25519PublicKey
+import de.connect2x.trixnity.crypto.driver.keys.Curve25519PublicKeyFactory
+import de.connect2x.trixnity.crypto.driver.keys.Ed25519PublicKey
+import de.connect2x.trixnity.crypto.driver.keys.Ed25519PublicKeyFactory
+import de.connect2x.trixnity.crypto.driver.keys.Ed25519Signature
+import de.connect2x.trixnity.crypto.driver.keys.Ed25519SignatureFactory
+import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKey
+import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKeyFactory
+import de.connect2x.trixnity.crypto.driver.megolm.MegolmMessage
+import de.connect2x.trixnity.crypto.driver.megolm.MegolmMessageFactory
+import de.connect2x.trixnity.crypto.driver.megolm.SessionKey
+import de.connect2x.trixnity.crypto.driver.megolm.SessionKeyFactory
 import de.connect2x.trixnity.crypto.driver.olm.Message
 import de.connect2x.trixnity.crypto.driver.olm.MessageFactory
 import de.connect2x.trixnity.crypto.driver.olm.NormalMessageFactory
@@ -80,13 +90,9 @@ operator fun MessageFactory.invoke(ciphertextInfo: CiphertextInfo): Message = wh
     OlmMessageType.ORDINARY -> normal(ciphertextInfo.body)
 }
 
-operator fun Ed25519PublicKeyFactory.invoke(key: Key): Ed25519PublicKey = this(key.value)
+operator fun Ed25519PublicKeyFactory.invoke(key: Key.Ed25519Key): Ed25519PublicKey = this(key.value)
 
-operator fun Ed25519PublicKeyFactory.invoke(key: KeyValue): Ed25519PublicKey = this(key.value)
-
-operator fun Ed25519SignatureFactory.invoke(key: Key): Ed25519Signature = this(key.value)
-
-operator fun Ed25519SignatureFactory.invoke(key: KeyValue): Ed25519Signature = this(key.value)
+operator fun Ed25519SignatureFactory.invoke(key: Key.Ed25519Key): Ed25519Signature = this(key.value)
 
 operator fun Ed25519SignatureFactory.invoke(key: KeyValue.Ed25519KeyValue): Ed25519Signature = this(key.value)
 

@@ -1,8 +1,23 @@
 package de.connect2x.trixnity.clientserverapi.server
 
-import dev.mokkery.*
+import de.connect2x.trixnity.api.server.matrixApiServer
+import de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation
+import de.connect2x.trixnity.clientserverapi.model.discovery.GetPolicyServer
+import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.resetAnswers
+import dev.mokkery.resetCalls
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.*
@@ -10,14 +25,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.charsets.*
-import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation
-import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -52,9 +59,9 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun shouldGetWellKnown() = testApplication {
+    fun shouldGetClient() = testApplication {
         initCut()
-        everySuspend { handlerMock.getWellKnown(any()) }
+        everySuspend { handlerMock.getClient(any()) }
             .returns(
                 DiscoveryInformation(
                     homeserver = DiscoveryInformation.HomeserverInformation("https://matrix.example.com"),
@@ -77,7 +84,7 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
                 """.trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getWellKnown(any())
+            handlerMock.getClient(any())
         }
     }
 
@@ -124,6 +131,34 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         }
         verifySuspend {
             handlerMock.getSupport(any())
+        }
+    }
+
+    @Test
+    fun shouldGetPolicyServer() = testApplication {
+        initCut()
+        everySuspend { handlerMock.getPolicyServer(any()) }
+            .returns(
+                GetPolicyServer.Response(
+                    publicKeys = keysOf(
+                        Key.Ed25519Key(null, "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s")
+                    )
+                )
+            )
+        val response = client.get("/.well-known/matrix/policy_server")
+        assertSoftly(response) {
+            this.status shouldBe HttpStatusCode.OK
+            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.body<String>() shouldBe """
+                    {
+                      "public_keys": {
+                        "ed25519": "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s"
+                      }
+                    }
+                """.trimToFlatJson()
+        }
+        verifySuspend {
+            handlerMock.getPolicyServer(any())
         }
     }
 }

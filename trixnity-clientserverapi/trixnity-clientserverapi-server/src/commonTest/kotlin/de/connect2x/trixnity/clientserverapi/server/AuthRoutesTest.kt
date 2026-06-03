@@ -7,7 +7,6 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.BindThirdParty
 import de.connect2x.trixnity.clientserverapi.model.authentication.ChangePassword
 import de.connect2x.trixnity.clientserverapi.model.authentication.DeactivateAccount
 import de.connect2x.trixnity.clientserverapi.model.authentication.DeleteThirdPartyIdentifiers
-import de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation
 import de.connect2x.trixnity.clientserverapi.model.authentication.GetEmailRequestTokenForPassword
 import de.connect2x.trixnity.clientserverapi.model.authentication.GetEmailRequestTokenForRegistration
 import de.connect2x.trixnity.clientserverapi.model.authentication.GetLoginTypes
@@ -34,6 +33,7 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptV
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
+import de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation
 import de.connect2x.trixnity.clientserverapi.model.uia.RequestWithUIA
 import de.connect2x.trixnity.clientserverapi.model.uia.ResponseWithUIA
 import de.connect2x.trixnity.core.model.UserId

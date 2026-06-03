@@ -51,6 +51,7 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PinnedEventsEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PolicyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -112,6 +113,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ServerRuleEventContent>("m.policy.rule.server")
     stateOf<ParentEventContent>("m.space.parent")
     stateOf<ChildEventContent>("m.space.child")
+    stateOf<PolicyEventContent>("m.room.policy")
     @OptIn(MSC4143::class)
     stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContentSerializer())
     @OptIn(MSC4143::class)

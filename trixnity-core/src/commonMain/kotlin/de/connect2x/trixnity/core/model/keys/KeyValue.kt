@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core.model.keys
 
+import de.connect2x.trixnity.core.model.UserId
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -11,28 +12,28 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
-import de.connect2x.trixnity.core.model.UserId
 
 sealed interface KeyValue {
-    val value: String
 
     @Serializable(with = Ed25519KeyValue.Serializer::class)
     data class Ed25519KeyValue(
-        override val value: String,
+        val value: String,
     ) : KeyValue {
-        object Serializer : UnwrapSerializer<Ed25519KeyValue>("Ed25519KeyValue", ::Ed25519KeyValue)
+        object Serializer :
+            UnwrapSerializer<Ed25519KeyValue>("Ed25519KeyValue", ::Ed25519KeyValue, Ed25519KeyValue::value)
     }
 
     @Serializable(with = Curve25519KeyValue.Serializer::class)
     data class Curve25519KeyValue(
-        override val value: String,
+        val value: String,
     ) : KeyValue {
-        object Serializer : UnwrapSerializer<Curve25519KeyValue>("Curve25519KeyValue", ::Curve25519KeyValue)
+        object Serializer :
+            UnwrapSerializer<Curve25519KeyValue>("Curve25519KeyValue", ::Curve25519KeyValue, Curve25519KeyValue::value)
     }
 
     @Serializable(with = SignedCurve25519KeyValue.Serializer::class)
     class SignedCurve25519KeyValue(
-        override val value: String,
+        val value: String,
         val fallback: Boolean? = null,
         override val signatures: Signatures<UserId>,
     ) : KeyValue, Signed<SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable, UserId>(
@@ -68,13 +69,13 @@ sealed interface KeyValue {
     }
 
     data class UnknownKeyValue(
-        override val value: String,
         val raw: JsonElement,
     ) : KeyValue
 
     abstract class UnwrapSerializer<T : KeyValue>(
         name: String,
-        private val builder: (String) -> T
+        private val builder: (String) -> T,
+        private val value: (T) -> String,
     ) : KSerializer<T> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(name, PrimitiveKind.STRING)
 
@@ -83,9 +84,17 @@ sealed interface KeyValue {
         }
 
         override fun serialize(encoder: Encoder, value: T) {
-            encoder.encodeString(value.value)
+            encoder.encodeString(value(value))
         }
     }
 
-    companion object {}
+    companion object
 }
+
+val KeyValue.valueOrNull: String?
+    get() = when (this) {
+        is KeyValue.Ed25519KeyValue -> value
+        is KeyValue.Curve25519KeyValue -> value
+        is KeyValue.SignedCurve25519KeyValue -> value
+        is KeyValue.UnknownKeyValue -> null
+    }

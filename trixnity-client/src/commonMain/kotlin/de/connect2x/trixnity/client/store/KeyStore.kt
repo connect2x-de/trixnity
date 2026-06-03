@@ -1,18 +1,32 @@
 package de.connect2x.trixnity.client.store
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.*
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.store.cache.FullRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
+import de.connect2x.trixnity.client.store.repository.DeviceKeysRepository
+import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
+import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
+import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
+import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
+import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
+import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
+import de.connect2x.trixnity.client.store.repository.SecretKeyRequestRepository
+import de.connect2x.trixnity.client.store.repository.SecretsRepository
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.valueOrNull
 import de.connect2x.trixnity.crypto.SecretType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -187,7 +201,7 @@ class KeyStore(
                     keyAlgorithm = key.algorithm,
                 )
             ).first()?.let { state ->
-                if (state.keyValue == key.value.value) state
+                if (state.keyValue == key.value.valueOrNull) state
                 else KeyVerificationState.Blocked(state.keyValue)
             }
         }
