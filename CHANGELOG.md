@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated to Lognity 2.0.0
+- Updated to Lognity 2.1.0
+- Updated to Gradle 9.4.1
 - Add update loop for own profile data
 - Use shell runner for linux
 
