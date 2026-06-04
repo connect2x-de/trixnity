@@ -976,7 +976,7 @@ public final class de/connect2x/trixnity/client/room/RoomEventEncryptionServiceK
 
 public final class de/connect2x/trixnity/client/room/RoomListHandler : de/connect2x/trixnity/core/EventHandler {
 	public static final field Companion Lde/connect2x/trixnity/client/room/RoomListHandler$Companion;
-	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/store/RoomAccountDataStore;Lde/connect2x/trixnity/client/room/ForgetRoomService;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/TransactionManager;Lde/connect2x/trixnity/client/MatrixClientConfiguration;)V
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/store/ServerDataStore;Lde/connect2x/trixnity/client/room/ForgetRoomService;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/TransactionManager;Lde/connect2x/trixnity/client/MatrixClientConfiguration;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -1351,6 +1351,15 @@ public final class de/connect2x/trixnity/client/room/message/ReactKt {
 	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/client/store/TimelineEvent;Ljava/lang/String;)V
 	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;)V
 	public static final fun react--GFBcm4 (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/client/room/message/RedactKt {
+	public static final fun redact (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/client/store/TimelineEvent;Ljava/lang/String;)V
+	public static final fun redact (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;)V
+	public static synthetic fun redact$default (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/client/store/TimelineEvent;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun redact$default (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;ILjava/lang/Object;)V
+	public static final fun redact--GFBcm4 (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun redact--GFBcm4$default (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 }
 
 public final class de/connect2x/trixnity/client/room/message/ReplaceKt {

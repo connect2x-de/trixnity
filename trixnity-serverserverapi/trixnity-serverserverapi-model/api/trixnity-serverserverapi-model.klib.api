@@ -2250,4 +2250,10 @@ final object de.connect2x.trixnity.serverserverapi.model.federation/OnBindThirdP
     }
 }
 
+final object de.connect2x.trixnity.serverserverapi.model.policy/Sign : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.events/PersistentDataUnit<*>, kotlin/String>, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/Keys>>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.serverserverapi.model.policy/Sign|null[0]
+    final fun requestSerializerBuilder(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings, kotlinx.serialization.json/Json, de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.events/PersistentDataUnit<*>, kotlin/String>?): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.events/PersistentDataUnit<*>, kotlin/String>> // de.connect2x.trixnity.serverserverapi.model.policy/Sign.requestSerializerBuilder|requestSerializerBuilder(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.json.Json;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.events.PersistentDataUnit<*>,kotlin.String>?){}[0]
+    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.serverserverapi.model.policy/Sign> // de.connect2x.trixnity.serverserverapi.model.policy/Sign.serializer|serializer(){}[0]
+    final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.serverserverapi.model.policy/Sign.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+}
+
 final fun de.connect2x.trixnity.serverserverapi.model/requestAuthenticationBody(kotlin/String? = ..., kotlin/String, kotlin/String, kotlin/String, kotlin/String): kotlin/String // de.connect2x.trixnity.serverserverapi.model/requestAuthenticationBody|requestAuthenticationBody(kotlin.String?;kotlin.String;kotlin.String;kotlin.String;kotlin.String){}[0]

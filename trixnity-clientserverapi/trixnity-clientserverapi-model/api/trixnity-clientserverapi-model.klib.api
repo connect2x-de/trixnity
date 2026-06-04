@@ -148,6 +148,11 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.authentication.oaut
         final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
     }
 
+    final object DeviceCode : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.DeviceCode|null[0]
+        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.DeviceCode.value|{}value[0]
+            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.DeviceCode.value.<get-value>|<get-value>(){}[0]
+    }
+
     final object RefreshToken : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.RefreshToken|null[0]
         final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.RefreshToken.value|{}value[0]
             final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType.RefreshToken.value.<get-value>|<get-value>(){}[0]
@@ -189,14 +194,14 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.authentication.oaut
             final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.DeactivateAccount.value.<get-value>|<get-value>(){}[0]
     }
 
-    final object EndSession : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.EndSession|null[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.EndSession.value|{}value[0]
-            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.EndSession.value.<get-value>|<get-value>(){}[0]
+    final object DeleteDevice : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.DeleteDevice|null[0]
+        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.DeleteDevice.value|{}value[0]
+            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.DeleteDevice.value.<get-value>|<get-value>(){}[0]
     }
 
-    final object ListSessions : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListSessions|null[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListSessions.value|{}value[0]
-            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListSessions.value.<get-value>|<get-value>(){}[0]
+    final object ListDevices : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListDevices|null[0]
+        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListDevices.value|{}value[0]
+            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ListDevices.value.<get-value>|<get-value>(){}[0]
     }
 
     final object ResetCrossSigning : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ResetCrossSigning|null[0]
@@ -212,14 +217,14 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.authentication.oaut
         final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction) // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction){}[0]
     }
 
+    final object ViewDevice : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewDevice|null[0]
+        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewDevice.value|{}value[0]
+            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewDevice.value.<get-value>|<get-value>(){}[0]
+    }
+
     final object ViewProfile : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewProfile|null[0]
         final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewProfile.value|{}value[0]
             final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewProfile.value.<get-value>|<get-value>(){}[0]
-    }
-
-    final object ViewSession : de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewSession|null[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewSession.value|{}value[0]
-            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction.ViewSession.value.<get-value>|<get-value>(){}[0]
     }
 }
 
@@ -501,15 +506,18 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.authentication/Logi
         abstract fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.name.<get-name>|<get-name>(){}[0]
 
     final class SSO : de.connect2x.trixnity.clientserverapi.model.authentication/LoginType { // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO|null[0]
-        constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.LoginType.SSO.IdentityProvider>){}[0]
+        constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> = ..., kotlin/Boolean? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.LoginType.SSO.IdentityProvider>;kotlin.Boolean?){}[0]
 
         final val identityProviders // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.identityProviders|{}identityProviders[0]
             final fun <get-identityProviders>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.identityProviders.<get-identityProviders>|<get-identityProviders>(){}[0]
         final val name // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.name|{}name[0]
             final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.name.<get-name>|<get-name>(){}[0]
+        final val oAuth2AwarePreferred // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.oAuth2AwarePreferred|{}oAuth2AwarePreferred[0]
+            final fun <get-oAuth2AwarePreferred>(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.oAuth2AwarePreferred.<get-oAuth2AwarePreferred>|<get-oAuth2AwarePreferred>(){}[0]
 
         final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.component1|component1(){}[0]
-        final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> = ...): de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.LoginType.SSO.IdentityProvider>){}[0]
+        final fun component2(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.component2|component2(){}[0]
+        final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.IdentityProvider> = ..., kotlin/Boolean? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.LoginType.SSO.IdentityProvider>;kotlin.Boolean?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/LoginType.SSO.toString|toString(){}[0]
@@ -936,6 +944,38 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.key/SetRoomKeyBacku
 }
 
 sealed interface de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability|null[0]
+    final class AccountModeration : de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration|null[0]
+        constructor <init>(kotlin/Boolean? = ..., kotlin/Boolean? = ...) // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.<init>|<init>(kotlin.Boolean?;kotlin.Boolean?){}[0]
+
+        final val lock // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.lock|{}lock[0]
+            final fun <get-lock>(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.lock.<get-lock>|<get-lock>(){}[0]
+        final val suspend // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.suspend|{}suspend[0]
+            final fun <get-suspend>(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.suspend.<get-suspend>|<get-suspend>(){}[0]
+
+        final fun component1(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.component1|component1(){}[0]
+        final fun component2(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.component2|component2(){}[0]
+        final fun copy(kotlin/Boolean? = ..., kotlin/Boolean? = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.copy|copy(kotlin.Boolean?;kotlin.Boolean?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration> { // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration) // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.Capability.AccountModeration){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.Companion|null[0]
+            final const val name // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.Companion.name|{}name[0]
+                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.Companion.name.<get-name>|<get-name>(){}[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration> // de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration.Companion.serializer|serializer(){}[0]
+        }
+    }
+
     final class ChangePassword : de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword|null[0]
         constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword.<init>|<init>(kotlin.Boolean){}[0]
 
@@ -962,6 +1002,35 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.server/Capability {
                 final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword.Companion.name.<get-name>|<get-name>(){}[0]
 
             final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword> // de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class ForgetForcedUponLeave : de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val enabled // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.enabled|{}enabled[0]
+            final fun <get-enabled>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.enabled.<get-enabled>|<get-enabled>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave> { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave) // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.Capability.ForgetForcedUponLeave){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.Companion|null[0]
+            final const val name // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.Companion.name|{}name[0]
+                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.Companion.name.<get-name>|<get-name>(){}[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave> // de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave.Companion.serializer|serializer(){}[0]
         }
     }
 
@@ -1803,6 +1872,411 @@ final class <#A: kotlin/Any?> de.connect2x.trixnity.clientserverapi.model.uia/Re
     }
 }
 
+final class de.connect2x.trixnity.clientserverapi.model.admin/GetLock : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val userId // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.admin/GetLock // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.toString|toString(){}[0]
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val locked // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.locked|{}locked[0]
+            final fun <get-locked>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.locked.<get-locked>|<get-locked>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response) // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.GetLock.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response> // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetLock> { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/GetLock // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/GetLock) // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.GetLock){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetLock> // de.connect2x.trixnity.clientserverapi.model.admin/GetLock.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val userId // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.toString|toString(){}[0]
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val suspended // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.suspended|{}suspended[0]
+            final fun <get-suspended>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.suspended.<get-suspended>|<get-suspended>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response) // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.GetSuspend.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response> // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend> { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend) // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.GetSuspend){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend> // de.connect2x.trixnity.clientserverapi.model.admin/GetSuspend.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.admin/SetLock : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request, de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val userId // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetLock // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.toString|toString(){}[0]
+
+    final class Request { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val locked // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.locked|{}locked[0]
+            final fun <get-locked>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.locked.<get-locked>|<get-locked>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request> { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetLock.Request){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Request.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val locked // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.locked|{}locked[0]
+            final fun <get-locked>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.locked.<get-locked>|<get-locked>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetLock.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock> { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetLock // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetLock) // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetLock){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetLock> // de.connect2x.trixnity.clientserverapi.model.admin/SetLock.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request, de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val userId // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.toString|toString(){}[0]
+
+    final class Request { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val suspended // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.suspended|{}suspended[0]
+            final fun <get-suspended>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.suspended.<get-suspended>|<get-suspended>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request> { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetSuspend.Request){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Request.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response|null[0]
+        constructor <init>(kotlin/Boolean) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.<init>|<init>(kotlin.Boolean){}[0]
+
+        final val suspended // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.suspended|{}suspended[0]
+            final fun <get-suspended>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.suspended.<get-suspended>|<get-suspended>(){}[0]
+
+        final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.component1|component1(){}[0]
+        final fun copy(kotlin/Boolean = ...): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.copy|copy(kotlin.Boolean){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetSuspend.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend> { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend) // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.SetSuspend){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend> // de.connect2x.trixnity.clientserverapi.model.admin/SetSuspend.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.admin/WhoIs : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val userId // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.toString|toString(){}[0]
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response|null[0]
+        constructor <init>(de.connect2x.trixnity.core.model/UserId? = ..., kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.<init>|<init>(de.connect2x.trixnity.core.model.UserId?;kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo>?){}[0]
+
+        final val devices // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.devices|{}devices[0]
+            final fun <get-devices>(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.devices.<get-devices>|<get-devices>(){}[0]
+        final val userId // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.userId|{}userId[0]
+            final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.userId.<get-userId>|<get-userId>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.component1|component1(){}[0]
+        final fun component2(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.component2|component2(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model/UserId? = ..., kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.copy|copy(de.connect2x.trixnity.core.model.UserId?;kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo>?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.toString|toString(){}[0]
+
+        final class DeviceInfo { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo|null[0]
+            constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo>?){}[0]
+
+            final val sessions // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.sessions|{}sessions[0]
+                final fun <get-sessions>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.sessions.<get-sessions>|<get-sessions>(){}[0]
+
+            final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.component1|component1(){}[0]
+            final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo>?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.toString|toString(){}[0]
+
+            final class SessionInfo { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo|null[0]
+                constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>?){}[0]
+
+                final val connections // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.connections|{}connections[0]
+                    final fun <get-connections>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.connections.<get-connections>|<get-connections>(){}[0]
+
+                final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.component1|component1(){}[0]
+                final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>?){}[0]
+                final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.equals|equals(kotlin.Any?){}[0]
+                final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.hashCode|hashCode(){}[0]
+                final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.toString|toString(){}[0]
+
+                final class ConnectionInfo { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo|null[0]
+                    constructor <init>(kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.<init>|<init>(kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+
+                    final val ip // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.ip|{}ip[0]
+                        final fun <get-ip>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.ip.<get-ip>|<get-ip>(){}[0]
+                    final val lastSeen // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.lastSeen|{}lastSeen[0]
+                        final fun <get-lastSeen>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.lastSeen.<get-lastSeen>|<get-lastSeen>(){}[0]
+                    final val userAgent // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.userAgent|{}userAgent[0]
+                        final fun <get-userAgent>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.userAgent.<get-userAgent>|<get-userAgent>(){}[0]
+
+                    final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component1|component1(){}[0]
+                    final fun component2(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component2|component2(){}[0]
+                    final fun component3(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component3|component3(){}[0]
+                    final fun copy(kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.copy|copy(kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
+                    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.equals|equals(kotlin.Any?){}[0]
+                    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.hashCode|hashCode(){}[0]
+                    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.toString|toString(){}[0]
+
+                    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer|null[0]
+                        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.descriptor|{}descriptor[0]
+                            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+                        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.childSerializers|childSerializers(){}[0]
+                        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo){}[0]
+                    }
+
+                    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.Companion|null[0]
+                        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.Companion.serializer|serializer(){}[0]
+                    }
+                }
+
+                final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer|null[0]
+                    final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.descriptor|{}descriptor[0]
+                        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+                    final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.childSerializers|childSerializers(){}[0]
+                    final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                    final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo.SessionInfo){}[0]
+                }
+
+                final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.Companion|null[0]
+                    final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.Companion.$childSerializers|{}$childSerializers[0]
+
+                    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.SessionInfo.Companion.serializer|serializer(){}[0]
+                }
+            }
+
+            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer|null[0]
+                final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer.descriptor|{}descriptor[0]
+                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer.childSerializers|childSerializers(){}[0]
+                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response.DeviceInfo){}[0]
+            }
+
+            final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.Companion|null[0]
+                final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.Companion.$childSerializers|{}$childSerializers[0]
+
+                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.DeviceInfo.Companion.serializer|serializer(){}[0]
+            }
+        }
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.WhoIs.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.Companion|null[0]
+            final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs> { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.admin/WhoIs // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.admin/WhoIs) // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.admin.WhoIs){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.admin/WhoIs> // de.connect2x.trixnity.clientserverapi.model.admin/WhoIs.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class de.connect2x.trixnity.clientserverapi.model.appservice/Ping : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.clientserverapi.model.appservice/Ping.Request, de.connect2x.trixnity.clientserverapi.model.appservice/Ping.Response> { // de.connect2x.trixnity.clientserverapi.model.appservice/Ping|null[0]
     constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.appservice/Ping.<init>|<init>(kotlin.String){}[0]
 
@@ -1882,7 +2356,7 @@ final class de.connect2x.trixnity.clientserverapi.model.appservice/Ping : de.con
 }
 
 final class de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata { // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata|null[0]
-    constructor <init>(io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod>, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType>, io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/PromptValue>? = ..., io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseMode>, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseType>, io.ktor.http/Url, io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? = ..., io.ktor.http/Url? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.<init>|<init>(io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType>;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue>?;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType>;io.ktor.http.Url;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction>?;io.ktor.http.Url?){}[0]
+    constructor <init>(io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod>, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType>, io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/PromptValue>? = ..., io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseMode>, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseType>, io.ktor.http/Url, io.ktor.http/Url, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? = ..., io.ktor.http/Url? = ..., io.ktor.http/Url? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.<init>|<init>(io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType>;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue>?;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType>;io.ktor.http.Url;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction>?;io.ktor.http.Url?;io.ktor.http.Url?){}[0]
 
     final val accountManagementActionsSupported // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.accountManagementActionsSupported|{}accountManagementActionsSupported[0]
         final fun <get-accountManagementActionsSupported>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.accountManagementActionsSupported.<get-accountManagementActionsSupported>|<get-accountManagementActionsSupported>(){}[0]
@@ -1892,6 +2366,8 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/Se
         final fun <get-authorizationEndpoint>(): io.ktor.http/Url // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.authorizationEndpoint.<get-authorizationEndpoint>|<get-authorizationEndpoint>(){}[0]
     final val codeChallengeMethodsSupported // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.codeChallengeMethodsSupported|{}codeChallengeMethodsSupported[0]
         final fun <get-codeChallengeMethodsSupported>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.codeChallengeMethodsSupported.<get-codeChallengeMethodsSupported>|<get-codeChallengeMethodsSupported>(){}[0]
+    final val deviceAuthorizationEndpoint // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.deviceAuthorizationEndpoint|{}deviceAuthorizationEndpoint[0]
+        final fun <get-deviceAuthorizationEndpoint>(): io.ktor.http/Url? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.deviceAuthorizationEndpoint.<get-deviceAuthorizationEndpoint>|<get-deviceAuthorizationEndpoint>(){}[0]
     final val grantTypesSupported // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.grantTypesSupported|{}grantTypesSupported[0]
         final fun <get-grantTypesSupported>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.grantTypesSupported.<get-grantTypesSupported>|<get-grantTypesSupported>(){}[0]
     final val issuer // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.issuer|{}issuer[0]
@@ -1913,6 +2389,7 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/Se
     final fun component10(): io.ktor.http/Url // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component10|component10(){}[0]
     final fun component11(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component11|component11(){}[0]
     final fun component12(): io.ktor.http/Url? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component12|component12(){}[0]
+    final fun component13(): io.ktor.http/Url? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component13|component13(){}[0]
     final fun component2(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component2|component2(){}[0]
     final fun component3(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component3|component3(){}[0]
     final fun component4(): io.ktor.http/Url // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component4|component4(){}[0]
@@ -1921,7 +2398,7 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/Se
     final fun component7(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseMode> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component7|component7(){}[0]
     final fun component8(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseType> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component8|component8(){}[0]
     final fun component9(): io.ktor.http/Url // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.component9|component9(){}[0]
-    final fun copy(io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod> = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType> = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/PromptValue>? = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseMode> = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseType> = ..., io.ktor.http/Url = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? = ..., io.ktor.http/Url? = ...): de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.copy|copy(io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType>;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue>?;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType>;io.ktor.http.Url;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction>?;io.ktor.http.Url?){}[0]
+    final fun copy(io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/CodeChallengeMethod> = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/GrantType> = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/PromptValue>? = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseMode> = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ResponseType> = ..., io.ktor.http/Url = ..., io.ktor.http/Url = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction>? = ..., io.ktor.http/Url? = ..., io.ktor.http/Url? = ...): de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.copy|copy(io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType>;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue>?;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode>;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType>;io.ktor.http.Url;io.ktor.http.Url;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction>?;io.ktor.http.Url?;io.ktor.http.Url?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.toString|toString(){}[0]
@@ -1939,87 +2416,6 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/Se
         final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.Companion.$childSerializers|{}$childSerializers[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata> // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata.Companion.serializer|serializer(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation|null[0]
-    constructor <init>(de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.<init>|<init>(de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.HomeserverInformation;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.IdentityServerInformation?){}[0]
-
-    final val homeserver // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.homeserver|{}homeserver[0]
-        final fun <get-homeserver>(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.homeserver.<get-homeserver>|<get-homeserver>(){}[0]
-    final val identityServer // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.identityServer|{}identityServer[0]
-        final fun <get-identityServer>(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.identityServer.<get-identityServer>|<get-identityServer>(){}[0]
-
-    final fun component1(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation = ..., de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.copy|copy(de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.HomeserverInformation;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.IdentityServerInformation?){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.toString|toString(){}[0]
-
-    final class HomeserverInformation { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation|null[0]
-        constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.<init>|<init>(kotlin.String){}[0]
-
-        final val baseUrl // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.baseUrl|{}baseUrl[0]
-            final fun <get-baseUrl>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
-
-        final fun component1(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.component1|component1(){}[0]
-        final fun copy(kotlin/String = ...): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.copy|copy(kotlin.String){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation> { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.HomeserverInformation){}[0]
-        }
-
-        final object Companion { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.HomeserverInformation.Companion.serializer|serializer(){}[0]
-        }
-    }
-
-    final class IdentityServerInformation { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation|null[0]
-        constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.<init>|<init>(kotlin.String){}[0]
-
-        final val baseUrl // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.baseUrl|{}baseUrl[0]
-            final fun <get-baseUrl>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
-
-        final fun component1(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.component1|component1(){}[0]
-        final fun copy(kotlin/String = ...): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.copy|copy(kotlin.String){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation> { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation.IdentityServerInformation){}[0]
-        }
-
-        final object Companion { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.IdentityServerInformation.Companion.serializer|serializer(){}[0]
-        }
-    }
-
-    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation> { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer.childSerializers|childSerializers(){}[0]
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation) // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation){}[0]
-    }
-
-    final object Companion { // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.Companion|null[0]
-        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation> // de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -2570,6 +2966,87 @@ final class de.connect2x.trixnity.clientserverapi.model.device/UpdateDevice : de
 
     final object Companion { // de.connect2x.trixnity.clientserverapi.model.device/UpdateDevice.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.device/UpdateDevice> // de.connect2x.trixnity.clientserverapi.model.device/UpdateDevice.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation|null[0]
+    constructor <init>(de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation? = ...) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.<init>|<init>(de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.HomeserverInformation;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.IdentityServerInformation?){}[0]
+
+    final val homeserver // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.homeserver|{}homeserver[0]
+        final fun <get-homeserver>(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.homeserver.<get-homeserver>|<get-homeserver>(){}[0]
+    final val identityServer // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.identityServer|{}identityServer[0]
+        final fun <get-identityServer>(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation? // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.identityServer.<get-identityServer>|<get-identityServer>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation? // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation = ..., de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation? = ...): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.copy|copy(de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.HomeserverInformation;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.IdentityServerInformation?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.toString|toString(){}[0]
+
+    final class HomeserverInformation { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation|null[0]
+        constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.<init>|<init>(kotlin.String){}[0]
+
+        final val baseUrl // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+
+        final fun component1(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation> { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.HomeserverInformation){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.HomeserverInformation.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class IdentityServerInformation { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation|null[0]
+        constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.<init>|<init>(kotlin.String){}[0]
+
+        final val baseUrl // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.baseUrl|{}baseUrl[0]
+            final fun <get-baseUrl>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.baseUrl.<get-baseUrl>|<get-baseUrl>(){}[0]
+
+        final fun component1(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation> { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation.IdentityServerInformation){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.IdentityServerInformation.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation> { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation) // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation> // de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -6061,16 +6538,13 @@ final class de.connect2x.trixnity.clientserverapi.model.room/ReportEvent : de.co
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.toString|toString(){}[0]
 
     final class Request { // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request|null[0]
-        constructor <init>(kotlin/String? = ..., kotlin/Long?) // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.<init>|<init>(kotlin.String?;kotlin.Long?){}[0]
+        constructor <init>(kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.<init>|<init>(kotlin.String?){}[0]
 
         final val reason // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.reason|{}reason[0]
             final fun <get-reason>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.reason.<get-reason>|<get-reason>(){}[0]
-        final val score // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.score|{}score[0]
-            final fun <get-score>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.score.<get-score>|<get-score>(){}[0]
 
         final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.component1|component1(){}[0]
-        final fun component2(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.component2|component2(){}[0]
-        final fun copy(kotlin/String? = ..., kotlin/Long? = ...): de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.copy|copy(kotlin.String?;kotlin.Long?){}[0]
+        final fun copy(kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.copy|copy(kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/ReportEvent.Request.toString|toString(){}[0]
@@ -7304,151 +7778,6 @@ final class de.connect2x.trixnity.clientserverapi.model.server/Search : de.conne
 
     final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/Search.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/Search> // de.connect2x.trixnity.clientserverapi.model.server/Search.Companion.serializer|serializer(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.clientserverapi.model.server/WhoIs : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
-
-    final val userId // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.userId|{}userId[0]
-        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.userId.<get-userId>|<get-userId>(){}[0]
-
-    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.component1|component1(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.clientserverapi.model.server/WhoIs // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.toString|toString(){}[0]
-
-    final class Response { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response|null[0]
-        constructor <init>(de.connect2x.trixnity.core.model/UserId? = ..., kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.<init>|<init>(de.connect2x.trixnity.core.model.UserId?;kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo>?){}[0]
-
-        final val devices // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.devices|{}devices[0]
-            final fun <get-devices>(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.devices.<get-devices>|<get-devices>(){}[0]
-        final val userId // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.userId|{}userId[0]
-            final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.userId.<get-userId>|<get-userId>(){}[0]
-
-        final fun component1(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.component1|component1(){}[0]
-        final fun component2(): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.component2|component2(){}[0]
-        final fun copy(de.connect2x.trixnity.core.model/UserId? = ..., kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.copy|copy(de.connect2x.trixnity.core.model.UserId?;kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo>?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.toString|toString(){}[0]
-
-        final class DeviceInfo { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo|null[0]
-            constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo>?){}[0]
-
-            final val sessions // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.sessions|{}sessions[0]
-                final fun <get-sessions>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.sessions.<get-sessions>|<get-sessions>(){}[0]
-
-            final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.component1|component1(){}[0]
-            final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo>?){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.toString|toString(){}[0]
-
-            final class SessionInfo { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo|null[0]
-                constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? = ...) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>?){}[0]
-
-                final val connections // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.connections|{}connections[0]
-                    final fun <get-connections>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.connections.<get-connections>|<get-connections>(){}[0]
-
-                final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.component1|component1(){}[0]
-                final fun copy(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>? = ...): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo>?){}[0]
-                final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.equals|equals(kotlin.Any?){}[0]
-                final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.hashCode|hashCode(){}[0]
-                final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.toString|toString(){}[0]
-
-                final class ConnectionInfo { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo|null[0]
-                    constructor <init>(kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.<init>|<init>(kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
-
-                    final val ip // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.ip|{}ip[0]
-                        final fun <get-ip>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.ip.<get-ip>|<get-ip>(){}[0]
-                    final val lastSeen // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.lastSeen|{}lastSeen[0]
-                        final fun <get-lastSeen>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.lastSeen.<get-lastSeen>|<get-lastSeen>(){}[0]
-                    final val userAgent // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.userAgent|{}userAgent[0]
-                        final fun <get-userAgent>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.userAgent.<get-userAgent>|<get-userAgent>(){}[0]
-
-                    final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component1|component1(){}[0]
-                    final fun component2(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component2|component2(){}[0]
-                    final fun component3(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.component3|component3(){}[0]
-                    final fun copy(kotlin/String? = ..., kotlin/Long? = ..., kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.copy|copy(kotlin.String?;kotlin.Long?;kotlin.String?){}[0]
-                    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.equals|equals(kotlin.Any?){}[0]
-                    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.hashCode|hashCode(){}[0]
-                    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.toString|toString(){}[0]
-
-                    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer|null[0]
-                        final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.descriptor|{}descriptor[0]
-                            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-                        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.childSerializers|childSerializers(){}[0]
-                        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-                        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo){}[0]
-                    }
-
-                    final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.Companion|null[0]
-                        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo.Companion.serializer|serializer(){}[0]
-                    }
-                }
-
-                final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer|null[0]
-                    final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.descriptor|{}descriptor[0]
-                        final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-                    final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.childSerializers|childSerializers(){}[0]
-                    final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-                    final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo.SessionInfo){}[0]
-                }
-
-                final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.Companion|null[0]
-                    final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.Companion.$childSerializers|{}$childSerializers[0]
-
-                    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.SessionInfo.Companion.serializer|serializer(){}[0]
-                }
-            }
-
-            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer|null[0]
-                final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer.descriptor|{}descriptor[0]
-                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer.childSerializers|childSerializers(){}[0]
-                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response.DeviceInfo){}[0]
-            }
-
-            final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.Companion|null[0]
-                final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.Companion.$childSerializers|{}$childSerializers[0]
-
-                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.DeviceInfo.Companion.serializer|serializer(){}[0]
-            }
-        }
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.WhoIs.Response){}[0]
-        }
-
-        final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.Companion|null[0]
-            final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.Companion.$childSerializers|{}$childSerializers[0]
-
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Response.Companion.serializer|serializer(){}[0]
-        }
-    }
-
-    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs> { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer.childSerializers|childSerializers(){}[0]
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.server/WhoIs // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.server/WhoIs) // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.server.WhoIs){}[0]
-    }
-
-    final object Companion { // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Companion|null[0]
-        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.server/WhoIs> // de.connect2x.trixnity.clientserverapi.model.server/WhoIs.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -9871,7 +10200,7 @@ final object de.connect2x.trixnity.clientserverapi.model.authentication/Login : 
     }
 
     final class Response { // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response|null[0]
-        constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin/Long? = ..., kotlin/String? = ..., kotlin/String, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Long?;kotlin.String?;kotlin.String;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation?){}[0]
+        constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin/Long? = ..., kotlin/String? = ..., kotlin/String, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Long?;kotlin.String?;kotlin.String;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation?){}[0]
 
         final val accessToken // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.accessToken|{}accessToken[0]
             final fun <get-accessToken>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.accessToken.<get-accessToken>|<get-accessToken>(){}[0]
@@ -9880,7 +10209,7 @@ final object de.connect2x.trixnity.clientserverapi.model.authentication/Login : 
         final val deviceId // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.deviceId|{}deviceId[0]
             final fun <get-deviceId>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.deviceId.<get-deviceId>|<get-deviceId>(){}[0]
         final val discoveryInformation // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.discoveryInformation|{}discoveryInformation[0]
-            final fun <get-discoveryInformation>(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.discoveryInformation.<get-discoveryInformation>|<get-discoveryInformation>(){}[0]
+            final fun <get-discoveryInformation>(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.discoveryInformation.<get-discoveryInformation>|<get-discoveryInformation>(){}[0]
         final val refreshToken // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.refreshToken|{}refreshToken[0]
             final fun <get-refreshToken>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.refreshToken.<get-refreshToken>|<get-refreshToken>(){}[0]
         final val userId // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.userId|{}userId[0]
@@ -9891,8 +10220,8 @@ final object de.connect2x.trixnity.clientserverapi.model.authentication/Login : 
         final fun component3(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.component3|component3(){}[0]
         final fun component4(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.component4|component4(){}[0]
         final fun component5(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.component5|component5(){}[0]
-        final fun component6(): de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.component6|component6(){}[0]
-        final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String = ..., kotlin/Long? = ..., kotlin/String? = ..., kotlin/String = ..., de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Long?;kotlin.String?;kotlin.String;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation?){}[0]
+        final fun component6(): de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation? // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.component6|component6(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String = ..., kotlin/Long? = ..., kotlin/String? = ..., kotlin/String = ..., de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Long?;kotlin.String?;kotlin.String;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Login.Response.toString|toString(){}[0]
@@ -10329,6 +10658,43 @@ final object de.connect2x.trixnity.clientserverapi.model.device/SetDehydratedDev
     }
 }
 
+final object de.connect2x.trixnity.clientserverapi.model.discovery/GetClient : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.discovery/GetClient|null[0]
+    final fun responseSerializerBuilder(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings, kotlinx.serialization.json/Json, de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation?): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/DiscoveryInformation> // de.connect2x.trixnity.clientserverapi.model.discovery/GetClient.responseSerializerBuilder|responseSerializerBuilder(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.json.Json;de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation?){}[0]
+    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetClient> // de.connect2x.trixnity.clientserverapi.model.discovery/GetClient.serializer|serializer(){}[0]
+    final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.discovery/GetClient.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+}
+
+final object de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer|null[0]
+    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer> // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.serializer|serializer(){}[0]
+    final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response|null[0]
+        constructor <init>(de.connect2x.trixnity.core.model.keys/Keys) // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.<init>|<init>(de.connect2x.trixnity.core.model.keys.Keys){}[0]
+
+        final val publicKeys // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.publicKeys|{}publicKeys[0]
+            final fun <get-publicKeys>(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.publicKeys.<get-publicKeys>|<get-publicKeys>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.component1|component1(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model.keys/Keys = ...): de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.copy|copy(de.connect2x.trixnity.core.model.keys.Keys){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response> { // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response) // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.discovery.GetPolicyServer.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response> // de.connect2x.trixnity.clientserverapi.model.discovery/GetPolicyServer.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+}
+
 final object de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport.Response>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport|null[0]
     final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport> // de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport.serializer|serializer(){}[0]
     final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
@@ -10444,12 +10810,6 @@ final object de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport : 
             final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport.Response> // de.connect2x.trixnity.clientserverapi.model.discovery/GetSupport.Response.Companion.serializer|serializer(){}[0]
         }
     }
-}
-
-final object de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown|null[0]
-    final fun responseSerializerBuilder(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings, kotlinx.serialization.json/Json, de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation?): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.authentication/DiscoveryInformation>? // de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown.responseSerializerBuilder|responseSerializerBuilder(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.json.Json;de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation?){}[0]
-    final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown> // de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown.serializer|serializer(){}[0]
-    final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.discovery/GetWellKnown.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
 }
 
 final object de.connect2x.trixnity.clientserverapi.model.key/AddSignatures : de.connect2x.trixnity.core/MatrixEndpoint<kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement>>, de.connect2x.trixnity.clientserverapi.model.key/AddSignatures.Response>, kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.key/AddSignatures|null[0]
@@ -11475,8 +11835,12 @@ final object de.connect2x.trixnity.clientserverapi.model.user/SearchUsers : de.c
     }
 }
 
+final val de.connect2x.trixnity.clientserverapi.model.server/accountModeration // de.connect2x.trixnity.clientserverapi.model.server/accountModeration|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}accountModeration[0]
+    final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-accountModeration>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration // de.connect2x.trixnity.clientserverapi.model.server/accountModeration.<get-accountModeration>|<get-accountModeration>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/changePassword // de.connect2x.trixnity.clientserverapi.model.server/changePassword|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}changePassword[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-changePassword>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword // de.connect2x.trixnity.clientserverapi.model.server/changePassword.<get-changePassword>|<get-changePassword>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
+final val de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}forgetForcedUponLeave[0]
+    final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-forgetForcedUponLeave>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave.<get-forgetForcedUponLeave>|<get-forgetForcedUponLeave>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/getLoginToken // de.connect2x.trixnity.clientserverapi.model.server/getLoginToken|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}getLoginToken[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-getLoginToken>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.GetLoginToken // de.connect2x.trixnity.clientserverapi.model.server/getLoginToken.<get-getLoginToken>|<get-getLoginToken>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/profileFields // de.connect2x.trixnity.clientserverapi.model.server/profileFields|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}profileFields[0]
@@ -11496,4 +11860,5 @@ final val de.connect2x.trixnity.clientserverapi.model.user/displayName // de.con
 final val de.connect2x.trixnity.clientserverapi.model.user/timeZone // de.connect2x.trixnity.clientserverapi.model.user/timeZone|@de.connect2x.trixnity.clientserverapi.model.user.Profile{}timeZone[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.user/Profile).<get-timeZone>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/timeZone.<get-timeZone>|<get-timeZone>@de.connect2x.trixnity.clientserverapi.model.user.Profile(){}[0]
 
+final fun (de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata).de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/accountManagementUri(de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction, kotlin/String? = ...): io.ktor.http/Url? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/accountManagementUri|accountManagementUri@de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata(de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction;kotlin.String?){}[0]
 final fun (de.connect2x.trixnity.clientserverapi.model.sync/Sync.Response).de.connect2x.trixnity.clientserverapi.model.sync/allEvents(): kotlin.collections/List<de.connect2x.trixnity.core.model.events/ClientEvent<*>> // de.connect2x.trixnity.clientserverapi.model.sync/allEvents|allEvents@de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response(){}[0]

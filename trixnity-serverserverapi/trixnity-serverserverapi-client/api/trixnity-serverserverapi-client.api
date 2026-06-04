@@ -119,6 +119,7 @@ public abstract interface class de/connect2x/trixnity/serverserverapi/client/Mat
 	public abstract fun getBaseClient ()Lde/connect2x/trixnity/api/client/MatrixApiClient;
 	public abstract fun getDiscovery ()Lde/connect2x/trixnity/serverserverapi/client/DiscoveryApiClient;
 	public abstract fun getFederation ()Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;
+	public abstract fun getPolicy ()Lde/connect2x/trixnity/serverserverapi/client/PolicyApiClient;
 }
 
 public final class de/connect2x/trixnity/serverserverapi/client/MatrixServerServerApiClientImpl : de/connect2x/trixnity/serverserverapi/client/MatrixServerServerApiClient {
@@ -130,6 +131,8 @@ public final class de/connect2x/trixnity/serverserverapi/client/MatrixServerServ
 	public fun getDiscovery ()Lde/connect2x/trixnity/serverserverapi/client/DiscoveryApiClientImpl;
 	public synthetic fun getFederation ()Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;
 	public fun getFederation ()Lde/connect2x/trixnity/serverserverapi/client/FederationApiClientImpl;
+	public synthetic fun getPolicy ()Lde/connect2x/trixnity/serverserverapi/client/PolicyApiClient;
+	public fun getPolicy ()Lde/connect2x/trixnity/serverserverapi/client/PolicyApiClientImpl;
 }
 
 public final class de/connect2x/trixnity/serverserverapi/client/MatrixSignatureAuthPlugin : io/ktor/client/plugins/HttpClientPlugin {
@@ -139,5 +142,14 @@ public final class de/connect2x/trixnity/serverserverapi/client/MatrixSignatureA
 	public fun install (Lkotlin/Unit;Lio/ktor/client/HttpClient;)V
 	public synthetic fun prepare (Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 	public fun prepare (Lkotlin/jvm/functions/Function1;)V
+}
+
+public abstract interface class de/connect2x/trixnity/serverserverapi/client/PolicyApiClient {
+	public abstract fun sign-gIAlu-s (Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/serverserverapi/client/PolicyApiClientImpl : de/connect2x/trixnity/serverserverapi/client/PolicyApiClient {
+	public fun <init> (Lde/connect2x/trixnity/api/client/MatrixApiClient;)V
+	public fun sign-gIAlu-s (Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
