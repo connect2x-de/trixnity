@@ -18,6 +18,10 @@ sealed interface GrantType {
         override val value: String = "authorization_code"
     }
 
+    object DeviceCode : GrantType {
+        override val value: String = "urn:ietf:params:oauth:grant-type:device_code"
+    }
+
     object RefreshToken : GrantType {
         override val value: String = "refresh_token"
     }
@@ -31,6 +35,7 @@ sealed interface GrantType {
         override fun deserialize(decoder: Decoder): GrantType = when (val value = decoder.decodeString().lowercase()) {
             AuthorizationCode.value -> AuthorizationCode
             RefreshToken.value -> RefreshToken
+            DeviceCode.value -> DeviceCode
             else -> Unknown(value)
         }
 

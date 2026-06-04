@@ -31,7 +31,8 @@ class OAuth2ApiClientTest {
         responseTypesSupported = setOf(ResponseType.Code),
         responseModesSupported = setOf(ResponseMode.Query),
         promptValuesSupported = setOf(PromptValue.Create),
-        grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode)
+        grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode),
+        deviceAuthorizationEndpoint = Url("https://auth.matrix.host/device"),
     )
 
     @Test
@@ -108,7 +109,52 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    fun shouldGetToken() = runTest {
+    fun shouldDeviceAuthorization() = runTest {
+        val matrixRestClient = OAuth2ApiClient(
+            serverMetadata = serverMetadata,
+            httpClientEngine = scopedMockEngine {
+                addHandler { request ->
+                    request.url.toString() shouldBe "https://auth.matrix.host/device"
+                    request.body.toByteArray()
+                        .decodeToString() shouldBe
+                            "client_id=clientId" +
+                            "&scope=urn%3Amatrix%3Aclient%3Aapi%3A%2A+urn%3Amatrix%3Aclient%3Adevice%3AdeviceId"
+                    request.body.contentType shouldBe ContentType.Application.FormUrlEncoded.withCharset(Charsets.UTF_8)
+                    request.method shouldBe HttpMethod.Post
+
+                    respond(
+                        """
+                                {
+                                  "device_code": "DEVICE_CODE",
+                                  "user_code": "USER_CODE",
+                                  "verification_uri": "https://auth.matrix.host/verification",
+                                  "verification_uri_complete": "https://auth.matrix.host/verification?user_code=USER_CODE",
+                                  "expires_in": 1800,
+                                  "interval": 6
+                                }
+                        """.trimIndent(),
+                        HttpStatusCode.OK,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                    )
+                }
+            }
+        )
+
+        matrixRestClient.deviceAuthorization(
+            clientId = "clientId",
+            deviceId = "deviceId",
+        ).getOrThrow() shouldBe DeviceAuthorizationResponse(
+            deviceCode = "DEVICE_CODE",
+            userCode = "USER_CODE",
+            verificationUri = Url("https://auth.matrix.host/verification"),
+            verificationUriComplete = Url("https://auth.matrix.host/verification?user_code=USER_CODE"),
+            expiresIn = 1800,
+            interval = 6
+        )
+    }
+
+    @Test
+    fun shouldGetTokenByAuthorizationCode() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
             httpClientEngine = scopedMockEngine {
@@ -139,7 +185,7 @@ class OAuth2ApiClientTest {
             }
         )
 
-        matrixRestClient.getToken(
+        matrixRestClient.getTokenByAuthorizationCode(
             clientId = "clientId",
             redirectUri = "trixnity://sso",
             code = "CODE",
@@ -154,7 +200,7 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    fun shouldRefreshToken() = runTest {
+    fun shouldGetRefreshToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
             httpClientEngine = scopedMockEngine {
@@ -184,7 +230,7 @@ class OAuth2ApiClientTest {
             }
         )
 
-        matrixRestClient.refreshToken(
+        matrixRestClient.getRefreshToken(
             refreshToken = "refresh",
             clientId = "clientId",
         ).getOrThrow() shouldBe TokenResponse(

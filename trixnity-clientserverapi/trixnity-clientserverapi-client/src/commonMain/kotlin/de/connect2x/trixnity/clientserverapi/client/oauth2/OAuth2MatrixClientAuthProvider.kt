@@ -1,18 +1,25 @@
 package de.connect2x.trixnity.clientserverapi.client.oauth2
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.BearerClientAuthProvider
+import de.connect2x.trixnity.clientserverapi.client.BearerTokens
+import de.connect2x.trixnity.clientserverapi.client.LogoutInfo
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProvider
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderDataStore
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.getAuthData
+import de.connect2x.trixnity.clientserverapi.model.authentication.TokenTypeHint
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
+import de.connect2x.trixnity.core.AuthRequired
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.clientserverapi.client.*
-import de.connect2x.trixnity.clientserverapi.model.authentication.TokenTypeHint
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
-import de.connect2x.trixnity.core.AuthRequired
 import okio.ByteString.Companion.toByteString
 
 private val log = Logger("de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2MatrixAuthProvider")
@@ -64,7 +71,7 @@ class OAuth2MatrixClientAuthProvider(
     ): OAuth2MatrixClientAuthProviderData {
         val refreshToken = bearerTokens.refreshToken ?: return bearerTokens
         withOAuth2Client { oAuth2ApiClient ->
-            oAuth2ApiClient.refreshToken(refreshToken, bearerTokens.clientId)
+            oAuth2ApiClient.getRefreshToken(refreshToken, bearerTokens.clientId)
         }.fold(
             onSuccess = { refreshResponse ->
                 return OAuth2MatrixClientAuthProviderData(
@@ -112,7 +119,7 @@ fun MatrixClientAuthProviderData.Companion.oAuth2(
     scope = scope,
 )
 
-fun MatrixClientAuthProviderData.Companion.oAuth2Login(
+fun MatrixClientAuthProviderData.Companion.oAuth2AuthorizationCodeLogin(
     baseUrl: Url,
     applicationType: ApplicationType,
     clientUri: String,
@@ -123,11 +130,11 @@ fun MatrixClientAuthProviderData.Companion.oAuth2Login(
     policyUri: LocalizedField<String>? = null,
     tosUri: LocalizedField<String>? = null,
     promptValue: PromptValue? = null,
-    initialState: OAuth2LoginFlow.AuthRequestData.State? = null,
+    initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = null,
     loginHint: String? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-): OAuth2LoginFlow = OAuth2LoginFlowImpl(
+): OAuth2AuthorizationCodeLoginFlow = OAuth2AuthorizationCodeLoginFlowImpl(
     baseUrl = baseUrl,
     applicationType = applicationType,
     clientUri = clientUri,
@@ -140,6 +147,63 @@ fun MatrixClientAuthProviderData.Companion.oAuth2Login(
     promptValue = promptValue,
     initialState = initialState,
     loginHint = loginHint,
+    httpClientEngine = httpClientEngine,
+    httpClientConfig = httpClientConfig,
+)
+
+@Deprecated("use oAuth2AuthorizationCodeLogin instead")
+fun MatrixClientAuthProviderData.Companion.oAuth2Login(
+    baseUrl: Url,
+    applicationType: ApplicationType,
+    clientUri: String,
+    redirectUri: String,
+    responseMode: ResponseMode = ResponseMode.Fragment,
+    clientName: LocalizedField<String>? = null,
+    logoUri: LocalizedField<String>? = null,
+    policyUri: LocalizedField<String>? = null,
+    tosUri: LocalizedField<String>? = null,
+    promptValue: PromptValue? = null,
+    initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = null,
+    loginHint: String? = null,
+    httpClientEngine: HttpClientEngine? = null,
+    httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+): OAuth2AuthorizationCodeLoginFlow = oAuth2AuthorizationCodeLogin(
+    baseUrl = baseUrl,
+    applicationType = applicationType,
+    clientUri = clientUri,
+    redirectUri = redirectUri,
+    responseMode = responseMode,
+    clientName = clientName,
+    logoUri = logoUri,
+    policyUri = policyUri,
+    tosUri = tosUri,
+    promptValue = promptValue,
+    initialState = initialState,
+    loginHint = loginHint,
+    httpClientEngine = httpClientEngine,
+    httpClientConfig = httpClientConfig,
+)
+
+fun MatrixClientAuthProviderData.Companion.oAuth2DeviceAuthorizationLogin(
+    baseUrl: Url,
+    applicationType: ApplicationType,
+    clientUri: String,
+    redirectUri: String,
+    clientName: LocalizedField<String>? = null,
+    logoUri: LocalizedField<String>? = null,
+    policyUri: LocalizedField<String>? = null,
+    tosUri: LocalizedField<String>? = null,
+    httpClientEngine: HttpClientEngine? = null,
+    httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+): OAuth2DeviceAuthorizationLoginFlow = OAuth2DeviceAuthorizationLoginFlowImpl(
+    baseUrl = baseUrl,
+    applicationType = applicationType,
+    clientUri = clientUri,
+    redirectUri = redirectUri,
+    clientName = clientName,
+    logoUri = logoUri,
+    policyUri = policyUri,
+    tosUri = tosUri,
     httpClientEngine = httpClientEngine,
     httpClientConfig = httpClientConfig,
 )

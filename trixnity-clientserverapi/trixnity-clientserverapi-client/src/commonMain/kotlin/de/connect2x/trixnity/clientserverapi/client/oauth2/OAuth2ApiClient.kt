@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.clientserverapi.client.oauth2
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.api.client.PlatformUserAgentPlugin
 import de.connect2x.trixnity.clientserverapi.model.authentication.TokenTypeHint
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
@@ -21,6 +22,8 @@ internal class OAuth2ApiClient(
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
 ) : AutoCloseable {
+    private val log = Logger("de.connect2x.trixnity.clientserverapi.client.oauth2")
+
     private val finalHttpClientConfig: HttpClientConfig<*>.() -> Unit = {
         install(ContentNegotiation) {
             json(Json {
@@ -48,7 +51,30 @@ internal class OAuth2ApiClient(
         }.body<ClientRegistrationResponse>()
     }
 
-    suspend fun getToken(
+    suspend fun deviceAuthorization(
+        clientId: String,
+        deviceId: String,
+    ): Result<DeviceAuthorizationResponse> = runCatching {
+        val deviceAuthorizationEndpoint = serverMetadata.deviceAuthorizationEndpoint
+        if (deviceAuthorizationEndpoint == null) {
+            log.warn { "deviceAuthorizationEndpoint was null, check before calling this function" }
+            throw IllegalArgumentException("device authorization not supported")
+        }
+        baseClient.submitForm(
+            url = deviceAuthorizationEndpoint.toString(),
+            formParameters = parameters {
+                append("client_id", clientId)
+                append(
+                    "scope", listOf(
+                        Scope.MatrixClientApi.value,
+                        Scope.MatrixClientDevice(deviceId).value,
+                    ).joinToString(" ")
+                )
+            }
+        ).body<DeviceAuthorizationResponse>()
+    }
+
+    suspend fun getTokenByAuthorizationCode(
         clientId: String,
         redirectUri: String,
         code: String,
@@ -66,7 +92,21 @@ internal class OAuth2ApiClient(
         ).body<TokenResponse>()
     }
 
-    suspend fun refreshToken(
+    suspend fun getTokenByDeviceCode(
+        clientId: String,
+        deviceCode: String,
+    ): Result<TokenResponse> = runCatching {
+        baseClient.submitForm(
+            url = serverMetadata.tokenEndpoint.toString(),
+            formParameters = parameters {
+                append("grant_type", GrantType.DeviceCode.value)
+                append("device_code", deviceCode)
+                append("client_id", clientId)
+            }
+        ).body<TokenResponse>()
+    }
+
+    suspend fun getRefreshToken(
         refreshToken: String,
         clientId: String?
     ): Result<TokenResponse> = runCatching {

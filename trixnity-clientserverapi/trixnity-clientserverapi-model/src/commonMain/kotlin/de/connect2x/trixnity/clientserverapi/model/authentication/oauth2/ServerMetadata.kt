@@ -18,6 +18,7 @@ data class ServerMetadata(
     @SerialName("token_endpoint") val tokenEndpoint: Url,
     @SerialName("account_management_actions_supported") val accountManagementActionsSupported: Set<OAuth2AccountManagementAction>? = null,
     @SerialName("account_management_uri") val accountManagementUri: Url? = null,
+    @SerialName("device_authorization_endpoint") val deviceAuthorizationEndpoint: Url? = null,
 )
 
 fun ServerMetadata.accountManagementUri(action: OAuth2AccountManagementAction, deviceId: String? = null): Url? =
