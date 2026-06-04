@@ -53,19 +53,22 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
+        mavenLocal()
     }
 }
 
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
         maven("https://gitlab.com/api/v4/projects/72301746/packages/maven") // Lognity
+        mavenLocal()
     }
 }
 
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version ("1.0.0") // https://github.com/gradle/foojay-toolchains/tags
-    id("de.connect2x.conventions.c2x-settings-plugin") version "20260318.083039"
+    id("de.connect2x.conventions.c2x-settings-plugin") version "20260602.112043"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
