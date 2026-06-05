@@ -43,6 +43,7 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.valueOrNull
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.subscribeAsFlow
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
@@ -336,7 +337,12 @@ suspend fun MatrixClient.Companion.create(
 
                 api.key.setKeys(deviceKeys = selfSignedDeviceKeys).getOrThrow()
                 selfSignedDeviceKeys.signed.keys.forEach {
-                    keyStore.saveKeyVerificationState(it, KeyVerificationState.Verified(it.value.value))
+                    it.value.valueOrNull?.let { keyValue ->
+                        keyStore.saveKeyVerificationState(
+                            it,
+                            KeyVerificationState.Verified(keyValue)
+                        )
+                    }
                 }
                 keyStore.updateOutdatedKeys { it + userId }
             }

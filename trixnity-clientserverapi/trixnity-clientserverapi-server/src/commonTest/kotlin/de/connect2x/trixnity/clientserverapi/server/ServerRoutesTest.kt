@@ -1,17 +1,11 @@
 package de.connect2x.trixnity.clientserverapi.server
 
-import dev.mokkery.*
-import dev.mokkery.answering.returns
-import dev.mokkery.matcher.any
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import io.ktor.utils.io.charsets.*
 import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.clientserverapi.model.server.*
+import de.connect2x.trixnity.clientserverapi.model.server.Capabilities
+import de.connect2x.trixnity.clientserverapi.model.server.Capability
+import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
+import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
+import de.connect2x.trixnity.clientserverapi.model.server.Search
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -21,6 +15,20 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.resetAnswers
+import dev.mokkery.resetCalls
+import dev.mokkery.verifySuspend
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.shouldBe
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import io.ktor.utils.io.charsets.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -239,72 +247,6 @@ class ServerRoutesTest : TrixnityBaseTest() {
                         )
                     )
                 )
-            })
-        }
-    }
-
-    @Test
-    fun shouldWhoIs() = testApplication {
-        initCut()
-        everySuspend { handlerMock.whoIs(any()) }
-            .returns(
-                WhoIs.Response(
-                    userId = UserId("@peter:rabbit.rocks"),
-                    devices = mapOf(
-                        "teapot" to WhoIs.Response.DeviceInfo(
-                            setOf(
-                                WhoIs.Response.DeviceInfo.SessionInfo(
-                                    setOf(
-                                        WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
-                                            ip = "127.0.0.1",
-                                            lastSeen = 1411996332123,
-                                            userAgent = "curl/7.31.0-DEV"
-                                        ),
-                                        WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
-                                            ip = "10.0.0.2",
-                                            lastSeen = 1411996332123,
-                                            userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36"
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        val response = client.get("/_matrix/client/v3/admin/whois/@peter:rabbit.rocks") { bearerAuth("token") }
-        assertSoftly(response) {
-            this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
-            this.body<String>() shouldBe """
-                {
-                 "user_id": "@peter:rabbit.rocks",
-                 "devices": {
-                   "teapot": {
-                     "sessions": [
-                       {
-                         "connections": [
-                           {
-                             "ip": "127.0.0.1",
-                             "last_seen": 1411996332123,
-                             "user_agent": "curl/7.31.0-DEV"
-                           },
-                           {
-                             "ip": "10.0.0.2",
-                             "last_seen": 1411996332123,
-                             "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36"
-                           }
-                         ]
-                       }
-                     ]
-                   }
-                 }
-               }
-            """.trimToFlatJson()
-        }
-        verifySuspend {
-            handlerMock.whoIs(assert {
-                it.endpoint.userId shouldBe UserId("@peter:rabbit.rocks")
             })
         }
     }

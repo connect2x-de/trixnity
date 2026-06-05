@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core
 
+import io.ktor.http.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -329,6 +330,26 @@ sealed interface ErrorResponse {
     @Serializable
     @SerialName("M_APPSERVICE_LOGIN_UNSUPPORTED")
     data class AppserviceLoginUnsupported(override val error: String) : ErrorResponse
+
+    /**
+     *  indicate that one of the homeservers of the invited users rejected the invite due to invite blocking.
+     */
+    @Serializable
+    @SerialName("M_INVITE_BLOCKED")
+    data class InviteBlocked(override val error: String) : ErrorResponse
+
+    /**
+     * The request cannot be completed because the user has
+     * exceeded (or the request would cause them to exceed) a limit associated with
+     * their account.
+     */
+    @Serializable
+    @SerialName("M_USER_LIMIT_EXCEEDED")
+    data class UserLimitExceeded(
+        override val error: String,
+        @SerialName("info_uri") val infoUri: Url,
+        @SerialName("can_upgrade") val canUpgrade: Boolean? = null,
+    ) : ErrorResponse
 
     /**
      * All ErrorResponses, that we cannot map to a subtype of ErrorResponse.

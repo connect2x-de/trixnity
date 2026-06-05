@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.clientserverapi.server
 
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.mock
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
@@ -13,12 +15,11 @@ import io.ktor.http.HttpHeaders.AccessControlRequestMethod
 import io.ktor.http.HttpHeaders.Origin
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.*
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class MatrixClientServerApiServerTest : TrixnityBaseTest() {
+    val adminApiHandlerMock = mock<AdminApiHandler>()
     val appserviceApiHandlerMock = mock<AppserviceApiHandler>()
     val authenticationApiHandlerMock = mock<AuthenticationApiHandler>()
     val discoveryApiHandlerMock = mock<DiscoveryApiHandler>()
@@ -45,6 +46,7 @@ class MatrixClientServerApiServerTest : TrixnityBaseTest() {
                 },
             ) {
                 matrixClientServerApiServerRoutes(
+                    adminApiHandler = adminApiHandlerMock,
                     appserviceApiHandler = appserviceApiHandlerMock,
                     authenticationApiHandler = authenticationApiHandlerMock,
                     deviceApiHandler = deviceApiHandlerMock,

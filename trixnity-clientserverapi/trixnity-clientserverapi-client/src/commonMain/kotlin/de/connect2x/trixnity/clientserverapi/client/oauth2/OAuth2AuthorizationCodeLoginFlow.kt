@@ -1,34 +1,43 @@
 package de.connect2x.trixnity.clientserverapi.client.oauth2
 
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
+import de.connect2x.trixnity.crypto.core.SecureRandom
+import de.connect2x.trixnity.crypto.core.Sha256
+import de.connect2x.trixnity.utils.nextString
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.*
-import de.connect2x.trixnity.crypto.core.SecureRandom
-import de.connect2x.trixnity.crypto.core.Sha256
-import de.connect2x.trixnity.utils.nextString
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.Base64.PaddingOption.ABSENT
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+@Deprecated("Use OAuth2AuthorizationCodeLoginFlow instead")
+typealias OAuth2LoginFlow = OAuth2AuthorizationCodeLoginFlow
 
 /**
- * Represents the flow for handling OAuth 2.0 login operations. This interface provides methods to facilitate
+ * Represents the flow for handling OAuth 2.0 authorization code based login operations. This interface provides methods to facilitate
  * the redirection and callback required during the OAuth 2.0 authorization process.
+ *
+ * @see <a href="https://spec.matrix.org/v1.18/client-server-api/#authorization-code-flow">matrix spec</a>
  */
-interface OAuth2LoginFlow {
+interface OAuth2AuthorizationCodeLoginFlow {
     /**
-     * Initiates the OAuth 2.0 authentication process.
+     * Initiates the authentication process.
      * This method generates an authentication request containing a URL and associated metadata
      * necessary when the app has been killed during the authentication process.
      */
     suspend fun createAuthRequest(): Result<AuthRequestData>
 
     /**
-     * Represents the data required for initiating an OAuth 2.0 authentication process.
+     * Represents the data required for initiating an authentication process.
      * It includes the URL for the authentication request and serializable state information to continue authentication after the app has been killed.
      */
     data class AuthRequestData(
@@ -36,7 +45,7 @@ interface OAuth2LoginFlow {
         val state: State,
     ) {
         /**
-         * Represents the state information used during an OAuth 2.0 authentication flow.
+         * Represents the state information used during an authentication flow.
          */
         @Serializable
         data class State(
@@ -47,12 +56,15 @@ interface OAuth2LoginFlow {
     }
 
     /**
-     * Handles the callback from the OAuth2 authorization server.
+     * Handles the callback from the authorization server.
      */
     suspend fun onCallback(callbackUri: Url): Result<OAuth2MatrixClientAuthProviderData>
 }
 
-class OAuth2LoginFlowImpl(
+@Deprecated("Use OAuth2AuthorizationCodeLoginFlowImpl instead")
+typealias OAuth2LoginFlowImpl = OAuth2AuthorizationCodeLoginFlowImpl
+
+class OAuth2AuthorizationCodeLoginFlowImpl(
     private val baseUrl: Url,
     private val applicationType: ApplicationType,
     private val clientUri: String,
@@ -63,11 +75,11 @@ class OAuth2LoginFlowImpl(
     private val policyUri: LocalizedField<String>? = null,
     private val tosUri: LocalizedField<String>? = null,
     private val promptValue: PromptValue? = null,
-    initialState: OAuth2LoginFlow.AuthRequestData.State? = null,
+    initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = null,
     private val loginHint: String? = null,
     private val httpClientEngine: HttpClientEngine? = null,
     private val httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-) : OAuth2LoginFlow {
+) : OAuth2AuthorizationCodeLoginFlow {
     private var clientId: String? = initialState?.clientId
     private val deviceId = SecureRandom.nextString(10, alphabet = ('a'..'z') + ('A'..'Z'))
 
@@ -96,7 +108,7 @@ class OAuth2LoginFlowImpl(
         }
     }
 
-    override suspend fun createAuthRequest(): Result<OAuth2LoginFlow.AuthRequestData> = runCatching {
+    override suspend fun createAuthRequest(): Result<OAuth2AuthorizationCodeLoginFlow.AuthRequestData> = runCatching {
         OAuth2ApiClient(
             serverMetadata = getServerMetadata(),
             httpClientEngine = httpClientEngine,
@@ -134,9 +146,9 @@ class OAuth2LoginFlowImpl(
                 loginHint?.let { parameters.append("login_hint", it) }
             }.build().toString()
             clientId = clientMetadata.clientId
-            OAuth2LoginFlow.AuthRequestData(
+            OAuth2AuthorizationCodeLoginFlow.AuthRequestData(
                 url = authenticationRequestUrl,
-                state = OAuth2LoginFlow.AuthRequestData.State(
+                state = OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State(
                     clientId = clientMetadata.clientId,
                     state = state,
                     codeVerifier = codeVerifier,
@@ -163,7 +175,7 @@ class OAuth2LoginFlowImpl(
             httpClientEngine = httpClientEngine,
             httpClientConfig = httpClientConfig,
         ).use {
-            it.getToken(
+            it.getTokenByAuthorizationCode(
                 clientId = clientId,
                 redirectUri = redirectUri,
                 code = callbackCode,

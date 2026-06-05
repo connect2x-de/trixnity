@@ -1,5 +1,34 @@
 package de.connect2x.trixnity.clientserverapi.client
 
+import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
+import de.connect2x.trixnity.clientserverapi.model.authentication.DeactivateAccount
+import de.connect2x.trixnity.clientserverapi.model.authentication.DeleteThirdPartyIdentifiers
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetEmailRequestTokenForPassword
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetEmailRequestTokenForRegistration
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetMsisdnRequestTokenForPassword
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetMsisdnRequestTokenForRegistration
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetOIDCRequestToken
+import de.connect2x.trixnity.clientserverapi.model.authentication.GetToken
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdServerUnbindResult
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.authentication.Login
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
+import de.connect2x.trixnity.clientserverapi.model.authentication.Refresh
+import de.connect2x.trixnity.clientserverapi.model.authentication.Register
+import de.connect2x.trixnity.clientserverapi.model.authentication.ThirdPartyIdentifier
+import de.connect2x.trixnity.clientserverapi.model.authentication.ThirdPartyIdentifier.Medium
+import de.connect2x.trixnity.clientserverapi.model.authentication.UnbindThirdPartyIdentifiers
+import de.connect2x.trixnity.clientserverapi.model.authentication.WhoAmI
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
+import de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.testutils.scopedMockEngine
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
@@ -7,13 +36,6 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.*
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import de.connect2x.trixnity.clientserverapi.model.authentication.*
-import de.connect2x.trixnity.clientserverapi.model.authentication.ThirdPartyIdentifier.Medium
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.*
-import de.connect2x.trixnity.core.MSC4191
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.testutils.scopedMockEngine
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -117,7 +139,6 @@ class AuthenticationApiClientTest : TrixnityBaseTest() {
                 }
             }
         )
-        @OptIn(MSC4191::class)
         matrixRestClient.authentication.getOAuth2ServerMetadata().getOrThrow() shouldBe ServerMetadata(
             issuer = Url("https://auth.matrix.host"),
             authorizationEndpoint = Url("https://auth.matrix.host/_oauth2/authorize"),

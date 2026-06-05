@@ -1,24 +1,6 @@
 package de.connect2x.trixnity.clientserverapi.model.authentication
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation as NewDiscoveryInformation
 
-@Serializable
-data class DiscoveryInformation(
-    @SerialName("m.homeserver")
-    val homeserver: HomeserverInformation,
-    @SerialName("m.identity_server")
-    val identityServer: IdentityServerInformation? = null,
-) {
-    @Serializable
-    data class HomeserverInformation(
-        @SerialName("base_url")
-        val baseUrl: String
-    )
-
-    @Serializable
-    data class IdentityServerInformation(
-        @SerialName("base_url")
-        val baseUrl: String
-    )
-}
+@Deprecated("moved", ReplaceWith("de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation"))
+typealias DiscoveryInformation = NewDiscoveryInformation

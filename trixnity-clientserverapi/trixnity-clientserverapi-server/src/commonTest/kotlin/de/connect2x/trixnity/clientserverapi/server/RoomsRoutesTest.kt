@@ -2149,7 +2149,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.post("/_matrix/client/v3/rooms/!room:server/report/${'$'}eventToRedact") {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
-                setBody("""{"reason":"someReason","score":-100}""")
+                setBody("""{"reason":"someReason"}""")
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
@@ -2160,7 +2160,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             handlerMock.reportEvent(assert {
                 it.endpoint.roomId shouldBe RoomId("!room:server")
                 it.endpoint.eventId shouldBe EventId("\$eventToRedact")
-                it.requestBody shouldBe ReportEvent.Request("someReason", -100)
+                it.requestBody shouldBe ReportEvent.Request("someReason")
             })
         }
     }

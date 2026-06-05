@@ -1,21 +1,27 @@
 package de.connect2x.trixnity.crypto.sign
 
+import de.connect2x.trixnity.core.UserInfo
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.KeyValue.SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable
+import de.connect2x.trixnity.core.model.keys.Signatures
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.core.serialization.canonicalJsonString
+import de.connect2x.trixnity.crypto.driver.CryptoDriver
+import de.connect2x.trixnity.crypto.driver.keys.Ed25519Signature
+import de.connect2x.trixnity.crypto.driver.useAll
+import de.connect2x.trixnity.crypto.invoke
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
-import de.connect2x.trixnity.core.UserInfo
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.keys.*
-import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
-import de.connect2x.trixnity.core.model.keys.KeyValue.SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable
-import de.connect2x.trixnity.core.serialization.canonicalJsonString
-import de.connect2x.trixnity.crypto.driver.CryptoDriver
-import de.connect2x.trixnity.crypto.driver.keys.Ed25519Signature
-import de.connect2x.trixnity.crypto.driver.useAll
-import de.connect2x.trixnity.crypto.invoke
 
 interface SignService {
     suspend fun getSelfSignedDeviceKeys(): Signed<DeviceKeys, UserId>
@@ -151,7 +157,7 @@ class SignServiceImpl(
         val signedString = canonicalFilteredJson(signedRaw)
         val verifyResults = checkSignaturesOf.flatMap { (userId, signingKeys) ->
             signingKeys.map { signingKey ->
-                val signatureKey = signedObject.signatures?.get(userId)?.find { it.id == signingKey.id }
+                val signatureKey = signedObject.signatures?.get(userId)?.find { it.id == signingKey.id } as? Ed25519Key
                     ?: return VerifyResult.MissingSignature(
                         "no signature found for signing key ${signingKey.id}," +
                                 "got ${signedObject.signatures?.get(userId)?.map { it.id }} instead"

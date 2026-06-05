@@ -2346,3 +2346,14 @@ public final class de/connect2x/trixnity/serverserverapi/model/federation/Timest
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/serverserverapi/model/policy/Sign : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field INSTANCE Lde/connect2x/trixnity/serverserverapi/model/policy/Sign;
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/core/model/keys/Signed;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/util/Map;)Lkotlinx/serialization/KSerializer;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+

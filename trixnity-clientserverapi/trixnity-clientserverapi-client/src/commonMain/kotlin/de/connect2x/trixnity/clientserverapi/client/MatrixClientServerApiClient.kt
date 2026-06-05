@@ -1,16 +1,22 @@
 package de.connect2x.trixnity.clientserverapi.client
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.utils.RetryFlowDelayConfig
-import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.lognity.api.logger.error
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import kotlinx.serialization.json.Json
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
@@ -25,6 +31,7 @@ interface MatrixClientServerApiClient : AutoCloseable {
     val authentication: AuthenticationApiClient
     val discovery: DiscoveryApiClient
     val server: ServerApiClient
+    val admin: AdminApiClient
     val user: UserApiClient
     val room: RoomApiClient
     val sync: SyncApiClient
@@ -153,6 +160,7 @@ class MatrixClientServerApiClientImpl(
     override val authentication = AuthenticationApiClientImpl(baseClient, authProvider)
     override val discovery = DiscoveryApiClientImpl(baseClient)
     override val server = ServerApiClientImpl(baseClient)
+    override val admin: AdminApiClient = AdminApiClientImpl(baseClient)
     override val user = UserApiClientImpl(baseClient, eventContentSerializerMappings)
     override val room = RoomApiClientImpl(baseClient, eventContentSerializerMappings)
     override val sync = SyncApiClientImpl(

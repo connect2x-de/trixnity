@@ -28,6 +28,15 @@ sealed interface Capability {
     }
 
     @Serializable
+    data class ForgetForcedUponLeave(
+        @SerialName("enabled") val enabled: Boolean
+    ) : Capability {
+        companion object {
+            const val name = "m.forget_forced_upon_leave"
+        }
+    }
+
+    @Serializable
     data class RoomVersions(
         @SerialName("default") val default: String,
         @SerialName("available") val available: Map<String, RoomVersionStability>
@@ -101,6 +110,16 @@ sealed interface Capability {
         }
     }
 
+    @Serializable
+    data class AccountModeration(
+        @SerialName("lock") val lock: Boolean? = null,
+        @SerialName("suspend") val suspend: Boolean? = null,
+    ) : Capability {
+        companion object {
+            const val name = "m.account_moderation"
+        }
+    }
+
     data class Unknown(val name: String, val raw: JsonElement) : Capability
 }
 
@@ -121,6 +140,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                         Capability.ChangePassword.name ->
                             decoder.json.decodeFromJsonElement<Capability.ChangePassword>(value)
 
+                        Capability.ForgetForcedUponLeave.name ->
+                            decoder.json.decodeFromJsonElement<Capability.ForgetForcedUponLeave>(value)
+
                         Capability.RoomVersions.name ->
                             decoder.json.decodeFromJsonElement<Capability.RoomVersions>(value)
 
@@ -139,6 +161,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                         Capability.GetLoginToken.name ->
                             decoder.json.decodeFromJsonElement<Capability.GetLoginToken>(value)
 
+                        Capability.AccountModeration.name ->
+                            decoder.json.decodeFromJsonElement<Capability.AccountModeration>(value)
+
                         else -> Capability.Unknown(key, value)
                     }
                 }.toSet()
@@ -154,6 +179,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                         when (element) {
                             is Capability.ChangePassword ->
                                 Capability.ChangePassword.name to encoder.json.encodeToJsonElement(element)
+
+                            is Capability.ForgetForcedUponLeave ->
+                                Capability.ForgetForcedUponLeave.name to encoder.json.encodeToJsonElement(element)
 
                             is Capability.GetLoginToken ->
                                 Capability.GetLoginToken.name to encoder.json.encodeToJsonElement(element)
@@ -173,6 +201,9 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                             is Capability.ThirdPartyChanges ->
                                 Capability.ThirdPartyChanges.name to encoder.json.encodeToJsonElement(element)
 
+                            is Capability.AccountModeration ->
+                                Capability.AccountModeration.name to encoder.json.encodeToJsonElement(element)
+
                             is Capability.Unknown -> element.name to element.raw
                         }
                     }
@@ -184,6 +215,10 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
 val Capabilities.changePassword: Capability.ChangePassword
     get() = filterIsInstance<Capability.ChangePassword>().firstOrNull()
         ?: Capability.ChangePassword(true)
+
+val Capabilities.forgetForcedUponLeave: Capability.ForgetForcedUponLeave
+    get() = filterIsInstance<Capability.ForgetForcedUponLeave>().firstOrNull()
+        ?: Capability.ForgetForcedUponLeave(false)
 
 val Capabilities.roomVersion: Capability.RoomVersions?
     get() = filterIsInstance<Capability.RoomVersions>().firstOrNull()
@@ -211,3 +246,7 @@ val Capabilities.thirdPartyChanges: Capability.ThirdPartyChanges
 val Capabilities.getLoginToken: Capability.GetLoginToken
     get() = filterIsInstance<Capability.GetLoginToken>().firstOrNull()
         ?: Capability.GetLoginToken(false)
+
+val Capabilities.accountModeration: Capability.AccountModeration
+    get() = filterIsInstance<Capability.AccountModeration>().firstOrNull()
+        ?: Capability.AccountModeration()

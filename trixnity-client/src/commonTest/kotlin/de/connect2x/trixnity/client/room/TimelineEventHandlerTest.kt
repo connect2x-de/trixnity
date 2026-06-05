@@ -20,6 +20,7 @@ import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.RoomMap.Companion.roomMapOf
+import de.connect2x.trixnity.clientserverapi.model.user.Filters
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
@@ -77,21 +78,27 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(config = apiConfig)
+    private val config = MatrixClientConfiguration()
+    private val json = createMatrixEventJson()
+    private val mappings = EventContentSerializerMappings.default
 
-    // Hardcode the exact JSON filter string. This is intentionally brittle so the test fails
-    // if the filter is changed (e.g. when EventContentSerializerMappings changes).
-    private val filter =
-        """{"types":["m.room.message","m.reaction","m.room.redaction","m.room.encrypted","m.key.verification.start","m.key.verification.ready","m.key.verification.done","m.key.verification.cancel","m.key.verification.accept","m.key.verification.key","m.key.verification.mac","m.call.invite","m.call.candidates","m.call.answer","m.call.hangup","m.call.negotiate","m.call.reject","m.call.select_answer","m.call.sdp_stream_metadata_changed","org.matrix.msc4143.rtc.member","m.rtc.member","m.room.avatar","m.room.canonical_alias","m.room.create","m.room.join_rules","m.room.member","m.room.name","m.room.pinned_events","m.room.power_levels","m.room.topic","m.room.encryption","m.room.history_visibility","m.room.third_party_invite","m.room.guest_access","m.room.server_acl","m.room.tombstone","m.policy.rule.user","m.policy.rule.room","m.policy.rule.server","m.space.parent","m.space.child","org.matrix.msc4143.rtc.slot","m.rtc.slot"]}"""
+    private val filter = run {
+        val baseFilter = config.syncFilter
+        val filter = (baseFilter.room?.timeline ?: Filters.RoomFilter.RoomEventFilter()).copy(
+            types = (mappings.message + mappings.state).map { it.type }.toSet(),
+        )
+        json.encodeToString(filter)
+    }
 
     private val cut = TimelineEventHandlerImpl(
-        api,
-        roomStore,
-        roomTimelineStore,
-        roomStickyEventStore,
-        createMatrixEventJson(),
-        EventContentSerializerMappings.default,
-        MatrixClientConfiguration(),
-        TransactionManagerMock(),
+        api = api,
+        roomStore = roomStore,
+        roomTimelineStore = roomTimelineStore,
+        stickyEventStore = roomStickyEventStore,
+        json = json,
+        mappings = mappings,
+        config = config,
+        tm = TransactionManagerMock(),
     )
 
 

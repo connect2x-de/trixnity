@@ -3,10 +3,19 @@ package de.connect2x.trixnity.client.room
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.MatrixClientConfiguration.DeleteRooms
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomDisplayName
+import de.connect2x.trixnity.client.store.RoomStateStore
+import de.connect2x.trixnity.client.store.RoomStore
+import de.connect2x.trixnity.client.store.ServerDataStore
+import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.get
+import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.client.utils.filterContent
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
+import de.connect2x.trixnity.clientserverapi.model.server.forgetForcedUponLeave
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
 import de.connect2x.trixnity.core.EventHandler
@@ -16,7 +25,14 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
-import de.connect2x.trixnity.core.model.events.m.room.*
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
 import de.connect2x.trixnity.core.model.events.roomIdOrNull
 import de.connect2x.trixnity.core.model.events.stateKeyOrNull
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
@@ -24,8 +40,16 @@ import de.connect2x.trixnity.utils.ConcurrentList
 import de.connect2x.trixnity.utils.ConcurrentMap
 import de.connect2x.trixnity.utils.concurrentMutableList
 import de.connect2x.trixnity.utils.concurrentMutableMap
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -36,7 +60,7 @@ class RoomListHandler(
     private val roomStore: RoomStore,
     private val roomStateStore: RoomStateStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
-    private val roomAccountDataStore: RoomAccountDataStore,
+    private val serverDatastore: ServerDataStore,
     private val forgetRoomService: ForgetRoomService,
     private val roomService: RoomService,
     private val userInfo: UserInfo,
@@ -337,7 +361,7 @@ class RoomListHandler(
     internal suspend fun deleteLeftRooms(syncEvents: SyncEvents) {
         val syncLeaveRooms = syncEvents.syncResponse.room?.leave?.keys
         if (syncLeaveRooms != null) {
-            if (config.deleteRooms is DeleteRooms.OnLeave) {
+            if (config.deleteRooms is DeleteRooms.OnLeave || serverDatastore.getServerData().capabilities?.capabilities?.forgetForcedUponLeave?.enabled == true) {
                 val existingLeaveRooms = roomStore.getAll().first()
                     .filter { it.value.first()?.membership == Membership.LEAVE }
                     .keys
@@ -350,9 +374,7 @@ class RoomListHandler(
 
                 log.trace { "existingLeaveRooms=$existingLeaveRooms syncLeaveRooms=$syncLeaveRooms" }
                 forgetRooms(forgetRooms)
-            }
-
-            if (config.deleteRooms is DeleteRooms.WhenNotJoined) {
+            } else if (config.deleteRooms is DeleteRooms.WhenNotJoined) {
                 log.trace { "check rooms that were never joined" }
                 findDeletedRoomsThatWereNeverJoined(syncLeaveRooms)
             }

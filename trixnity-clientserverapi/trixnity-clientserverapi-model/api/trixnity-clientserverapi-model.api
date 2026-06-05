@@ -1,3 +1,451 @@
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetLock : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock;
+	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/GetLock$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetLock$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLocked ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetLock$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend;
+	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSuspended ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/GetSuspend$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock;
+	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLocked ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Request$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLocked ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetLock$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend;
+	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSuspended ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Request$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSuspended ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/SetSuspend$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs;
+	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-DuKFSck ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy-YUdjyZc (Ljava/lang/String;Ljava/util/Map;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;
+	public static synthetic fun copy-YUdjyZc$default (Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDevices ()Ljava/util/Map;
+	public final fun getUserId-DuKFSck ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSessions ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConnections ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Long;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIp ()Ljava/lang/String;
+	public final fun getLastSeen ()Ljava/lang/Long;
+	public final fun getUserAgent ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/admin/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/clientserverapi/model/appservice/Ping : de/connect2x/trixnity/core/MatrixEndpoint {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/appservice/Ping$Companion;
 	public fun <init> (Ljava/lang/String;)V
@@ -381,90 +829,6 @@ public final synthetic class de/connect2x/trixnity/clientserverapi/model/authent
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/DeleteThirdPartyIdentifiers$Response$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$Companion;
-	public fun <init> (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;
-	public final fun component2 ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;
-	public final fun copy (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getHomeserver ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;
-	public final fun getIdentityServer ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation$Companion;
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getBaseUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$HomeserverInformation$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation$Companion;
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getBaseUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation$IdentityServerInformation$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -1329,21 +1693,21 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/Lo
 
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/Login$Response {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-hu1aZbM ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/Long;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;
-	public final fun copy-4Ne9s4o (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;)Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;
-	public static synthetic fun copy-4Ne9s4o$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;
+	public final fun component6 ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;
+	public final fun copy-4Ne9s4o (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;)Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;
+	public static synthetic fun copy-4Ne9s4o$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/Login$Response;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
 	public final fun getAccessTokenExpiresInMs ()Ljava/lang/Long;
 	public final fun getDeviceId ()Ljava/lang/String;
-	public final fun getDiscoveryInformation ()Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;
+	public final fun getDiscoveryInformation ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;
 	public final fun getRefreshToken ()Ljava/lang/String;
 	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -1395,14 +1759,16 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/Lo
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO : de/connect2x/trixnity/clientserverapi/model/authentication/LoginType {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/util/Set;)V
-	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/Set;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/util/Set;Ljava/lang/Boolean;)Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;Ljava/util/Set;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType$SSO;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getIdentityProviders ()Ljava/util/Set;
 	public fun getName ()Ljava/lang/String;
+	public final fun getOAuth2AwarePreferred ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -1963,6 +2329,11 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/oa
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType$DeviceCode : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType$DeviceCode;
+	public fun getValue ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType$RefreshToken : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType {
 	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/GrantType$RefreshToken;
 	public fun getValue ()Ljava/lang/String;
@@ -2002,13 +2373,13 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/oa
 	public fun getValue ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$EndSession : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$EndSession;
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$DeleteDevice : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$DeleteDevice;
 	public fun getValue ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ListSessions : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ListSessions;
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ListDevices : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ListDevices;
 	public fun getValue ()Ljava/lang/String;
 }
 
@@ -2037,13 +2408,13 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/oa
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewProfile : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewProfile;
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewDevice : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewDevice;
 	public fun getValue ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewSession : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewSession;
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewProfile : de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction$ViewProfile;
 	public fun getValue ()Ljava/lang/String;
 }
 
@@ -2156,12 +2527,13 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/oa
 
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata$Companion;
-	public fun <init> (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;)V
-	public synthetic fun <init> (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;)V
+	public synthetic fun <init> (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lio/ktor/http/Url;
 	public final fun component10 ()Lio/ktor/http/Url;
 	public final fun component11 ()Ljava/util/Set;
 	public final fun component12 ()Lio/ktor/http/Url;
+	public final fun component13 ()Lio/ktor/http/Url;
 	public final fun component2 ()Ljava/util/Set;
 	public final fun component3 ()Ljava/util/Set;
 	public final fun component4 ()Lio/ktor/http/Url;
@@ -2170,13 +2542,14 @@ public final class de/connect2x/trixnity/clientserverapi/model/authentication/oa
 	public final fun component7 ()Ljava/util/Set;
 	public final fun component8 ()Ljava/util/Set;
 	public final fun component9 ()Lio/ktor/http/Url;
-	public final fun copy (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;)Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;
+	public final fun copy (Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;)Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Ljava/util/Set;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;Ljava/util/Set;Lio/ktor/http/Url;Lio/ktor/http/Url;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccountManagementActionsSupported ()Ljava/util/Set;
 	public final fun getAccountManagementUri ()Lio/ktor/http/Url;
 	public final fun getAuthorizationEndpoint ()Lio/ktor/http/Url;
 	public final fun getCodeChallengeMethodsSupported ()Ljava/util/Set;
+	public final fun getDeviceAuthorizationEndpoint ()Lio/ktor/http/Url;
 	public final fun getGrantTypesSupported ()Ljava/util/Set;
 	public final fun getIssuer ()Lio/ktor/http/Url;
 	public final fun getPromptValuesSupported ()Ljava/util/Set;
@@ -2202,6 +2575,11 @@ public final synthetic class de/connect2x/trixnity/clientserverapi/model/authent
 
 public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadataKt {
+	public static final fun accountManagementUri (Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction;Ljava/lang/String;)Lio/ktor/http/Url;
+	public static synthetic fun accountManagementUri$default (Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ServerMetadata;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/OAuth2AccountManagementAction;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/http/Url;
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/model/device/DehydratedDeviceData {
@@ -2799,6 +3177,139 @@ public final class de/connect2x/trixnity/clientserverapi/model/device/UpdateDevi
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$Companion;
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;
+	public final fun component2 ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;
+	public final fun copy (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHomeserver ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;
+	public final fun getIdentityServer ()Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$HomeserverInformation$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation$Companion;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation$IdentityServerInformation$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetClient : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/GetClient;
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/discovery/DiscoveryInformation;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer : de/connect2x/trixnity/core/MatrixEndpoint {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer;
+	public fun getRequestContentType ()Lio/ktor/http/ContentType;
+	public fun getResponseContentType ()Lio/ktor/http/ContentType;
+	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;)Lkotlinx/serialization/KSerializer;
+	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response$Companion;
+	public synthetic fun <init> (Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-0CwQoJw ()Ljava/util/Set;
+	public final fun copy-bFp9flo (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;
+	public static synthetic fun copy-bFp9flo$default (Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPublicKeys-0CwQoJw ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetPolicyServer$Response$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetSupport : de/connect2x/trixnity/core/MatrixEndpoint {
 	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/GetSupport;
 	public fun getRequestContentType ()Lio/ktor/http/ContentType;
@@ -2916,17 +3427,6 @@ public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetSupp
 	public fun getName ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/discovery/GetWellKnown : de/connect2x/trixnity/core/MatrixEndpoint {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/discovery/GetWellKnown;
-	public fun getRequestContentType ()Lio/ktor/http/ContentType;
-	public fun getResponseContentType ()Lio/ktor/http/ContentType;
-	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
-	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
-	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/authentication/DiscoveryInformation;)Lkotlinx/serialization/KSerializer;
-	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/key/AddSignatures : de/connect2x/trixnity/core/MatrixEndpoint {
@@ -7733,15 +8233,14 @@ public final class de/connect2x/trixnity/clientserverapi/model/room/ReportEvent$
 
 public final class de/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/Long;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/Long;
-	public final fun copy (Ljava/lang/String;Ljava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;Ljava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/ReportEvent$Request;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getReason ()Ljava/lang/String;
-	public final fun getScore ()Ljava/lang/Long;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -8633,6 +9132,38 @@ public final class de/connect2x/trixnity/clientserverapi/model/server/Capabiliti
 public abstract interface class de/connect2x/trixnity/clientserverapi/model/server/Capability {
 }
 
+public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration : de/connect2x/trixnity/clientserverapi/model/server/Capability {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration$Companion;
+	public static final field name Ljava/lang/String;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/Boolean;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/Boolean;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Boolean;
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/Boolean;Ljava/lang/Boolean;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;Ljava/lang/Boolean;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLock ()Ljava/lang/Boolean;
+	public final fun getSuspend ()Ljava/lang/Boolean;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$ChangePassword : de/connect2x/trixnity/clientserverapi/model/server/Capability {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ChangePassword$Companion;
 	public static final field name Ljava/lang/String;
@@ -8658,6 +9189,34 @@ public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$ChangePassword$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave : de/connect2x/trixnity/clientserverapi/model/server/Capability {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave$Companion;
+	public static final field name Ljava/lang/String;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;ZILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnabled ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -8864,7 +9423,9 @@ public final class de/connect2x/trixnity/clientserverapi/model/server/Capability
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/server/CapabilityKt {
+	public static final fun getAccountModeration-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$AccountModeration;
 	public static final fun getChangePassword-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ChangePassword;
+	public static final fun getForgetForcedUponLeave-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ForgetForcedUponLeave;
 	public static final fun getGetLoginToken-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$GetLoginToken;
 	public static final fun getProfileFields-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ProfileFields;
 	public static final fun getRoomVersion-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$RoomVersions;
@@ -9414,160 +9975,6 @@ public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/server/Search$Response$ResultCategories$RoomEventsResult$Results$EventContext$UserProfile$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs : de/connect2x/trixnity/core/MatrixEndpoint {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1-hu1aZbM ()Ljava/lang/String;
-	public final fun copy-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs;
-	public static synthetic fun copy-dxpKhU0$default (Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getRequestContentType ()Lio/ktor/http/ContentType;
-	public fun getResponseContentType ()Lio/ktor/http/ContentType;
-	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
-	public fun hashCode ()I
-	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
-	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
-	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;)Lkotlinx/serialization/KSerializer;
-	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1-DuKFSck ()Ljava/lang/String;
-	public final fun component2 ()Ljava/util/Map;
-	public final fun copy-YUdjyZc (Ljava/lang/String;Ljava/util/Map;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;
-	public static synthetic fun copy-YUdjyZc$default (Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDevices ()Ljava/util/Map;
-	public final fun getUserId-DuKFSck ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$Companion;
-	public fun <init> ()V
-	public fun <init> (Ljava/util/Set;)V
-	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getSessions ()Ljava/util/Set;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$Companion;
-	public fun <init> ()V
-	public fun <init> (Ljava/util/Set;)V
-	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getConnections ()Ljava/util/Set;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$Companion;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/Long;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getIp ()Ljava/lang/String;
-	public final fun getLastSeen ()Ljava/lang/Long;
-	public final fun getUserAgent ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/clientserverapi/model/server/WhoIs$Response$DeviceInfo$SessionInfo$ConnectionInfo$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

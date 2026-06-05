@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.client
 
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.core.model.UserId
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import de.connect2x.trixnity.core.model.UserId
 
 suspend fun UserId.serverDiscovery(
     httpClientEngine: HttpClientEngine? = null,
@@ -34,7 +34,7 @@ suspend fun Url.serverDiscovery(
         httpClientEngine = httpClientEngine,
         httpClientConfig = httpClientConfig
     ).use {
-        it.discovery.getWellKnown()
+        it.discovery.getClient()
             .map { Url(it.homeserver.baseUrl.removeSuffix("/")) }
             .getOrElse { this } // fallback when no .well-known exists
     }

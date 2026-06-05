@@ -12,12 +12,14 @@ import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IdentityServerEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.InvitePermissionConfigEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
+import de.connect2x.trixnity.core.model.events.m.RecentEmojiEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.TagEventContent
@@ -49,6 +51,7 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PinnedEventsEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PolicyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -110,6 +113,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ServerRuleEventContent>("m.policy.rule.server")
     stateOf<ParentEventContent>("m.space.parent")
     stateOf<ChildEventContent>("m.space.child")
+    stateOf<PolicyEventContent>("m.room.policy")
     @OptIn(MSC4143::class)
     stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContentSerializer())
     @OptIn(MSC4143::class)
@@ -147,6 +151,8 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     @OptIn(MSC3814::class)
     globalAccountDataOf<DehydratedDeviceEventContent>("org.matrix.msc3814")
     globalAccountDataOf<IgnoredUserListEventContent>("m.ignored_user_list")
+    globalAccountDataOf<RecentEmojiEventContent>("m.recent_emoji")
+    globalAccountDataOf<InvitePermissionConfigEventContent>("m.invite_permission_config")
 
     roomAccountDataOf<FullyReadEventContent>("m.fully_read")
     roomAccountDataOf<MarkedUnreadEventContent>("m.marked_unread")

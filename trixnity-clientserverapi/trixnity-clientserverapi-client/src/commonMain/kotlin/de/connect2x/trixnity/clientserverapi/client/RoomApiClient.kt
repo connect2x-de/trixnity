@@ -520,7 +520,6 @@ interface RoomApiClient {
         roomId: RoomId,
         eventId: EventId,
         reason: String? = null,
-        score: Long? = null,
     ): Result<Unit>
 
     /**
@@ -1008,9 +1007,8 @@ class RoomApiClientImpl(
         roomId: RoomId,
         eventId: EventId,
         reason: String?,
-        score: Long?,
     ): Result<Unit> =
-        baseClient.request(ReportEvent(roomId, eventId), ReportEvent.Request(reason, score))
+        baseClient.request(ReportEvent(roomId, eventId), ReportEvent.Request(reason))
 
     override suspend fun upgradeRoom(
         roomId: RoomId,

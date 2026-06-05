@@ -1,19 +1,20 @@
 package de.connect2x.trixnity.serverserverapi.client
 
-import io.ktor.client.*
-import io.ktor.client.engine.*
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.api.client.MatrixApiClient
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.serialization.createMatrixEventAndDataUnitJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.RoomVersionStore
 import de.connect2x.trixnity.core.serialization.events.defaultDataUnit
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import kotlinx.serialization.json.Json
 
 interface MatrixServerServerApiClient : AutoCloseable {
     val baseClient: MatrixApiClient
     val discovery: DiscoveryApiClient
     val federation: FederationApiClient
+    val policy: PolicyApiClient
 }
 
 class MatrixServerServerApiClientImpl(
@@ -36,6 +37,7 @@ class MatrixServerServerApiClientImpl(
 
     override val discovery = DiscoveryApiClientImpl(baseClient)
     override val federation = FederationApiClientImpl(baseClient)
+    override val policy = PolicyApiClientImpl(baseClient)
 
     override fun close() {
         baseClient.close()

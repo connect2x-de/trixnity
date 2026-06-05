@@ -1,29 +1,46 @@
 package de.connect2x.trixnity.client.verification
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.key.KeyTrustService
 import de.connect2x.trixnity.client.key.getAllKeysFromUser
 import de.connect2x.trixnity.client.store.KeyStore
-import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.*
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.Accept
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.ComparisonByUser
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.OwnSasStart
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.TheirSasStart
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.WaitForKeys
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.WaitForMacs
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
-import de.connect2x.trixnity.core.model.events.m.key.verification.*
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasAcceptEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasHash
 import de.connect2x.trixnity.core.model.events.m.key.verification.SasKeyAgreementProtocol.Curve25519HkdfSha256
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMacEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMessageAuthenticationCode
 import de.connect2x.trixnity.core.model.events.m.key.verification.SasMessageAuthenticationCode.HkdfHmacSha256
 import de.connect2x.trixnity.core.model.events.m.key.verification.SasMessageAuthenticationCode.HkdfHmacSha256V2
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.*
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.KeyMismatch
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.MismatchedCommitment
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.UnexpectedMessage
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.UnknownMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent.SasStartEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
 import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.valueOrNull
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.sas.EstablishedSas
 import de.connect2x.trixnity.crypto.driver.sas.Sas
 import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.of
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod")
 
@@ -388,7 +405,7 @@ class ActiveSasVerificationMethod private constructor(
                     log.trace { "create key mac from input ${keyToMac.value} and info ${baseInfo + keyToMac.fullId}" }
                     val calculatedMac =
                         calculateMac(keyToMac.value.value, baseInfo + keyToMac.fullId)
-                    (calculatedMac == theirMac.mac.find { it.fullId == keyToMac.fullId }?.value?.value).also {
+                    (calculatedMac == theirMac.mac.find { it.fullId == keyToMac.fullId }?.value?.valueOrNull).also {
                         if (!it) log.warn { "macs from them (${keyToMac}) did not match our calculated ($calculatedMac)" }
                     }
                 }.contains(false)

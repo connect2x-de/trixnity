@@ -2,8 +2,12 @@ package de.connect2x.trixnity.clientserverapi.client.oauth2
 
 import de.connect2x.trixnity.clientserverapi.client.trimToFlatJson
 import de.connect2x.trixnity.clientserverapi.model.authentication.TokenTypeHint
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.*
-import de.connect2x.trixnity.core.MSC4191
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.CodeChallengeMethod
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.testutils.scopedMockEngine
 import de.connect2x.trixnity.utils.nextString
@@ -17,7 +21,6 @@ import kotlin.test.Test
 
 class OAuth2ApiClientTest {
 
-    @OptIn(MSC4191::class)
     private val serverMetadata = ServerMetadata(
         issuer = Url("https://auth.matrix.host"),
         authorizationEndpoint = Url("https://auth.matrix.host/authorize"),
@@ -28,11 +31,11 @@ class OAuth2ApiClientTest {
         responseTypesSupported = setOf(ResponseType.Code),
         responseModesSupported = setOf(ResponseMode.Query),
         promptValuesSupported = setOf(PromptValue.Create),
-        grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode)
+        grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode),
+        deviceAuthorizationEndpoint = Url("https://auth.matrix.host/device"),
     )
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldRegisterClient() = runTest {
         val clientMetadata = ClientMetadata(
             applicationType = ApplicationType.Web,
@@ -106,8 +109,52 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
-    fun shouldGetToken() = runTest {
+    fun shouldDeviceAuthorization() = runTest {
+        val matrixRestClient = OAuth2ApiClient(
+            serverMetadata = serverMetadata,
+            httpClientEngine = scopedMockEngine {
+                addHandler { request ->
+                    request.url.toString() shouldBe "https://auth.matrix.host/device"
+                    request.body.toByteArray()
+                        .decodeToString() shouldBe
+                            "client_id=clientId" +
+                            "&scope=urn%3Amatrix%3Aclient%3Aapi%3A%2A+urn%3Amatrix%3Aclient%3Adevice%3AdeviceId"
+                    request.body.contentType shouldBe ContentType.Application.FormUrlEncoded.withCharset(Charsets.UTF_8)
+                    request.method shouldBe HttpMethod.Post
+
+                    respond(
+                        """
+                                {
+                                  "device_code": "DEVICE_CODE",
+                                  "user_code": "USER_CODE",
+                                  "verification_uri": "https://auth.matrix.host/verification",
+                                  "verification_uri_complete": "https://auth.matrix.host/verification?user_code=USER_CODE",
+                                  "expires_in": 1800,
+                                  "interval": 6
+                                }
+                        """.trimIndent(),
+                        HttpStatusCode.OK,
+                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                    )
+                }
+            }
+        )
+
+        matrixRestClient.deviceAuthorization(
+            clientId = "clientId",
+            deviceId = "deviceId",
+        ).getOrThrow() shouldBe DeviceAuthorizationResponse(
+            deviceCode = "DEVICE_CODE",
+            userCode = "USER_CODE",
+            verificationUri = Url("https://auth.matrix.host/verification"),
+            verificationUriComplete = Url("https://auth.matrix.host/verification?user_code=USER_CODE"),
+            expiresIn = 1800,
+            interval = 6
+        )
+    }
+
+    @Test
+    fun shouldGetTokenByAuthorizationCode() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
             httpClientEngine = scopedMockEngine {
@@ -138,7 +185,7 @@ class OAuth2ApiClientTest {
             }
         )
 
-        matrixRestClient.getToken(
+        matrixRestClient.getTokenByAuthorizationCode(
             clientId = "clientId",
             redirectUri = "trixnity://sso",
             code = "CODE",
@@ -153,8 +200,7 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
-    fun shouldRefreshToken() = runTest {
+    fun shouldGetRefreshToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,
             httpClientEngine = scopedMockEngine {
@@ -184,7 +230,7 @@ class OAuth2ApiClientTest {
             }
         )
 
-        matrixRestClient.refreshToken(
+        matrixRestClient.getRefreshToken(
             refreshToken = "refresh",
             clientId = "clientId",
         ).getOrThrow() shouldBe TokenResponse(
@@ -197,7 +243,6 @@ class OAuth2ApiClientTest {
     }
 
     @Test
-    @OptIn(MSC4191::class)
     fun shouldRevokeToken() = runTest {
         val matrixRestClient = OAuth2ApiClient(
             serverMetadata = serverMetadata,

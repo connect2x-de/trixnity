@@ -1,3 +1,20 @@
+public abstract interface class de/connect2x/trixnity/clientserverapi/client/AdminApiClient {
+	public abstract fun getLock-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getSuspend-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setLock-Tj7rLLc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setSuspend-Tj7rLLc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun whoIs-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/AdminApiClientImpl : de/connect2x/trixnity/clientserverapi/client/AdminApiClient {
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiBaseClient;)V
+	public fun getLock-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getSuspend-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setLock-Tj7rLLc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setSuspend-Tj7rLLc (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun whoIs-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/AppserviceApiClient {
 	public abstract fun ping-0E7RQCE (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun ping-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/AppserviceApiClient;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -28,8 +45,8 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Aut
 	public abstract fun getMsisdnRequestTokenForRegistration-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/authentication/GetMsisdnRequestTokenForRegistration$Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getOAuth2ServerMetadata-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getOIDCRequestToken-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getSsoUrl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public static synthetic fun getSsoUrl$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public abstract fun getSsoUrl (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;)Ljava/lang/String;
+	public static synthetic fun getSsoUrl$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;ILjava/lang/Object;)Ljava/lang/String;
 	public abstract fun getThirdPartyIdentifiers-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getToken-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun isRegistrationTokenValid-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -50,10 +67,24 @@ public final class de/connect2x/trixnity/clientserverapi/client/AuthenticationAp
 	public static synthetic fun changePassword-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun deactivateAccount-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun deleteThirdPartyIdentifiers-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/ThirdPartyIdentifier$Medium;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun getSsoUrl$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun getSsoUrl$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;ILjava/lang/Object;)Ljava/lang/String;
 	public static synthetic fun login-eH_QyT8$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Lde/connect2x/trixnity/clientserverapi/model/authentication/IdentifierType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/LoginType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun register-tZkwj4A$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/AccountType;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun unbindThirdPartyIdentifiers-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/ThirdPartyIdentifier$Medium;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction : java/lang/Enum {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction$Companion;
+	public static final field LOGIN Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;
+	public static final field REGISTER Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;
+	public static fun values ()[Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/AuthenticationApiClientImpl : de/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient {
@@ -70,7 +101,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/AuthenticationAp
 	public fun getMsisdnRequestTokenForRegistration-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/authentication/GetMsisdnRequestTokenForRegistration$Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getOAuth2ServerMetadata-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getOIDCRequestToken-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getSsoUrl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun getSsoUrl (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient$SSOAction;)Ljava/lang/String;
 	public fun getThirdPartyIdentifiers-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getToken-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun isRegistrationTokenValid-gIAlu-s (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -193,12 +224,16 @@ public final class de/connect2x/trixnity/clientserverapi/client/DeviceApiClientI
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/DiscoveryApiClient {
+	public abstract fun getClient-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getPolicyServer-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getSupport-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getWellKnown-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/DiscoveryApiClientImpl : de/connect2x/trixnity/clientserverapi/client/DiscoveryApiClient {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiBaseClient;)V
+	public fun getClient-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getPolicyServer-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getSupport-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getWellKnown-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -340,6 +375,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/MatrixClientServ
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient : java/lang/AutoCloseable {
 	public abstract fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getAdmin ()Lde/connect2x/trixnity/clientserverapi/client/AdminApiClient;
 	public abstract fun getAppservice ()Lde/connect2x/trixnity/clientserverapi/client/AppserviceApiClient;
 	public abstract fun getAuthProviderType ()Lkotlin/reflect/KClass;
 	public abstract fun getAuthentication ()Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;
@@ -385,6 +421,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/MatrixClientServ
 	public synthetic fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/clientserverapi/client/SyncBatchTokenStore;Lde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
 	public fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getAdmin ()Lde/connect2x/trixnity/clientserverapi/client/AdminApiClient;
 	public fun getAppservice ()Lde/connect2x/trixnity/clientserverapi/client/AppserviceApiClient;
 	public fun getAuthProviderType ()Lkotlin/reflect/KClass;
 	public synthetic fun getAuthentication ()Lde/connect2x/trixnity/clientserverapi/client/AuthenticationApiClient;
@@ -560,8 +597,8 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Roo
 	public static synthetic fun leaveRoom-SG1pd2g$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun redactEvent-WMgdw6M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun redactEvent-WMgdw6M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun reportEvent-WMgdw6M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun reportEvent-WMgdw6M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun reportEvent-m5Uoy_M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun reportEvent-m5Uoy_M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun reportRoom-SG1pd2g (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendMessageEvent-nZK1u9w (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun sendMessageEvent-nZK1u9w$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -616,7 +653,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/RoomApiClient$De
 	public static synthetic fun knockRoom-k2a1xLA$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun leaveRoom-SG1pd2g$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun redactEvent-WMgdw6M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun reportEvent-WMgdw6M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun reportEvent-m5Uoy_M$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun sendMessageEvent-nZK1u9w$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun sendMessageEvent-qAam-eA$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun sendStateEvent-nZK1u9w$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -669,7 +706,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/RoomApiClientImp
 	public fun knockRoom-k2a1xLA (Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun leaveRoom-SG1pd2g (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun redactEvent-WMgdw6M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun reportEvent-WMgdw6M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun reportEvent-m5Uoy_M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun reportRoom-SG1pd2g (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendMessageEvent-nZK1u9w (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendMessageEvent-qAam-eA (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -692,7 +729,6 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Ser
 	public abstract fun getVersions-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun search-0E7RQCE (Lde/connect2x/trixnity/clientserverapi/model/server/Search$Request;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun search-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/ServerApiClient;Lde/connect2x/trixnity/clientserverapi/model/server/Search$Request;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun whoIs-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/ServerApiClient$DefaultImpls {
@@ -704,7 +740,6 @@ public final class de/connect2x/trixnity/clientserverapi/client/ServerApiClientI
 	public fun getCapabilities-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getVersions-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun search-0E7RQCE (Lde/connect2x/trixnity/clientserverapi/model/server/Search$Request;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun whoIs-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/SyncApiClient : de/connect2x/trixnity/core/ClientEventEmitter {
@@ -989,6 +1024,44 @@ public final class de/connect2x/trixnity/clientserverapi/client/oauth2/Applicati
 	public fun getValue ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;JJ)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lio/ktor/http/Url;
+	public final fun component4 ()Lio/ktor/http/Url;
+	public final fun component5 ()J
+	public final fun component6 ()J
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;JJ)Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;JJILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceCode ()Ljava/lang/String;
+	public final fun getExpiresIn ()J
+	public final fun getInterval ()J
+	public final fun getUserCode ()Ljava/lang/String;
+	public final fun getVerificationUri ()Lio/ktor/http/Url;
+	public final fun getVerificationUriComplete ()Lio/ktor/http/Url;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/DeviceAuthorizationResponse$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField$Companion;
 	public fun <init> ()V
@@ -1026,32 +1099,32 @@ public abstract class de/connect2x/trixnity/clientserverapi/client/oauth2/Locali
 	protected fun transformSerialize (Lkotlinx/serialization/json/JsonElement;)Lkotlinx/serialization/json/JsonElement;
 }
 
-public abstract interface class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow {
+public abstract interface class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow {
 	public abstract fun createAuthRequest-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun onCallback-gIAlu-s (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData {
-	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;)V
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData {
+	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;
-	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData;
+	public final fun component2 ()Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;
+	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getState ()Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;
+	public final fun getState ()Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;
 	public final fun getUrl ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State {
-	public static final field Companion Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State$Companion;
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State {
+	public static final field Companion Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getCodeVerifier ()Ljava/lang/String;
@@ -1060,26 +1133,54 @@ public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2Log
 	public fun toString ()Ljava/lang/String;
 }
 
-public final synthetic class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State$$serializer;
+public final synthetic class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State$Companion {
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlowImpl : de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow {
-	public fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)V
-	public synthetic fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlowImpl : de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow {
+	public fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createAuthRequest-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun onCallback-gIAlu-s (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow {
+	public abstract fun createAuthRequest-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun waitForLogin-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow$AuthRequestData {
+	public fun <init> (Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;)V
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lio/ktor/http/Url;
+	public final fun component3 ()Lio/ktor/http/Url;
+	public final fun copy (Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow$AuthRequestData;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow$AuthRequestData;Ljava/lang/String;Lio/ktor/http/Url;Lio/ktor/http/Url;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow$AuthRequestData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUserCode ()Ljava/lang/String;
+	public final fun getVerificationUri ()Lio/ktor/http/Url;
+	public final fun getVerificationUriComplete ()Lio/ktor/http/Url;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlowImpl : de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow {
+	public fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun createAuthRequest-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun waitForLogin-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2MatrixClientAuthProvider : de/connect2x/trixnity/clientserverapi/client/BearerClientAuthProvider {
@@ -1133,8 +1234,12 @@ public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2Mat
 public final class de/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2MatrixClientAuthProviderKt {
 	public static final fun oAuth2 (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2MatrixClientAuthProviderData;
 	public static synthetic fun oAuth2$default (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2MatrixClientAuthProviderData;
-	public static final fun oAuth2Login (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow;
-	public static synthetic fun oAuth2Login$default (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2LoginFlow;
+	public static final fun oAuth2AuthorizationCodeLogin (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow;
+	public static synthetic fun oAuth2AuthorizationCodeLogin$default (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow;
+	public static final fun oAuth2DeviceAuthorizationLogin (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow;
+	public static synthetic fun oAuth2DeviceAuthorizationLogin$default (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2DeviceAuthorizationLoginFlow;
+	public static final fun oAuth2Login (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow;
+	public static synthetic fun oAuth2Login$default (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData$Companion;Lio/ktor/http/Url;Lde/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/ResponseMode;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/client/oauth2/LocalizedField;Lde/connect2x/trixnity/clientserverapi/model/authentication/oauth2/PromptValue;Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow$AuthRequestData$State;Ljava/lang/String;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/client/oauth2/OAuth2AuthorizationCodeLoginFlow;
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/oauth2/Scope {

@@ -52,6 +52,12 @@ abstract interface de.connect2x.trixnity.serverserverapi.client/MatrixServerServ
         abstract fun <get-discovery>(): de.connect2x.trixnity.serverserverapi.client/DiscoveryApiClient // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClient.discovery.<get-discovery>|<get-discovery>(){}[0]
     abstract val federation // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClient.federation|{}federation[0]
         abstract fun <get-federation>(): de.connect2x.trixnity.serverserverapi.client/FederationApiClient // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClient.federation.<get-federation>|<get-federation>(){}[0]
+    abstract val policy // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClient.policy|{}policy[0]
+        abstract fun <get-policy>(): de.connect2x.trixnity.serverserverapi.client/PolicyApiClient // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClient.policy.<get-policy>|<get-policy>(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.serverserverapi.client/PolicyApiClient { // de.connect2x.trixnity.serverserverapi.client/PolicyApiClient|null[0]
+    abstract suspend fun sign(de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.events/PersistentDataUnit<*>, kotlin/String>): kotlin/Result<kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/Keys>> // de.connect2x.trixnity.serverserverapi.client/PolicyApiClient.sign|sign(de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.events.PersistentDataUnit<*>,kotlin.String>){}[0]
 }
 
 final class de.connect2x.trixnity.serverserverapi.client/DiscoveryApiClientImpl : de.connect2x.trixnity.serverserverapi.client/DiscoveryApiClient { // de.connect2x.trixnity.serverserverapi.client/DiscoveryApiClientImpl|null[0]
@@ -116,6 +122,8 @@ final class de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiCl
         final fun <get-discovery>(): de.connect2x.trixnity.serverserverapi.client/DiscoveryApiClientImpl // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.discovery.<get-discovery>|<get-discovery>(){}[0]
     final val federation // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.federation|{}federation[0]
         final fun <get-federation>(): de.connect2x.trixnity.serverserverapi.client/FederationApiClientImpl // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.federation.<get-federation>|<get-federation>(){}[0]
+    final val policy // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.policy|{}policy[0]
+        final fun <get-policy>(): de.connect2x.trixnity.serverserverapi.client/PolicyApiClientImpl // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.policy.<get-policy>|<get-policy>(){}[0]
 
     final fun close() // de.connect2x.trixnity.serverserverapi.client/MatrixServerServerApiClientImpl.close|close(){}[0]
 }
@@ -128,6 +136,12 @@ final class de.connect2x.trixnity.serverserverapi.client/MatrixSignatureAuthPlug
 
     final fun install(kotlin/Unit, io.ktor.client/HttpClient) // de.connect2x.trixnity.serverserverapi.client/MatrixSignatureAuthPlugin.install|install(kotlin.Unit;io.ktor.client.HttpClient){}[0]
     final fun prepare(kotlin/Function1<kotlin/Unit, kotlin/Unit>) // de.connect2x.trixnity.serverserverapi.client/MatrixSignatureAuthPlugin.prepare|prepare(kotlin.Function1<kotlin.Unit,kotlin.Unit>){}[0]
+}
+
+final class de.connect2x.trixnity.serverserverapi.client/PolicyApiClientImpl : de.connect2x.trixnity.serverserverapi.client/PolicyApiClient { // de.connect2x.trixnity.serverserverapi.client/PolicyApiClientImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.api.client/MatrixApiClient) // de.connect2x.trixnity.serverserverapi.client/PolicyApiClientImpl.<init>|<init>(de.connect2x.trixnity.api.client.MatrixApiClient){}[0]
+
+    final suspend fun sign(de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.events/PersistentDataUnit<*>, kotlin/String>): kotlin/Result<kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/Keys>> // de.connect2x.trixnity.serverserverapi.client/PolicyApiClientImpl.sign|sign(de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.events.PersistentDataUnit<*>,kotlin.String>){}[0]
 }
 
 final val de.connect2x.trixnity.serverserverapi.client/ConvertMediaPlugin // de.connect2x.trixnity.serverserverapi.client/ConvertMediaPlugin|{}ConvertMediaPlugin[0]

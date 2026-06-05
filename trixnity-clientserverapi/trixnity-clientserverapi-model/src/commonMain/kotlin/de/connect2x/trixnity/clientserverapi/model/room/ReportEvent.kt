@@ -22,6 +22,5 @@ data class ReportEvent(
     @Serializable
     data class Request(
         @SerialName("reason") val reason: String? = null,
-        @SerialName("score") val score: Long?,
     )
 }

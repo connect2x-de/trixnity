@@ -1,21 +1,24 @@
 package de.connect2x.trixnity.clientserverapi.client
 
+import de.connect2x.trixnity.clientserverapi.model.discovery.DiscoveryInformation
+import de.connect2x.trixnity.clientserverapi.model.discovery.GetPolicyServer
+import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.testutils.scopedMockEngine
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.http.ContentType.*
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.clientserverapi.model.authentication.DiscoveryInformation
-import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.testutils.scopedMockEngine
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DiscoveryApiClientTest : TrixnityBaseTest() {
     @Test
-    fun shouldGetWellKnown() = runTest {
+    fun shouldGetClient() = runTest {
         val matrixRestClient = MatrixClientServerApiClientImpl(
             baseUrl = Url("https://matrix.host"),
             httpClientEngine = scopedMockEngine {
@@ -42,14 +45,14 @@ class DiscoveryApiClientTest : TrixnityBaseTest() {
                     )
                 }
             })
-        matrixRestClient.discovery.getWellKnown().getOrThrow() shouldBe DiscoveryInformation(
+        matrixRestClient.discovery.getClient().getOrThrow() shouldBe DiscoveryInformation(
             homeserver = DiscoveryInformation.HomeserverInformation("https://matrix.example.com"),
             identityServer = DiscoveryInformation.IdentityServerInformation("https://identity.example.com")
         )
     }
 
     @Test
-    fun shouldGetWellKnownRegardlessOfContentType() = runTest {
+    fun shouldGetClientRegardlessOfContentType() = runTest {
         val matrixRestClient = MatrixClientServerApiClientImpl(
             baseUrl = Url("https://matrix.host"),
             httpClientEngine = scopedMockEngine {
@@ -75,7 +78,7 @@ class DiscoveryApiClientTest : TrixnityBaseTest() {
                     )
                 }
             })
-        matrixRestClient.discovery.getWellKnown().getOrThrow() shouldBe DiscoveryInformation(
+        matrixRestClient.discovery.getClient().getOrThrow() shouldBe DiscoveryInformation(
             homeserver = DiscoveryInformation.HomeserverInformation("https://matrix.example.com"),
             identityServer = DiscoveryInformation.IdentityServerInformation("https://identity.example.com")
         )
@@ -124,6 +127,34 @@ class DiscoveryApiClientTest : TrixnityBaseTest() {
                 )
             ),
             supportPage = "https://example.org/support.html"
+        )
+    }
+
+    @Test
+    fun shouldGetPolicyServer() = runTest {
+        val matrixRestClient = MatrixClientServerApiClientImpl(
+            baseUrl = Url("https://matrix.host"),
+            httpClientEngine = scopedMockEngine {
+                addHandler { request ->
+                    assertEquals("/.well-known/matrix/policy_server", request.url.fullPath)
+                    assertEquals(HttpMethod.Get, request.method)
+                    respond(
+                        """
+                            {
+                              "public_keys": {
+                                "ed25519": "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s"
+                              }
+                            }
+                        """.trimIndent(),
+                        HttpStatusCode.OK,
+                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
+                    )
+                }
+            })
+        matrixRestClient.discovery.getPolicyServer().getOrThrow() shouldBe GetPolicyServer.Response(
+            publicKeys = keysOf(
+                Key.Ed25519Key(null, "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s")
+            )
         )
     }
 }

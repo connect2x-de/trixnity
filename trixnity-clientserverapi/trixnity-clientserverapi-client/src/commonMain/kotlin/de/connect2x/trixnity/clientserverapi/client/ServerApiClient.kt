@@ -3,8 +3,6 @@ package de.connect2x.trixnity.clientserverapi.client
 import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
 import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
 import de.connect2x.trixnity.clientserverapi.model.server.Search
-import de.connect2x.trixnity.clientserverapi.model.server.WhoIs
-import de.connect2x.trixnity.core.model.UserId
 
 interface ServerApiClient {
     /**
@@ -24,13 +22,6 @@ interface ServerApiClient {
         request: Search.Request,
         nextBatch: String? = null,
     ): Result<Search.Response>
-
-    /**
-     * @see [WhoIs]
-     */
-    suspend fun whoIs(
-        userId: UserId,
-    ): Result<WhoIs.Response>
 }
 
 class ServerApiClientImpl(
@@ -48,9 +39,4 @@ class ServerApiClientImpl(
         nextBatch: String?,
     ): Result<Search.Response> =
         baseClient.request(Search(nextBatch), request)
-
-    override suspend fun whoIs(
-        userId: UserId,
-    ): Result<WhoIs.Response> =
-        baseClient.request(WhoIs(userId))
 }

@@ -1,6 +1,6 @@
 [versions]
 
-trixnity = "5.5.3"
+trixnity = "5.6.0"
 
 ### build ###
 ksp = "2.3.3" # https://github.com/google/ksp/releases
