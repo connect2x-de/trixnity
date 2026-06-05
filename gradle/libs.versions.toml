@@ -4,7 +4,7 @@ trixnity = "5.6.0"
 
 ### build ###
 ksp = "2.3.3" # https://github.com/google/ksp/releases
-downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
+downloadGradlePlugin = "5.6.1" # https://github.com/michel-kraemer/gradle-download-task/releases
 
 ### native bindings ###
 trixnityOlmBinaries = "2.0.4" # https://gitlab.com/connect2x/trixnity/trixnity-olm-binaries/-/releases

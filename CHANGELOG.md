@@ -9,19 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 5.6.0
+
+### Added
+
 - Added MatrixClient::deleteProfileField
+- Added update loop for own profile data
 - Support Matrix 1.18
 
 ### Changed
 
 - Updated to Lognity 2.1.0
-- Updated to Gradle 9.4.1
-- Add update loop for own profile data
-- Use shell runner for linux (two different runners depending on workload)
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -30,8 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix that a network exception while encrypting an event could lead to a sendError in the outbox
 - Fixed a cache race where an old database value could be reloaded into the cache during deletion, causing a deleted
   value to remain cached.
-
-### Security
 
 ## 5.5.2
 
