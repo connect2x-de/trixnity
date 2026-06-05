@@ -397,7 +397,7 @@ abstract class TimelineBase<T>(
                 val dropCount =
                     if (index >= 0) index
                     else {
-                        log.warn { "could not found event" }
+                        log.warn { "could not find event" }
                         0
                     }
                 if (dropCount == 0) log.warn { "dropped nothing" }
@@ -431,7 +431,7 @@ abstract class TimelineBase<T>(
                 val dropCount =
                     if (index >= 0) it.events.size - index - 1
                     else {
-                        log.warn { "could not found event" }
+                        log.warn { "could not find event" }
                         0
                     }
                 if (dropCount == 0) log.warn { "dropped nothing" }
