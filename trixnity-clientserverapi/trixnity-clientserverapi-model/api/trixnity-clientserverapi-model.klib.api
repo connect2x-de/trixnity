@@ -2201,7 +2201,7 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication/Register 
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Register.toString|toString(){}[0]
 
     final class Request { // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request|null[0]
-        constructor <init>(kotlin/String?, kotlin/String?, kotlin/String?, kotlin/String?, kotlin/Boolean?, kotlin/Boolean? = ..., de.connect2x.trixnity.clientserverapi.model.authentication/LoginType? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;de.connect2x.trixnity.clientserverapi.model.authentication.LoginType?){}[0]
+        constructor <init>(kotlin/String?, kotlin/String?, kotlin/String?, kotlin/String?, kotlin/Boolean?, kotlin/Boolean? = ..., kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.<init>|<init>(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.String?){}[0]
 
         final val deviceId // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.deviceId|{}deviceId[0]
             final fun <get-deviceId>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.deviceId.<get-deviceId>|<get-deviceId>(){}[0]
@@ -2214,7 +2214,7 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication/Register 
         final val refreshToken // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.refreshToken|{}refreshToken[0]
             final fun <get-refreshToken>(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.refreshToken.<get-refreshToken>|<get-refreshToken>(){}[0]
         final val type // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.type|{}type[0]
-            final fun <get-type>(): de.connect2x.trixnity.clientserverapi.model.authentication/LoginType? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.type.<get-type>|<get-type>(){}[0]
+            final fun <get-type>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.type.<get-type>|<get-type>(){}[0]
         final val username // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.username|{}username[0]
             final fun <get-username>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.username.<get-username>|<get-username>(){}[0]
 
@@ -2224,8 +2224,8 @@ final class de.connect2x.trixnity.clientserverapi.model.authentication/Register 
         final fun component4(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.component4|component4(){}[0]
         final fun component5(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.component5|component5(){}[0]
         final fun component6(): kotlin/Boolean? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.component6|component6(){}[0]
-        final fun component7(): de.connect2x.trixnity.clientserverapi.model.authentication/LoginType? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.component7|component7(){}[0]
-        final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., de.connect2x.trixnity.clientserverapi.model.authentication/LoginType? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;de.connect2x.trixnity.clientserverapi.model.authentication.LoginType?){}[0]
+        final fun component7(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.component7|component7(){}[0]
+        final fun copy(kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Boolean? = ..., kotlin/Boolean? = ..., kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.copy|copy(kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Boolean?;kotlin.Boolean?;kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.authentication/Register.Request.toString|toString(){}[0]
