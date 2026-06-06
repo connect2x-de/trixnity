@@ -26,15 +26,15 @@ stages:
   - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 
 .if-release: &if-release
-  - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
+  - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*/'
 
 .if-dev-release: &if-dev-release
-  - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
+  - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+.*/'
     when: never
   - if: $CI_PIPELINE_SOURCE == "schedule"
     when: never
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  - if: '$CI_COMMIT_BRANCH =~ /^v-\d+.\d+.\d+.*/'
+  - if: '$CI_COMMIT_BRANCH =~ /^v-\d+\.\d+\.\d+.*/'
 
 compile:mac:
   stage: compile
