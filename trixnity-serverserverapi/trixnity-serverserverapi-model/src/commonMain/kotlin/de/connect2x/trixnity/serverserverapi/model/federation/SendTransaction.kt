@@ -1,15 +1,16 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.events.EphemeralDataUnit
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit
+import de.connect2x.trixnity.core.model.keys.Signed
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#put_matrixfederationv1sendtxnid">matrix spec</a>
@@ -25,7 +26,7 @@ data class SendTransaction(
         @SerialName("edus") val edus: List<@Contextual EphemeralDataUnit<*>>? = null,
         @SerialName("origin") val origin: String,
         @SerialName("origin_server_ts") val originTimestamp: Long,
-        @SerialName("pdus") val pdus: List<SignedPersistentDataUnit<*>>,
+        @SerialName("pdus") val pdus: List<Signed<@Contextual PersistentDataUnit<*>, String>>,
     )
 
     @Serializable

@@ -74,7 +74,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -98,7 +98,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -120,7 +120,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/profile/@user:server/displayname")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"displayname":"someDisplayName"}"""
         }
         verifySuspend {
@@ -139,7 +139,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/profile/@user:server/unknown")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"unknown":{"dino":true}}"""
         }
         verifySuspend {
@@ -158,7 +158,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.delete("/_matrix/client/v3/profile/@user:server/displayname")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
         }
         verifySuspend {
             handlerMock.deleteProfileField(assert {
@@ -185,7 +185,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/profile/@user:server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"displayname":"someDisplayName","avatar_url":"mxc://localhost/123456","unknown":{"dino":true}}"""
         }
         verifySuspend {
@@ -215,7 +215,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -234,7 +234,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/presence/@user:server/status") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "presence": "unavailable",
@@ -277,7 +277,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -322,7 +322,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"filter_id":"0"}"""
         }
         verifySuspend {
@@ -355,7 +355,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/user/@user:server/filter/0") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                     "room":{
@@ -389,7 +389,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"@bob:server":["!someRoom:server"]}"""
         }
         verifySuspend {
@@ -411,7 +411,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"algorithm":"m.secret_storage.v1.aes-hmac-sha2","name":"name"}"""
         }
         verifySuspend {
@@ -435,7 +435,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -464,7 +464,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -501,7 +501,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"limited":true,"results":[{"avatar_url":"mxc://localhost/123456","display_name":"bob","user_id":"@bob:localhost"}]}"""
         }
         verifySuspend {
@@ -525,7 +525,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {

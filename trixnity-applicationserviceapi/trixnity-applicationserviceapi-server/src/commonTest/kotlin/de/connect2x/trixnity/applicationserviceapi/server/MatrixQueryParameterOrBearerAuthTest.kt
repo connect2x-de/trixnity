@@ -41,7 +41,7 @@ class MatrixQueryParameterOrBearerAuthTest : TrixnityBaseTest() {
         application { testAppMatrixQueryParameterAuth() }
         val response = client.get("/_matrix/something")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
-        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
+        assertEquals(ContentType.Application.Json, response.contentType())
         Json.decodeFromString(ErrorResponse.Serializer, response.body())
             .shouldBeInstanceOf<ErrorResponse.Unauthorized>()
     }
@@ -51,7 +51,7 @@ class MatrixQueryParameterOrBearerAuthTest : TrixnityBaseTest() {
         application { testAppMatrixQueryParameterAuth() }
         val response = client.get("/_matrix/something?access_token=invalidToken")
         assertEquals(HttpStatusCode.Forbidden, response.status)
-        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
+        assertEquals(ContentType.Application.Json, response.contentType())
         Json.decodeFromString(ErrorResponse.Serializer, response.body())
             .shouldBeInstanceOf<ErrorResponse.Forbidden>()
     }
@@ -63,7 +63,7 @@ class MatrixQueryParameterOrBearerAuthTest : TrixnityBaseTest() {
             bearerAuth("invalidToken")
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
-        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
+        assertEquals(ContentType.Application.Json, response.contentType())
         Json.decodeFromString(ErrorResponse.Serializer, response.body())
             .shouldBeInstanceOf<ErrorResponse.Forbidden>()
     }
@@ -75,7 +75,7 @@ class MatrixQueryParameterOrBearerAuthTest : TrixnityBaseTest() {
             bearerAuth("invalidToken")
         }
         assertEquals(HttpStatusCode.Forbidden, response.status)
-        assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), response.contentType())
+        assertEquals(ContentType.Application.Json, response.contentType())
         Json.decodeFromString(ErrorResponse.Serializer, response.body())
             .shouldBeInstanceOf<ErrorResponse.Forbidden>()
     }

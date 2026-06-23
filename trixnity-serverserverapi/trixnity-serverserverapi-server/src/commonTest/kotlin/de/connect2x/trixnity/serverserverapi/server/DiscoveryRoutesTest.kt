@@ -58,7 +58,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         val response = client.get("/.well-known/matrix/server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "m.server": "delegated.example.com:1234"
@@ -85,7 +85,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/federation/v1/version")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "server": {
@@ -131,7 +131,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/key/v2/server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "server_name": "example.org",
@@ -211,7 +211,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "server_keys": [
@@ -287,7 +287,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/key/v2/query/example.org?minimum_valid_until_ts=1234567890")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "server_keys": [

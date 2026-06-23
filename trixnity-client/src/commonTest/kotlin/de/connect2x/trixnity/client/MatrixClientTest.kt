@@ -255,11 +255,11 @@ class MatrixClientTest : TrixnityBaseTest() {
                 RepositoriesModule {
                     val delegate = RepositoriesModule.inMemory().create()
                     module {
-                        includes(module {
+                        includes(delegate, module {
                             single<AccountRepository> { accountRepository }
                             single<AuthenticationRepository> { authenticationRepository }
                             single<OlmAccountRepository> { olmAccountRepository }
-                        }, delegate)
+                        })
 
                     }
                 }
@@ -446,12 +446,11 @@ class MatrixClientTest : TrixnityBaseTest() {
             RepositoriesModule {
                 val delegate = RepositoriesModule.inMemory().create()
                 module {
-                    includes(module {
+                    includes(delegate, module {
                         single<AccountRepository> { accountRepository }
                         single<AuthenticationRepository> { authenticationRepository }
                         single<OlmAccountRepository> { olmAccountRepository }
-                    }, delegate)
-
+                    })
                 }
             }
         val log = Logger("MatrixClientImplTest")
@@ -807,11 +806,14 @@ class MatrixClientTest : TrixnityBaseTest() {
             RepositoriesModule {
                 val delegate = RepositoriesModule.inMemory().create()
                 module {
-                    includes(module {
-                        single<AccountRepository> { accountRepository }
-                        single<AuthenticationRepository> { authenticationRepository }
-                        single<OlmAccountRepository> { olmAccountRepository }
-                    }, delegate)
+                    includes(
+                        delegate,
+                        module {
+                            single<AccountRepository> { accountRepository }
+                            single<AuthenticationRepository> { authenticationRepository }
+                            single<OlmAccountRepository> { olmAccountRepository }
+                        },
+                    )
                 }
             }
         return MatrixClient.create(
@@ -948,11 +950,11 @@ class MatrixClientTest : TrixnityBaseTest() {
         return RepositoriesModule {
             val delegate = RepositoriesModule.inMemory().create()
             module {
-                includes(module {
+                includes(delegate, module {
                     single<AccountRepository> { accountRepository }
                     single<AuthenticationRepository> { authenticationRepository }
                     single<OlmAccountRepository> { olmAccountRepository }
-                }, delegate)
+                })
             }
         }
     }

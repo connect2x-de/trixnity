@@ -6,7 +6,7 @@ plugins {
 kotlin {
     addJvmTarget()
     linuxX64()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")

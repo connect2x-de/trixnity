@@ -6,4 +6,5 @@ kotlin {
     addJvmTarget()
     addWebTarget(rootDir)
     addNativeTargets()
+    applyDefaultHierarchyTemplate()
 }

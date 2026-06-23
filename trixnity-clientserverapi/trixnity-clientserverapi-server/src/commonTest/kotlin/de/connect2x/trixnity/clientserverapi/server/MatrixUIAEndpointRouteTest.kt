@@ -97,7 +97,7 @@ class MatrixUIAEndpointRouteTest : TrixnityBaseTest() {
             )
         }
         response.body<String>() shouldBe """{"status":"dino"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
 
@@ -179,7 +179,7 @@ class MatrixUIAEndpointRouteTest : TrixnityBaseTest() {
               "session": "session"
             }
         """.trimToFlatJson()
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.Unauthorized
     }
 
@@ -207,7 +207,7 @@ class MatrixUIAEndpointRouteTest : TrixnityBaseTest() {
             setBody("""{"includeDino":true}""")
         }
         response.body<String>() shouldBe """{"completed":[],"flows":[{"stages":["m.login.password"]}],"session":"session","errcode":"M_UNAUTHORIZED","error":"password wrong"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.Unauthorized
     }
 
@@ -235,7 +235,7 @@ class MatrixUIAEndpointRouteTest : TrixnityBaseTest() {
         }
         getHasBeenCalled shouldBe false
         response.body<String>() shouldBe """{"status":"dino"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
 }

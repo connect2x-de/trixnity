@@ -13,7 +13,7 @@ kotlin {
     addAndroidTarget()
     addNativeDesktopTargets()
     addNativeAppleTargets()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.time.ExperimentalTime")

@@ -7,7 +7,6 @@ import de.connect2x.trixnity.core.model.events.PersistentDataUnit
 import de.connect2x.trixnity.core.model.keys.Signatures
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
 import io.ktor.resources.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -21,13 +20,13 @@ import kotlinx.serialization.json.Json
 @Serializable
 @Resource("/_matrix/policy/v1/sign")
 @HttpMethod(POST)
-object Sign : MatrixEndpoint<SignedPersistentDataUnit<*>, Signatures<String>> {
+object Sign : MatrixEndpoint<Signed<PersistentDataUnit<*>, String>, Signatures<String>> {
     @OptIn(ExperimentalSerializationApi::class)
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: SignedPersistentDataUnit<*>?
-    ): KSerializer<SignedPersistentDataUnit<*>> {
+        value: Signed<PersistentDataUnit<*>, String>?
+    ): KSerializer<Signed<PersistentDataUnit<*>, String>> {
         @Suppress("UNCHECKED_CAST")
         val serializer = requireNotNull(json.serializersModule.getContextual(PersistentDataUnit::class))
         return Signed.serializer(serializer, String.serializer())

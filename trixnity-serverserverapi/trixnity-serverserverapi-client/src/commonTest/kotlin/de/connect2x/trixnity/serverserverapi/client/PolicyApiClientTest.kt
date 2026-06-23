@@ -7,7 +7,6 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.keysOf
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.testutils.scopedMockEngine
 import io.kotest.matchers.shouldBe
@@ -18,7 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PolicyApiClientTest : TrixnityBaseTest() {
-    private val pdu: SignedPersistentDataUnit<*> = Signed(
+    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
         PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
             authEvents = listOf(),
             content = RoomMessageEventContent.TextBased.Text("hi"),

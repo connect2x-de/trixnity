@@ -11,7 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated to Kotlin 2.3.21
+
 ### Deprecated
+
+- `SignedPersistentDataUnit<T>` type alias
+- `SignedPersistentStateDataUnit<T>` type alias
+- `SignedPersistentMessageDataUnit<T>` type alias
 
 ### Removed
 

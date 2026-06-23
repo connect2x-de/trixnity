@@ -83,7 +83,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/pushers") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "pushers":[
@@ -139,7 +139,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -183,7 +183,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -225,7 +225,7 @@ class PushRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/notifications?from=from&limit=24&only=only") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "next_token":"abcdef",
@@ -377,7 +377,7 @@ class PushRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/pushrules/") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "global": {
@@ -592,7 +592,7 @@ class PushRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/pushrules/scope/content/ruleId") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "rule_id":"nocake",
@@ -646,7 +646,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -675,7 +675,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -696,7 +696,7 @@ class PushRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/pushrules/scope/content/ruleId/actions") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "actions":[
@@ -738,7 +738,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -762,7 +762,7 @@ class PushRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/pushrules/scope/content/ruleId/enabled") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "enabled":false
@@ -796,7 +796,7 @@ class PushRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {

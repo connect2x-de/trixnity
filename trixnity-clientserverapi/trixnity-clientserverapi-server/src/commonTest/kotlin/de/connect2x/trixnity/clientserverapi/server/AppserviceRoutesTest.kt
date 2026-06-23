@@ -62,7 +62,7 @@ class AppserviceRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"duration_ms":1234}"""
         }
         verifySuspend {

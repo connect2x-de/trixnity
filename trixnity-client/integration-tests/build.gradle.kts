@@ -13,7 +13,7 @@ kotlin {
         jvmArgs(jolOpens)
         jvmArgs("-Djol.magicFieldOffset=true")
     }
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")

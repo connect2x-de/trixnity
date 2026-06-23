@@ -130,10 +130,8 @@ fun KotlinMultiplatformExtension.addNativeAppleTargets(configure: (KotlinNativeT
         configure()
     }
     return setOf(
-        macosX64(fullConfigure),
         macosArm64(fullConfigure),
         iosArm64(fullConfigure),
         iosSimulatorArm64(fullConfigure),
-        iosX64(fullConfigure),
     )
 }

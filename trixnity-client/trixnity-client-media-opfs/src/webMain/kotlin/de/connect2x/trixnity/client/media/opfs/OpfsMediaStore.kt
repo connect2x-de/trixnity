@@ -2,26 +2,44 @@ package de.connect2x.trixnity.client.media.opfs
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
-import js.buffer.ArrayBuffer
-import js.typedarrays.Uint8Array
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.FlowCollector
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.MediaStoreModule
 import de.connect2x.trixnity.client.media.CachedMediaStore
 import de.connect2x.trixnity.client.media.MediaStore
-import de.connect2x.trixnity.utils.*
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.KeyedMutex
+import de.connect2x.trixnity.utils.byteArrayFlowFromReadableStream
+import de.connect2x.trixnity.utils.nextString
+import de.connect2x.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.writeTo
+import js.buffer.ArrayBuffer
+import js.iterable.asFlow
 import js.objects.unsafeJso
+import js.typedarrays.Uint8Array
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import okio.ByteString.Companion.toByteString
 import org.koin.dsl.module
 import web.events.EventType
 import web.events.addEventHandler
 import web.file.File
-import web.fs.*
+import web.fs.FileSystemDirectoryHandle
+import web.fs.FileSystemGetDirectoryOptions
+import web.fs.FileSystemGetFileOptions
+import web.fs.FileSystemRemoveOptions
+import web.fs.createWritable
+import web.fs.getDirectoryHandle
+import web.fs.getFile
+import web.fs.getFileHandle
+import web.fs.removeEntry
+import web.fs.write
 import web.streams.WritableStream
 import web.streams.close
 import web.window.window
-import kotlin.js.unsafeCast
 import kotlin.random.Random
 import kotlin.time.Clock
 
@@ -58,7 +76,7 @@ internal class OpfsMediaStore(
     }
 
     override suspend fun deleteAllFromStore() {
-        basePath.values().unsafeCast<AsyncIterableFixed<FileSystemHandle>>().asFlow().collect { entry ->
+        basePath.values().asFlow().collect { entry ->
             basePath.removeEntry(entry.name, FileSystemRemoveOptions(recursive = true))
         }
     }

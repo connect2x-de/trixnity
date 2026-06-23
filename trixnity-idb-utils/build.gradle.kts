@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
     addWebTarget(rootDir, nodeJsEnabled = false)
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         commonMain.dependencies {
             api(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))

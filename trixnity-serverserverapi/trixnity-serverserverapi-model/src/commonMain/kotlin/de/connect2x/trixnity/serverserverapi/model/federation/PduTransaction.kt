@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit
+import de.connect2x.trixnity.core.model.keys.Signed
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
 
 @Serializable
 data class PduTransaction(
@@ -11,5 +13,5 @@ data class PduTransaction(
     @SerialName("origin_server_ts")
     val originTimestamp: Long,
     @SerialName("pdus")
-    val pdus: List<SignedPersistentDataUnit<*>>
+    val pdus: List<Signed<@Contextual PersistentDataUnit<*>, String>>
 )

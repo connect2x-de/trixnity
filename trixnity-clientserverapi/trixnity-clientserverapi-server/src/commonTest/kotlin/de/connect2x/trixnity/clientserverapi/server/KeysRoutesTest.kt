@@ -123,7 +123,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "one_time_key_counts":{
@@ -301,7 +301,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "device_keys":{
@@ -426,7 +426,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "failures":{},
@@ -472,7 +472,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "changed":[
@@ -549,7 +549,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -675,7 +675,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "failures":{
@@ -799,7 +799,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/room_keys/keys?version=1") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "rooms":{
@@ -852,7 +852,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/room_keys/keys/!room:example.org?version=1") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "sessions":{
@@ -900,7 +900,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "first_message_index":1,
@@ -956,7 +956,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1018,7 +1018,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1074,7 +1074,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1111,7 +1111,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1136,7 +1136,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1163,7 +1163,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "count":10,
@@ -1202,7 +1202,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "auth_data":{
@@ -1247,7 +1247,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "auth_data":{
@@ -1298,7 +1298,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "version":"1"
@@ -1345,7 +1345,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1373,7 +1373,7 @@ class KeysRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {

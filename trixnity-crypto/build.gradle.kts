@@ -7,7 +7,7 @@ kotlin {
     addJvmTarget()
     addWebTarget(rootDir)
     addNativeTargets()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")

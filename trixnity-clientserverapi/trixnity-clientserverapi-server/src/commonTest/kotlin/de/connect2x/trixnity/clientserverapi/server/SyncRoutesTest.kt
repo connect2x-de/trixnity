@@ -243,7 +243,7 @@ class SyncRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "next_batch":"s72595_4483_1934",

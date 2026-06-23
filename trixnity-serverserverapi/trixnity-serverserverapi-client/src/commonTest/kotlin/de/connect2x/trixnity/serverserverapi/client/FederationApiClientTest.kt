@@ -1,11 +1,5 @@
 package de.connect2x.trixnity.serverserverapi.client
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.client.engine.mock.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
@@ -15,21 +9,61 @@ import de.connect2x.trixnity.core.model.events.EphemeralDataUnit
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.PresenceDataUnitContent
-import de.connect2x.trixnity.core.model.events.m.room.*
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
-import de.connect2x.trixnity.core.model.keys.*
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
-import de.connect2x.trixnity.serverserverapi.model.federation.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.serverserverapi.model.federation.ClaimKeys
+import de.connect2x.trixnity.serverserverapi.model.federation.GetDevices
+import de.connect2x.trixnity.serverserverapi.model.federation.GetEventAuthChain
+import de.connect2x.trixnity.serverserverapi.model.federation.GetHierarchy
+import de.connect2x.trixnity.serverserverapi.model.federation.GetKeys
+import de.connect2x.trixnity.serverserverapi.model.federation.GetMissingEvents
+import de.connect2x.trixnity.serverserverapi.model.federation.GetOIDCUserInfo
+import de.connect2x.trixnity.serverserverapi.model.federation.GetPublicRoomsResponse
+import de.connect2x.trixnity.serverserverapi.model.federation.GetPublicRoomsWithFilter
+import de.connect2x.trixnity.serverserverapi.model.federation.GetState
+import de.connect2x.trixnity.serverserverapi.model.federation.GetStateIds
+import de.connect2x.trixnity.serverserverapi.model.federation.Invite
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeJoin
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeKnock
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeLeave
+import de.connect2x.trixnity.serverserverapi.model.federation.Media
+import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid
 import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid.Request.ThirdPartyInvite
+import de.connect2x.trixnity.serverserverapi.model.federation.PduTransaction
+import de.connect2x.trixnity.serverserverapi.model.federation.QueryDirectory
+import de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile
+import de.connect2x.trixnity.serverserverapi.model.federation.SendJoin
+import de.connect2x.trixnity.serverserverapi.model.federation.SendKnock
+import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction
 import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction.Response.PDUProcessingResult
 import de.connect2x.trixnity.serverserverapi.model.federation.ThumbnailResizingMethod.SCALE
+import de.connect2x.trixnity.serverserverapi.model.federation.TimestampToEvent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.testutils.scopedMockEngine
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class FederationApiClientTest : TrixnityBaseTest() {
-    private val pdu: SignedPersistentDataUnit<*> = Signed(
+    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
         PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
             authEvents = listOf(),
             content = RoomMessageEventContent.TextBased.Text("hi"),

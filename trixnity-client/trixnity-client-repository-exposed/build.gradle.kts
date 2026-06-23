@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     addJvmTarget()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
