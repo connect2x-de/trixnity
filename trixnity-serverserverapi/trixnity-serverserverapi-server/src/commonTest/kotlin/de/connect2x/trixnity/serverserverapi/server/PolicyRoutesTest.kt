@@ -11,7 +11,6 @@ import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.createMatrixEventAndDataUnitJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
@@ -56,7 +55,7 @@ class PolicyRoutesTest : TrixnityBaseTest() {
         resetCalls(handlerMock)
     }
 
-    private val pdu: SignedPersistentDataUnit<*> = Signed(
+    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
         PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
             authEvents = listOf(),
             content = RoomMessageEventContent.TextBased.Text("hi"),
@@ -126,7 +125,7 @@ class PolicyRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "policy.example.org": {

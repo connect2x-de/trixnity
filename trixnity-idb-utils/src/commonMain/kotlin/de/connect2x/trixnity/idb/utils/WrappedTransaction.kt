@@ -8,6 +8,7 @@ import de.connect2x.trixnity.idb.utils.IDBException.Operation.DELETE
 import de.connect2x.trixnity.idb.utils.IDBException.Operation.GET
 import de.connect2x.trixnity.idb.utils.IDBException.Operation.PUT
 import js.objects.unsafeJso
+import js.undefined.undefinedOrNull
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -25,7 +26,6 @@ import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
 import kotlin.js.toJsArray
 import kotlin.js.toJsString
-import kotlin.js.undefined
 import kotlin.js.unsafeCast
 
 value class WrappedTransaction(val tx: IDBTransaction) {
@@ -72,7 +72,7 @@ value class WrappedTransaction(val tx: IDBTransaction) {
 
             request.onsuccess = EventHandler { event ->
                 val value = when (val any = event.target.result) {
-                    undefined -> null
+                    undefinedOrNull -> null
                     else -> any.unsafeCast<T>()
                 }
 

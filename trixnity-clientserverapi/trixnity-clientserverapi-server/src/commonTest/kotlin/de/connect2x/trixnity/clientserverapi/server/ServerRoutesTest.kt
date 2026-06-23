@@ -75,7 +75,7 @@ class ServerRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/versions") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {"versions":[],"unstable_features":{}}
             """.trimToFlatJson()
@@ -102,7 +102,7 @@ class ServerRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/capabilities") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "capabilities": {
@@ -186,7 +186,7 @@ class ServerRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "search_categories": {

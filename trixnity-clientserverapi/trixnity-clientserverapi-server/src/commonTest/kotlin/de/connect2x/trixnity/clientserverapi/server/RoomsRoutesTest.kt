@@ -140,7 +140,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v3/rooms/!room:server/event/${'$'}event") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "content":{
@@ -185,7 +185,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/state/m.room.name/?format=event") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                     "content":{
@@ -219,7 +219,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/state/m.room.name/?format=content") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "name":"name"
@@ -265,7 +265,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/state") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 [
                   {
@@ -334,7 +334,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/members?at=someAt&membership=join") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "chunk":[
@@ -397,7 +397,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/joined_members") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                     "joined":{
@@ -451,7 +451,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/messages?from=from&dir=f&limit=10") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "start":"start",
@@ -522,7 +522,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "prev_batch": "start",
@@ -580,7 +580,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "prev_batch": "start",
@@ -639,7 +639,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "prev_batch": "start",
@@ -698,7 +698,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "next_batch": "end",
@@ -743,7 +743,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -774,7 +774,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -805,7 +805,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -839,7 +839,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -870,7 +870,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -901,7 +901,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -935,7 +935,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id":"event"
@@ -979,7 +979,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "room_id":"!room:server"
@@ -1026,7 +1026,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1051,7 +1051,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/directory/room/%23unicorns:server") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                     "room_id":"!room:server",
@@ -1083,7 +1083,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/aliases") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "aliases": [
@@ -1110,7 +1110,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.delete("/_matrix/client/v3/directory/room/%23unicorns:server") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1135,7 +1135,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/joined_rooms") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {"joined_rooms":["!room1:server","!room2:server"]}
             """.trimToFlatJson()
@@ -1158,7 +1158,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1182,7 +1182,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1206,7 +1206,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1230,7 +1230,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1269,7 +1269,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"room_id":"!room:server"}"""
         }
         verifySuspend {
@@ -1322,7 +1322,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"room_id":"!room:server"}"""
         }
         verifySuspend {
@@ -1361,7 +1361,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"room_id":"!room:server"}"""
         }
         verifySuspend {
@@ -1387,7 +1387,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1409,7 +1409,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1432,7 +1432,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1464,7 +1464,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1489,7 +1489,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"event_id":"$1event"}"""
         }
         verifySuspend {
@@ -1512,7 +1512,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"event_id":"$1event"}"""
         }
         verifySuspend {
@@ -1537,7 +1537,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1563,7 +1563,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1589,7 +1589,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1610,7 +1610,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/directory/list/room/!room:server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "visibility": "public"
@@ -1637,7 +1637,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1675,7 +1675,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/publicRooms?limit=5&server=example&since=since")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "chunk": [
@@ -1747,7 +1747,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "chunk": [
@@ -1798,7 +1798,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/user/@user:server/rooms/!room:server/tags") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "tags": {
@@ -1834,7 +1834,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1858,7 +1858,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1998,7 +1998,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             client.get("/_matrix/client/v3/rooms/!room:server/context/event?filter=filter&limit=10") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "start": "t27-54_2_0_2",
@@ -2129,7 +2129,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -2153,7 +2153,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -2178,7 +2178,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"replacement_room":"!nextRoom:server"}"""
         }
         verifySuspend {
@@ -2226,7 +2226,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                  "next_batch": "next_batch_token",
@@ -2288,7 +2288,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id": "$143273582443PhrSn:example.org",
@@ -2329,7 +2329,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                  "avatar_url": "mxc://example.org/abcdef",

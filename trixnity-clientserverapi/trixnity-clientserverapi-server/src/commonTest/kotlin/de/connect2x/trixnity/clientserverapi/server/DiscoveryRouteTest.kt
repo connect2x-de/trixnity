@@ -71,7 +71,7 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         val response = client.get("/.well-known/matrix/client")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "m.homeserver": {
@@ -111,7 +111,7 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         val response = client.get("/.well-known/matrix/support")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "contacts": [
@@ -148,7 +148,7 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         val response = client.get("/.well-known/matrix/policy_server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "public_keys": {

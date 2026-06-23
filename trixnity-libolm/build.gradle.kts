@@ -35,10 +35,6 @@ val olmNativeTargetList = listOf(
         createTarget = { macosArm64() },
     ),
     OlmNativeTarget(
-        target = KonanTarget.MACOS_X64,
-        createTarget = { macosX64() },
-    ),
-    OlmNativeTarget(
         target = KonanTarget.MINGW_X64,
         createTarget = { mingwX64() },
     ),
@@ -49,10 +45,6 @@ val olmNativeTargetList = listOf(
     OlmNativeTarget(
         target = KonanTarget.IOS_ARM64,
         createTarget = { iosArm64() },
-    ),
-    OlmNativeTarget(
-        target = KonanTarget.IOS_X64,
-        createTarget = { iosX64() },
     ),
 )
 

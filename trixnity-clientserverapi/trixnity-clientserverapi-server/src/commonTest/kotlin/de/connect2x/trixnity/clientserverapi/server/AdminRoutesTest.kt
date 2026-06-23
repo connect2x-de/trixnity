@@ -71,7 +71,7 @@ class AdminRoutesTest : TrixnityBaseTest() {
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            contentType() shouldBe ContentType.Application.Json
             body<String>() shouldBe """
                 {"suspended":true}
             """.trimToFlatJson()
@@ -105,7 +105,7 @@ class AdminRoutesTest : TrixnityBaseTest() {
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            contentType() shouldBe ContentType.Application.Json
             body<String>() shouldBe """
                 {"suspended":true}
             """.trimToFlatJson()
@@ -132,7 +132,7 @@ class AdminRoutesTest : TrixnityBaseTest() {
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            contentType() shouldBe ContentType.Application.Json
             body<String>() shouldBe """
                 {"locked":true}
             """.trimToFlatJson()
@@ -166,7 +166,7 @@ class AdminRoutesTest : TrixnityBaseTest() {
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            contentType() shouldBe ContentType.Application.Json
             body<String>() shouldBe """
                 {"locked":true}
             """.trimToFlatJson()
@@ -217,7 +217,7 @@ class AdminRoutesTest : TrixnityBaseTest() {
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
-            contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            contentType() shouldBe ContentType.Application.Json
             body<String>() shouldBe """
                 {
                   "user_id": "@peter:rabbit.rocks",

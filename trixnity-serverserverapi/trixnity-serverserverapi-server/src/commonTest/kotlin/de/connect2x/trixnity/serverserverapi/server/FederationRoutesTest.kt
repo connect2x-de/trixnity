@@ -1,8 +1,74 @@
 package de.connect2x.trixnity.serverserverapi.server
 
-import dev.mokkery.*
+import de.connect2x.trixnity.api.server.matrixApiServer
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
+import de.connect2x.trixnity.core.model.events.EphemeralDataUnit
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.PresenceDataUnitContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.MasterKey
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.SelfSigningKey
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Megolm
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Olm
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
+import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.core.serialization.createMatrixEventAndDataUnitJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.serverserverapi.model.federation.ClaimKeys
+import de.connect2x.trixnity.serverserverapi.model.federation.GetDevices
+import de.connect2x.trixnity.serverserverapi.model.federation.GetEventAuthChain
+import de.connect2x.trixnity.serverserverapi.model.federation.GetHierarchy
+import de.connect2x.trixnity.serverserverapi.model.federation.GetKeys
+import de.connect2x.trixnity.serverserverapi.model.federation.GetMissingEvents
+import de.connect2x.trixnity.serverserverapi.model.federation.GetOIDCUserInfo
+import de.connect2x.trixnity.serverserverapi.model.federation.GetPublicRoomsResponse
+import de.connect2x.trixnity.serverserverapi.model.federation.GetPublicRoomsWithFilter
+import de.connect2x.trixnity.serverserverapi.model.federation.GetState
+import de.connect2x.trixnity.serverserverapi.model.federation.GetStateIds
+import de.connect2x.trixnity.serverserverapi.model.federation.Invite
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeJoin
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeKnock
+import de.connect2x.trixnity.serverserverapi.model.federation.MakeLeave
+import de.connect2x.trixnity.serverserverapi.model.federation.Media
+import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid
+import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid.Request.ThirdPartyInvite
+import de.connect2x.trixnity.serverserverapi.model.federation.PduTransaction
+import de.connect2x.trixnity.serverserverapi.model.federation.QueryDirectory
+import de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile
+import de.connect2x.trixnity.serverserverapi.model.federation.SendJoin
+import de.connect2x.trixnity.serverserverapi.model.federation.SendKnock
+import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction
+import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction.Response.PDUProcessingResult
+import de.connect2x.trixnity.serverserverapi.model.federation.ThumbnailResizingMethod.SCALE
+import de.connect2x.trixnity.serverserverapi.model.federation.TimestampToEvent
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.resetAnswers
+import dev.mokkery.resetCalls
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -14,34 +80,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomAliasId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
-import de.connect2x.trixnity.core.model.events.EphemeralDataUnit
-import de.connect2x.trixnity.core.model.events.PersistentDataUnit
-import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.PresenceDataUnitContent
-import de.connect2x.trixnity.core.model.events.m.room.*
-import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
-import de.connect2x.trixnity.core.model.keys.*
-import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.MasterKey
-import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.SelfSigningKey
-import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Megolm
-import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Olm
-import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
-import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
-import de.connect2x.trixnity.core.serialization.createMatrixEventAndDataUnitJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
-import de.connect2x.trixnity.serverserverapi.model.federation.*
-import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid.Request.ThirdPartyInvite
-import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction.Response.PDUProcessingResult
-import de.connect2x.trixnity.serverserverapi.model.federation.ThumbnailResizingMethod.SCALE
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -69,7 +107,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         resetCalls(handlerMock)
     }
 
-    private val pdu: SignedPersistentDataUnit<*> = Signed(
+    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
         PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
             authEvents = listOf(),
             content = RoomMessageEventContent.TextBased.Text("hi"),
@@ -160,7 +198,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "pdus": {
@@ -211,7 +249,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "auth_chain": [$pduJson]
@@ -242,7 +280,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "origin": "matrix.org",
@@ -291,7 +329,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "origin": "matrix.org",
@@ -329,7 +367,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "origin": "matrix.org",
@@ -360,7 +398,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "auth_chain": [$pduJson],
@@ -391,7 +429,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "auth_chain_ids": ["$1event"],
@@ -436,7 +474,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "event": {
@@ -540,7 +578,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "auth_chain":[$pduJson],
@@ -633,7 +671,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "event": {
@@ -714,7 +752,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "knock_room_state": [
@@ -853,7 +891,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "event": {
@@ -954,7 +992,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                     {
                       "event": {
@@ -1019,7 +1057,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1092,7 +1130,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1161,7 +1199,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
@@ -1233,7 +1271,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "chunk": [
@@ -1306,7 +1344,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "chunk": [
@@ -1397,7 +1435,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "children": [
@@ -1491,7 +1529,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "room_id": "!roomid1234:example.org",
@@ -1525,7 +1563,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "avatar_url": "mxc://matrix.org/MyC00lAvatar",
@@ -1555,7 +1593,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "sub": "@alice:example.com"
@@ -1637,7 +1675,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "devices": [
@@ -1743,7 +1781,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "one_time_keys":{
@@ -1850,7 +1888,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "device_keys":{
@@ -1929,7 +1967,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                {
                   "event_id": "$143273582443PhrSn:example.org",

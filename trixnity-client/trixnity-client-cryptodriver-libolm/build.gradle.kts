@@ -6,7 +6,7 @@ kotlin {
     addJvmTarget()
     addNativeTargets()
     addWebTarget(rootDir)
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         val commonMain by getting
 

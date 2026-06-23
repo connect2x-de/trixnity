@@ -32,7 +32,6 @@ kotlin {
     addNativeTargets()
     addNativeAppleTargets()
     addWebTarget(rootDir)
-
     applyDefaultHierarchyTemplate()
 }
 

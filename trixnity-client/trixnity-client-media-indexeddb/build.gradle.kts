@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     addWebTarget(rootDir, nodeJsEnabled = false)
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")

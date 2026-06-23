@@ -1,17 +1,16 @@
 package de.connect2x.trixnity.api.server
 
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.charsets.*
 import kotlinx.serialization.SerializationException
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.Test
 
 class MatrixApiServerTest : TrixnityBaseTest() {
@@ -28,7 +27,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
         }
         val response = client.get("/")
         response.body<String>() shouldBe """{"errcode":"M_NOT_FOUND","error":"not found"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.NotFound
     }
 
@@ -43,7 +42,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
         }
         val response = client.get("/")
         response.body<String>() shouldBe """{"errcode":"M_BAD_JSON","error":"missing key"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.BadRequest
     }
 
@@ -58,7 +57,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
         }
         val response = client.get("/")
         response.body<String>() shouldBe """{"errcode":"M_UNKNOWN","error":"something"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.InternalServerError
     }
 
@@ -73,7 +72,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
         }
         val response = client.get("/test")
         response.status shouldBe HttpStatusCode.NotFound
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.body<String>() shouldBe """{"errcode":"M_UNRECOGNIZED","error":"unsupported (or unknown) endpoint"}"""
     }
 }

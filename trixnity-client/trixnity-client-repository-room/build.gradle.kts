@@ -10,7 +10,7 @@ kotlin {
     // does not use addNativeTargets() because some ar not supported yet
     addNativeAppleTargets()
     linuxX64()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")

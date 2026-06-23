@@ -74,7 +74,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
             setBody("""{"includeDino":true}""")
         }
         response.body<String>() shouldBe """{"status":"dino"}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
 
@@ -101,7 +101,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
         getHasBeenCalled shouldBe false
         postHasBeenCalled shouldBe true
         response1.body<String>() shouldBe """{"status":"dino"}"""
-        response1.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response1.contentType() shouldBe ContentType.Application.Json
         response1.status shouldBe HttpStatusCode.OK
 
         getHasBeenCalled = false
@@ -111,7 +111,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
         getHasBeenCalled shouldBe true
         postHasBeenCalled shouldBe false
         response2.body<String>() shouldBe """{"status":"anti-dino"}"""
-        response2.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response2.contentType() shouldBe ContentType.Application.Json
         response2.status shouldBe HttpStatusCode.OK
     }
 
@@ -191,7 +191,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
             setBody("""{"includeDino":true}""")
         }
         response.body<String>() shouldBe """{"custom":true}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
 
@@ -214,7 +214,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
             setBody("""{}""")
         }
         response.body<String>() shouldBe """{}"""
-        response.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
 

@@ -6,10 +6,8 @@ kotlin {
     addJvmTarget()
     addWebTarget(rootDir)
     addNativeTargets()
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
-        val commonMain by getting
-
         commonMain.dependencies {
             api(projects.trixnityCryptoDriver)
             api(projects.trixnityTestUtils)

@@ -1,14 +1,16 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.serverserverapi.model.SignedPersistentDataUnit
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit
+import de.connect2x.trixnity.core.model.keys.Signed
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#get_matrixfederationv1event_authroomideventid">matrix spec</a>
@@ -22,6 +24,6 @@ data class GetEventAuthChain(
 ) : MatrixEndpoint<Unit, GetEventAuthChain.Response> {
     @Serializable
     data class Response(
-        @SerialName("auth_chain") val authChain: List<SignedPersistentDataUnit<*>>
+        @SerialName("auth_chain") val authChain: List<Signed<@Contextual PersistentDataUnit<*>, String>>
     )
 }

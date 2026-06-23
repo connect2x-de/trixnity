@@ -63,7 +63,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v1/media/config") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "m.upload.size":50000000
@@ -88,7 +88,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
         val response = client.post("/_matrix/media/v1/create") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                     "content_uri": "mxc://example.com/AQwafuaFswefuhsfAFAgsw",
@@ -116,7 +116,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "content_uri":"mxc://example.com/AQwafuaFswefuhsfAFAgsw"
@@ -148,7 +148,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
         }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "content_uri":"mxc://example.com/AQwafuaFswefuhsfAFAgsw"
@@ -181,7 +181,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {}
             """.trimToFlatJson()
@@ -340,7 +340,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
         val response = client.get("/_matrix/client/v1/media/preview_url?url=someUrl") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json.withCharset(Charsets.UTF_8)
+            this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """
                 {
                   "matrix:image:size": 102400,
