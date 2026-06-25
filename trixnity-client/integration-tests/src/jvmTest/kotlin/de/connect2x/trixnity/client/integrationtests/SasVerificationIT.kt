@@ -1,32 +1,53 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.media.inMemory
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
+import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod
-import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.*
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.ComparisonByUser
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.TheirSasStart
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.WaitForMacs
 import de.connect2x.trixnity.client.verification.ActiveVerification
-import de.connect2x.trixnity.client.verification.ActiveVerificationState.*
-import de.connect2x.trixnity.clientserverapi.client.*
+import de.connect2x.trixnity.client.verification.ActiveVerificationState.Done
+import de.connect2x.trixnity.client.verification.ActiveVerificationState.Ready
+import de.connect2x.trixnity.client.verification.ActiveVerificationState.Start
+import de.connect2x.trixnity.client.verification.ActiveVerificationState.TheirRequest
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.client.classicLogin
+import de.connect2x.trixnity.clientserverapi.client.classicLoginWith
 import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class SasVerificationIT : TrixnityBaseTest() {
@@ -108,7 +129,7 @@ class SasVerificationIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDoSasDeviceVerificationSameUser1(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("bootstrap client3") {
                 client3.key.bootstrapCrossSigning().also {
                     it.result.getOrThrow()
@@ -125,7 +146,7 @@ class SasVerificationIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDoSasDeviceVerificationSameUser2(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("bootstrap client1") {
                 client1.key.bootstrapCrossSigning().also {
                     it.result.getOrThrow()
@@ -142,7 +163,7 @@ class SasVerificationIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDoSasDeviceVerification(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("bootstrap client1") {
                 client1.key.bootstrapCrossSigning().also {
                     it.result.getOrThrow()
@@ -165,7 +186,7 @@ class SasVerificationIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDoSasDeviceVerification2(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("bootstrap client1") {
                 client1.key.bootstrapCrossSigning().also {
                     it.result.getOrThrow()
@@ -189,7 +210,7 @@ class SasVerificationIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDoSasUserVerification(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("bootstrap client1") {
                 client1.key.bootstrapCrossSigning().also {
                     it.result.getOrThrow()

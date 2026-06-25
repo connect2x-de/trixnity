@@ -1,16 +1,13 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods
 import de.connect2x.trixnity.clientserverapi.client.UIA
@@ -22,11 +19,26 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 @MSC3814
@@ -70,7 +82,7 @@ class DehydratedDeviceIT : TrixnityBaseTest() {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     @Test
     fun createAndUseDehydratedDevice(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val roomId = startedClient1.client.api.room.createRoom(
                 invite = setOf(startedClient2.client.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -131,7 +143,7 @@ class DehydratedDeviceIT : TrixnityBaseTest() {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     @Test
     fun createAndUseDehydratedDeviceAfterAccountKeyReset(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val roomId = startedClient1.client.api.room.createRoom(
                 invite = setOf(startedClient2.client.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -218,7 +230,7 @@ class DehydratedDeviceIT : TrixnityBaseTest() {
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     @Test
     fun recreateDehydratedDeviceOnDeletion(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val firstDehydratedDeviceId = withCluePrintln("bootstrap client2") {
                 val bootstrap = startedClient2.client.key.bootstrapCrossSigning()
                 bootstrap.result.getOrThrow()

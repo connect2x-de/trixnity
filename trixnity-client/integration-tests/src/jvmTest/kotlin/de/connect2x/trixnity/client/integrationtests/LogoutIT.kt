@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.*
 import de.connect2x.trixnity.client.MatrixClient.LoginState
 import de.connect2x.trixnity.client.MatrixClient.LoginState.LOGGED_IN
 import de.connect2x.trixnity.client.RepositoriesModule
@@ -14,15 +10,25 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest.Password
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class LogoutIT : TrixnityBaseTest() {
 
     @Test
     fun shouldLogoutOnDeviceDeletion(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val synapseDocker = synapseDocker()
             synapseDocker.start()
 
@@ -40,7 +46,7 @@ class LogoutIT : TrixnityBaseTest() {
                 startClient("client2", "user1", getBaseUrl(), RepositoriesModule.exposed(newDatabase()))
 
             withCluePrintln("check client2 is logged in and sync is running") {
-                withTimeout(30_000) {
+                withTimeout(30.seconds) {
                     startedClient2.client.syncState.firstWithTimeout { it == SyncState.RUNNING }
                     startedClient2.client.loginState.firstWithTimeout { it == LOGGED_IN }
                 }
@@ -64,10 +70,10 @@ class LogoutIT : TrixnityBaseTest() {
 
     @Test
     fun shouldNotLogoutOnDMassiveRequests(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(60_000) {
+        withTimeout(60.seconds) {
             val synapse = synapseDocker()
                 .apply {
-                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout.yaml"))
+                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout-access-token.yaml"))
                     start()
                 }
             val baseUrl = URLBuilder(
@@ -106,6 +112,36 @@ class LogoutIT : TrixnityBaseTest() {
                 }
             }
             startedClient.client.loginState.value shouldBe LOGGED_IN
+            startedClient.client.closeSuspending()
+            synapse.stop()
+        }
+    }
+
+    @Test
+    fun shouldLogoutOnExpiredRefreshToken(): Unit = runBlocking(Dispatchers.Default) {
+        withTimeout(60.seconds) {
+            val synapse = synapseDocker()
+                .apply {
+                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout-refresh-token.yaml"))
+                    start()
+                }
+            val baseUrl = URLBuilder(
+                protocol = URLProtocol.HTTP,
+                host = synapse.host,
+                port = synapse.firstMappedPort
+            ).build()
+            val startedClient = registerAndStartClient(
+                "client1", "user1", baseUrl,
+                RepositoriesModule.exposed(newDatabase())
+            )
+            startedClient.client.syncState.firstWithTimeout { it == SyncState.RUNNING }
+            startedClient.client.loginState.value shouldBe LOGGED_IN
+            startedClient.client.stopSync()
+
+            delay(8.seconds)
+
+            startedClient.client.startSync()
+            startedClient.client.loginState.firstWithTimeout { it == LoginState.LOGGED_OUT }
             startedClient.client.closeSuspending()
             synapse.stop()
         }

@@ -1,24 +1,20 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.room.toFlowList
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
+import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
@@ -32,11 +28,23 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership.JOIN
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class KeyBackupIT : TrixnityBaseTest() {
@@ -68,7 +76,7 @@ class KeyBackupIT : TrixnityBaseTest() {
 
     @Test
     fun testKeyBackup(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             startedClient1.client.verification.getSelfVerificationMethods()
                 .filterIsInstance<SelfVerificationMethods.NoCrossSigningEnabled>()
                 .firstWithTimeout()
@@ -97,7 +105,7 @@ class KeyBackupIT : TrixnityBaseTest() {
             }
             withCluePrintln("send some messages") {
                 startedClient1.client.room.sendMessage(roomId) { text("hi from client1") }
-                delay(1_000)
+                delay(1.seconds)
                 startedClient2.client.room.sendMessage(roomId) { text("hi from client2") }
             }
             withCluePrintln("login with another client and look if keybackup works") {

@@ -1,19 +1,13 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.matchers.collections.shouldContain
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
 import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.firstWithContent
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.OlmCryptoStore
@@ -21,6 +15,7 @@ import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
 import de.connect2x.trixnity.client.store.repository.inMemory
 import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.classicLogin
@@ -33,6 +28,22 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership.INVITE
 import de.connect2x.trixnity.core.model.events.m.room.Membership.JOIN
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -95,7 +106,7 @@ class EncryptionIT : TrixnityBaseTest() {
 
     @Test
     fun shouldEncryptOnJoin(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("ensure, that both already know each others devices") {
                 val initialRoomId = client1.api.room.createRoom(
                     invite = setOf(client2.userId),
@@ -147,7 +158,7 @@ class EncryptionIT : TrixnityBaseTest() {
 
     @Test
     fun shouldMassivelyDecrypt(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(60_000) {
+        withTimeout(60.seconds) {
             val roomId = client1.api.room.createRoom(
                 invite = setOf(client2.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed grammar in Timeline logging
+- Fixed logout not enforced when refresh token expired (due to non-spec compliant homeserver)
 
 ### Security
 
