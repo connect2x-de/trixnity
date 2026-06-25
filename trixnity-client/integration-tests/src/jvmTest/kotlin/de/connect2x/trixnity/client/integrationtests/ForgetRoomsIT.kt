@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.MatrixClientConfiguration.DeleteRooms
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
 import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
@@ -18,6 +18,11 @@ import de.connect2x.trixnity.core.model.events.InitialStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership.INVITE
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -25,6 +30,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class ForgetRoomsIT : TrixnityBaseTest() {
@@ -89,7 +95,7 @@ class ForgetRoomsIT : TrixnityBaseTest() {
 
     @Test
     fun `should delete rooms that were not joined`(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(
                 initialState = listOf(
                     InitialStateEvent(content = EncryptionEventContent(), ""),

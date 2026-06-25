@@ -1,13 +1,12 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.media.inMemory
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
@@ -15,12 +14,19 @@ import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.classicLoginWith
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class MediaIT : TrixnityBaseTest() {
@@ -62,7 +68,7 @@ class MediaIT : TrixnityBaseTest() {
 
     @Test
     fun shouldUploadAndDownloadMedia(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val cacheUri =
                 client.media.prepareUploadMedia("Test".toByteArray().toByteArrayFlow(), ContentType.Text.Plain)
             val mxcUri = client.media.uploadMedia(cacheUri).getOrThrow()
@@ -82,7 +88,7 @@ class MediaIT : TrixnityBaseTest() {
 
     @Test
     fun shouldDownloadThumbnail(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val cacheUri =
                 client.media.prepareUploadMedia(miniPng.toByteArrayFlow(), ContentType.Image.PNG)
             val mxcUri = client.media.uploadMedia(cacheUri).getOrThrow()

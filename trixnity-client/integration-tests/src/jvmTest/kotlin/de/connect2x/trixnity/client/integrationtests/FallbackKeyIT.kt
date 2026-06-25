@@ -1,13 +1,5 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import io.kotest.matchers.collections.shouldHaveAtLeastSize
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotContainAnyOf
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.text
@@ -17,6 +9,18 @@ import de.connect2x.trixnity.core.model.events.InitialStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotContainAnyOf
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.jupiter.api.fail
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -58,7 +62,7 @@ class FallbackKeyIT : TrixnityBaseTest() {
 
     @Test
     fun testFallbackKey(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(90_000) {
+        withTimeout(90.seconds) {
             val roomId = startedClient1.client.api.room.createRoom(
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
             ).getOrThrow()

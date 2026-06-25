@@ -48,6 +48,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class KeySharingIT : TrixnityBaseTest() {
@@ -79,7 +80,7 @@ class KeySharingIT : TrixnityBaseTest() {
 
     @Test
     fun testKeySharing(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             startedClient1.client.verification.getSelfVerificationMethods()
                 .filterIsInstance<SelfVerificationMethods.NoCrossSigningEnabled>()
                 .firstWithTimeout()
@@ -108,7 +109,7 @@ class KeySharingIT : TrixnityBaseTest() {
             }
             withCluePrintln("send some messages") {
                 startedClient1.client.room.sendMessage(roomId) { text("hi from client1") }
-                delay(1_000)
+                delay(1.seconds)
                 startedClient2.client.room.sendMessage(roomId) { text("hi from client2") }
             }
             withCluePrintln("login with another client and look if keybackup works") {

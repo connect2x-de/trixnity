@@ -1,29 +1,30 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import de.connect2x.lognity.api.logger.Logger
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
+import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod
 import de.connect2x.trixnity.client.verification.ActiveSasVerificationState
 import de.connect2x.trixnity.client.verification.ActiveVerificationState
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod.CrossSignedDeviceVerification
 import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods
-import de.connect2x.trixnity.clientserverapi.client.*
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.client.classicLogin
+import de.connect2x.trixnity.clientserverapi.client.classicLoginWith
 import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import de.connect2x.trixnity.core.model.events.InitialStateEvent
@@ -36,12 +37,23 @@ import de.connect2x.trixnity.crypto.key.DeviceTrustLevel.NotCrossSigned
 import de.connect2x.trixnity.crypto.key.UserTrustLevel.CrossSigned
 import de.connect2x.trixnity.crypto.key.UserTrustLevel.NotAllDevicesCrossSigned
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class CrossSigningIT : TrixnityBaseTest() {
@@ -123,7 +135,7 @@ class CrossSigningIT : TrixnityBaseTest() {
 
     @Test
     fun testCrossSigning(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("wait for client1 self verification to be NoCrossSigningEnabled") {
                 client1.verification.getSelfVerificationMethods()
                     .filterIsInstance<SelfVerificationMethods.NoCrossSigningEnabled>()
@@ -322,7 +334,7 @@ class CrossSigningIT : TrixnityBaseTest() {
 
     @Test
     fun shouldAllowResetCrossSigning(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             withCluePrintln("wait for client1 self verification to be NoCrossSigningEnabled") {
                 client1.verification.getSelfVerificationMethods()
                     .filterIsInstance<SelfVerificationMethods.NoCrossSigningEnabled>()

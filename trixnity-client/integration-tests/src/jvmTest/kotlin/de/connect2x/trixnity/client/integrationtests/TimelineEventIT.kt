@@ -89,6 +89,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class TimelineEventIT : TrixnityBaseTest() {
@@ -152,7 +153,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldBeAbleToReadMessagesBeforeJoin(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(
                 invite = setOf(client2.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -177,7 +178,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldHandleReplaceAndRedactions(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(
                 invite = setOf(client2.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -241,7 +242,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldStartEncryptedRoomAndSendMessages(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(
                 invite = setOf(client2.userId),
                 initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -271,7 +272,7 @@ class TimelineEventIT : TrixnityBaseTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun shouldSaveUnencryptedTimelineEvent(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(180_000) {
+        withTimeout(180.seconds) {
             val database = newDatabase()
             val client = MatrixClient.create(
                 repositoriesModule = RepositoriesModule.exposed(database),
@@ -317,7 +318,7 @@ class TimelineEventIT : TrixnityBaseTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun shouldNotSaveUnencryptedTimelineEvent(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(180_000) {
+        withTimeout(180.seconds) {
             val database = newDatabase()
             val client = MatrixClient.create(
                 repositoriesModule = RepositoriesModule.exposed(database),
@@ -372,7 +373,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldHandleGappySyncsAndGetEventsFromEndOfTheTimeline(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(invite = setOf(client2.userId)).getOrThrow()
             client2.room.getById(room).firstWithTimeout { it?.membership == INVITE }
             client2.api.room.joinRoom(room).getOrThrow()
@@ -451,7 +452,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldHandleGappySyncsAndGetEventsFromStartOfTheTimeline(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(invite = setOf(client2.userId)).getOrThrow()
             client2.room.getById(room).firstWithTimeout { it?.membership == INVITE }
             client2.api.room.joinRoom(room).getOrThrow()
@@ -486,7 +487,7 @@ class TimelineEventIT : TrixnityBaseTest() {
     @OptIn(FlowPreview::class)
     @Test
     fun shouldHandleGappySyncsAndFillTimelineFromTheMiddle(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val room = client1.api.room.createRoom(invite = setOf(client2.userId)).getOrThrow()
             client2.room.getById(room).firstWithTimeout { it?.membership == INVITE }
             client2.api.room.joinRoom(room).getOrThrow()
@@ -534,7 +535,7 @@ class TimelineEventIT : TrixnityBaseTest() {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun shouldFollowRoomUpgrades(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val oldRoom = client1.api.room.createRoom(
                 invite = setOf(client2.userId),
                 roomVersion = "9"
@@ -587,7 +588,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldFollowRoomUpgradesByJoiningPreviousRoom(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val oldRoom = client1.api.room.createRoom(
                 preset = CreateRoom.Request.Preset.PUBLIC,
                 visibility = DirectoryVisibility.PUBLIC,
@@ -617,7 +618,7 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     @Test
     fun shouldFollowRoomUpgradesByJoiningNextRoom(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30_000) {
+        withTimeout(30.seconds) {
             val oldRoom = client1.api.room.createRoom(
                 preset = CreateRoom.Request.Preset.PUBLIC,
                 visibility = DirectoryVisibility.PUBLIC,
