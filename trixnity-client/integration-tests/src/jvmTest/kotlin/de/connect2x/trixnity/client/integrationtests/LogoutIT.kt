@@ -15,6 +15,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -72,7 +73,7 @@ class LogoutIT : TrixnityBaseTest() {
         withTimeout(60.seconds) {
             val synapse = synapseDocker()
                 .apply {
-                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout.yaml"))
+                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout-access-token.yaml"))
                     start()
                 }
             val baseUrl = URLBuilder(
@@ -111,6 +112,36 @@ class LogoutIT : TrixnityBaseTest() {
                 }
             }
             startedClient.client.loginState.value shouldBe LOGGED_IN
+            startedClient.client.closeSuspending()
+            synapse.stop()
+        }
+    }
+
+    @Test
+    fun shouldLogoutOnExpiredRefreshToken(): Unit = runBlocking(Dispatchers.Default) {
+        withTimeout(60.seconds) {
+            val synapse = synapseDocker()
+                .apply {
+                    withEnv(mapOf("SYNAPSE_CONFIG_PATH" to "/data/homeserver-logout-refresh-token.yaml"))
+                    start()
+                }
+            val baseUrl = URLBuilder(
+                protocol = URLProtocol.HTTP,
+                host = synapse.host,
+                port = synapse.firstMappedPort
+            ).build()
+            val startedClient = registerAndStartClient(
+                "client1", "user1", baseUrl,
+                RepositoriesModule.exposed(newDatabase())
+            )
+            startedClient.client.syncState.firstWithTimeout { it == SyncState.RUNNING }
+            startedClient.client.loginState.value shouldBe LOGGED_IN
+            startedClient.client.stopSync()
+
+            delay(8.seconds)
+
+            startedClient.client.startSync()
+            startedClient.client.loginState.firstWithTimeout { it == LoginState.LOGGED_OUT }
             startedClient.client.closeSuspending()
             synapse.stop()
         }

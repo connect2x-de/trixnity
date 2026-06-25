@@ -1,6 +1,12 @@
 package de.connect2x.trixnity.clientserverapi.client
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
+import de.connect2x.trixnity.clientserverapi.model.authentication.Refresh
+import de.connect2x.trixnity.core.AuthRequired
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -8,12 +14,6 @@ import io.ktor.client.plugins.auth.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
-import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
-import de.connect2x.trixnity.clientserverapi.model.authentication.Refresh
-import de.connect2x.trixnity.core.AuthRequired
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
 import okio.ByteString.Companion.toByteString
 
 private val log = Logger("de.connect2x.trixnity.clientserverapi.client.ClassicMatrixAuthProvider")
@@ -40,11 +40,18 @@ class ClassicMatrixClientAuthProvider(
                     setBody(Refresh.Request(refreshToken))
                 }.body<Refresh.Response>()
             } catch (matrixServerException: MatrixServerException) {
-                if (matrixServerException.statusCode == HttpStatusCode.Unauthorized)
+                if (matrixServerException.statusCode == HttpStatusCode.Unauthorized ||
+                    matrixServerException.statusCode == HttpStatusCode.Forbidden // not spec compliant
+                )
                     when (val errorResponse = matrixServerException.errorResponse) {
                         is ErrorResponse.UnknownToken -> {
                             log.info { "could not refresh token, therefore call onLogout (unknown token)" }
                             onLogout(LogoutInfo(errorResponse.softLogout, false))
+                        }
+
+                        is ErrorResponse.Forbidden -> {
+                            log.info { "could not refresh token, therefore call onLogout (unknown token) - this is not spec compliant" }
+                            onLogout(LogoutInfo(false, false))
                         }
 
                         else -> {}
