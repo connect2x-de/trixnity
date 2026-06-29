@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.*
 import de.connect2x.trixnity.client.store.*
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.replace
@@ -84,8 +85,9 @@ fun RoomService.getTimelineEventReactionAggregation(
             }
         }.map { reactions ->
             reactions.mapNotNull {
+
                 val relatesTo = it.relatesTo
-                if (relatesTo is RelatesTo.Annotation) {
+                if (it.content?.getOrNull() is ReactionEventContent && relatesTo is RelatesTo.Annotation) {
                     val key = relatesTo.key
                     if (key != null) key to it
                     else null

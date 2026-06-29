@@ -257,6 +257,38 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
         )
     }
 
+    @Test
+    fun `getTimelineEventReactionAggregation » does not return if reaction content is not ReactionEventContent`() = runTest {
+        val reactionUser2Thumbs3 = timelineEvent(
+            "2", 2, UserId("2", "server"),
+            eventContent = RoomMessageEventContent.TextBased.Text(
+                relatesTo = RelatesTo.Annotation(EventId("1"), "👍"),
+                body = "Not Relevant",
+            )
+        )
+        with(roomTimelineStore) {
+            addAll(
+                listOf(
+                    originalEvent,
+                    reactionUser2Thumbs3
+                )
+            )
+            addRelation(
+                TimelineEventRelation(
+                    room,
+                    EventId("2"),
+                    RelationType.Annotation,
+                    EventId("1")
+                )
+            )
+        }
+
+        cut.getTimelineEventReactionAggregation(room, EventId("1")).first() shouldBe
+                TimelineEventAggregation.Reaction(
+                    mapOf()
+                )
+    }
+
 
     private suspend fun getTimelineEventReplaceAggregationSetup() {
         with(roomTimelineStore) {
