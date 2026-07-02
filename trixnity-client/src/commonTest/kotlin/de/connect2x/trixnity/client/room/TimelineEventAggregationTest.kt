@@ -8,6 +8,8 @@ import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomTimelineStore
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.default
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.MediaServiceMock
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
@@ -71,7 +73,8 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
         matrixClientConfig = MatrixClientConfiguration(),
         typingEventHandler = TypingEventHandlerImpl(api),
         currentSyncState = CurrentSyncState(currentSyncState),
-        scope = testScope.backgroundScope
+        scope = testScope.backgroundScope,
+        eventContentMediaMappings = EventContentMediaMappings.default
     )
 
     private fun timelineEvent(

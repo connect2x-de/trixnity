@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added automatic cleanup of media, when canceling outbox message
+- Added UriExtractor to `EventContentMediaMappings` (previously `OutboxMessageMediaUploaderMappings`)
+
 ### Changed
 
+- Renamed `OutboxMessageMediaUploaderMappings` and related classes to `EventContentMediaMappings`
 - Updated to Kotlin 2.3.21
 
 ### Deprecated

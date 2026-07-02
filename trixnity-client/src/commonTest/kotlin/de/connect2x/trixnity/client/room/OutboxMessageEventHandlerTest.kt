@@ -6,6 +6,8 @@ import de.connect2x.trixnity.client.continually
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.getInMemoryRoomOutboxMessageStore
 import de.connect2x.trixnity.client.getInMemoryRoomStore
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.default
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.MediaServiceMock
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
@@ -14,8 +16,6 @@ import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.mocks.UserServiceMock
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.image
-import de.connect2x.trixnity.client.room.outbox.OutboxMessageMediaUploaderMappings
-import de.connect2x.trixnity.client.room.outbox.default
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
@@ -51,9 +51,9 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beInstanceOf
-import io.ktor.http.*
 import io.ktor.http.ContentType.Image.PNG
-import io.ktor.utils.io.core.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -110,7 +110,7 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
         userService,
         mediaServiceMock,
         roomOutboxMessageStore,
-        OutboxMessageMediaUploaderMappings.default,
+        EventContentMediaMappings.default,
         CurrentSyncState(currentSyncState),
         UserInfo(
             UserId("user", "server"),

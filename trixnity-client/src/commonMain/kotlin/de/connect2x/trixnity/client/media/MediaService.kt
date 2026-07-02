@@ -15,8 +15,13 @@ import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.core.decryptAes256Ctr
 import de.connect2x.trixnity.crypto.core.encryptAes256Ctr
 import de.connect2x.trixnity.crypto.core.sha256
-import de.connect2x.trixnity.utils.*
-import io.ktor.http.*
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
+import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import de.connect2x.trixnity.utils.nextString
+import de.connect2x.trixnity.utils.toByteArrayFlow
+import de.connect2x.trixnity.utils.toByteReadChannel
+import io.ktor.http.ContentType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -57,6 +62,8 @@ interface MediaService {
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         keepMediaInCache: Boolean = true
     ): Result<String>
+
+    suspend fun removeCachedMedia(uri: String)
 }
 
 class MediaServiceImpl(
@@ -301,5 +308,16 @@ class MediaServiceImpl(
                 }
             }
         } else Result.success(cachedMxcUri)
+    }
+
+    override suspend fun removeCachedMedia(uri: String) {
+        if (mediaStore.getMedia(uri) != null) {
+            mediaStore.deleteMedia(uri)
+            if (mediaCacheMappingStore.getMediaCacheMapping(uri) != null) {
+                mediaCacheMappingStore.deleteMediaCacheMapping(uri)
+            }
+        } else {
+            log.info { "Tried removing media $uri from cache but media was not found locally." }
+        }
     }
 }

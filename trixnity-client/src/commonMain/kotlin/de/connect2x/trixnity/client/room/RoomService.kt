@@ -5,6 +5,8 @@ import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.findUriExtractorOrFallback
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomAccountDataStore
@@ -18,7 +20,6 @@ import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
 import de.connect2x.trixnity.client.store.TimelineEventRelation
 import de.connect2x.trixnity.client.store.eventId
-import de.connect2x.trixnity.client.store.hasBeenReplaced
 import de.connect2x.trixnity.client.store.isEncrypted
 import de.connect2x.trixnity.client.store.isFirst
 import de.connect2x.trixnity.client.store.isLast
@@ -317,6 +318,7 @@ class RoomServiceImpl(
     typingEventHandler: TypingEventHandler,
     private val currentSyncState: CurrentSyncState,
     private val scope: CoroutineScope,
+    private val eventContentMediaMappings: EventContentMediaMappings
 ) : RoomService {
     override val usersTyping: StateFlow<Map<RoomId, TypingEventContent>> =
         typingEventHandler.usersTyping
@@ -856,6 +858,7 @@ class RoomServiceImpl(
         requireNotNull(content) { "you must add some sort of content for sending a message" }
         val transactionId = useTransactionId ?: SecureRandom.nextString(22)
         roomOutboxMessageStore.update(roomId, transactionId) {
+
             RoomOutboxMessage(
                 transactionId = transactionId,
                 roomId = roomId,
@@ -893,7 +896,14 @@ class RoomServiceImpl(
         )
 
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
-        roomOutboxMessageStore.update(roomId, transactionId) { null }
+        roomOutboxMessageStore.update(roomId, transactionId) {
+            it?.content?.let { content ->
+                eventContentMediaMappings.findUriExtractorOrFallback(content)(content)?.let { uri ->
+                    mediaService.removeCachedMedia(uri)
+                }
+            }
+            null
+        }
         log.debug { "removed message with id $transactionId" }
     }
 
@@ -926,18 +936,16 @@ class RoomServiceImpl(
     override suspend fun deleteDraftMessage(roomId: RoomId) {
         val draftMessages = roomOutboxMessageStore.getAll().flatMapLatest { outbox ->
             val outboxEventsForThisRoom = outbox.filterKeys { it.roomId == roomId }.values
-            if (outboxEventsForThisRoom.isEmpty()) { flowOf(emptyList()) }
-            else {
+            if (outboxEventsForThisRoom.isEmpty()) {
+                flowOf(emptyList())
+            } else {
                 combine(outboxEventsForThisRoom) {
                     it.filter { message -> message?.isDraft == true }
                 }
             }
         }.first()
         draftMessages.filterNotNull().forEach {
-            roomOutboxMessageStore.update(
-                roomId,
-                it.transactionId
-            ) { null }
+            cancelSendMessage(roomId, it.transactionId)
         }
     }
 

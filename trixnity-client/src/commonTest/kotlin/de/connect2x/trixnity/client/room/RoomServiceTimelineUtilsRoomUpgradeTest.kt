@@ -8,6 +8,8 @@ import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomTimelineStore
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.default
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.MediaServiceMock
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
@@ -43,7 +45,7 @@ import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,7 +99,8 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
             matrixClientConfig = MatrixClientConfiguration(autoJoinUpgradedRooms = true),
             typingEventHandler = TypingEventHandlerImpl(api),
             currentSyncState = CurrentSyncState(currentSyncState),
-            scope = testScope.backgroundScope
+            scope = testScope.backgroundScope,
+            eventContentMediaMappings = EventContentMediaMappings.default
         )
 
     private fun encryptedEvent(i: Long = 24): MessageEvent<MegolmEncryptedMessageEventContent> {
