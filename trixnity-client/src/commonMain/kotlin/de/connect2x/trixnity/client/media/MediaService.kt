@@ -1,10 +1,12 @@
 package de.connect2x.trixnity.client.media
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.MediaCacheMapping
 import de.connect2x.trixnity.client.store.MediaCacheMappingStore
 import de.connect2x.trixnity.client.store.ServerDataStore
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.FileSizeLimit
 import de.connect2x.trixnity.clientserverapi.client.MediaApiClient
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.clientserverapi.model.media.Media
@@ -35,12 +37,14 @@ interface MediaService {
         uri: String,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
+        maxSize: FileSizeLimit? = null,
     ): Result<PlatformMedia>
 
     suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
+        maxSize: FileSizeLimit? = null,
     ): Result<PlatformMedia>
 
     suspend fun getThumbnail(
@@ -51,6 +55,7 @@ interface MediaService {
         animated: Boolean = false,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
+        maxSize: FileSizeLimit? = null,
     ): Result<PlatformMedia>
 
     suspend fun prepareUploadMedia(content: ByteArrayFlow, contentType: ContentType?): String
@@ -71,6 +76,7 @@ class MediaServiceImpl(
     private val mediaStore: MediaStore,
     private val serverDataStore: ServerDataStore,
     private val mediaCacheMappingStore: MediaCacheMappingStore,
+    private val config: MatrixClientConfiguration,
 ) : MediaService {
     companion object {
         private const val MATRIX_SPEC_1_11 = "v1.11"
@@ -91,13 +97,14 @@ class MediaServiceImpl(
     private suspend fun MediaApiClient.downloadDependingOnServerVersion(
         mxcUri: String,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> Unit
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
-            download(mxcUri, progress = progress, downloadHandler = downloadHandler)
+            download(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
         } else {
             @Suppress("DEPRECATION")
-            downloadLegacy(mxcUri, progress = progress, downloadHandler = downloadHandler)
+            downloadLegacy(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
         }
 
     private suspend fun getMedia(
@@ -105,6 +112,7 @@ class MediaServiceImpl(
         saveToCache: Boolean,
         sha256Hash: String?,
         progress: MutableStateFlow<FileTransferProgress?>?,
+        maxSize: FileSizeLimit,
     ): Result<PlatformMedia> = kotlin.runCatching {
         when {
             uri.startsWith(UPLOAD_MEDIA_MXC_URI_PREFIX) -> {
@@ -112,14 +120,19 @@ class MediaServiceImpl(
                 if (existingMedia == null) {
                     log.debug { "download media: $uri" }
                     if (sha256Hash == null) {
-                        api.media.downloadDependingOnServerVersion(uri, progress = progress) {
+                        api.media.downloadDependingOnServerVersion(uri, progress = progress, maxSize = maxSize) {
                             it.saveMedia(uri) { this }
                         }.getOrThrow()
                     } else {
-                        api.media.downloadDependingOnServerVersion(uri, progress = progress) {
+                        api.media.downloadDependingOnServerVersion(uri, progress = progress, maxSize = maxSize) {
                             it.saveMedia(uri) {
                                 val sha256ByteFlow = sha256()
-                                sha256ByteFlow.onCompletion {
+                                sha256ByteFlow.onCompletion { cause ->
+                                    if (cause != null) {
+                                        mediaStore.deleteMedia(uri)
+                                        return@onCompletion
+                                    }
+
                                     val expectedHash = sha256ByteFlow.hash.value
                                     if (expectedHash != sha256Hash) {
                                         mediaStore.deleteMedia(uri)
@@ -141,7 +154,7 @@ class MediaServiceImpl(
 
             uri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX) -> mediaStore.getMedia(uri)
                 ?: mediaCacheMappingStore.getMediaCacheMapping(uri)?.mxcUri
-                    ?.let { getMedia(it, saveToCache, sha256Hash, progress).getOrThrow() }
+                    ?.let { getMedia(it, saveToCache, sha256Hash, progress, maxSize).getOrThrow() }
                 ?: throw IllegalArgumentException("cache uri $uri does not exists")
 
             else -> throw IllegalArgumentException("uri $uri is no valid cache or mxc uri")
@@ -151,17 +164,23 @@ class MediaServiceImpl(
     override suspend fun getMedia(
         uri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
-    ): Result<PlatformMedia> = getMedia(uri, saveToCache, null, progress)
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?,
+    ): Result<PlatformMedia> {
+        val maxSizeResolved = maxSize ?: config.mediaSizeLimit
+        return getMedia(uri, saveToCache, null, progress, maxSizeResolved)
+    }
 
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?,
     ): Result<PlatformMedia> = kotlin.runCatching {
         val originalHash = encryptedFile.hashes["sha256"]
             ?: throw MediaValidationException(null, null)
-        getMedia(encryptedFile.url, saveToCache, originalHash, progress).getOrThrow()
+        val maxSizeResolved = maxSize ?: config.mediaSizeLimit
+        getMedia(encryptedFile.url, saveToCache, originalHash, progress, maxSizeResolved).getOrThrow()
             .transformByteArrayFlow {
                 it.decryptAes256Ctr(
                     initialisationVector = encryptedFile.initialisationVector.decodeUnpaddedBase64Bytes(),
@@ -179,10 +198,12 @@ class MediaServiceImpl(
         method: ThumbnailResizingMethod,
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?,
     ): Result<PlatformMedia> = kotlin.runCatching {
         val thumbnailUrl = "$uri/${width}x$height/${api.json.encodeToJsonElement(method).jsonPrimitive.content}"
         val existingMedia = mediaStore.getMedia(thumbnailUrl)
+        val maxSizeResolved = maxSize ?: config.thumbnailSizeLimit
         if (existingMedia == null) {
             api.media.downloadThumbnailDependingOnServerVersion(
                 mxcUri = uri,
@@ -190,6 +211,7 @@ class MediaServiceImpl(
                 height = height,
                 method = method,
                 animated = animated,
+                maxSize = maxSizeResolved,
                 progress = progress
             ) {
                 it.saveMedia(thumbnailUrl) { this }
@@ -208,6 +230,7 @@ class MediaServiceImpl(
         method: ThumbnailResizingMethod,
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> Unit
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
@@ -218,6 +241,7 @@ class MediaServiceImpl(
                 method = method,
                 animated = animated,
                 progress = progress,
+                maxSize = maxSize,
                 downloadHandler = downloadHandler
             )
         } else {
@@ -228,6 +252,7 @@ class MediaServiceImpl(
                 height = height,
                 method = method,
                 progress = progress,
+                maxSize = maxSize,
                 downloadHandler = downloadHandler
             )
         }

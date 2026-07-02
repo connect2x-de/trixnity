@@ -20,6 +20,7 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application.OctetStream
@@ -54,11 +55,12 @@ class MediaServiceTest : TrixnityBaseTest() {
 
     @BeforeTest
     fun beforeTest() {
+        val config = MatrixClientConfiguration()
         coroutineScope = CoroutineScope(Dispatchers.Default)
-        mediaStore = InMemoryMediaStore(coroutineScope, MatrixClientConfiguration(), Clock.System).apply {
+        mediaStore = InMemoryMediaStore(coroutineScope, config, Clock.System).apply {
             scheduleSetup { deleteAll() }
         }
-        cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore)
+        cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore, config)
     }
 
     @AfterTest
@@ -96,6 +98,41 @@ class MediaServiceTest : TrixnityBaseTest() {
         mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { MediaCacheMapping(cacheUri, mxcUri, 4) }
         mediaStore.addMedia(mxcUri, "test".encodeToByteArray().toByteArrayFlow())
         cut.getMedia(cacheUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+    }
+
+    @Test
+    fun `getMedia » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(ByteReadChannel(ByteArray(1024)), HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 100L
+
+        val exception = shouldThrow<ClosedByteChannelException> {
+            cut.getMedia(mxcUri, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia(mxcUri) shouldBe null
+    }
+
+    @Test
+    fun `getMedia » limit null » use default and stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(ByteReadChannel(ByteArray(6_000_000)), HttpStatusCode.OK)
+            }
+        }
+
+        val exception = shouldThrow<ClosedByteChannelException> {
+            cut.getMedia(mxcUri).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia(mxcUri) shouldBe null
     }
 
     private val rawFile = "lQ/twg".decodeUnpaddedBase64Bytes()
@@ -155,6 +192,24 @@ class MediaServiceTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `getEncryptedMedia » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(rawFile, HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 1L
+
+        val exception = shouldThrow<ClosedByteChannelException> {
+            cut.getEncryptedMedia(encryptedFile, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia(mxcUri) shouldBe null
+    }
+
+    @Test
     fun `getThumbnail » prefer cache`() = runTest {
         mediaStore.addMedia("$mxcUri/32x32/crop", "test".encodeToByteArray().toByteArrayFlow())
         cut.getThumbnail(mxcUri, 32, 32).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
@@ -170,6 +225,41 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         cut.getThumbnail(mxcUri, 32, 32).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
         mediaStore.getMedia("$mxcUri/32x32/crop")?.toByteArray() shouldBe "test".encodeToByteArray()
+    }
+
+    @Test
+    fun `getThumbnail » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/thumbnail/example.com/abc"
+                respond(ByteReadChannel(ByteArray(1024)), HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 100L
+
+        val exception = shouldThrow<ClosedByteChannelException> {
+            cut.getThumbnail(mxcUri, 32, 32, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia("$mxcUri/32x32/crop") shouldBe null
+    }
+
+    @Test
+    fun `getThumbnail » limit null » use default and stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/thumbnail/example.com/abc"
+                respond(ByteReadChannel(ByteArray(3_000_000)), HttpStatusCode.OK)
+            }
+        }
+
+        val exception = shouldThrow<ClosedByteChannelException> {
+            cut.getThumbnail(mxcUri, 32, 32).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia("$mxcUri/32x32/crop") shouldBe null
     }
 
     @Test

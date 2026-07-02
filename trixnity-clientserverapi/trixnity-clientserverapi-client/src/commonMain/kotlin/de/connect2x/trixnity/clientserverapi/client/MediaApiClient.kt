@@ -4,6 +4,7 @@ import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import de.connect2x.trixnity.clientserverapi.model.media.*
+import io.ktor.client.request.HttpRequestBuilder
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -53,6 +54,7 @@ interface MediaApiClient {
         allowRemote: Boolean? = null,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         timeout: Duration = Duration.INFINITE,
+        maxSize: FileSizeLimit = FileSizeLimit.Unlimited,
         downloadHandler: suspend (Media) -> T
     ): Result<T>
 
@@ -63,6 +65,7 @@ interface MediaApiClient {
         mxcUri: String,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         timeout: Duration? = null,
+        maxSize: FileSizeLimit = FileSizeLimit.Unlimited,
         downloadHandler: suspend (Media) -> T
     ): Result<T>
 
@@ -78,6 +81,7 @@ interface MediaApiClient {
         allowRemote: Boolean? = null,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         timeout: Duration = Duration.INFINITE,
+        maxSize: FileSizeLimit = FileSizeLimit.Unlimited,
         downloadHandler: suspend (Media) -> T
     ): Result<T>
 
@@ -92,6 +96,7 @@ interface MediaApiClient {
         animated: Boolean? = null,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         timeout: Duration? = null,
+        maxSize: FileSizeLimit = FileSizeLimit.Unlimited,
         downloadHandler: suspend (Media) -> T
     ): Result<T>
 
@@ -111,6 +116,11 @@ interface MediaApiClient {
         url: String,
         timestamp: Long? = null,
     ): Result<GetUrlPreview.Response>
+}
+
+sealed interface FileSizeLimit {
+    object Unlimited : FileSizeLimit
+    data class Limited(val limit: Long) : FileSizeLimit
 }
 
 class MediaApiClientImpl(
@@ -173,6 +183,7 @@ class MediaApiClientImpl(
         allowRemote: Boolean?,
         progress: MutableStateFlow<FileTransferProgress?>?,
         timeout: Duration,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> T
     ): Result<T> {
         val uri = Url(mxcUri)
@@ -190,6 +201,7 @@ class MediaApiClientImpl(
                     onDownload { transferred, total ->
                         progress.value = FileTransferProgress(transferred, total)
                     }
+                limitDownloadSize(maxSize)
             },
             responseHandler = downloadHandler
         )
@@ -199,6 +211,7 @@ class MediaApiClientImpl(
         mxcUri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
         timeout: Duration?,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> T
     ): Result<T> {
         val uri = Url(mxcUri)
@@ -218,6 +231,7 @@ class MediaApiClientImpl(
                     onDownload { transferred, total ->
                         progress.value = FileTransferProgress(transferred, total)
                     }
+                limitDownloadSize(maxSize)
             },
             responseHandler = downloadHandler
         )
@@ -233,6 +247,7 @@ class MediaApiClientImpl(
         allowRemote: Boolean?,
         progress: MutableStateFlow<FileTransferProgress?>?,
         timeout: Duration,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> T
     ): Result<T> {
         val uri = Url(mxcUri)
@@ -271,6 +286,7 @@ class MediaApiClientImpl(
         animated: Boolean?,
         progress: MutableStateFlow<FileTransferProgress?>?,
         timeout: Duration?,
+        maxSize: FileSizeLimit,
         downloadHandler: suspend (Media) -> T
     ): Result<T> {
         val uri = Url(mxcUri)
@@ -297,9 +313,24 @@ class MediaApiClientImpl(
                     onDownload { transferred, total ->
                         progress.value = FileTransferProgress(transferred, total)
                     }
+                limitDownloadSize(maxSize)
             },
             responseHandler = downloadHandler
         )
+    }
+
+    fun HttpRequestBuilder.limitDownloadSize(maxSize: FileSizeLimit) {
+        if (maxSize is FileSizeLimit.Limited) {
+            onDownload { transferred, total ->
+                if (total != null && total > maxSize.limit) {
+                    throw DownloadLimitExceededException(maxSize.limit)
+                }
+
+                if (transferred > maxSize.limit) {
+                    throw DownloadLimitExceededException(maxSize.limit)
+                }
+            }
+        }
     }
 
     @Deprecated("use getUrlPreview instead")

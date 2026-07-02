@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.mocks
 
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.clientserverapi.client.FileSizeLimit
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
@@ -15,7 +16,8 @@ class MediaServiceMock : MediaService {
     override suspend fun getMedia(
         uri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
@@ -23,7 +25,8 @@ class MediaServiceMock : MediaService {
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
@@ -35,7 +38,8 @@ class MediaServiceMock : MediaService {
         method: ThumbnailResizingMethod,
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean
+        saveToCache: Boolean,
+        maxSize: FileSizeLimit?
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
