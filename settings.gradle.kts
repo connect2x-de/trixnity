@@ -50,10 +50,12 @@ include("ktor-test-utils")
 include("idb-schemaexporter")
 
 pluginManagement {
+    includeBuild("build-logic")
+
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        mavenLocal()
     }
 }
 

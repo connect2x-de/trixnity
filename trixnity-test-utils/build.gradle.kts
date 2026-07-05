@@ -3,8 +3,8 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    builtin(sharedLibs.plugins.android.library)
-    builtin(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.android.library)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
