@@ -1,5 +1,5 @@
 plugins {
-    builtin(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.mokkery)
 }

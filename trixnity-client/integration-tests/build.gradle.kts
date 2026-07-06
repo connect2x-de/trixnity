@@ -2,7 +2,7 @@ import de.connect2x.conventions.CI
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
-    builtin(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
 }
 

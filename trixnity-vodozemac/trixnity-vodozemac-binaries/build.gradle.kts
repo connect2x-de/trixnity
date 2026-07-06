@@ -7,8 +7,8 @@ import java.security.MessageDigest
 import java.util.*
 
 plugins {
-    builtin(sharedLibs.plugins.kotlin.multiplatform)
-    builtin(sharedLibs.plugins.android.library)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.android.library)
 }
 
 registerLibvodozemac(

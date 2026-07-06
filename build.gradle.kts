@@ -26,11 +26,13 @@ plugins {
 
     alias(libs.plugins.download) apply false
 
-    builtin(sharedLibs.plugins.kotlin.multiplatform) apply false
-    builtin(sharedLibs.plugins.android.library) apply false
+    alias(sharedLibs.plugins.kotlin.multiplatform) apply false
+    alias(sharedLibs.plugins.android.library) apply false
 
     alias(sharedLibs.plugins.kotlin.serialization) apply false
     alias(sharedLibs.plugins.mokkery) apply false
+
+    id("de.connect2x.trixnity.conventions") apply false
 }
 
 updateAbiFilesFromReportZip()

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated to Kotlin 2.3.21
+- Migrate to build-logic
+- Update c2x-conventions to support fine grained dependency configuration
 
 ### Deprecated
 

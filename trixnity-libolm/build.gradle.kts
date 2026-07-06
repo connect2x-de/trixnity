@@ -10,8 +10,8 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
-    builtin(sharedLibs.plugins.android.library)
-    builtin(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.android.library)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(libs.plugins.download)
 }
