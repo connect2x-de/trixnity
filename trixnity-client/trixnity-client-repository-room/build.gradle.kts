@@ -1,8 +1,8 @@
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.room)
+    alias(sharedLibs.plugins.ksp)
+    alias(sharedLibs.plugins.androidx.room)
 }
 
 kotlin {
@@ -24,7 +24,7 @@ kotlin {
 
                 implementation(sharedLibs.lognity.api)
 
-                api(libs.androidx.room.runtime)
+                api(sharedLibs.androidx.roomRuntime)
             }
         }
         commonTest {
@@ -32,7 +32,7 @@ kotlin {
                 implementation(projects.trixnityTestUtils)
                 implementation(projects.trixnityClient.clientRepositoryTest)
 
-                implementation(libs.androidx.sqlite.bundled)
+                implementation(sharedLibs.androidx.sqliteBundled)
 
                 implementation(sharedLibs.kotest.assertions.core)
             }
@@ -53,6 +53,6 @@ dependencies {
                     && it.name.contains("Test").not()
         }
         .forEach {
-            add(it.name, libs.androidx.room.compiler)
+            add(it.name, sharedLibs.androidx.roomCompiler)
         }
 }

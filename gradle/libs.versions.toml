@@ -3,7 +3,6 @@
 trixnity = "5.7.0"
 
 ### build ###
-ksp = "2.3.3" # https://github.com/google/ksp/releases
 downloadGradlePlugin = "5.7.0" # https://github.com/michel-kraemer/gradle-download-task/releases
 
 ### native bindings ###
@@ -25,14 +24,10 @@ exposed = "0.61.0" # https://github.com/JetBrains/Exposed/releases
 hikari = "7.0.2" # https://github.com/brettwooldridge/HikariCP/tags
 h2 = "2.4.240" # https://github.com/h2database/h2database/releases
 postgres = "42.7.8" # https://github.com/pgjdbc/pgjdbc/releases
-androidxRoom = "2.8.4" # https://developer.android.com/jetpack/androidx/releases/room
-androidxSqlite = "2.6.2" # https://developer.android.com/jetpack/androidx/releases/sqlite
 
 ### testing ###
 testContainers = "2.0.5" # https://github.com/testcontainers/testcontainers-java/releases
-androidxTestRunner = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/test
 openjdkJol = "0.17" # https://github.com/openjdk/jol/tags
-robolectric = "4.16.1" # https://github.com/robolectric/robolectric/releases
 
 [libraries]
 
@@ -49,10 +44,6 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
-androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
-androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }
-
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 
 ### testing ###
@@ -60,12 +51,7 @@ testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "
 testcontainers-junitJupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testContainers" }
 
-androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-
 openjdk-jol = { module = "org.openjdk.jol:jol-core", version.ref = "openjdkJol" }
 
 [plugins]
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 download = { id = "de.undercouch.download", version.ref = "downloadGradlePlugin" }
-room = { id = "androidx.room", version.ref = "androidxRoom" }

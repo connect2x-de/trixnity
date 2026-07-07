@@ -195,7 +195,7 @@ kotlin {
         }
         androidInstrumentedTest {
             dependencies {
-                implementation(libs.androidx.test.runner)
+                implementation(sharedLibs.androidx.testRunner)
             }
         }
     }

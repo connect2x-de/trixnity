@@ -26,7 +26,7 @@ kotlin {
                 implementation(projects.trixnityClient.trixnityClientRepositoryExposed)
                 implementation(projects.trixnityClient.trixnityClientRepositoryRoom)
                 implementation(projects.trixnityClient.trixnityClientCryptodriverVodozemac)
-                implementation(libs.androidx.sqlite.bundled)
+                implementation(sharedLibs.androidx.sqliteBundled)
                 implementation(sharedLibs.kotlin.test)
                 implementation(sharedLibs.kotest.assertions.core)
                 implementation(sharedLibs.lognity.api)
