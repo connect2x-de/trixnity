@@ -898,7 +898,7 @@ class RoomServiceImpl(
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
         roomOutboxMessageStore.update(roomId, transactionId) {
             it?.content?.let { content ->
-                eventContentMediaMappings.findUriExtractorOrFallback(content)(content)?.let { uri ->
+                eventContentMediaMappings.findUriExtractorOrFallback(content)(content).first()?.let { uri ->
                     mediaService.removeCachedMedia(uri)
                 }
             }

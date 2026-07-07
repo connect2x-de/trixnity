@@ -21,14 +21,6 @@ import kotlin.test.Test
 class EventContentMediaMappingsTest : TrixnityBaseTest() {
     val defaults = EventContentMediaMappings(
         listOf(
-            of<FileBased.File>(
-                uploader = FileUploader(),
-                uriExtractor = FileExtractor()
-            ),
-            of<FileBased.File>(
-                uploader = FileUploader2(),
-                uriExtractor = FileExtractor2()
-            ),
             of<FileBased.Audio>(
                 uploader = null,
                 uriExtractor = null
@@ -36,6 +28,14 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
             of<FileBased.Audio>(
                 uploader = AudioUploader(),
                 uriExtractor = AudioExtractor()
+            ),
+            of<FileBased.File>(
+                uploader = FileUploader(),
+                uriExtractor = FileExtractor()
+            ),
+            of<FileBased.File>(
+                uploader = FileUploader2(),
+                uriExtractor = FileExtractor2()
             ),
             of<FileBased.Image>(
                 uploader = null,
@@ -148,8 +148,36 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         (uploader is FileBasedUploader) shouldBe true
         (extractor is FileBasedExtractor) shouldBe true
 
-        extractor(content) shouldBe null
+        extractor(content) shouldBe setOf(null)
         uploader(MutableStateFlow(null), content) { _, _ -> "" }::class shouldBe FileBased.File::class
+    }
+
+    @Test
+    fun `returns subtype mapping when resolving subtype and supertype also present`() = runTest {
+
+        val defaults2 = EventContentMediaMappings(
+            listOf(
+                of<FileBased.File>(
+                    uploader = FileUploader(),
+                    uriExtractor = FileExtractor()
+                ),
+                of<FileBased>(
+                    uploader = FileBasedUploader(),
+                    uriExtractor = FileBasedExtractor()
+                ),
+            )
+        )
+
+        val content: FileBased.File = FileBased.File("")
+
+        val uploader = defaults2.findUploaderOrFallback(content)
+        val extractor = defaults2.findUriExtractorOrFallback(content)
+
+        (uploader is FallBackEventContentMediaUploader) shouldBe false
+        (extractor is FallBackEventContentUriExtractor) shouldBe false
+
+        (uploader is FileUploader) shouldBe true
+        (extractor is FileExtractor) shouldBe true
     }
 
     private class FileUploader : EventContentMediaUploader<FileBased.File> {
@@ -195,32 +223,32 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
     private class FileExtractor : EventContentUriExtractor<FileBased.File> {
         override suspend fun invoke(
             content: FileBased.File,
-        ): String? {
-            return null
+        ): Set<String?> {
+            return setOf(null)
         }
     }
 
     private class FileExtractor2 : EventContentUriExtractor<FileBased.File> {
         override suspend fun invoke(
             content: FileBased.File,
-        ): String? {
-            return null
+        ): Set<String?> {
+            return setOf(null)
         }
     }
 
     private class AudioExtractor : EventContentUriExtractor<FileBased.Audio> {
         override suspend fun invoke(
             content: FileBased.Audio,
-        ): String? {
-            return null
+        ): Set<String?> {
+            return setOf(null)
         }
     }
 
     private class FileBasedExtractor : EventContentUriExtractor<FileBased> {
         override suspend fun invoke(
             content: FileBased,
-        ): String? {
-            return null
+        ): Set<String?> {
+            return setOf(null)
         }
     }
 }

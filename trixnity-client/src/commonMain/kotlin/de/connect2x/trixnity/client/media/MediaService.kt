@@ -313,9 +313,7 @@ class MediaServiceImpl(
     override suspend fun removeCachedMedia(uri: String) {
         if (mediaStore.getMedia(uri) != null) {
             mediaStore.deleteMedia(uri)
-            if (mediaCacheMappingStore.getMediaCacheMapping(uri) != null) {
-                mediaCacheMappingStore.deleteMediaCacheMapping(uri)
-            }
+            mediaCacheMappingStore.deleteMediaCacheMapping(uri)
         } else {
             log.info { "Tried removing media $uri from cache but media was not found locally." }
         }
