@@ -896,15 +896,18 @@ class RoomServiceImpl(
         )
 
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
+        var content: MessageEventContent? = null
         roomOutboxMessageStore.update(roomId, transactionId) {
-            it?.content?.let { content ->
-                eventContentMediaMappings.findUriExtractorOrFallback(content)(content).forEach { uri ->
-                    mediaService.removeCachedMedia(uri)
-                }
-            }
+            content = it?.content
             null
         }
         log.debug { "removed message with id $transactionId" }
+
+        content?.let { content ->
+            eventContentMediaMappings.findUriExtractorOrFallback(content)(content).forEach { uri ->
+                mediaService.removeCachedMedia(uri)
+            }
+        }
     }
 
     override suspend fun retrySendMessage(roomId: RoomId, transactionId: String) {
