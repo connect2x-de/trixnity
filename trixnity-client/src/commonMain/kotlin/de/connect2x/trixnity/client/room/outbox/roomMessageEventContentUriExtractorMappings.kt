@@ -8,39 +8,37 @@ import kotlinx.coroutines.coroutineScope
 class FileMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.File> {
     override suspend fun invoke(
         content: RoomMessageEventContent.FileBased.File,
-    ): Set<String?> = coroutineScope {
-        setOf(content.file?.url ?: content.url)
+    ): Set<String> = coroutineScope {
+        setOfOrEmpty(content.getContentUri())
     }
 }
 
 class ImageMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Image> {
     override suspend fun invoke(
         content: RoomMessageEventContent.FileBased.Image,
-    ): Set<String?> = coroutineScope {
-        setOf(content.file?.url ?: content.url, content.info?.thumbnailUrl)
+    ): Set<String> = coroutineScope {
+        setOfOrEmpty(content.getContentUri()) + setOfOrEmpty(content.info?.thumbnailUrl)
     }
 }
 
 class VideoMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Video> {
     override suspend fun invoke(
         content: RoomMessageEventContent.FileBased.Video,
-    ): Set<String?> = coroutineScope {
-        setOf(content.file?.url ?: content.url, content.info?.thumbnailUrl)
+    ): Set<String> = coroutineScope {
+        setOfOrEmpty(content.getContentUri()) + setOfOrEmpty(content.info?.thumbnailUrl)
     }
 }
 
 class AudioMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Audio> {
     override suspend fun invoke(
         content: RoomMessageEventContent.FileBased.Audio,
-    ): Set<String?> = coroutineScope {
-        setOf(content.file?.url ?: content.url)
+    ): Set<String> = coroutineScope {
+        setOfOrEmpty(content.getContentUri())
     }
 }
 
-class FileBasedMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased> {
-    override suspend fun invoke(
-        content: RoomMessageEventContent.FileBased,
-    ): Set<String?> = coroutineScope {
-        setOf(content.file?.url ?: content.url)
-    }
-}
+// setOfNotNull is too much unnecessary overhead
+private fun <T : Any> setOfOrEmpty(of: T?): Set<T> = of?.let { setOf(it) } ?: emptySet()
+
+private fun RoomMessageEventContent.FileBased.getContentUri(): String? = this.file?.url ?: this.url
+

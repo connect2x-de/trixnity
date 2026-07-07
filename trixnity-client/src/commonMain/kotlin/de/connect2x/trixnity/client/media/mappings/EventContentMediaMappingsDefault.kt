@@ -3,7 +3,6 @@ package de.connect2x.trixnity.client.media.mappings
 import de.connect2x.trixnity.client.media.mappings.EventContentMediaMapping.Companion.of
 import de.connect2x.trixnity.client.room.outbox.AudioMessageEventContentMediaUploader
 import de.connect2x.trixnity.client.room.outbox.AudioMessageEventContentUriExtractor
-import de.connect2x.trixnity.client.room.outbox.FileBasedMessageEventContentUriExtractor
 import de.connect2x.trixnity.client.room.outbox.FileMessageEventContentMediaUploader
 import de.connect2x.trixnity.client.room.outbox.FileMessageEventContentUriExtractor
 import de.connect2x.trixnity.client.room.outbox.ImageMessageEventContentMediaUploader
@@ -29,10 +28,6 @@ private val eventContentMediaMappingsDefault = EventContentMediaMappings(
         of<RoomMessageEventContent.FileBased.Audio>(
             AudioMessageEventContentMediaUploader(),
             AudioMessageEventContentUriExtractor()
-        ),
-        of<RoomMessageEventContent.FileBased>(
-            null,
-            FileBasedMessageEventContentUriExtractor()
         )
     )
 )

@@ -32,6 +32,6 @@ internal fun <T : EventContent> getFallbackEventContentUriExtractor(): FallBackE
         log.trace {
             "EventContent class ${content::class.simpleName} is not supported by any other media URI extractor."
         }
-        setOf(null)
+        setOf()
     }
 }

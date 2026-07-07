@@ -148,7 +148,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         (uploader is FileBasedUploader) shouldBe true
         (extractor is FileBasedExtractor) shouldBe true
 
-        extractor(content) shouldBe setOf(null)
+        extractor(content) shouldBe setOf()
         uploader(MutableStateFlow(null), content) { _, _ -> "" }::class shouldBe FileBased.File::class
     }
 
@@ -223,32 +223,32 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
     private class FileExtractor : EventContentUriExtractor<FileBased.File> {
         override suspend fun invoke(
             content: FileBased.File,
-        ): Set<String?> {
-            return setOf(null)
+        ): Set<String> {
+            return setOf()
         }
     }
 
     private class FileExtractor2 : EventContentUriExtractor<FileBased.File> {
         override suspend fun invoke(
             content: FileBased.File,
-        ): Set<String?> {
-            return setOf(null)
+        ): Set<String> {
+            return setOf()
         }
     }
 
     private class AudioExtractor : EventContentUriExtractor<FileBased.Audio> {
         override suspend fun invoke(
             content: FileBased.Audio,
-        ): Set<String?> {
-            return setOf(null)
+        ): Set<String> {
+            return setOf()
         }
     }
 
     private class FileBasedExtractor : EventContentUriExtractor<FileBased> {
         override suspend fun invoke(
             content: FileBased,
-        ): Set<String?> {
-            return setOf(null)
+        ): Set<String> {
+            return setOf()
         }
     }
 }
