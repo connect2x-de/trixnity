@@ -1493,12 +1493,6 @@ public final class de/connect2x/trixnity/client/room/outbox/CombinedFileTransfer
 	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/room/outbox/FileBasedMessageEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
-	public fun <init> ()V
-	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class de/connect2x/trixnity/client/room/outbox/FileMessageEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
 	public fun <init> ()V
 	public synthetic fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
