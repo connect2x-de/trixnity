@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import de.connect2x.conventions.withAndroidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -14,6 +15,7 @@ kotlin {
     addNativeDesktopTargets()
     addNativeAppleTargets()
     applyDefaultHierarchyTemplate()
+    withAndroidLibrary("$group.test.utils")
     sourceSets {
         all {
             languageSettings.optIn("kotlin.time.ExperimentalTime")
@@ -35,19 +37,6 @@ kotlin {
 
         androidMain.dependencies {
             api(kotlin("test-junit"))
-        }
-    }
-}
-
-android {
-    namespace = "de.connect2x.trixnity.test.utils"
-    compileSdk = libs.versions.androidTargetSdk.get().toInt()
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-    }
-    packaging {
-        resources {
-            excludes += "META-INF/INDEX.LIST"
         }
     }
 }

@@ -1,3 +1,4 @@
+import de.connect2x.conventions.withAndroidLibrary
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.properties.hasProperty
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -33,16 +34,7 @@ kotlin {
     addNativeAppleTargets()
     addWebTarget(rootDir)
     applyDefaultHierarchyTemplate()
-}
-
-android {
-    namespace = "de.connect2x.trixnity.vodozemac.binaries"
-    compileSdk = libs.versions.androidTargetSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
+    withAndroidLibrary("$group.vodozemac.binaries")
 }
 
 androidComponents {

@@ -1,4 +1,5 @@
 import com.android.build.gradle.tasks.factory.AndroidUnitTest
+import de.connect2x.conventions.withAndroidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
@@ -26,6 +27,7 @@ kotlin {
     addAndroidTarget()
     addWebTarget(rootDir)
     addNativeTargets()
+    withAndroidLibrary("$group.vodozemac")
 
     compilerOptions {
         freeCompilerArgs.add(
@@ -51,16 +53,6 @@ kotlin {
             implementation(sharedLibs.kotlin.test)
             implementation(sharedLibs.kotlinx.coroutines.test)
         }
-    }
-}
-
-android {
-    namespace = "de.connect2x.trixnity.vodozemac"
-    compileSdk = libs.versions.androidTargetSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
 

@@ -3,9 +3,11 @@
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.android.build.gradle.tasks.ExternalNativeCleanTask
 import de.connect2x.conventions.asAAR
+import de.connect2x.conventions.withAndroidLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
@@ -69,25 +71,11 @@ tasks.withType<ExternalNativeBuildTask> {
 }
 
 android {
-    namespace = "de.connect2x.trixnity.libolm"
-    compileSdk = libs.versions.androidTargetSdk.get().toInt()
     defaultConfig {
-        minSdk = libs.versions.androidMinSdk.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     sourceSets.getByName("main") {
-        manifest.srcFile("src/androidMain/AndroidManifest.xml")
         jniLibs.srcDirs(olmBinariesDirs.binSharedAndroid)
-    }
-    buildTypes {
-        release {
-            isDefault = true
-        }
-    }
-    packaging {
-        resources {
-            excludes += "META-INF/INDEX.LIST"
-        }
     }
 }
 tasks.withType(com.android.build.gradle.tasks.MergeSourceSetFolders::class).configureEach {
@@ -108,6 +96,9 @@ kotlin {
     addJvmTarget()
     addAndroidTarget()
     addWebTarget(rootDir)
+    withAndroidLibrary("$group.libolm") {
+        instrumentedTestVariant.sourceSetTree = KotlinSourceSetTree.test
+    }
 
     applyDefaultHierarchyTemplate {
         common {
