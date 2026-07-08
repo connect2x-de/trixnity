@@ -9,5 +9,5 @@ pluginManagement {
 }
 
 plugins {
-    id("de.connect2x.conventions.c2x-settings-plugin") version "20260706.081921"
+    id("de.connect2x.conventions.c2x-settings-plugin") version "20260708.000524"
 }
