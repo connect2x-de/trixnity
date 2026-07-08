@@ -5,6 +5,8 @@ import de.connect2x.trixnity.client.getInMemoryMediaCacheMapping
 import de.connect2x.trixnity.client.getInMemoryServerDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.store.MediaCacheMapping
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -21,6 +23,10 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.string.shouldStartWith
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.collections.shouldNotHaveSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application.OctetStream
@@ -60,7 +66,7 @@ class MediaServiceTest : TrixnityBaseTest() {
         mediaStore = InMemoryMediaStore(coroutineScope, config, Clock.System).apply {
             scheduleSetup { deleteAll() }
         }
-        cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore, config)
+        cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore)
     }
 
     @AfterTest
@@ -110,8 +116,8 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         val fileSizeLimit = 100L
 
-        val exception = shouldThrow<ClosedByteChannelException> {
-            cut.getMedia(mxcUri, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow()
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getMedia(mxcUri, maxSize = fileSizeLimit).getOrThrow()
         }
 
         exception.message shouldContain "File could not be downloaded because it would exceed the limit"
@@ -119,20 +125,31 @@ class MediaServiceTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `getMedia » limit null » use default and stop download`() = runTest {
+    fun `progress » getMedia » tracks download progress correctly`() = runTest {
+        val data = ByteArray(5_000_000)
         apiConfig.endpoints {
             addHandler {
                 it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
-                respond(ByteReadChannel(ByteArray(6_000_000)), HttpStatusCode.OK)
+                respond(ByteReadChannel(data), HttpStatusCode.OK)
             }
         }
-
-        val exception = shouldThrow<ClosedByteChannelException> {
-            cut.getMedia(mxcUri).getOrThrow()
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
         }
 
-        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
-        mediaStore.getMedia(mxcUri) shouldBe null
+        cut.getMedia(mxcUri,
+            progressFlow,
+            maxSize = data.size.toLong()
+        ).getOrThrow()
+            .toByteArray() shouldBe data
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe data.size
+        mediaStore.getMedia(mxcUri)?.toByteArray() shouldBe data
     }
 
     private val rawFile = "lQ/twg".decodeUnpaddedBase64Bytes()
@@ -201,12 +218,41 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         val fileSizeLimit = 1L
 
-        val exception = shouldThrow<ClosedByteChannelException> {
-            cut.getEncryptedMedia(encryptedFile, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getEncryptedMedia(encryptedFile, maxSize = fileSizeLimit).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
         }
 
         exception.message shouldContain "File could not be downloaded because it would exceed the limit"
         mediaStore.getMedia(mxcUri) shouldBe null
+    }
+
+    @Test
+    fun `progress » getEncryptedMedia » tracks download progress correctly`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(rawFile, HttpStatusCode.OK)
+            }
+        }
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
+        }
+
+        cut.getEncryptedMedia(
+            encryptedFile,
+            progressFlow,
+            maxSize = 1_000_000L
+        ).getOrThrow()
+            .toByteArray()
+            ?.decodeToString() shouldBe "test"
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe 4
+        mediaStore.media.value[mxcUri] shouldBe listOf(rawFile)
     }
 
     @Test
@@ -237,8 +283,8 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         val fileSizeLimit = 100L
 
-        val exception = shouldThrow<ClosedByteChannelException> {
-            cut.getThumbnail(mxcUri, 32, 32, maxSize = FileSizeLimit.Limited(fileSizeLimit)).getOrThrow()
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getThumbnail(mxcUri, 32, 32, maxSize = fileSizeLimit).getOrThrow()
         }
 
         exception.message shouldContain "File could not be downloaded because it would exceed the limit"
@@ -246,20 +292,33 @@ class MediaServiceTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `getThumbnail » limit null » use default and stop download`() = runTest {
+    fun `progress » getThumbnail » tracks download progress correctly`() = runTest {
         apiConfig.endpoints {
             addHandler {
                 it.url.encodedPath shouldBe "/_matrix/client/v1/media/thumbnail/example.com/abc"
-                respond(ByteReadChannel(ByteArray(3_000_000)), HttpStatusCode.OK)
+                respond(ByteReadChannel("test"), HttpStatusCode.OK)
             }
         }
-
-        val exception = shouldThrow<ClosedByteChannelException> {
-            cut.getThumbnail(mxcUri, 32, 32).getOrThrow()
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
         }
 
-        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
-        mediaStore.getMedia("$mxcUri/32x32/crop") shouldBe null
+        cut.getThumbnail(
+            mxcUri,
+            32,
+            32,
+            progress = progressFlow
+        ).getOrThrow()
+            .toByteArray()
+            ?.decodeToString() shouldBe "test"
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe 4
+        mediaStore.getMedia("$mxcUri/32x32/crop")?.toByteArray() shouldBe "test".encodeToByteArray()
     }
 
     @Test

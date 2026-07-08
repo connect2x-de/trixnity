@@ -2,9 +2,7 @@ package de.connect2x.trixnity.client
 
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
-import de.connect2x.trixnity.client.utils.mb
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
-import de.connect2x.trixnity.clientserverapi.client.FileSizeLimit
 import de.connect2x.trixnity.clientserverapi.client.sync
 import de.connect2x.trixnity.clientserverapi.model.server.Capability.ForgetForcedUponLeave
 import de.connect2x.trixnity.clientserverapi.model.user.Filters
@@ -93,16 +91,6 @@ data class MatrixClientConfiguration(
      * Set filter for the single sync (background sync).
      */
     var syncOnceFilter: Filters = Filters(presence = Filters.EventFilter(limit = 0)),
-
-    /**
-     * Default download limit for media files
-     */
-    var mediaSizeLimit: FileSizeLimit = FileSizeLimit.Limited(5.mb()),
-
-    /**
-     * Default download limit for thumbnail files
-     */
-    var thumbnailSizeLimit: FileSizeLimit = FileSizeLimit.Limited(2.mb()),
 
     /**
      * Specify a [HttpClientEngine]. This should be reused in an application.

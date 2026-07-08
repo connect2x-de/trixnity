@@ -11,8 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added automatic cleanup of media, when canceling outbox message
 - Added UriExtractor to `EventContentMediaMappings` (previously `OutboxMessageMediaUploaderMappings`)
-- download size limit for media service
-- default download limit properties in matrix client configuration
+- download size limit for media service methods
 
 ### Changed
 
@@ -39,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed c2x-conventions update requiring GitLab token
 
 ### Security
+
+- prevent resource exhaustion risk by adding download limit parameters to `MediaService`
 
 ## 5.6.0
 
