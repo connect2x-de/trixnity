@@ -671,11 +671,6 @@ public final class de/connect2x/trixnity/client/media/mappings/EventContentMedia
 	public static final fun getDefault (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings$Companion;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;
 }
 
-public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMappingsKt {
-	public static final fun findUploaderOrFallback (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;Lde/connect2x/trixnity/core/model/events/EventContent;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;
-	public static final fun findUriExtractorOrFallback (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;Lde/connect2x/trixnity/core/model/events/EventContent;)Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;
-}
-
 public abstract interface class de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
 	public abstract fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }

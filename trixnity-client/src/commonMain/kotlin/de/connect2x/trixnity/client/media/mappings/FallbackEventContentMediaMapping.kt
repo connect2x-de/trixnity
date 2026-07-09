@@ -8,15 +8,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 private val log = Logger("de.connect2x.trixnity.client.media.mappings.FallbackOutboxMessageMediaUploaderMapping")
 
 
-interface FallBackEventContentMediaUploader<T : EventContent> : EventContentMediaUploader<T>
+interface FallBackEventContentMediaUploader : EventContentMediaUploader<EventContent>
 
-internal fun <T : EventContent> getFallbackEventContentMediaUploader(): FallBackEventContentMediaUploader<T> {
-    return object : FallBackEventContentMediaUploader<T> {
-        override suspend fun <S : T> invoke(
+internal fun getFallbackEventContentMediaUploader(): FallBackEventContentMediaUploader {
+    return object : FallBackEventContentMediaUploader {
+        override suspend fun invoke(
             uploadProgress: MutableStateFlow<FileTransferProgress?>,
-            content: S,
+            content: EventContent,
             upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
-        ): S {
+        ): EventContent {
             log.trace {
                 "EventContent class ${content::class.simpleName} is not supported by any other media uploader."
             }
@@ -25,9 +25,9 @@ internal fun <T : EventContent> getFallbackEventContentMediaUploader(): FallBack
     }
 }
 
-fun interface FallBackEventContentUriExtractor<T : EventContent> : EventContentUriExtractor<T>
+fun interface FallBackEventContentUriExtractor : EventContentUriExtractor<EventContent>
 
-internal fun <T : EventContent> getFallbackEventContentUriExtractor(): FallBackEventContentUriExtractor<T> {
+internal fun getFallbackEventContentUriExtractor(): FallBackEventContentUriExtractor {
     return FallBackEventContentUriExtractor { content ->
         log.trace {
             "EventContent class ${content::class.simpleName} is not supported by any other media URI extractor."

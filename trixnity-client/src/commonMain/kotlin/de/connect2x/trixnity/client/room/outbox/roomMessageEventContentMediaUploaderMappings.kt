@@ -7,14 +7,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
-//Suppressing unchecked casts here is fine, as the data classes are final
-@Suppress("UNCHECKED_CAST")
 class FileMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.File> {
-    override suspend fun <S : RoomMessageEventContent.FileBased.File> invoke(
+    override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: S,
+        content: RoomMessageEventContent.FileBased.File,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): S = coroutineScope {
+    ): RoomMessageEventContent.FileBased.File = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -43,7 +41,7 @@ class FileMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMes
                         url = it
                     )
                 })
-            ) as S
+            )
         } else if (contentUrl != null) {
             val thumbnailMxcUri = content.info?.thumbnailUrl?.let {
                 upload(it, thumbnailUploadProgress)
@@ -53,19 +51,18 @@ class FileMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMes
             content.copy(
                 url = mxcUri,
                 info = content.info?.copy(thumbnailUrl = thumbnailMxcUri)
-            ) as S
+            )
         } else content
     }
 
 }
 
-@Suppress("UNCHECKED_CAST")
 class ImageMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Image> {
-    override suspend fun <S : RoomMessageEventContent.FileBased.Image> invoke(
+    override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: S,
+        content: RoomMessageEventContent.FileBased.Image,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): S = coroutineScope {
+    ): RoomMessageEventContent.FileBased.Image = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -93,7 +90,7 @@ class ImageMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMe
                         url = it
                     )
                 })
-            ) as S
+            )
         } else if (contentUrl != null) {
             val thumbnailMxcUri = content.info?.thumbnailUrl?.let {
                 upload(it, thumbnailUploadProgress)
@@ -103,18 +100,17 @@ class ImageMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMe
             content.copy(
                 url = mxcUri,
                 info = content.info?.copy(thumbnailUrl = thumbnailMxcUri)
-            ) as S
+            )
         } else content
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 class VideoMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Video> {
-    override suspend fun <S : RoomMessageEventContent.FileBased.Video> invoke(
+    override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: S,
+        content: RoomMessageEventContent.FileBased.Video,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): S = coroutineScope {
+    ): RoomMessageEventContent.FileBased.Video = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -142,7 +138,7 @@ class VideoMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMe
                         url = it
                     )
                 })
-            ) as S
+            )
         } else if (contentUrl != null) {
             val thumbnailMxcUri = content.info?.thumbnailUrl?.let {
                 upload(it, thumbnailUploadProgress)
@@ -152,27 +148,26 @@ class VideoMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMe
             content.copy(
                 url = mxcUri,
                 info = content.info?.copy(thumbnailUrl = thumbnailMxcUri)
-            ) as S
+            )
         } else content
     }
 
 }
 
-@Suppress("UNCHECKED_CAST")
 class AudioMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Audio> {
-    override suspend fun <S : RoomMessageEventContent.FileBased.Audio> invoke(
+    override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: S,
+        content: RoomMessageEventContent.FileBased.Audio,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): S {
+    ): RoomMessageEventContent.FileBased.Audio {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         return if (encryptedContentUrl != null) {
             val mxcUri = upload(encryptedContentUrl, uploadProgress)
-            content.copy(file = content.file?.copy(url = mxcUri)) as S
+            content.copy(file = content.file?.copy(url = mxcUri))
         } else if (contentUrl != null) {
             val mxcUri = upload(contentUrl, uploadProgress)
-            content.copy(url = mxcUri) as S
+            content.copy(url = mxcUri)
         } else content
     }
 }

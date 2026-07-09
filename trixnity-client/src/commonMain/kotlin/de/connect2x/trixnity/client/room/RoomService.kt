@@ -6,7 +6,7 @@ import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
-import de.connect2x.trixnity.client.media.mappings.findUriExtractorOrFallback
+import de.connect2x.trixnity.client.media.mappings.findAndCallUriExtractorOrFallback
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomAccountDataStore
@@ -904,7 +904,7 @@ class RoomServiceImpl(
         log.debug { "removed message with id $transactionId" }
 
         content?.let { content ->
-            eventContentMediaMappings.findUriExtractorOrFallback(content)(content).forEach { uri ->
+            eventContentMediaMappings.findAndCallUriExtractorOrFallback(content).forEach { uri ->
                 mediaService.removeCachedMedia(uri)
             }
         }
