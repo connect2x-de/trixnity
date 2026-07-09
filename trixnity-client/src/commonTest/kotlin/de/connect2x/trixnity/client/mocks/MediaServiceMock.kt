@@ -16,7 +16,15 @@ class MediaServiceMock : MediaService {
         uri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
+    ): Result<PlatformMedia> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun getMedia(
+        uri: String,
         maxSize: Long?,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
@@ -25,7 +33,15 @@ class MediaServiceMock : MediaService {
         encryptedFile: EncryptedFile,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
+    ): Result<PlatformMedia> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun getEncryptedMedia(
+        encryptedFile: EncryptedFile,
         maxSize: Long?,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
@@ -38,7 +54,19 @@ class MediaServiceMock : MediaService {
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
+    ): Result<PlatformMedia> {
+        throw NotImplementedError()
+    }
+
+    override suspend fun getThumbnail(
+        uri: String,
+        width: Long,
+        height: Long,
         maxSize: Long?,
+        method: ThumbnailResizingMethod,
+        animated: Boolean,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean
     ): Result<PlatformMedia> {
         throw NotImplementedError()
     }
