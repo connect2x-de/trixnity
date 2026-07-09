@@ -1,13 +1,13 @@
-package de.connect2x.trixnity.client.room.outbox
+package de.connect2x.trixnity.client.media.mappings
 
-import kotlinx.coroutines.flow.MutableStateFlow
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.EventContent
+import kotlinx.coroutines.flow.MutableStateFlow
 
-fun interface MessageEventContentMediaUploader {
+interface EventContentMediaUploader<T : EventContent> {
     suspend operator fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: MessageEventContent,
+        content: T,
         upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
-    ): MessageEventContent
+    ): T
 }

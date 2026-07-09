@@ -8,8 +8,8 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.flattenNotNull
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.media.MediaTooLargeException
-import de.connect2x.trixnity.client.room.outbox.OutboxMessageMediaUploaderMappings
-import de.connect2x.trixnity.client.room.outbox.findUploaderOrFallback
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.findAndCallUploaderOrFallback
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomOutboxMessage.SendError
 import de.connect2x.trixnity.client.store.RoomOutboxMessageStore
@@ -25,10 +25,11 @@ import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.subscribe
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.async
@@ -55,7 +56,7 @@ class OutboxMessageEventHandler(
     private val userService: UserService,
     private val mediaService: MediaService,
     private val roomOutboxMessageStore: RoomOutboxMessageStore,
-    private val outboxMessageMediaUploaderMappings: OutboxMessageMediaUploaderMappings,
+    private val eventContentMediaMappings: EventContentMediaMappings,
     private val currentSyncState: CurrentSyncState,
     private val userInfo: UserInfo,
     private val tm: TransactionManager,
@@ -180,10 +181,8 @@ class OutboxMessageEventHandler(
             return SendError.NoEventPermission
         }
         val originalContent = outboxMessage.content
-        val uploader =
-            outboxMessageMediaUploaderMappings.findUploaderOrFallback(originalContent)
         val uploadedContent = try {
-            uploader(
+            eventContentMediaMappings.findAndCallUploaderOrFallback(
                 outboxMessage.mediaUploadProgress,
                 originalContent
             ) { cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?> ->
@@ -192,7 +191,7 @@ class OutboxMessageEventHandler(
                     uploadProgress,
                     outboxMessage.keepMediaInCache,
                 ).getOrThrow()
-            }
+            } as MessageEventContent
         } catch (exception: Exception) {
             val sendError = when (exception) {
                 is MatrixServerException -> when (exception.statusCode) {

@@ -6,7 +6,7 @@ import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.utils.ByteArrayFlow
-import io.ktor.http.*
+import io.ktor.http.ContentType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.Duration
@@ -49,6 +49,8 @@ class MediaServiceMock : MediaService {
     override suspend fun prepareUploadEncryptedMedia(content: ByteArrayFlow): EncryptedFile {
         return returnPrepareUploadEncryptedMedia.removeFirst()
     }
+
+    override suspend fun removeCachedMedia(uri: String) {}
 
     var returnUploadMedia: Result<String> = Result.success("")
     val uploadMediaCalled = MutableStateFlow<String?>(null)

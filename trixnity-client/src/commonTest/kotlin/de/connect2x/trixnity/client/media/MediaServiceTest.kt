@@ -1,21 +1,5 @@
 package de.connect2x.trixnity.client.media
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.ints.shouldBeGreaterThan
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.beEmpty
-import io.kotest.matchers.string.shouldStartWith
-import io.ktor.client.engine.mock.*
-import io.ktor.http.*
-import io.ktor.http.ContentType.Application.OctetStream
-import io.ktor.http.ContentType.Text.Plain
-import io.ktor.utils.io.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.getInMemoryMediaCacheMapping
 import de.connect2x.trixnity.client.getInMemoryServerDataStore
@@ -28,6 +12,25 @@ import de.connect2x.trixnity.test.utils.scheduleSetup
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.beEmpty
+import io.kotest.matchers.string.shouldStartWith
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.ContentType
+import io.ktor.http.ContentType.Application.OctetStream
+import io.ktor.http.ContentType.Text.Plain
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -282,5 +285,18 @@ class MediaServiceTest : TrixnityBaseTest() {
         shouldThrow<MediaTooLargeException> {
             cut.uploadMedia(cacheUri).getOrThrow()
         }
+    }
+
+    @Test
+    fun `removeCachedMedia » remove media from store`() = runTest {
+        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+            MediaCacheMapping(cacheUri, null, 5, Plain.toString())
+        }
+        mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
+
+        cut.removeCachedMedia(cacheUri)
+
+        mediaStore.getMedia(cacheUri) shouldBe null
+        mediaCacheMappingStore.getMediaCacheMapping(cacheUri) shouldBe null
     }
 }

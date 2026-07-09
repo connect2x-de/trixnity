@@ -1,21 +1,18 @@
 package de.connect2x.trixnity.client.room.outbox
 
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaUploader
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 
-// TODO test
-
-class FileMessageEventContentMediaUploader() : MessageEventContentMediaUploader {
+class FileMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.File> {
     override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: MessageEventContent,
+        content: RoomMessageEventContent.FileBased.File,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): MessageEventContent = coroutineScope {
-        require(content is RoomMessageEventContent.FileBased.File)
+    ): RoomMessageEventContent.FileBased.File = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -60,13 +57,12 @@ class FileMessageEventContentMediaUploader() : MessageEventContentMediaUploader 
 
 }
 
-class ImageMessageEventContentMediaUploader() : MessageEventContentMediaUploader {
+class ImageMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Image> {
     override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: MessageEventContent,
+        content: RoomMessageEventContent.FileBased.Image,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): MessageEventContent = coroutineScope {
-        require(content is RoomMessageEventContent.FileBased.Image)
+    ): RoomMessageEventContent.FileBased.Image = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -109,13 +105,12 @@ class ImageMessageEventContentMediaUploader() : MessageEventContentMediaUploader
     }
 }
 
-class VideoMessageEventContentMediaUploader() : MessageEventContentMediaUploader {
+class VideoMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Video> {
     override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: MessageEventContent,
+        content: RoomMessageEventContent.FileBased.Video,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): MessageEventContent = coroutineScope {
-        require(content is RoomMessageEventContent.FileBased.Video)
+    ): RoomMessageEventContent.FileBased.Video = coroutineScope {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         val combinedUploadProgress = CombinedFileTransferProgress()
@@ -159,13 +154,12 @@ class VideoMessageEventContentMediaUploader() : MessageEventContentMediaUploader
 
 }
 
-class AudioMessageEventContentMediaUploader() : MessageEventContentMediaUploader {
+class AudioMessageEventContentMediaUploader() : EventContentMediaUploader<RoomMessageEventContent.FileBased.Audio> {
     override suspend fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
-        content: MessageEventContent,
+        content: RoomMessageEventContent.FileBased.Audio,
         upload: suspend (String, MutableStateFlow<FileTransferProgress?>) -> String
-    ): MessageEventContent {
-        require(content is RoomMessageEventContent.FileBased.Audio)
+    ): RoomMessageEventContent.FileBased.Audio {
         val encryptedContentUrl = content.file?.url
         val contentUrl = content.url
         return if (encryptedContentUrl != null) {

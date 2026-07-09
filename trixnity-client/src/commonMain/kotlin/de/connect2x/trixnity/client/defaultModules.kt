@@ -7,6 +7,8 @@ import de.connect2x.trixnity.client.key.OutgoingRoomKeyRequestEventHandler
 import de.connect2x.trixnity.client.key.createKeyModule
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.media.createMediaModule
+import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
+import de.connect2x.trixnity.client.media.mappings.default
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.notification.createNotificationModule
 import de.connect2x.trixnity.client.room.DirectRoomEventHandler
@@ -25,8 +27,6 @@ import de.connect2x.trixnity.client.room.TimelineEventHandler
 import de.connect2x.trixnity.client.room.TypingEventHandler
 import de.connect2x.trixnity.client.room.UnencryptedRoomEventEncryptionService
 import de.connect2x.trixnity.client.room.createRoomModule
-import de.connect2x.trixnity.client.room.outbox.OutboxMessageMediaUploaderMappings
-import de.connect2x.trixnity.client.room.outbox.default
 import de.connect2x.trixnity.client.server.createServerModule
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -79,7 +79,7 @@ fun createDefaultEventContentSerializerMappingsModule() = module {
 }
 
 fun createDefaultOutboxMessageMediaUploaderMappingsModule() = module {
-    single<OutboxMessageMediaUploaderMappings> { OutboxMessageMediaUploaderMappings.default }
+    single<EventContentMediaMappings> { EventContentMediaMappings.default }
 }
 
 fun createDefaultMatrixJsonModule() = module {
@@ -213,7 +213,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> = listOf(
                     userService = get(),
                     mediaService = get(),
                     roomOutboxMessageStore = get(),
-                    outboxMessageMediaUploaderMappings = get(),
+                    eventContentMediaMappings = get(),
                     currentSyncState = get(),
                     userInfo = get(),
                     tm = get(),
@@ -250,6 +250,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> = listOf(
                     currentSyncState = get(),
                     scope = get(),
                     matrixClientConfig = get(),
+                    eventContentMediaMappings = get()
                 )
             }
             singleOf(::GetPowerLevelImpl) { bind<GetPowerLevel>() }

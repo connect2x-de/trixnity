@@ -29,7 +29,7 @@ fun createRoomModule() = module {
             userService = get(),
             mediaService = get(),
             roomOutboxMessageStore = get(),
-            outboxMessageMediaUploaderMappings = get(),
+            eventContentMediaMappings = get(),
             currentSyncState = get(),
             userInfo = get(),
             tm = get(),
@@ -113,6 +113,7 @@ fun createRoomModule() = module {
             currentSyncState = get(),
             scope = get(),
             matrixClientConfig = get(),
+            eventContentMediaMappings = get()
         )
     }
 }

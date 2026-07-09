@@ -561,6 +561,7 @@ public abstract interface class de/connect2x/trixnity/client/media/MediaService 
 	public static synthetic fun getThumbnail-eH_QyT8$default (Lde/connect2x/trixnity/client/media/MediaService;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;ZLkotlinx/coroutines/flow/MutableStateFlow;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun prepareUploadEncryptedMedia (Lkotlinx/coroutines/flow/Flow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun prepareUploadMedia (Lkotlinx/coroutines/flow/Flow;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun removeCachedMedia (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun uploadMedia-BWLJW6A (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun uploadMedia-BWLJW6A$default (Lde/connect2x/trixnity/client/media/MediaService;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -582,6 +583,7 @@ public final class de/connect2x/trixnity/client/media/MediaServiceImpl : de/conn
 	public fun getThumbnail-eH_QyT8 (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;ZLkotlinx/coroutines/flow/MutableStateFlow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun prepareUploadEncryptedMedia (Lkotlinx/coroutines/flow/Flow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun prepareUploadMedia (Lkotlinx/coroutines/flow/Flow;Lio/ktor/http/ContentType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun removeCachedMedia (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun uploadMedia-BWLJW6A (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -629,6 +631,58 @@ public final class de/connect2x/trixnity/client/media/PlatformMedia$DefaultImpls
 
 public abstract interface class de/connect2x/trixnity/client/media/PlatformMedia$TemporaryFile {
 	public abstract fun delete (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMapping {
+	public static final field Companion Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMapping$Companion;
+	public fun <init> (Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;)V
+	public final fun component1 ()Lkotlin/reflect/KClass;
+	public final fun component2 ()Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;
+	public final fun component3 ()Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;
+	public final fun copy (Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMapping;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMapping;Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;ILjava/lang/Object;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMapping;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKClass ()Lkotlin/reflect/KClass;
+	public final fun getUploader ()Lde/connect2x/trixnity/client/media/mappings/EventContentMediaUploader;
+	public final fun getUriExtractor ()Lde/connect2x/trixnity/client/media/mappings/EventContentUriExtractor;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMapping$Companion {
+}
+
+public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMappings {
+	public static final field Companion Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMappings ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMappings$Companion {
+}
+
+public final class de/connect2x/trixnity/client/media/mappings/EventContentMediaMappingsDefaultKt {
+	public static final fun getDefault (Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings$Companion;)Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;
+}
+
+public abstract interface class de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
+	public abstract fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
+	public abstract fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/client/media/mappings/FallBackEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
+}
+
+public abstract interface class de/connect2x/trixnity/client/media/mappings/FallBackEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
 }
 
 public final class de/connect2x/trixnity/client/notification/CreateNotificationModuleKt {
@@ -951,7 +1005,7 @@ public final class de/connect2x/trixnity/client/room/MegolmRoomEventEncryptionSe
 }
 
 public final class de/connect2x/trixnity/client/room/OutboxMessageEventHandler : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Ljava/util/List;Lde/connect2x/trixnity/client/user/UserService;Lde/connect2x/trixnity/client/media/MediaService;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/TransactionManager;Lkotlin/time/Clock;)V
+	public fun <init> (Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Ljava/util/List;Lde/connect2x/trixnity/client/user/UserService;Lde/connect2x/trixnity/client/media/MediaService;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/TransactionManager;Lkotlin/time/Clock;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -1074,7 +1128,7 @@ public final class de/connect2x/trixnity/client/room/RoomServiceExtensionsKt {
 }
 
 public final class de/connect2x/trixnity/client/room/RoomServiceImpl : de/connect2x/trixnity/client/room/RoomService {
-	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/RoomAccountDataStore;Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Ljava/util/List;Lde/connect2x/trixnity/client/media/MediaService;Lde/connect2x/trixnity/client/room/ForgetRoomService;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/room/TimelineEventHandler;Lkotlin/time/Clock;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/client/room/TypingEventHandler;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlinx/coroutines/CoroutineScope;)V
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/RoomAccountDataStore;Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Ljava/util/List;Lde/connect2x/trixnity/client/media/MediaService;Lde/connect2x/trixnity/client/room/ForgetRoomService;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/room/TimelineEventHandler;Lkotlin/time/Clock;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/client/room/TypingEventHandler;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/media/mappings/EventContentMediaMappings;)V
 	public fun cancelSendMessage-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun deleteDraftMessage-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun fillTimelineGaps-Vc97kdY (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1416,9 +1470,16 @@ public final class de/connect2x/trixnity/client/room/message/VideoKt {
 	public static synthetic fun video$default (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Lkotlinx/coroutines/flow/Flow;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/ContentType;Ljava/lang/Long;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Long;Lkotlinx/coroutines/flow/Flow;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/room/outbox/AudioMessageEventContentMediaUploader : de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
+public final class de/connect2x/trixnity/client/room/outbox/AudioMessageEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
 	public fun <init> ()V
-	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Audio;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/room/outbox/AudioMessageEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
+	public fun <init> ()V
+	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Audio;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/room/outbox/CombinedFileTransferProgress : kotlinx/coroutines/flow/Flow {
@@ -1427,72 +1488,40 @@ public final class de/connect2x/trixnity/client/room/outbox/CombinedFileTransfer
 	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/room/outbox/FallbackOutboxMessageMediaUploaderMappingClass : de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
+public final class de/connect2x/trixnity/client/room/outbox/FileMessageEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
 	public fun <init> ()V
-	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/room/outbox/FallbackOutboxMessageMediaUploaderMappingKt {
-	public static final fun getFallbackOutboxMessageMediaUploaderMapping ()Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/FileMessageEventContentMediaUploader : de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
+public final class de/connect2x/trixnity/client/room/outbox/FileMessageEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
 	public fun <init> ()V
-	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/room/outbox/ImageMessageEventContentMediaUploader : de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
+public final class de/connect2x/trixnity/client/room/outbox/ImageMessageEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
 	public fun <init> ()V
-	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface class de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
-	public abstract fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping {
-	public static final field Companion Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping$Companion;
-	public fun <init> (Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;)V
-	public final fun component1 ()Lkotlin/reflect/KClass;
-	public final fun component2 ()Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;
-	public final fun copy (Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;)Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping;Lkotlin/reflect/KClass;Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;ILjava/lang/Object;)Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKClass ()Lkotlin/reflect/KClass;
-	public final fun getUploader ()Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMapping$Companion {
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings {
-	public static final field Companion Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings$Companion;
-	public fun <init> (Ljava/util/List;)V
-	public final fun component1 ()Ljava/util/List;
-	public final fun copy (Ljava/util/List;)Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getMappings ()Ljava/util/List;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings$Companion {
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappingsDefaultKt {
-	public static final fun getDefault (Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings$Companion;)Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappingsKt {
-	public static final fun findUploaderOrFallback (Lde/connect2x/trixnity/client/room/outbox/OutboxMessageMediaUploaderMappings;Lde/connect2x/trixnity/core/model/events/EventContent;)Lde/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader;
-}
-
-public final class de/connect2x/trixnity/client/room/outbox/VideoMessageEventContentMediaUploader : de/connect2x/trixnity/client/room/outbox/MessageEventContentMediaUploader {
+public final class de/connect2x/trixnity/client/room/outbox/ImageMessageEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
 	public fun <init> ()V
-	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/MessageEventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/room/outbox/VideoMessageEventContentMediaUploader : de/connect2x/trixnity/client/media/mappings/EventContentMediaUploader {
+	public fun <init> ()V
+	public synthetic fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lkotlinx/coroutines/flow/MutableStateFlow;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/room/outbox/VideoMessageEventContentUriExtractor : de/connect2x/trixnity/client/media/mappings/EventContentUriExtractor {
+	public fun <init> ()V
+	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/server/CreateServerModuleKt {
