@@ -5,6 +5,8 @@ import de.connect2x.trixnity.client.getInMemoryMediaCacheMapping
 import de.connect2x.trixnity.client.getInMemoryServerDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.store.MediaCacheMapping
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -20,6 +22,11 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.string.shouldStartWith
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.collections.shouldNotHaveSize
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application.OctetStream
@@ -54,8 +61,9 @@ class MediaServiceTest : TrixnityBaseTest() {
 
     @BeforeTest
     fun beforeTest() {
+        val config = MatrixClientConfiguration()
         coroutineScope = CoroutineScope(Dispatchers.Default)
-        mediaStore = InMemoryMediaStore(coroutineScope, MatrixClientConfiguration(), Clock.System).apply {
+        mediaStore = InMemoryMediaStore(coroutineScope, config, Clock.System).apply {
             scheduleSetup { deleteAll() }
         }
         cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore)
@@ -80,7 +88,7 @@ class MediaServiceTest : TrixnityBaseTest() {
                 respond(ByteReadChannel("test"), HttpStatusCode.OK)
             }
         }
-        cut.getMedia(mxcUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getMedia(mxcUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
 
         mediaStore.getMedia(mxcUri)?.toByteArray() shouldBe "test".encodeToByteArray()
     }
@@ -88,14 +96,60 @@ class MediaServiceTest : TrixnityBaseTest() {
     @Test
     fun `getMedia » is cache uri » prefer cache`() = runTest {
         mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
-        cut.getMedia(cacheUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getMedia(cacheUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
     }
 
     @Test
     fun `getMedia » is cache uri » prefer cache but use mxcUri when already uploaded`() = runTest {
         mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { MediaCacheMapping(cacheUri, mxcUri, 4) }
         mediaStore.addMedia(mxcUri, "test".encodeToByteArray().toByteArrayFlow())
-        cut.getMedia(cacheUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getMedia(cacheUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+    }
+
+    @Test
+    fun `getMedia » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(ByteReadChannel(ByteArray(1024)), HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 100L
+
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getMedia(mxcUri, fileSizeLimit).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia(mxcUri) shouldBe null
+    }
+
+    @Test
+    fun `progress » getMedia » tracks download progress correctly`() = runTest {
+        val data = ByteArray(5_000_000)
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(ByteReadChannel(data), HttpStatusCode.OK)
+            }
+        }
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
+        }
+
+        cut.getMedia(mxcUri,
+            data.size.toLong(),
+            progressFlow,
+        ).getOrThrow()
+            .toByteArray() shouldBe data
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe data.size
+        mediaStore.getMedia(mxcUri)?.toByteArray() shouldBe data
     }
 
     private val rawFile = "lQ/twg".decodeUnpaddedBase64Bytes()
@@ -111,7 +165,7 @@ class MediaServiceTest : TrixnityBaseTest() {
     @Test
     fun `getEncryptedMedia » prefer cache and decrypt`() = runTest {
         mediaStore.addMedia(mxcUri, rawFile.toByteArrayFlow())
-        cut.getEncryptedMedia(encryptedFile).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
     }
 
     @Test
@@ -122,7 +176,7 @@ class MediaServiceTest : TrixnityBaseTest() {
                 respond(rawFile, HttpStatusCode.OK)
             }
         }
-        cut.getEncryptedMedia(encryptedFile).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
         mediaStore.media.value[mxcUri] shouldBe listOf(rawFile)
     }
 
@@ -134,7 +188,7 @@ class MediaServiceTest : TrixnityBaseTest() {
                 respond(rawFile, HttpStatusCode.OK)
             }
         }
-        cut.getEncryptedMedia(encryptedFile, saveToCache = false).getOrThrow().toByteArray()
+        cut.getEncryptedMedia(encryptedFile, maxSize = null, saveToCache = false).getOrThrow().toByteArray()
             ?.decodeToString() shouldBe "test"
         mediaStore.getMedia(mxcUri) shouldBe null
     }
@@ -149,15 +203,62 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         val encryptedFileWithWrongHash = encryptedFile.copy(hashes = mapOf("sha256" to "nope"))
         shouldThrow<MediaValidationException> {
-            cut.getEncryptedMedia(encryptedFileWithWrongHash).getOrThrow().toByteArray()?.decodeToString()
+            cut.getEncryptedMedia(encryptedFileWithWrongHash, maxSize = null).getOrThrow().toByteArray()?.decodeToString()
         }
         mediaStore.getMedia(mxcUri) shouldBe null
     }
 
     @Test
+    fun `getEncryptedMedia » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(rawFile, HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 1L
+
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getEncryptedMedia(encryptedFile, fileSizeLimit).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia(mxcUri) shouldBe null
+    }
+
+    @Test
+    fun `progress » getEncryptedMedia » tracks download progress correctly`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(rawFile, HttpStatusCode.OK)
+            }
+        }
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
+        }
+
+        cut.getEncryptedMedia(
+            encryptedFile,
+            maxSize = 1_000_000L,
+            progressFlow,
+        ).getOrThrow()
+            .toByteArray()
+            ?.decodeToString() shouldBe "test"
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe 4
+        mediaStore.media.value[mxcUri] shouldBe listOf(rawFile)
+    }
+
+    @Test
     fun `getThumbnail » prefer cache`() = runTest {
         mediaStore.addMedia("$mxcUri/32x32/crop", "test".encodeToByteArray().toByteArrayFlow())
-        cut.getThumbnail(mxcUri, 32, 32).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getThumbnail(mxcUri, 32, 32, null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
     }
 
     @Test
@@ -168,7 +269,56 @@ class MediaServiceTest : TrixnityBaseTest() {
                 respond(ByteReadChannel("test"), HttpStatusCode.OK)
             }
         }
-        cut.getThumbnail(mxcUri, 32, 32).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getThumbnail(mxcUri, 32, 32, null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        mediaStore.getMedia("$mxcUri/32x32/crop")?.toByteArray() shouldBe "test".encodeToByteArray()
+    }
+
+    @Test
+    fun `getThumbnail » file size too large » stop download`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/thumbnail/example.com/abc"
+                respond(ByteReadChannel(ByteArray(1024)), HttpStatusCode.OK)
+            }
+        }
+        val fileSizeLimit = 100L
+
+        val exception = shouldThrow<DownloadLimitExceededException> {
+            cut.getThumbnail(mxcUri, 32, 32, maxSize = fileSizeLimit).getOrThrow()
+        }
+
+        exception.message shouldContain "File could not be downloaded because it would exceed the limit"
+        mediaStore.getMedia("$mxcUri/32x32/crop") shouldBe null
+    }
+
+    @Test
+    fun `progress » getThumbnail » tracks download progress correctly`() = runTest {
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/thumbnail/example.com/abc"
+                respond(ByteReadChannel("test"), HttpStatusCode.OK)
+            }
+        }
+        val progress = FileTransferProgress(0, null)
+        val progressFlow = MutableStateFlow<FileTransferProgress?>(progress)
+        val emissions = mutableListOf<FileTransferProgress>()
+        backgroundScope.launch {
+            progressFlow.filterNotNull().collect { emissions.add(it) }
+        }
+
+        cut.getThumbnail(
+            mxcUri,
+            32,
+            32,
+            null,
+            progress = progressFlow
+        ).getOrThrow()
+            .toByteArray()
+            ?.decodeToString() shouldBe "test"
+
+        emissions shouldNotHaveSize 0
+        emissions shouldBe emissions.sortedBy { it.transferred }
+        emissions.last().transferred shouldBe 4
         mediaStore.getMedia("$mxcUri/32x32/crop")?.toByteArray() shouldBe "test".encodeToByteArray()
     }
 

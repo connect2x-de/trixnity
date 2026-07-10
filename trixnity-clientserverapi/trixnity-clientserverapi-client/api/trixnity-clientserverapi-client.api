@@ -238,6 +238,14 @@ public final class de/connect2x/trixnity/clientserverapi/client/DiscoveryApiClie
 	public fun getWellKnown-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class de/connect2x/trixnity/clientserverapi/client/DownloadLimitExceededException : java/lang/IllegalStateException, kotlinx/coroutines/CopyableThrowable {
+	public fun <init> (JLjava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (JLjava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun createCopy ()Lde/connect2x/trixnity/clientserverapi/client/DownloadLimitExceededException;
+	public synthetic fun createCopy ()Ljava/lang/Throwable;
+	public final fun getMaxSize ()J
+}
+
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/KeyApiClient {
 	public abstract fun addSignatures-0E7RQCE (Ljava/util/Set;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun claimKeys-0E7RQCE (Ljava/util/Map;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -452,14 +460,14 @@ public final class de/connect2x/trixnity/clientserverapi/client/MatrixClientServ
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/MediaApiClient {
 	public abstract fun createMedia-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun download-_Lh1JCU (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun download-_Lh1JCU$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun downloadLegacy-0XOhlzY (Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun downloadLegacy-0XOhlzY$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun downloadThumbnail-_zqhzRA (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun downloadThumbnail-_zqhzRA$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun downloadThumbnailLegacy-ci52eEg (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun downloadThumbnailLegacy-ci52eEg$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun download-j12OCpQ (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun download-j12OCpQ$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun downloadLegacy-ZH4loCQ (Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun downloadLegacy-ZH4loCQ$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun downloadThumbnail-YKXAnog (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun downloadThumbnail-YKXAnog$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun downloadThumbnailLegacy-Fr1IbIY (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun downloadThumbnailLegacy-Fr1IbIY$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getConfig-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getConfigLegacy-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getUrlPreview-0E7RQCE (Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -473,10 +481,10 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Med
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/MediaApiClient$DefaultImpls {
-	public static synthetic fun download-_Lh1JCU$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun downloadLegacy-0XOhlzY$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun downloadThumbnail-_zqhzRA$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun downloadThumbnailLegacy-ci52eEg$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun download-j12OCpQ$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun downloadLegacy-ZH4loCQ$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun downloadThumbnail-YKXAnog$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun downloadThumbnailLegacy-Fr1IbIY$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getUrlPreview-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getUrlPreviewLegacy-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun upload-E0qYoyE$default (Lde/connect2x/trixnity/clientserverapi/client/MediaApiClient;Lde/connect2x/trixnity/clientserverapi/model/media/Media;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -486,10 +494,10 @@ public final class de/connect2x/trixnity/clientserverapi/client/MediaApiClient$D
 public final class de/connect2x/trixnity/clientserverapi/client/MediaApiClientImpl : de/connect2x/trixnity/clientserverapi/client/MediaApiClient {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiBaseClient;)V
 	public fun createMedia-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun download-_Lh1JCU (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun downloadLegacy-0XOhlzY (Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun downloadThumbnail-_zqhzRA (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun downloadThumbnailLegacy-ci52eEg (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun download-j12OCpQ (Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun downloadLegacy-ZH4loCQ (Ljava/lang/String;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun downloadThumbnail-YKXAnog (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/time/Duration;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun downloadThumbnailLegacy-Fr1IbIY (Ljava/lang/String;JJLde/connect2x/trixnity/clientserverapi/model/media/ThumbnailResizingMethod;Ljava/lang/Boolean;Lkotlinx/coroutines/flow/MutableStateFlow;JLjava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfig-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getConfigLegacy-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getUrlPreview-0E7RQCE (Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
