@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update c2x-conventions to support fine grained dependency configuration
 - Use withAndroidLibrary from c2x-conventions
 - Update c2x-conventions
+- Use internal mac arm gitlab runner
 
 ### Deprecated
 

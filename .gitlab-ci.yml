@@ -126,7 +126,7 @@ test:unit:mac:
   interruptible: true
   timeout: 1h
   needs: [ "compile:mac" ]
-  tags: [ "saas-macos-medium-m1" ]
+  tags: [ "connect2x-mac-arm" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
