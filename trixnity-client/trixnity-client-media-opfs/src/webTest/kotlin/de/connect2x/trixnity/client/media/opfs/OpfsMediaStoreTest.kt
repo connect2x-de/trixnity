@@ -1,22 +1,34 @@
 package de.connect2x.trixnity.client.media.opfs
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import js.typedarrays.Uint8Array
-import js.typedarrays.toByteArray
-import js.typedarrays.toUint8Array
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.test.TestResult
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import js.iterable.AsyncIterator
 import js.promise.Promise
 import js.promise.await
+import js.typedarrays.Uint8Array
+import js.typedarrays.toByteArray
+import js.typedarrays.toUint8Array
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.withContext
 import web.blob.arrayBuffer
-import web.fs.*
+import web.fs.FileSystemDirectoryHandle
+import web.fs.createWritable
+import web.fs.getDirectoryHandle
+import web.fs.getFile
+import web.fs.getFileHandle
+import web.fs.removeEntry
+import web.fs.write
 import web.navigator.navigator
 import web.storage.getDirectory
 import web.streams.close
@@ -26,7 +38,7 @@ import kotlin.js.js
 import kotlin.js.toList
 import kotlin.test.Test
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class OpfsMediaStoreTest : TrixnityBaseTest() {
 
@@ -172,7 +184,7 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
         tmpPath.values().toList().size shouldBe 1
         opfsJob.cancelAndJoin()
         withContext(Dispatchers.Default) {
-            delay(500.milliseconds)
+            delay(1.seconds)
         }
         tmpPath.values().toList().size shouldBe 0
     }
@@ -213,5 +225,5 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
     }
 }
 
-private suspend fun <V: JsAny?> AsyncIterator<V>.toList(): List<V> = toJsArray(this).await().toList()
-private fun <V: JsAny?> toJsArray(self: AsyncIterator<V>): Promise<JsArray<V>> = js("""Array.fromAsync(self)""")
+private suspend fun <V : JsAny?> AsyncIterator<V>.toList(): List<V> = toJsArray(this).await().toList()
+private fun <V : JsAny?> toJsArray(self: AsyncIterator<V>): Promise<JsArray<V>> = js("""Array.fromAsync(self)""")
