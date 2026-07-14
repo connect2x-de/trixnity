@@ -22,6 +22,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okio.ByteString.Companion.toByteString
 import org.koin.dsl.module
 import web.events.EventType
@@ -55,13 +57,18 @@ internal class OpfsMediaStore(
     private val basePathLock = KeyedMutex<String>()
     private suspend fun tmpPath() = basePath.getDirectoryHandle("tmp", FileSystemGetDirectoryOptions(create = true))
 
-    override suspend fun init(coroutineScope: CoroutineScope) {
-        suspend fun delTmp() {
-            val tmpPath = tmpPath()
+    private val delTmpMutex = Mutex()
+    private suspend fun delTmp() = delTmpMutex.withLock {
+        val tmpPath = tmpPath()
+        try {
             basePath.removeEntry(tmpPath.name, FileSystemRemoveOptions(recursive = true))
-            tmpPath()
+        } catch (_: Throwable) {
+            // throws when not found
         }
+        tmpPath()
+    }
 
+    override suspend fun init(coroutineScope: CoroutineScope) {
         delTmp()
 
         coroutineScope.coroutineContext.job.invokeOnCompletion {
