@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed grammar in Timeline logging
 - Fixed logout not enforced when refresh token expired (due to non-spec compliant homeserver)
 - Fixed c2x-conventions update requiring GitLab token
+- Fixed display name computation: `otherUsersCount` counts everyone excluding us and heroes of the room
 
 ### Security
 

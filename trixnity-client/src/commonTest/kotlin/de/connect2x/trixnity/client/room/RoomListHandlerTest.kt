@@ -36,12 +36,12 @@ import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestScope
 import kotlin.test.Test
 
 class RoomListHandlerTest : TrixnityBaseTest() {
@@ -480,223 +480,6 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         roomStore.get(roomId).first()?.avatarUrl shouldBe null
     }
 
-    // TODO this need to be completely rewritten as it is too complicated for the actual code that is tested
-
-    @Test
-    fun `displayName » non-existent NameEvent » existent CanonicalAliasEvent » set room name`() =
-        `existent CanonicalAliasEvent » set room name`(false)
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 0 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 0 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes is 0 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes is 0 » set room name`(false)
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes is 0 » set room name to empty`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes is 0 » set room name to empty`(false)
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-            false
-        )
-
-    @Test
-    fun `displayName » non-existent NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-            false
-        )
-
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » existent CanonicalAliasEvent » set room name`() =
-        `existent CanonicalAliasEvent » set room name`(true)
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 0 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 0 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes is 0 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes is 0 » set room name`(true)
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes is 0 » set room name to empty`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes is 0 » set room name to empty`(true)
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 1 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-            true
-        )
-
-    @Test
-    fun `displayName » existent NameEvent » empty NameEvent » non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 2 » set room name`() =
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-            true
-        )
-
-
-    @Test
-    fun `displayName » existent NameEvent » with a non-empty name field » set room name`() = runTest {
-        roomStateStore.save(nameEvent(1, user1, "The room name"))
-        listOf(
-            canonicalAliasEvent(2, user2, RoomAliasId("somewhere", "localhost")),
-            memberEvent(3, user1, "User1-Display", Membership.JOIN),
-            memberEvent(4, user2, "User2-Display", Membership.INVITE),
-            memberEvent(5, user3, "User3-Display", Membership.BAN),
-            memberEvent(6, user4, "User4-Display", Membership.LEAVE)
-        ).forEach { roomStateStore.save(it) }
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 1,
-            invitedMemberCount = 2,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            explicitName = "The room name",
-            summary = roomSummary
-        )
-    }
-
-    @Test
-    fun `displayName » existent NameEvent » set room name on invite no room summary`() = runTest {
-        cut.calculateDisplayName(
-            roomId,
-            nameEventContent = NameEventContent("the room")
-        ) shouldBe RoomDisplayName(
-            explicitName = "the room",
-            summary = null
-        )
-    }
-
-
     @Test
     fun `displayName » do nothing when room summary did not change at all`() = runTest {
         val roomSummary = JoinedRoom.RoomSummary(
@@ -706,7 +489,290 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         )
         val roomBefore = simpleRoom.copy(name = RoomDisplayName(explicitName = "bla", summary = roomSummary))
         roomStore.update(roomId) { roomBefore }
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe null
+        cut.calculateDisplayName(roomId, summary = roomSummary, membership = Membership.JOIN) shouldBe null
+    }
+
+    @Test
+    fun `displayName » name event given » set explicit name`() = runTest {
+        cut.calculateDisplayName(
+            roomId,
+            nameEventContent = NameEventContent("explicit"),
+            summary = JoinedRoom.RoomSummary(),
+            membership = Membership.JOIN
+        ).shouldNotBeNull { explicitName shouldBe "explicit" }
+    }
+
+    @Test
+    fun `displayName » name event found in store » set explicit name`() = runTest {
+        roomStateStore.save(nameEvent(1, user1, "explicit"))
+        cut.calculateDisplayName(roomId, summary = JoinedRoom.RoomSummary(), membership = Membership.JOIN)
+            .shouldNotBeNull { explicitName shouldBe "explicit" }
+    }
+
+    @Test
+    fun `displayName » name alias event given » set explicit name`() = runTest {
+        cut.calculateDisplayName(
+            roomId,
+            canonicalAliasEventContent = CanonicalAliasEventContent(RoomAliasId("#explicit:room")),
+            summary = JoinedRoom.RoomSummary(),
+            membership = Membership.JOIN,
+        ).shouldNotBeNull { explicitName shouldBe "#explicit:room" }
+    }
+
+    @Test
+    fun `displayName » name alias event found in store » set explicit name`() = runTest {
+        roomStateStore.save(canonicalAliasEvent(1, user1, RoomAliasId("#explicit:room")))
+        cut.calculateDisplayName(roomId, summary = JoinedRoom.RoomSummary(), membership = Membership.JOIN)
+            .shouldNotBeNull { explicitName shouldBe "#explicit:room" }
+    }
+
+    @Test
+    fun `displayName » name event given » name event is empty » use alias event`() = runTest {
+        cut.calculateDisplayName(
+            roomId,
+            nameEventContent = NameEventContent(""),
+            canonicalAliasEventContent = CanonicalAliasEventContent(RoomAliasId("#explicit:room")),
+            summary = JoinedRoom.RoomSummary(),
+            membership = Membership.JOIN,
+        ).shouldNotBeNull { explicitName shouldBe "#explicit:room" }
+    }
+
+    @Test
+    fun `displayName » name and alias event given » both empty » explicit name is null`() = runTest {
+        cut.calculateDisplayName(
+            roomId,
+            nameEventContent = NameEventContent(""),
+            canonicalAliasEventContent = CanonicalAliasEventContent(RoomAliasId("")),
+            summary = JoinedRoom.RoomSummary(),
+            membership = Membership.JOIN,
+        ).shouldNotBeNull { explicitName shouldBe null }
+    }
+
+    @Test
+    fun `displayName » no name event found » joined and invited count le 5 » other users count is 0`() = runTest {
+        val summary = JoinedRoom.RoomSummary(
+            heroes = listOf(user1, user2, user3, user4, user5),
+            joinedMemberCount = 3,
+            invitedMemberCount = 2,
+        )
+        cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+            explicitName = null,
+            heroes = listOf(user1, user2, user3, user4, user5),
+            otherUsersCount = 0,
+            isEmpty = false,
+            summary = summary,
+        )
+    }
+
+    @Test
+    fun `displayName » no name event found » joined and invited count is 6 » we are part of server heroes and thus other users count is 1 and heroes does not include us`() =
+        runTest {
+            val summary = JoinedRoom.RoomSummary(
+                heroes = listOf(user1, user2, user3, simpleUserInfo.userId, user4),
+                joinedMemberCount = 4,
+                invitedMemberCount = 2,
+            )
+            cut.calculateDisplayName(
+                roomId,
+                summary = summary,
+                membership = Membership.INVITE
+            ) shouldBe RoomDisplayName(
+                explicitName = null,
+                heroes = listOf(user1, user2, user3, user4), // without me
+                otherUsersCount = 1, // 4 heroes + 1 me + 1 other
+                isEmpty = false,
+                summary = summary,
+            )
+        }
+
+    @Test
+    fun `displayName » no name event found » joined and invited count is 8 » other users count is 2`() =
+        runTest {
+            val summary = JoinedRoom.RoomSummary(
+                heroes = listOf(user1, user2, user3, user4, user5),
+                joinedMemberCount = 6,
+                invitedMemberCount = 2,
+            )
+            cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+                explicitName = null,
+                heroes = listOf(user1, user2, user3, user4, user5),
+                otherUsersCount = 2, // 5 heroes + 1 me + 2 others
+                isEmpty = false,
+                summary = summary,
+            )
+        }
+
+    @Test
+    fun `displayName » no name event found » we left the room » other users count is correct`() = runTest {
+        val summary = JoinedRoom.RoomSummary(
+            heroes = listOf(user1, user2, user3, user4, user5),
+            joinedMemberCount = 5,
+            invitedMemberCount = 2,
+        )
+        cut.calculateDisplayName(roomId, summary = summary, membership = Membership.LEAVE) shouldBe RoomDisplayName(
+            explicitName = null,
+            heroes = listOf(user1, user2, user3, user4, user5),
+            otherUsersCount = 2, // 5 heroes + 2 others (we are not part of the room anymore
+            isEmpty = false,
+            summary = summary,
+        )
+    }
+
+    @Test
+    fun `displayName » no name event found » no explicit heroes set » use joined members as heroes excluding us`() =
+        runTest {
+            listOf(
+                memberEvent(1, user1, "User1-Display", Membership.JOIN),
+                memberEvent(2, user2, "User2-Display", Membership.INVITE),
+                memberEvent(3, user3, "User3-Display", Membership.JOIN),
+                memberEvent(4, user4, "User4-Display", Membership.INVITE),
+                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+            ).forEach { roomStateStore.save(it) }
+            val summary = JoinedRoom.RoomSummary(
+                joinedMemberCount = 3,
+                invitedMemberCount = 2,
+            )
+            cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+                explicitName = null,
+                heroes = listOf(user1, user2, user3, user4),
+                otherUsersCount = 0,
+                isEmpty = false,
+                summary = summary,
+            )
+        }
+
+    @Test
+    fun `displayName » no name event found » no explicit heroes set » no joined members » use left members as heroes`() =
+        runTest {
+            listOf(
+                memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+                memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+                memberEvent(3, user3, "User3-Display", Membership.BAN),
+                memberEvent(4, user4, "User4-Display", Membership.LEAVE),
+                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+            ).forEach { roomStateStore.save(it) }
+            val summary = JoinedRoom.RoomSummary(
+                joinedMemberCount = 1,
+                invitedMemberCount = 0,
+            )
+            cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+                explicitName = null,
+                heroes = listOf(user1, user2, user3, user4),
+                otherUsersCount = 0,
+                isEmpty = true,
+                summary = summary,
+            )
+        }
+
+    @Test
+    fun `displayName » no name event found » no joined or left members » mark as empty`() = runTest {
+        val summary = JoinedRoom.RoomSummary(
+            joinedMemberCount = 1,
+            invitedMemberCount = 0,
+        )
+        cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+            explicitName = null,
+            heroes = emptyList(),
+            otherUsersCount = 0,
+            isEmpty = true,
+            summary = summary,
+        )
+    }
+
+    @Test
+    fun `displayName » no name event found » joined members is gt 1 » isEmpty is false`() = runTest {
+        listOf(
+            memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+            memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+            memberEvent(3, user3, "User3-Display", Membership.BAN),
+            memberEvent(4, user4, "User4-Display", Membership.INVITE),
+            memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+        ).forEach { roomStateStore.save(it) }
+        val summary = JoinedRoom.RoomSummary(
+            joinedMemberCount = 1,
+            invitedMemberCount = 1,
+        )
+        cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+            explicitName = null,
+            heroes = listOf(user4),
+            otherUsersCount = 0,
+            isEmpty = false,
+            summary = summary,
+        )
+    }
+
+    @Test
+    fun `displayName » no name event found » joined members is eq 1 » isEmpty is true`() = runTest {
+        listOf(
+            memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+            memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+            memberEvent(3, user3, "User3-Display", Membership.BAN),
+            memberEvent(4, user4, "User4-Display", Membership.LEAVE),
+            memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+        ).forEach { roomStateStore.save(it) }
+        val summary = JoinedRoom.RoomSummary(
+            joinedMemberCount = 1,
+            invitedMemberCount = 0,
+        )
+        cut.calculateDisplayName(roomId, summary = summary, membership = Membership.JOIN) shouldBe RoomDisplayName(
+            explicitName = null,
+            heroes = listOf(user1, user2, user3, user4),
+            otherUsersCount = 0,
+            isEmpty = true,
+            summary = summary,
+        )
+    }
+
+    @Test
+    fun `displayName » no name event found » joined members is eq 1 » summary does not set it » isEmpty is true`() =
+        runTest {
+            listOf(
+                memberEvent(1, user1, "User1-Display", Membership.INVITE),
+                memberEvent(2, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+            ).forEach { roomStateStore.save(it) }
+            val roomSummary = JoinedRoom.RoomSummary(
+                heroes = listOf(),
+                joinedMemberCount = null,
+                invitedMemberCount = null,
+            )
+            val roomBefore = simpleRoom.copy(
+                name = RoomDisplayName(
+                    explicitName = null,
+                    summary = roomSummary.copy(joinedMemberCount = 0)
+                )
+            )
+            roomStore.update(roomId) { roomBefore }
+            cut.calculateDisplayName(roomId, summary = roomSummary, membership = Membership.JOIN) shouldNotBeNull {
+                otherUsersCount shouldBe 1
+                isEmpty shouldBe false
+            }
+        }
+
+    @Test
+    fun `displayName » merge summary correctly`() = runTest {
+        val oldSummary = JoinedRoom.RoomSummary(
+            heroes = listOf(user2),
+            joinedMemberCount = 4,
+            invitedMemberCount = 1,
+        )
+        val roomBefore = simpleRoom.copy(
+            name = RoomDisplayName(
+                summary = oldSummary,
+            )
+        )
+        roomStore.update(roomId) { roomBefore }
+        val roomSummary = JoinedRoom.RoomSummary(
+            heroes = listOf(user1),
+            joinedMemberCount = 3,
+            invitedMemberCount = null,
+        )
+        cut.calculateDisplayName(roomId, summary = roomSummary, membership = Membership.JOIN) shouldNotBeNull {
+            summary shouldBe JoinedRoom.RoomSummary(
+                heroes = listOf(user1),
+                joinedMemberCount = 3,
+                invitedMemberCount = 1,
+            )
+        }
     }
 
 
@@ -1019,346 +1085,6 @@ class RoomListHandlerTest : TrixnityBaseTest() {
             roomId,
             1,
             stateKey = ""
-        )
-    }
-
-    private suspend fun `existent CanonicalAliasEvent setup`() {
-        listOf(
-            canonicalAliasEvent(2, user2, RoomAliasId("somewhere", "localhost")),
-            memberEvent(3, user1, "User1-Display", Membership.JOIN),
-            memberEvent(4, user2, "User2-Display", Membership.INVITE),
-            memberEvent(5, user3, "User3-Display", Membership.BAN),
-            memberEvent(6, user4, "User4-Display", Membership.LEAVE)
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 setup`() {
-        listOf(
-            memberEvent(3, user1, "User1-Display", Membership.JOIN),
-            memberEvent(4, user2, "User2-Display", Membership.INVITE),
-            memberEvent(7, user5, "User5-Display", Membership.BAN)
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 setup`() {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 setup`()
-
-        listOf(
-            memberEvent(5, user3, "User3-Display", Membership.LEAVE),
-            memberEvent(6, user4, "User4-Display", Membership.LEAVE),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 setup`() {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 setup`()
-
-        listOf(
-            memberEvent(5, user3, "User3-Display", Membership.JOIN),
-            memberEvent(6, user4, "User4-Display", Membership.INVITE),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited is 1 setup`() {
-        listOf(
-            memberEvent(3, user1, "User1-Display", Membership.JOIN),
-            memberEvent(4, user2, "User2-Display", Membership.BAN),
-            memberEvent(5, user3, "User3-Display", Membership.LEAVE),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 setup`() {
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 setup`()
-        listOf(
-            memberEvent(6, user4, "User4-Display", Membership.LEAVE),
-            memberEvent(7, user5, "User5-Display", Membership.LEAVE),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited is 0 setup`() {
-        listOf(
-            memberEvent(3, user1, "User1-Display", Membership.LEAVE),
-            memberEvent(4, user2, "User2-Display", Membership.BAN),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private suspend fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 setup`() {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 setup`()
-
-        listOf(
-            memberEvent(5, user3, "User3-Display", Membership.LEAVE),
-            memberEvent(6, user4, "User4-Display", Membership.LEAVE),
-            memberEvent(7, user5, "User5-Display", Membership.LEAVE),
-        ).forEach { roomStateStore.save(it) }
-    }
-
-    private fun runTestWithNameEvent(
-        empty: Boolean = false,
-        block: suspend TestScope.() -> Unit
-    ) = runTest {
-        if (empty) {
-            roomStateStore.save(nameEvent(1, user1, ""))
-        }
-
-        block()
-    }
-
-    private fun `existent CanonicalAliasEvent » set room name`(empty: Boolean) = runTestWithNameEvent(empty) {
-        `existent CanonicalAliasEvent setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 1,
-            invitedMemberCount = 1,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            explicitName = "#somewhere:localhost",
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1),
-            joinedMemberCount = 1,
-            invitedMemberCount = 1,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1),
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes greater equals joined plus invited minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 1,
-            invitedMemberCount = 1,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1, user2),
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 0 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(),
-            joinedMemberCount = 2,
-            invitedMemberCount = 2,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(),
-            otherUsersCount = 4,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1),
-            joinedMemberCount = 2,
-            invitedMemberCount = 2,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            otherUsersCount = 4,
-            heroes = listOf(user1),
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited greater 1 » heroes less joined plus invited minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 2,
-            invitedMemberCount = 2,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1, user2),
-            otherUsersCount = 4,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes is 0 » set room name`(empty: Boolean) =
-        runTestWithNameEvent(empty) {
-            `non-existent CanonicalAliasEvent » joined plus invited is 1 setup`()
-            val roomSummary = JoinedRoom.RoomSummary(
-                heroes = listOf(),
-                joinedMemberCount = 1,
-                invitedMemberCount = 0,
-            )
-            cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-                isEmpty = true,
-                summary = roomSummary
-            )
-
-        }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user2),
-            joinedMemberCount = 1,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user2),
-            isEmpty = true,
-            otherUsersCount = 0,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user2, user3),
-            joinedMemberCount = 1,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user2, user3),
-            isEmpty = true,
-            summary = roomSummary
-        )
-    }
-
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user2),
-            joinedMemberCount = 1,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user2),
-            isEmpty = true,
-            otherUsersCount = 0,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 1 » heroes less left plus banned minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user2, user3),
-            joinedMemberCount = 1,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user2, user3),
-            isEmpty = true,
-            otherUsersCount = 0,
-            summary = roomSummary
-        )
-
-    }
-
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes is 0 » set room name to empty`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(),
-            joinedMemberCount = 0,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            isEmpty = true,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1),
-            joinedMemberCount = 0,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1),
-            isEmpty = true,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes greater equals left plus banned minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 setup`()
-        roomStateStore.save(
-            memberEvent(5, user3, "User3-Display", Membership.LEAVE),
-        )
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 0,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1, user2),
-            isEmpty = true,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 1 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1),
-            joinedMemberCount = 0,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1),
-            isEmpty = true,
-            otherUsersCount = 0,
-            summary = roomSummary
-        )
-    }
-
-    private fun `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 » heroes is 2 » set room name`(
-        empty: Boolean
-    ) = runTestWithNameEvent(empty) {
-        `non-existent CanonicalAliasEvent » joined plus invited is 0 » heroes less left plus banned minus 1 setup`()
-        val roomSummary = JoinedRoom.RoomSummary(
-            heroes = listOf(user1, user2),
-            joinedMemberCount = 0,
-            invitedMemberCount = 0,
-        )
-        cut.calculateDisplayName(roomId, summary = roomSummary) shouldBe RoomDisplayName(
-            heroes = listOf(user1, user2),
-            isEmpty = true,
-            otherUsersCount = 0,
-            summary = roomSummary
         )
     }
 }

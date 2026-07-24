@@ -167,6 +167,7 @@ class RoomListHandler(
                 nameEventContent = nameEventContent,
                 canonicalAliasEventContent = canonicalAliasEventContent,
                 summary = summary,
+                membership = membership,
             )
         return { oldRoom ->
             (oldRoom ?: Room(roomId = roomId)).copy(
@@ -286,6 +287,7 @@ class RoomListHandler(
         nameEventContent: NameEventContent? = null,
         canonicalAliasEventContent: CanonicalAliasEventContent? = null,
         summary: Sync.Response.Rooms.JoinedRoom.RoomSummary? = null,
+        membership: Membership,
     ): RoomDisplayName? {
         val oldSummary = roomStore.get(roomId).first()?.name?.summary
 
@@ -314,25 +316,33 @@ class RoomListHandler(
             else -> coroutineScope {
                 val allMembers by lazy {
                     async {
-                        (roomStateStore.get<MemberEventContent>(roomId).first() - userInfo.userId.full)
-                            .mapNotNull { (key, value) -> value.first()?.content?.let { key to it } }
+                        (roomStateStore.get<MemberEventContent>(roomId).first())
+                            .mapNotNull { (key, value) -> value.first()?.content?.let { key to it } }.toMap()
                     }
                 }
                 val joinedMembers by lazy {
                     async {
                         allMembers.await()
-                            .filter { it.second.membership == Membership.INVITE || it.second.membership == Membership.JOIN }
+                            .filter { it.value.membership == Membership.INVITE || it.value.membership == Membership.JOIN }
                     }
                 }
                 val leftMembers by lazy {
                     async {
-                        allMembers.await()
-                            .filter { it.second.membership == Membership.BAN || it.second.membership == Membership.LEAVE }
+                        allMembers.await() // includes this user
+                            .filter { it.value.membership == Membership.BAN || it.value.membership == Membership.LEAVE }
                     }
                 }
-                val heroes = (mergedRoomSummary?.heroes?.let { it - userInfo.userId })
-                    ?: joinedMembers.await().take(NUM_HEROES).map { UserId(it.first) }.takeIf { it.isNotEmpty() }
-                    ?: leftMembers.await().take(NUM_HEROES).map { UserId(it.first) }
+                // for heroes name we do not want the local user to be part of the equation
+                val heroes = (mergedRoomSummary?.heroes?.let { it - userInfo.userId }?.take(NUM_HEROES))
+                    ?: (joinedMembers.await() - userInfo.userId.full)
+                        .keys
+                        .take(NUM_HEROES)
+                        .map { UserId(it) }
+                        .takeIf { it.isNotEmpty() }
+                    ?: (leftMembers.await() - userInfo.userId.full)
+                        .keys
+                        .take(NUM_HEROES)
+                        .map { UserId(it) }
 
                 val joinedMemberCount = kotlin.run {
                     val invitedMemberCount = mergedRoomSummary?.invitedMemberCount?.toInt() ?: 0
@@ -344,9 +354,11 @@ class RoomListHandler(
 
                 log.debug { "calculate room display name of $roomId (heroes=$heroes, joinedMemberCount=$joinedMemberCount" }
                 val isEmpty = joinedMemberCount <= 1
-                val otherUsersCount =
-                    if (joinedMemberCount > 1 && (heroes.isEmpty() || heroes.size < joinedMemberCount - 1)) joinedMemberCount
-                    else 0
+                // - 1: since joined members always counts ourselves and heroes does not include us,
+                //      remove it since we are counting "others"
+                //   0: when we already left the room -> no need to exclude us
+                val usCount = if (membership == Membership.INVITE || membership == Membership.JOIN) 1 else 0
+                val otherUsersCount = (joinedMemberCount - usCount - heroes.size).coerceAtLeast(0)
 
                 RoomDisplayName(
                     heroes = heroes,
