@@ -8,10 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `expectedSize` parameter to `MediaService` download functions
 
 ### Changed
 
 ### Deprecated
+- `MediaService`: `getMedia`, `getEncryptedMedia` and `getThumbnail` without required `expectedSize` parameter
 
 ### Removed
 
