@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 5.7.0
+
+### Added
+
 - Added automatic cleanup of media, when canceling outbox message
 - Added UriExtractor to `EventContentMediaMappings` (previously `OutboxMessageMediaUploaderMappings`)
 - download size limit for media service methods
@@ -29,8 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SignedPersistentStateDataUnit<T>` type alias
 - `SignedPersistentMessageDataUnit<T>` type alias
 - `MediaService`: `getMedia`, `getEncryptedMedia` and `getThumbnail` without required `maxSize` parameter
-
-### Removed
 
 ### Fixed
 
