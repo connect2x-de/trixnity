@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.media
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.MediaCacheMapping
 import de.connect2x.trixnity.client.store.MediaCacheMappingStore
 import de.connect2x.trixnity.client.store.ServerDataStore
@@ -32,42 +33,66 @@ private val log = Logger("de.connect2x.trixnity.client.media.MediaService")
 
 interface MediaService {
     @Deprecated(
-        "Use getMedia with required maxSize instead",
-        ReplaceWith("getMedia(uri, maxSize, progress, saveToCache)")
+        "Use getMedia with required maxSize and expectedSize instead",
+        ReplaceWith("getMedia(uri, maxSize, expectedSize, progress, saveToCache)")
     )
     suspend fun getMedia(
         uri: String,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
-    ): Result<PlatformMedia>
+    ): Result<PlatformMedia> = getMedia(uri, null, null, progress, saveToCache)
 
+    @Deprecated(
+        "Use getMedia with expectedSize instead",
+        ReplaceWith("getMedia(uri, maxSize, expectedSize, progress, saveToCache)")
+    )
     suspend fun getMedia(
         uri: String,
         maxSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
+    ): Result<PlatformMedia> = getMedia(uri, maxSize, null, progress, saveToCache)
+
+    suspend fun getMedia(
+        uri: String,
+        maxSize: Long?,
+        expectedSize: Long? = null,
+        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        saveToCache: Boolean = true,
     ): Result<PlatformMedia>
 
     @Deprecated(
-        "Use getEncryptedMedia with required maxSize instead",
-        ReplaceWith("getEncryptedMedia(encryptedFile, maxSize, progress, saveToCache)")
+        "Use getEncryptedMedia with required maxSize and expectedSize instead",
+        ReplaceWith("getEncryptedMedia(encryptedFile, maxSize, expectedSize, progress, saveToCache)")
     )
     suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
-    ): Result<PlatformMedia>
+    ): Result<PlatformMedia> = getEncryptedMedia(encryptedFile, null, null, progress, saveToCache)
 
+    @Deprecated(
+        "Use getEncryptedMedia with expectedSize instead",
+        ReplaceWith("getEncryptedMedia(encryptedFile, maxSize, expectedSize, progress, saveToCache)")
+    )
     suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
+    ): Result<PlatformMedia> = getEncryptedMedia(encryptedFile, maxSize, null, progress, saveToCache)
+
+    suspend fun getEncryptedMedia(
+        encryptedFile: EncryptedFile,
+        maxSize: Long?,
+        expectedSize: Long? = null,
+        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        saveToCache: Boolean = true,
     ): Result<PlatformMedia>
 
     @Deprecated(
-        "Use getThumbnail with required maxSize instead",
-        ReplaceWith("getThumbnail(uri, width, height, maxSize, method, animated, progress, saveToCache)")
+        "Use getThumbnail with required maxSize and expectedSize instead",
+        ReplaceWith("getThumbnail(uri, width, height, maxSize, expectedSize, method, animated, progress, saveToCache)")
     )
     suspend fun getThumbnail(
         uri: String,
@@ -77,13 +102,29 @@ interface MediaService {
         animated: Boolean = false,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
-    ): Result<PlatformMedia>
+    ): Result<PlatformMedia> = getThumbnail(uri, width, height, null, null, method, animated, progress, saveToCache)
+
+    @Deprecated(
+        "Use getThumbnail with expectedSize instead",
+        ReplaceWith("getThumbnail(uri, width, height, maxSize, expectedSize, method, animated, progress, saveToCache)")
+    )
+    suspend fun getThumbnail(
+        uri: String,
+        width: Long,
+        height: Long,
+        maxSize: Long?,
+        method: ThumbnailResizingMethod = CROP,
+        animated: Boolean = false,
+        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        saveToCache: Boolean = true,
+    ): Result<PlatformMedia> = getThumbnail(uri, width, height, maxSize, null, method, animated, progress, saveToCache)
 
     suspend fun getThumbnail(
         uri: String,
         width: Long,
         height: Long,
         maxSize: Long?,
+        expectedSize: Long? = null,
         method: ThumbnailResizingMethod = CROP,
         animated: Boolean = false,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
@@ -138,10 +179,23 @@ class MediaServiceImpl(
             downloadLegacy(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
         }
 
+    private suspend fun checkAvailableSpace(expectedSize: Long?) {
+        if (expectedSize == null) return
+        val availableSpace = mediaStore.getAvailableSpace() ?: run {
+            log.warn { "skipping storage check because available space could not be determined" }
+            return
+        }
+
+        if (expectedSize > availableSpace) {
+            throw InsufficientSpaceException(expectedSize, availableSpace)
+        }
+    }
+
     private suspend fun getMedia(
         uri: String,
         saveToCache: Boolean,
         maxSize: Long?,
+        expectedSize: Long?,
         sha256Hash: String?,
         progress: MutableStateFlow<FileTransferProgress?>?,
     ): Result<PlatformMedia> = kotlin.runCatching {
@@ -149,6 +203,7 @@ class MediaServiceImpl(
             uri.startsWith(UPLOAD_MEDIA_MXC_URI_PREFIX) -> {
                 val existingMedia = mediaStore.getMedia(uri)
                 if (existingMedia == null) {
+                    checkAvailableSpace(expectedSize)
                     log.debug { "download media: $uri" }
                     if (sha256Hash == null) {
                         api.media.downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
@@ -185,7 +240,9 @@ class MediaServiceImpl(
 
             uri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX) -> mediaStore.getMedia(uri)
                 ?: mediaCacheMappingStore.getMediaCacheMapping(uri)?.mxcUri
-                    ?.let { getMedia(it, saveToCache, maxSize, sha256Hash, progress).getOrThrow() }
+                    ?.let {
+                        getMedia(it, saveToCache, maxSize, expectedSize, sha256Hash, progress).getOrThrow()
+                    }
                 ?: throw IllegalArgumentException("cache uri $uri does not exists")
 
             else -> throw IllegalArgumentException("uri $uri is no valid cache or mxc uri")
@@ -194,32 +251,22 @@ class MediaServiceImpl(
 
     override suspend fun getMedia(
         uri: String,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> = getMedia(uri, saveToCache, null, null, progress)
-
-    override suspend fun getMedia(
-        uri: String,
         maxSize: Long?,
+        expectedSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
-    ): Result<PlatformMedia> = getMedia(uri, saveToCache, maxSize, null, progress)
-
-    override suspend fun getEncryptedMedia(
-        encryptedFile: EncryptedFile,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> = getEncryptedMedia(encryptedFile, null, progress, saveToCache)
+    ): Result<PlatformMedia> = getMedia(uri, saveToCache, maxSize, expectedSize, null, progress)
 
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
+        expectedSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> = kotlin.runCatching {
         val originalHash = encryptedFile.hashes["sha256"]
             ?: throw MediaValidationException(null, null)
-        getMedia(encryptedFile.url, saveToCache, maxSize, originalHash, progress).getOrThrow()
+        getMedia(encryptedFile.url, saveToCache, maxSize, expectedSize, originalHash, progress).getOrThrow()
             .transformByteArrayFlow {
                 it.decryptAes256Ctr(
                     initialisationVector = encryptedFile.initialisationVector.decodeUnpaddedBase64Bytes(),
@@ -234,17 +281,8 @@ class MediaServiceImpl(
         uri: String,
         width: Long,
         height: Long,
-        method: ThumbnailResizingMethod,
-        animated: Boolean,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> = getThumbnail(uri, width, height, null, method, animated, progress, saveToCache)
-
-    override suspend fun getThumbnail(
-        uri: String,
-        width: Long,
-        height: Long,
         maxSize: Long?,
+        expectedSize: Long?,
         method: ThumbnailResizingMethod,
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>?,
@@ -253,6 +291,7 @@ class MediaServiceImpl(
         val thumbnailUrl = "$uri/${width}x$height/${api.json.encodeToJsonElement(method).jsonPrimitive.content}"
         val existingMedia = mediaStore.getMedia(thumbnailUrl)
         if (existingMedia == null) {
+            checkAvailableSpace(expectedSize)
             api.media.downloadThumbnailDependingOnServerVersion(
                 mxcUri = uri,
                 width = width,
