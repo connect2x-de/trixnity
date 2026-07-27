@@ -23,7 +23,7 @@ interface RoomEventEncryptionService {
 class RoomEventEncryptionServiceError(cause: Throwable) : IllegalStateException(cause)
 
 /**
- * Decrypts given event. Returns null, when encryption algorithm is not supported by any [RoomEventEncryptionService].
+ * Encrypts given event. Returns null, when encryption algorithm is not supported by any [RoomEventEncryptionService].
  *
  * Be aware, that this function can suspend a possible infinite time (for example, when an implementation waits for decryption keys).
  */
