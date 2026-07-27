@@ -77,7 +77,7 @@ class MediaServiceTest : TrixnityBaseTest() {
     @Test
     fun `getMedia » is mxc uri » prefer cache`() = runTest {
         mediaStore.addMedia(mxcUri, "test".encodeToByteArray().toByteArrayFlow())
-        cut.getMedia(mxcUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getMedia(mxcUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
     }
 
     @Test
@@ -150,6 +150,25 @@ class MediaServiceTest : TrixnityBaseTest() {
         emissions shouldBe emissions.sortedBy { it.transferred }
         emissions.last().transferred shouldBe data.size
         mediaStore.getMedia(mxcUri)?.toByteArray() shouldBe data
+    }
+
+    @Test
+    fun `getMedia » insufficient space » stop download`() = runTest {
+        mediaStore.availableSpace = 1000L
+        apiConfig.endpoints {
+            addHandler {
+                it.url.encodedPath shouldBe "/_matrix/client/v1/media/download/example.com/abc"
+                respond(ByteReadChannel("test"), HttpStatusCode.OK)
+            }
+        }
+
+        val expectedSize = 2000L
+        val exception = shouldThrow<InsufficientSpaceException> {
+            cut.getMedia(mxcUri, maxSize = null, expectedSize = expectedSize).getOrThrow()
+        }
+
+        exception.message shouldContain "insufficient for file"
+        mediaStore.getMedia(mxcUri) shouldBe null
     }
 
     private val rawFile = "lQ/twg".decodeUnpaddedBase64Bytes()
