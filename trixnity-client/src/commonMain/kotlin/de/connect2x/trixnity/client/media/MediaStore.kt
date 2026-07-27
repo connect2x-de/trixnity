@@ -11,4 +11,11 @@ interface MediaStore : Store {
     suspend fun deleteMedia(url: String)
 
     suspend fun changeMediaUrl(oldUrl: String, newUrl: String)
+
+    /**
+     * Retrieves the available storage space for the device
+     *
+     * @return available space in bytes, or `null` if the value cannot be determined or an error occurs.
+     */
+    suspend fun getAvailableSpace(): Long?
 }
