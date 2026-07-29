@@ -1,11 +1,13 @@
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
+    alias(sharedLibs.plugins.android.library)
 }
 
 kotlin {
     addJvmTarget()
     addJsTarget(rootDir, browserEnabled = false)
+    addAndroidTarget()
     addNativeTargets()
     applyDefaultHierarchyTemplate()
     sourceSets {

@@ -17,6 +17,7 @@ internal class InMemoryMediaStore(
     configuration: MatrixClientConfiguration,
     clock: Clock,
 ) : CachedMediaStore(coroutineScope, configuration, clock) {
+    var availableSpace: Long? = null
     val media = MutableStateFlow<Map<String, List<ByteArray>>>(mapOf())
     override suspend fun addMedia(url: String, content: ByteArrayFlow) {
         media.update { it + (url to content.toList()) }
@@ -36,6 +37,10 @@ internal class InMemoryMediaStore(
                 it + (newUrl to value) - oldUrl
             else it
         }
+    }
+
+    override suspend fun getAvailableSpace(): Long? {
+        return availableSpace
     }
 
     override suspend fun deleteAllFromStore() {

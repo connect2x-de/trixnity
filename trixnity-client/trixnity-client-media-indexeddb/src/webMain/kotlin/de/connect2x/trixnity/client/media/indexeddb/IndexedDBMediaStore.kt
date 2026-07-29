@@ -21,6 +21,8 @@ import web.http.Response
 import web.http.blob
 import web.idb.IDBDatabase
 import web.idb.IDBValidKey
+import web.navigator.navigator
+import web.storage.estimate
 import web.streams.TransformStream
 import web.window.window
 import kotlin.random.Random
@@ -104,6 +106,17 @@ internal class IndexedDBMediaStore(
                 store.put(value, IDBValidKey(newUrl))
                 store.delete(IDBValidKey(oldUrl))
             }
+        }
+    }
+
+    override suspend fun getAvailableSpace(): Long? {
+        return try {
+            val estimate = navigator.storage.estimate()
+            val quota = estimate.quota?.toLong() ?: 0L
+            val usage = estimate.usage?.toLong() ?: 0L
+            (quota - usage).coerceAtLeast(0L)
+        } catch (e: Exception) {
+            null
         }
     }
 

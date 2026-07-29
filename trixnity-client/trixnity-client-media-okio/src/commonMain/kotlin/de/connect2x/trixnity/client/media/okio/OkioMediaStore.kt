@@ -106,6 +106,10 @@ internal class OkioMediaStore(
             }
         }
 
+    override suspend fun getAvailableSpace(): Long? {
+        return getPlatformAvailableSpace()
+    }
+
     private inner class FileBasedOkioPlatformMediaImpl(
         private val url: String,
         private val file: Path,
@@ -207,3 +211,5 @@ fun MediaStoreModule.Companion.okio(
 
 internal expect val defaultFileSystem: FileSystem
 internal expect val ioContext: CoroutineContext
+
+expect suspend fun getPlatformAvailableSpace(): Long?

@@ -17,3 +17,4 @@ abstract interface de.connect2x.trixnity.client.media.okio/OkioPlatformMedia : d
 }
 
 final fun (de.connect2x.trixnity.client/MediaStoreModule.Companion).de.connect2x.trixnity.client.media.okio/okio(okio/Path, okio/FileSystem = ..., kotlin.coroutines/CoroutineContext = ...): de.connect2x.trixnity.client/MediaStoreModule // de.connect2x.trixnity.client.media.okio/okio|okio@de.connect2x.trixnity.client.MediaStoreModule.Companion(okio.Path;okio.FileSystem;kotlin.coroutines.CoroutineContext){}[0]
+final suspend fun de.connect2x.trixnity.client.media.okio/getPlatformAvailableSpace(): kotlin/Long? // de.connect2x.trixnity.client.media.okio/getPlatformAvailableSpace|getPlatformAvailableSpace(){}[0]

@@ -39,6 +39,8 @@ import web.fs.getFile
 import web.fs.getFileHandle
 import web.fs.removeEntry
 import web.fs.write
+import web.navigator.navigator
+import web.storage.estimate
 import web.streams.WritableStream
 import web.streams.close
 import web.window.window
@@ -135,6 +137,17 @@ internal class OpfsMediaStore(
                 basePath.removeEntry(fileSystemSafe(newUrl))
                 log.error(throwable) { "could not change media url" }
             }
+        }
+    }
+
+    override suspend fun getAvailableSpace(): Long? {
+        return try {
+            val estimate = navigator.storage.estimate()
+            val quota = estimate.quota?.toLong() ?: 0L
+            val usage = estimate.usage?.toLong() ?: 0L
+            (quota - usage).coerceAtLeast(0L)
+        } catch (e: Exception) {
+            null
         }
     }
 
