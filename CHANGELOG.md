@@ -2,12 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
+to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
 ### Added
+
 - `expectedSize` parameter to `MediaService` download functions
 
 ### Changed
@@ -15,11 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bump c2x-settings-plugin version
 
 ### Deprecated
+
 - `MediaService`: `getMedia`, `getEncryptedMedia` and `getThumbnail` without required `expectedSize` parameter
 
 ### Removed
 
 ### Fixed
+
+- Fixed when a RoomState or RoomUser was based on a stripped event, loading members did not replace them
 
 ### Security
 
@@ -306,8 +310,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added inceptionYear based on LICENSE file and developer name tag for developers in POM to allow Gradle plugins
-  like gradle-license-plugin or aboutLibraries to automatically fetch the correct Copyright information.
+- Added inceptionYear based on LICENSE file and developer name tag for developers in POM to allow Gradle plugins like
+  gradle-license-plugin or aboutLibraries to automatically fetch the correct Copyright information.
 - Add support for non suspend sha256 hashing
 
 ### Changed
@@ -808,7 +812,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Close HttpClient on stop().
+- Close HttpClient on stop ().
 - Allow to configure HttpClientEngine. This allows to reuse it, which spares a lot of resources when spawning many
   clients.
 - Upgrade to Ktor 3
@@ -999,8 +1003,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- added Kotlin Multiplatform support to client-repositories-room
-  (JVM based targets for now, Native will be enabled, when more stable)
+- added Kotlin Multiplatform support to client-repositories-room (JVM based targets for now, Native will be enabled,
+  when more stable)
 
 ### Changed
 
