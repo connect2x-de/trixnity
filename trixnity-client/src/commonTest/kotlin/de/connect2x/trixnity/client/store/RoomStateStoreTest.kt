@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
@@ -78,6 +79,47 @@ class RoomStateStoreTest : TrixnityBaseTest() {
             "@alice:server"
         ) shouldBe event2
     }
+
+    @Test
+    fun `save » no skipWhenAlreadyPresent`() = runTest {
+        val event1Copy = event1.copy(originTimestamp = 4321)
+        cut.save(event1)
+
+        cut.save(event1Copy, skipWhenAlreadyPresent = false)
+        roomStateRepository.get(
+            RoomStateRepositoryKey(roomId, "m.room.member"),
+            "@user:server"
+        ) shouldBe event1Copy
+    }
+
+    @Test
+    fun `save » skipWhenAlreadyPresent » with existing StateEvent`() = runTest {
+        val event1Copy = event1.copy(originTimestamp = 4321)
+        cut.save(event1)
+
+        cut.save(event1Copy, skipWhenAlreadyPresent = true)
+        roomStateRepository.get(
+            RoomStateRepositoryKey(roomId, "m.room.member"),
+            "@user:server"
+        ) shouldBe event1
+    }
+
+    @Test
+    fun `save » skipWhenAlreadyPresent » with existing StrippedStateEvent`() = runTest {
+        val event1Stripped = StrippedStateEvent(
+            MemberEventContent(membership = LEAVE),
+            sender = UserId("alice", "server"),
+            stateKey = "@user:server"
+        )
+        cut.save(event1Stripped)
+
+        cut.save(event1, skipWhenAlreadyPresent = true)
+        roomStateRepository.get(
+            RoomStateRepositoryKey(roomId, "m.room.member"),
+            "@user:server"
+        ) shouldBe event1
+    }
+
 
     @Test
     fun `get » without scope » return matching event`() = runTest {

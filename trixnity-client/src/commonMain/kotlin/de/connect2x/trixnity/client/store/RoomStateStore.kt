@@ -1,11 +1,5 @@
 package de.connect2x.trixnity.client.store
 
-import io.ktor.util.reflect.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
@@ -14,11 +8,18 @@ import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManage
 import de.connect2x.trixnity.client.store.repository.RoomStateRepository
 import de.connect2x.trixnity.client.store.repository.RoomStateRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 
@@ -70,7 +71,8 @@ class RoomStateStore(
                         stateKey
                     )
                 ) {
-                    it ?: event
+                    if (it is ClientEvent.StrippedStateEvent) event
+                    else it ?: event
                 }
             else
                 roomStateCache.set(

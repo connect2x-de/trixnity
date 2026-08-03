@@ -7,6 +7,7 @@ import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -88,6 +89,32 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             )
         }
         roomUserStore.get(user1, roomId).first() shouldBe RoomUser(roomId, user1, "U1", event)
+    }
+
+    @Test
+    fun `setRoomUser » don't skip when user already present but based on stripped state`() = runTest {
+        val strippedEvent = ClientEvent.StrippedStateEvent(
+            content = MemberEventContent(
+                displayName = "U1",
+                membership = Membership.JOIN
+            ),
+            sender = UserId("sender", "server"),
+            stateKey = user1.full
+        )
+        val event = user1Event.copy(
+            content = MemberEventContent(
+                displayName = "CHANGED!!!",
+                membership = Membership.JOIN
+            )
+        )
+        cut.apply {
+            setRoomUser(listOf(strippedEvent))
+            setRoomUser(
+                listOf(event),
+                skipWhenAlreadyPresent = true
+            )
+        }
+        roomUserStore.get(user1, roomId).first() shouldBe RoomUser(roomId, user1, "CHANGED!!!", event)
     }
 
     @Test
