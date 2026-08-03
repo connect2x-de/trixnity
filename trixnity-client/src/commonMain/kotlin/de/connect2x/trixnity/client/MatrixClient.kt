@@ -263,7 +263,7 @@ suspend fun MatrixClient.Companion.create(
                     ) {
                         it.authentication.whoAmI().getOrThrow()
                     }
-                    require(newUserId != userId || newDeviceId != deviceId) {
+                    require(newUserId == userId && newDeviceId == deviceId) {
                         "newly authenticated userId ($newUserId) and deviceId ($newDeviceId) " +
                                 "must match stored authenticated userId ($userId) and deviceId ($deviceId). "
                     }

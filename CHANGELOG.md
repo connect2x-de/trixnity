@@ -24,6 +24,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - Fixed when a RoomState or RoomUser was based on a stripped event, loading members did not replace them
+- Fixed check when re-authenticating in `MatrixClient::create`
 
 ### Security
 
