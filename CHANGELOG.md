@@ -9,6 +9,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 5.7.1
+
+### Added
+
 - `expectedSize` parameter to `MediaService` download functions
 
 ### Changed
@@ -19,14 +33,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - `MediaService`: `getMedia`, `getEncryptedMedia` and `getThumbnail` without required `expectedSize` parameter
 
-### Removed
-
 ### Fixed
 
 - Fixed when a RoomState or RoomUser was based on a stripped event, loading members did not replace them
 - Fixed check when re-authenticating in `MatrixClient::create`
-
-### Security
 
 ## 5.7.0
 
