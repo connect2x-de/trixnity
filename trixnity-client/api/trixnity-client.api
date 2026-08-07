@@ -359,14 +359,19 @@ public final class de/connect2x/trixnity/client/UtilsKt {
 	public static final fun toMxcUri (Ljava/lang/String;)Lio/ktor/http/Url;
 }
 
+public final class de/connect2x/trixnity/client/cryptodriver/ClientMegolmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceRequestHandler {
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
+	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
 	public fun claimKeys-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun sendToDevice-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmEventHandlerRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
+	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setOneTimeKeys-984nOFY (Ljava/util/Set;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -384,14 +389,16 @@ public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmStore : de
 	public fun getMembers-RNkTX0s (Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getOlmAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getOlmPickleKey (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getOutboundMegolmSession-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getRoomEncryptionAlgorithm-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getTrustLevel-pFTbHVM (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateForgetFallbackKeyAfter (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateInboundMegolmMessageIndex-RxWrHTc (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateInboundMegolmSession-R_GNm0M (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateOlmAccount (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateOutboundMegolmSession-RNkTX0s (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateForgetFallbackKeyAfter (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateInboundMegolmMessageIndex-RxWrHTc (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateInboundMegolmSession-R_GNm0M (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateOlmAccount (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateOutboundMegolmSession-RNkTX0s (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/cryptodriver/ClientSignServiceStore : de/connect2x/trixnity/crypto/sign/SignServiceStore {
@@ -414,12 +421,12 @@ public final class de/connect2x/trixnity/client/key/DehydratedDeviceService : de
 }
 
 public final class de/connect2x/trixnity/client/key/IncomingRoomKeyRequestEventHandler : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
 public final class de/connect2x/trixnity/client/key/IncomingSecretKeyRequestEventHandler : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/store/KeyStore;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/store/KeyStore;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -518,13 +525,13 @@ public abstract interface class de/connect2x/trixnity/client/key/OutgoingRoomKey
 }
 
 public final class de/connect2x/trixnity/client/key/OutgoingRoomKeyRequestEventHandlerImpl : de/connect2x/trixnity/client/key/OutgoingRoomKeyRequestEventHandler, de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun requestRoomKeys-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
 public final class de/connect2x/trixnity/client/key/OutgoingSecretKeyRequestEventHandler : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -1036,7 +1043,7 @@ public final class de/connect2x/trixnity/client/room/GetTimelineEventsConfigKt {
 }
 
 public final class de/connect2x/trixnity/client/room/MegolmRoomEventEncryptionService : de/connect2x/trixnity/client/room/RoomEventEncryptionService {
-	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/user/LoadMembersService;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/key/OutgoingRoomKeyRequestEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;)V
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/user/LoadMembersService;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/key/OutgoingRoomKeyRequestEventHandler;Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService;)V
 	public fun decrypt-YNEx5aM (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun encrypt-Rv9TJ6o (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -2049,6 +2056,7 @@ public final class de/connect2x/trixnity/client/store/OlmCryptoStore : de/connec
 	public final fun getInboundMegolmSession-FDSa09M (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public final fun getNotBackedUpInboundMegolmSessions ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getOlmAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getOutboundMegolmSession-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun init (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun updateForgetFallbackKeyAfter (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -4460,8 +4468,8 @@ public abstract interface class de/connect2x/trixnity/client/verification/Active
 }
 
 public final class de/connect2x/trixnity/client/verification/ActiveDeviceVerificationImpl : de/connect2x/trixnity/client/verification/ActiveVerificationImpl, de/connect2x/trixnity/client/verification/ActiveDeviceVerification {
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationRequestToDeviceEventContent;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Set;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/store/KeyStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationRequestToDeviceEventContent;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Set;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/store/KeyStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationRequestToDeviceEventContent;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Set;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/store/KeyStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/m/key/verification/VerificationRequestToDeviceEventContent;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Ljava/util/Set;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/store/KeyStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class de/connect2x/trixnity/client/verification/ActiveSasVerificationMethod : de/connect2x/trixnity/client/verification/ActiveVerificationMethod {
@@ -4816,7 +4824,7 @@ public final class de/connect2x/trixnity/client/verification/VerificationService
 }
 
 public final class de/connect2x/trixnity/client/verification/VerificationServiceImpl : de/connect2x/trixnity/client/verification/VerificationService, de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/client/user/UserService;Lde/connect2x/trixnity/client/key/KeyService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/key/KeySecretService;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/client/user/UserService;Lde/connect2x/trixnity/client/key/KeyService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/key/KeySecretService;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun createDeviceVerificationRequest-Tj7rLLc (Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createUserVerificationRequest-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getActiveDeviceVerification ()Lkotlinx/coroutines/flow/StateFlow;

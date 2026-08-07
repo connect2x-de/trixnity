@@ -1,22 +1,16 @@
 package de.connect2x.trixnity.client.verification
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.currentTime
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
-import de.connect2x.trixnity.client.mocks.OlmDecrypterMock
 import de.connect2x.trixnity.client.mocks.OlmEncryptionServiceMock
+import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.clientserverapi.client.startOnce
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.Accepted
@@ -38,6 +32,12 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.currentTime
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -54,7 +54,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
 
     private val json = createMatrixEventJson()
 
-    private val olmDecrypterMock = OlmDecrypterMock()
+    private val olmEventHandlerMock = OlmEventHandlerMock()
     private val olmEncryptionServiceMock = OlmEncryptionServiceMock()
 
     private val keyStore = getInMemoryKeyStore()
@@ -108,7 +108,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             theirDeviceIds = setOf("bob1", "bob2"),
             supportedMethods = setOf(Sas),
             api = api,
-            olmDecrypter = olmDecrypterMock,
+            olmEventHandler = olmEventHandlerMock,
             olmEncryptionService = olmEncryptionServiceMock,
             keyTrust = KeyTrustServiceMock(),
             keyStore = keyStore,
@@ -139,7 +139,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
         val cut = createCut()
         cut.startLifecycle(this)
         val cancelEvent = VerificationCancelEventContent(User, "u", null, "t")
-        olmDecrypterMock.eventSubscribers.first().first()(
+        olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(
                     OlmEncryptedToDeviceEventContent(
@@ -147,7 +147,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
                         Curve25519KeyValue("")
                     ), bob
                 ),
-                DecryptedOlmEvent(cancelEvent, bob, keysOf(), null, alice, keysOf())
+                PlaintextOlmEvent(cancelEvent, bob, keysOf(), null, alice, keysOf())
             )
         )
         val result = cut.state.first { it is ActiveVerificationState.Cancel }
@@ -190,7 +190,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
-            Result.failure(EncryptOlmError.OlmLibraryError(CryptoDriverException(Exception("hu"))))
+            Result.failure(EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("hu"))))
         val cut = createCut()
         cut.startLifecycle(this)
         cut.cancel()
@@ -261,7 +261,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
-            Result.failure(EncryptOlmError.OlmLibraryError(CryptoDriverException(Exception("hu"))))
+            Result.failure(EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("hu"))))
         val cut = ActiveDeviceVerificationImpl(
             request = VerificationRequestToDeviceEventContent(
                 aliceDevice,
@@ -277,7 +277,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             theirDeviceIds = setOf("ALICE_1", "ALICE_2"),
             supportedMethods = setOf(Sas),
             api = api,
-            olmDecrypter = olmDecrypterMock,
+            olmEventHandler = olmEventHandlerMock,
             olmEncryptionService = olmEncryptionServiceMock,
             keyTrust = KeyTrustServiceMock(),
             keyStore = keyStore,
@@ -321,7 +321,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             theirDeviceId = bobDevice,
             supportedMethods = setOf(Sas),
             api = api,
-            olmDecrypter = olmDecrypterMock,
+            olmEventHandler = olmEventHandlerMock,
             olmEncryptionService = olmEncryptionServiceMock,
             keyTrust = KeyTrustServiceMock(),
             keyStore = keyStore,

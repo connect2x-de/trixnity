@@ -6041,53 +6041,53 @@ final class <#A: de.connect2x.trixnity.core.model.events/EphemeralDataUnitConten
     }
 }
 
-final class <#A: de.connect2x.trixnity.core.model.events/EventContent> de.connect2x.trixnity.core.model.events/DecryptedOlmEvent : de.connect2x.trixnity.core.model.events/Event<#A> { // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent|null[0]
-    constructor <init>(#A, de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.keys/Keys, de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.keys/Keys) // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.<init>|<init>(1:0;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.DeviceKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys){}[0]
+final class <#A: de.connect2x.trixnity.core.model.events/EventContent> de.connect2x.trixnity.core.model.events/PlaintextOlmEvent : de.connect2x.trixnity.core.model.events/Event<#A> { // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent|null[0]
+    constructor <init>(#A, de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.keys/Keys, de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.keys/Keys) // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.<init>|<init>(1:0;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.DeviceKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys){}[0]
 
-    final val content // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.content|{}content[0]
-        final fun <get-content>(): #A // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.content.<get-content>|<get-content>(){}[0]
-    final val recipient // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.recipient|{}recipient[0]
-        final fun <get-recipient>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.recipient.<get-recipient>|<get-recipient>(){}[0]
-    final val recipientKeys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.recipientKeys|{}recipientKeys[0]
-        final fun <get-recipientKeys>(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.recipientKeys.<get-recipientKeys>|<get-recipientKeys>(){}[0]
-    final val sender // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.sender|{}sender[0]
-        final fun <get-sender>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.sender.<get-sender>|<get-sender>(){}[0]
-    final val senderDeviceKeys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.senderDeviceKeys|{}senderDeviceKeys[0]
-        final fun <get-senderDeviceKeys>(): de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.senderDeviceKeys.<get-senderDeviceKeys>|<get-senderDeviceKeys>(){}[0]
-    final val senderKeys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.senderKeys|{}senderKeys[0]
-        final fun <get-senderKeys>(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.senderKeys.<get-senderKeys>|<get-senderKeys>(){}[0]
+    final val content // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.content|{}content[0]
+        final fun <get-content>(): #A // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.content.<get-content>|<get-content>(){}[0]
+    final val recipient // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.recipient|{}recipient[0]
+        final fun <get-recipient>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.recipient.<get-recipient>|<get-recipient>(){}[0]
+    final val recipientKeys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.recipientKeys|{}recipientKeys[0]
+        final fun <get-recipientKeys>(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.recipientKeys.<get-recipientKeys>|<get-recipientKeys>(){}[0]
+    final val sender // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.sender|{}sender[0]
+        final fun <get-sender>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.sender.<get-sender>|<get-sender>(){}[0]
+    final val senderDeviceKeys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.senderDeviceKeys|{}senderDeviceKeys[0]
+        final fun <get-senderDeviceKeys>(): de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.senderDeviceKeys.<get-senderDeviceKeys>|<get-senderDeviceKeys>(){}[0]
+    final val senderKeys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.senderKeys|{}senderKeys[0]
+        final fun <get-senderKeys>(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.senderKeys.<get-senderKeys>|<get-senderKeys>(){}[0]
 
-    final fun component1(): #A // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component2|component2(){}[0]
-    final fun component3(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component3|component3(){}[0]
-    final fun component4(): de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component4|component4(){}[0]
-    final fun component5(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component5|component5(){}[0]
-    final fun component6(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.component6|component6(){}[0]
-    final fun copy(#A = ..., de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model.keys/Keys = ..., de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model.keys/Keys = ...): de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<#A> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.copy|copy(1:0;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.DeviceKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.toString|toString(){}[0]
+    final fun component1(): #A // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component2|component2(){}[0]
+    final fun component3(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component3|component3(){}[0]
+    final fun component4(): de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component4|component4(){}[0]
+    final fun component5(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component5|component5(){}[0]
+    final fun component6(): de.connect2x.trixnity.core.model.keys/Keys // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.component6|component6(){}[0]
+    final fun copy(#A = ..., de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model.keys/Keys = ..., de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model.keys/Keys = ...): de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<#A> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.copy|copy(1:0;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.DeviceKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.Keys){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.toString|toString(){}[0]
 
-    final class <#A1: kotlin/Any?> $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<#A1>> { // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer|null[0]
-        constructor <init>(kotlinx.serialization/KSerializer<#A1>) // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.<init>|<init>(kotlinx.serialization.KSerializer<1:0>){}[0]
+    final class <#A1: kotlin/Any?> $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<#A1>> { // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer|null[0]
+        constructor <init>(kotlinx.serialization/KSerializer<#A1>) // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.<init>|<init>(kotlinx.serialization.KSerializer<1:0>){}[0]
 
-        final val descriptor // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-        final val typeSerial0 // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.typeSerial0|{}typeSerial0[0]
+        final val descriptor // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+        final val typeSerial0 // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.typeSerial0|{}typeSerial0[0]
 
-        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.childSerializers|childSerializers(){}[0]
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<#A1> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<#A1>) // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.events.DecryptedOlmEvent<1:0>){}[0]
-        final fun typeParametersSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.$serializer.typeParametersSerializers|typeParametersSerializers(){}[0]
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<#A1> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<#A1>) // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.events.PlaintextOlmEvent<1:0>){}[0]
+        final fun typeParametersSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.$serializer.typeParametersSerializers|typeParametersSerializers(){}[0]
     }
 
-    final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion|null[0]
-        final val $cachedDescriptor // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion.$cachedDescriptor|{}$cachedDescriptor[0]
-            final fun <get-$cachedDescriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion.$cachedDescriptor.<get-$cachedDescriptor>|<get-$cachedDescriptor>(){}[0]
-        final val $childSerializers // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion.$childSerializers|{}$childSerializers[0]
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion|null[0]
+        final val $cachedDescriptor // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion.$cachedDescriptor|{}$cachedDescriptor[0]
+            final fun <get-$cachedDescriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion.$cachedDescriptor.<get-$cachedDescriptor>|<get-$cachedDescriptor>(){}[0]
+        final val $childSerializers // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion.$childSerializers|{}$childSerializers[0]
 
-        final fun <#A2: kotlin/Any?> serializer(kotlinx.serialization/KSerializer<#A2>): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<#A2>> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion.serializer|serializer(kotlinx.serialization.KSerializer<0:0>){0§<kotlin.Any?>}[0]
-        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.events/DecryptedOlmEvent.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+        final fun <#A2: kotlin/Any?> serializer(kotlinx.serialization/KSerializer<#A2>): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<#A2>> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion.serializer|serializer(kotlinx.serialization.KSerializer<0:0>){0§<kotlin.Any?>}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.events/PlaintextOlmEvent.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
     }
 }
 
@@ -9728,7 +9728,7 @@ final class de.connect2x.trixnity.core.serialization.events/DecryptedMegolmEvent
     constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.serialization.events/EventContentSerializerMapping<de.connect2x.trixnity.core.model.events/MessageEventContent>>) // de.connect2x.trixnity.core.serialization.events/DecryptedMegolmEventSerializer.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.serialization.events.EventContentSerializerMapping<de.connect2x.trixnity.core.model.events.MessageEventContent>>){}[0]
 }
 
-final class de.connect2x.trixnity.core.serialization.events/DecryptedOlmEventSerializer : de.connect2x.trixnity.core.serialization.events/BaseEventSerializer<de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*>> { // de.connect2x.trixnity.core.serialization.events/DecryptedOlmEventSerializer|null[0]
+final class de.connect2x.trixnity.core.serialization.events/DecryptedOlmEventSerializer : de.connect2x.trixnity.core.serialization.events/BaseEventSerializer<de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*>> { // de.connect2x.trixnity.core.serialization.events/DecryptedOlmEventSerializer|null[0]
     constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.serialization.events/EventContentSerializerMapping<de.connect2x.trixnity.core.model.events/EventContent>>) // de.connect2x.trixnity.core.serialization.events/DecryptedOlmEventSerializer.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.serialization.events.EventContentSerializerMapping<de.connect2x.trixnity.core.model.events.EventContent>>){}[0]
 }
 

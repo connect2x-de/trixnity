@@ -1,36 +1,40 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
 import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.core.*
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
-import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
 import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.subscribe
+import de.connect2x.trixnity.core.subscribeEvent
+import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
-import de.connect2x.trixnity.crypto.olm.OlmDecrypter
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import de.connect2x.trixnity.crypto.olm.OlmEventHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 
 private val log = Logger("de.connect2x.trixnity.client.key.IncomingRoomKeyRequestEventHandler")
 
 class IncomingRoomKeyRequestEventHandler(
     userInfo: UserInfo,
     private val api: MatrixClientServerApiClient,
-    private val olmDecrypter: OlmDecrypter,
+    private val olmEventHandler: OlmEventHandler,
     private val olmEncryptionService: OlmEncryptionService,
     private val accountStore: AccountStore,
     private val keyStore: KeyStore,
@@ -40,7 +44,7 @@ class IncomingRoomKeyRequestEventHandler(
     private val ownUserId = userInfo.userId
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        olmDecrypter.subscribe(::handleEncryptedIncomingKeyRequests).unsubscribeOnCompletion(scope)
+        olmEventHandler.subscribe(::handleEncryptedIncomingKeyRequests).unsubscribeOnCompletion(scope)
         api.sync.subscribeEvent(subscriber = ::handleIncomingKeyRequests).unsubscribeOnCompletion(scope)
         api.sync.subscribe(Priority.AFTER_DEFAULT, ::processIncomingKeyRequests).unsubscribeOnCompletion(scope)
     }

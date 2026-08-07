@@ -197,7 +197,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> = listOf(
                     olmCryptoStore = get(),
                     keyBackupService = get(named<KeyBackupService>()),
                     outgoingRoomKeyRequestEventHandler = get(named<OutgoingRoomKeyRequestEventHandler>()),
-                    olmEncryptionService = get(),
+                    megolmEncryptionService = get(),
                 )
             }
             singleOf(::UnencryptedRoomEventEncryptionService) {

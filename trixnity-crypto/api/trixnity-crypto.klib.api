@@ -30,69 +30,123 @@ final enum class de.connect2x.trixnity.crypto/SecretType : kotlin/Enum<de.connec
     }
 }
 
-abstract interface de.connect2x.trixnity.crypto.olm/OlmDecrypter { // de.connect2x.trixnity.crypto.olm/OlmDecrypter|null[0]
-    abstract fun subscribe(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer, kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmDecrypter.subscribe|subscribe(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer,kotlin.Unit>){}[0]
-    abstract suspend fun handleOlmEvents(kotlin.collections/List<de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>>) // de.connect2x.trixnity.crypto.olm/OlmDecrypter.handleOlmEvents|handleOlmEvents(kotlin.collections.List<de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>>){}[0]
-}
+abstract interface de.connect2x.trixnity.crypto.olm/MegolmEncryptionService { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService|null[0]
+    abstract suspend fun decryptMegolm(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedMegolmEvent<*>> // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.decryptMegolm|decryptMegolm(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>){}[0]
+    abstract suspend fun encryptMegolm(de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.room/EncryptionEventContent): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent> // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.encryptMegolm|encryptMegolm(de.connect2x.trixnity.core.model.events.MessageEventContent;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent){}[0]
 
-abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService|null[0]
-    abstract suspend fun decryptMegolm(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedMegolmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.decryptMegolm|decryptMegolm(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>){}[0]
-    abstract suspend fun decryptOlm(de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.decryptOlm|decryptOlm(de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>){}[0]
-    abstract suspend fun encryptMegolm(de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.room/EncryptionEventContent): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.encryptMegolm|encryptMegolm(de.connect2x.trixnity.core.model.events.MessageEventContent;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent){}[0]
-    abstract suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin/Boolean = ...): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Boolean){}[0]
+    sealed interface DecryptMegolmError { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError|null[0]
+        final class CryptoDriverError : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError|null[0]
+            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
 
-    sealed interface DecryptMegolmError { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError|null[0]
-        final class DeserializationError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError|null[0]
-            constructor <init>(kotlinx.serialization/SerializationException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.<init>|<init>(kotlinx.serialization.SerializationException){}[0]
+            final val error // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.error.<get-error>|<get-error>(){}[0]
 
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.error|{}error[0]
-                final fun <get-error>(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.component1|component1(){}[0]
-            final fun copy(kotlinx.serialization/SerializationException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.copy|copy(kotlinx.serialization.SerializationException){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.DeserializationError.toString|toString(){}[0]
+            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.CryptoDriverError.toString|toString(){}[0]
         }
 
-        final class MegolmKeyNotFound : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.MegolmKeyNotFound|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.MegolmKeyNotFound.<init>|<init>(){}[0]
+        final class DeserializationError : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError|null[0]
+            constructor <init>(kotlinx.serialization/SerializationException) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.<init>|<init>(kotlinx.serialization.SerializationException){}[0]
+
+            final val error // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.error|{}error[0]
+                final fun <get-error>(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.component1|component1(){}[0]
+            final fun copy(kotlinx.serialization/SerializationException = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.copy|copy(kotlinx.serialization.SerializationException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.DeserializationError.toString|toString(){}[0]
         }
 
-        final class MegolmKeyUnknownMessageIndex : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex.<init>|<init>(){}[0]
+        final class MegolmKeyNotFound : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyNotFound|null[0]
+            constructor <init>() // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyNotFound.<init>|<init>(){}[0]
         }
 
-        final class OlmLibraryError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError|null[0]
-            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.error|{}error[0]
-                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.OlmLibraryError.toString|toString(){}[0]
+        final class MegolmKeyUnknownMessageIndex : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex|null[0]
+            constructor <init>() // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex.<init>|<init>(){}[0]
         }
 
-        final class ValidationFailed : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed|null[0]
-            constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.<init>|<init>(kotlin.String){}[0]
+        final class ValidationFailed : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.<init>|<init>(kotlin.String){}[0]
 
-            final val reason // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.reason|{}reason[0]
-                final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.reason.<get-reason>|<get-reason>(){}[0]
+            final val reason // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.reason|{}reason[0]
+                final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.reason.<get-reason>|<get-reason>(){}[0]
 
-            final fun component1(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.component1|component1(){}[0]
-            final fun copy(kotlin/String = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.copy|copy(kotlin.String){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptMegolmError.ValidationFailed.toString|toString(){}[0]
+            final fun component1(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.component1|component1(){}[0]
+            final fun copy(kotlin/String = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.copy|copy(kotlin.String){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.toString|toString(){}[0]
         }
     }
 
+    sealed interface EncryptMegolmError { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError|null[0]
+        final class CryptoDriverError : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError|null[0]
+            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+
+            final val error // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.CryptoDriverError.toString|toString(){}[0]
+        }
+
+        final class NetworkError : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError|null[0]
+            constructor <init>(kotlin/Throwable) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.<init>|<init>(kotlin.Throwable){}[0]
+
+            final val error // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.error|{}error[0]
+                final fun <get-error>(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.component1|component1(){}[0]
+            final fun copy(kotlin/Throwable = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.copy|copy(kotlin.Throwable){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.EncryptMegolmError.NetworkError.toString|toString(){}[0]
+        }
+    }
+}
+
+abstract interface de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceRequestHandler { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceRequestHandler|null[0]
+    abstract suspend fun sendToDevice(kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.events/ToDeviceEventContent>>, kotlin/String): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceRequestHandler.sendToDevice|sendToDevice(kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.core.model.events.ToDeviceEventContent>>;kotlin.String){}[0]
+}
+
+abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService|null[0]
+    abstract suspend fun decryptOlm(de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.decryptOlm|decryptOlm(de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>){}[0]
+    abstract suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model/UserId, kotlin/String): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
+    abstract suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, kotlin.collections/Set<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, kotlin/String>>): kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, kotlin/String>, kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;kotlin.collections.Set<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,kotlin.String>>){}[0]
+    abstract suspend fun recoverOlm(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent?> // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.recoverOlm|recoverOlm(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery){}[0]
+
     sealed interface DecryptOlmError { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError|null[0]
+        abstract val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.olmRecovery|{}olmRecovery[0]
+            abstract fun <get-olmRecovery>(): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
+
+        final class CryptoDriverError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError|null[0]
+            constructor <init>(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery?, de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.<init>|<init>(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery?;de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+
+            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.error.<get-error>|<get-error>(){}[0]
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.component1|component1(){}[0]
+            final fun component2(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.component2|component2(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? = ..., de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.copy|copy(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery?;de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.CryptoDriverError.toString|toString(){}[0]
+        }
+
         final class DehydratedDeviceNotAllowed : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DehydratedDeviceNotAllowed|null[0]
             constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DehydratedDeviceNotAllowed.<init>|<init>(){}[0]
+
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DehydratedDeviceNotAllowed.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DehydratedDeviceNotAllowed.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
         }
 
         final class DeserializationError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError|null[0]
@@ -100,6 +154,8 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de
 
             final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.error|{}error[0]
                 final fun <get-error>(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.error.<get-error>|<get-error>(){}[0]
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
 
             final fun component1(): kotlinx.serialization/SerializationException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.component1|component1(){}[0]
             final fun copy(kotlinx.serialization/SerializationException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.copy|copy(kotlinx.serialization.SerializationException){}[0]
@@ -108,47 +164,47 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de
             final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.DeserializationError.toString|toString(){}[0]
         }
 
-        final class KeyNotFound : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound|null[0]
-            constructor <init>(de.connect2x.trixnity.core.model.keys/KeyAlgorithm) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-
-            final val keyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.keyAlgorithm|{}keyAlgorithm[0]
-                final fun <get-keyAlgorithm>(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.core.model.keys/KeyAlgorithm = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.copy|copy(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.KeyNotFound.toString|toString(){}[0]
-        }
-
         final class NoMatchingOlmSessionFound : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.<init>|<init>(){}[0]
+            constructor <init>(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery?) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.<init>|<init>(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery?){}[0]
+
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery? = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.copy|copy(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound.toString|toString(){}[0]
         }
 
-        final class OlmLibraryError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError|null[0]
-            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+        final class NoOlmSupported : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported.<init>|<init>(kotlin.String){}[0]
 
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.error|{}error[0]
-                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.OlmLibraryError.toString|toString(){}[0]
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
+            final val reason // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported.reason|{}reason[0]
+                final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.NoOlmSupported.reason.<get-reason>|<get-reason>(){}[0]
         }
 
-        final class SenderDidNotEncryptForThisDeviceException : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDeviceException|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDeviceException.<init>|<init>(){}[0]
+        final class SenderDidNotEncryptForThisDevice : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDevice|null[0]
+            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDevice.<init>|<init>(){}[0]
+
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDevice.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.SenderDidNotEncryptForThisDevice.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
         }
 
         final class TooManySessions : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.TooManySessions|null[0]
             constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.TooManySessions.<init>|<init>(){}[0]
+
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.TooManySessions.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.TooManySessions.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
         }
 
         final class ValidationFailed : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed|null[0]
             constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed.<init>|<init>(kotlin.String){}[0]
 
+            final val olmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed.olmRecovery|{}olmRecovery[0]
+                final fun <get-olmRecovery>(): kotlin/Nothing? // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed.olmRecovery.<get-olmRecovery>|<get-olmRecovery>(){}[0]
             final val reason // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed.reason|{}reason[0]
                 final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.DecryptOlmError.ValidationFailed.reason.<get-reason>|<get-reason>(){}[0]
 
@@ -160,118 +216,79 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de
         }
     }
 
-    sealed interface EncryptMegolmError { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError|null[0]
-        final class OlmLibraryError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError|null[0]
-            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.error|{}error[0]
-                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptMegolmError.OlmLibraryError.toString|toString(){}[0]
-        }
-    }
-
     sealed interface EncryptOlmError { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError|null[0]
+        final class CryptoDriverError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError|null[0]
+            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+
+            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.toString|toString(){}[0]
+        }
+
         final class DehydratedDeviceNotCrossSigned : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned|null[0]
             constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned.<init>|<init>(){}[0]
         }
 
-        final class KeyNotFound : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound|null[0]
-            constructor <init>(de.connect2x.trixnity.core.model.keys/KeyAlgorithm) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
+        final class NetworkError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError|null[0]
+            constructor <init>(kotlin/Throwable) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.<init>|<init>(kotlin.Throwable){}[0]
 
-            final val keyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.keyAlgorithm|{}keyAlgorithm[0]
-                final fun <get-keyAlgorithm>(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
+            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.error|{}error[0]
+                final fun <get-error>(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.error.<get-error>|<get-error>(){}[0]
 
-            final fun component1(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.core.model.keys/KeyAlgorithm = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.copy|copy(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.KeyNotFound.toString|toString(){}[0]
+            final fun component1(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.component1|component1(){}[0]
+            final fun copy(kotlin/Throwable = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.copy|copy(kotlin.Throwable){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError.toString|toString(){}[0]
         }
 
-        final class OlmLibraryError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError|null[0]
-            constructor <init>(de.connect2x.trixnity.crypto.driver/CryptoDriverException) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.<init>|<init>(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
+        final class NoOlmSupported : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NoOlmSupported|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NoOlmSupported.<init>|<init>(kotlin.String){}[0]
 
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.error|{}error[0]
-                final fun <get-error>(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.crypto.driver/CryptoDriverException // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.crypto.driver/CryptoDriverException = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.copy|copy(de.connect2x.trixnity.crypto.driver.CryptoDriverException){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OlmLibraryError.toString|toString(){}[0]
+            final val reason // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NoOlmSupported.reason|{}reason[0]
+                final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NoOlmSupported.reason.<get-reason>|<get-reason>(){}[0]
         }
 
-        final class OneTimeKeyNetworkError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError|null[0]
-            constructor <init>(kotlin/Throwable) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.<init>|<init>(kotlin.Throwable){}[0]
-
-            final val error // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.error|{}error[0]
-                final fun <get-error>(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.error.<get-error>|<get-error>(){}[0]
-
-            final fun component1(): kotlin/Throwable // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.component1|component1(){}[0]
-            final fun copy(kotlin/Throwable = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.copy|copy(kotlin.Throwable){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNetworkError.toString|toString(){}[0]
+        final class RemoteHomeserverNotReachable : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable|null[0]
+            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable.<init>|<init>(){}[0]
         }
+    }
 
-        final class OneTimeKeyNotFound : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound|null[0]
-            constructor <init>(de.connect2x.trixnity.core.model.keys/KeyAlgorithm) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
+    final class OlmRecovery { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery|null[0]
+        constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin.time/Instant) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.time.Instant){}[0]
 
-            final val keyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.keyAlgorithm|{}keyAlgorithm[0]
-                final fun <get-keyAlgorithm>(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
+        final val deviceId // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.deviceId|{}deviceId[0]
+            final fun <get-deviceId>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.deviceId.<get-deviceId>|<get-deviceId>(){}[0]
+        final val lastTry // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.lastTry|{}lastTry[0]
+            final fun <get-lastTry>(): kotlin.time/Instant // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.lastTry.<get-lastTry>|<get-lastTry>(){}[0]
+        final val userId // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.userId|{}userId[0]
+            final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.userId.<get-userId>|<get-userId>(){}[0]
 
-            final fun component1(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.component1|component1(){}[0]
-            final fun copy(de.connect2x.trixnity.core.model.keys/KeyAlgorithm = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.copy|copy(de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyNotFound.toString|toString(){}[0]
-        }
-
-        final class OneTimeKeyRemoteServerError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError|null[0]
-            constructor <init>(de.connect2x.trixnity.core.model.keys/KeyAlgorithm, kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyAlgorithm;kotlin.String){}[0]
-
-            final val keyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.keyAlgorithm|{}keyAlgorithm[0]
-                final fun <get-keyAlgorithm>(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
-            final val server // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.server|{}server[0]
-                final fun <get-server>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.server.<get-server>|<get-server>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.component1|component1(){}[0]
-            final fun component2(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.component2|component2(){}[0]
-            final fun copy(de.connect2x.trixnity.core.model.keys/KeyAlgorithm = ..., kotlin/String = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.copy|copy(de.connect2x.trixnity.core.model.keys.KeyAlgorithm;kotlin.String){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyRemoteServerError.toString|toString(){}[0]
-        }
-
-        final class OneTimeKeyVerificationFailed : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed|null[0]
-            constructor <init>(de.connect2x.trixnity.core.model.keys/KeyAlgorithm, de.connect2x.trixnity.crypto.sign/VerifyResult) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyAlgorithm;de.connect2x.trixnity.crypto.sign.VerifyResult){}[0]
-
-            final val keyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.keyAlgorithm|{}keyAlgorithm[0]
-                final fun <get-keyAlgorithm>(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
-            final val verifyResult // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.verifyResult|{}verifyResult[0]
-                final fun <get-verifyResult>(): de.connect2x.trixnity.crypto.sign/VerifyResult // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.verifyResult.<get-verifyResult>|<get-verifyResult>(){}[0]
-
-            final fun component1(): de.connect2x.trixnity.core.model.keys/KeyAlgorithm // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.component1|component1(){}[0]
-            final fun component2(): de.connect2x.trixnity.crypto.sign/VerifyResult // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.component2|component2(){}[0]
-            final fun copy(de.connect2x.trixnity.core.model.keys/KeyAlgorithm = ..., de.connect2x.trixnity.crypto.sign/VerifyResult = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.copy|copy(de.connect2x.trixnity.core.model.keys.KeyAlgorithm;de.connect2x.trixnity.crypto.sign.VerifyResult){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.OneTimeKeyVerificationFailed.toString|toString(){}[0]
-        }
+        final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.component1|component1(){}[0]
+        final fun component2(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.component2|component2(){}[0]
+        final fun component3(): kotlin.time/Instant // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.component3|component3(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String = ..., kotlin.time/Instant = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.time.Instant){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery.toString|toString(){}[0]
     }
 }
 
 abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler { // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler|null[0]
     abstract suspend fun claimKeys(kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/KeyAlgorithm>>): kotlin/Result<de.connect2x.trixnity.clientserverapi.model.key/ClaimKeys.Response> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler.claimKeys|claimKeys(kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.core.model.keys.KeyAlgorithm>>){}[0]
-    abstract suspend fun sendToDevice(kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.events/ToDeviceEventContent>>): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler.sendToDevice|sendToDevice(kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.core.model.events.ToDeviceEventContent>>){}[0]
+}
+
+abstract interface de.connect2x.trixnity.crypto.olm/OlmEventHandler : de.connect2x.trixnity.core/EventHandler { // de.connect2x.trixnity.crypto.olm/OlmEventHandler|null[0]
+    abstract fun subscribe(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer, kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmEventHandler.subscribe|subscribe(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer,kotlin.Unit>){}[0]
 }
 
 abstract interface de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler { // de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler|null[0]
+    abstract suspend fun sendToDevice(kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.events/ToDeviceEventContent>>, kotlin/String): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler.sendToDevice|sendToDevice(kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Map<kotlin.String,de.connect2x.trixnity.core.model.events.ToDeviceEventContent>>;kotlin.String){}[0]
     abstract suspend fun setOneTimeKeys(de.connect2x.trixnity.core.model.keys/Keys?, de.connect2x.trixnity.core.model.keys/Keys?): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler.setOneTimeKeys|setOneTimeKeys(de.connect2x.trixnity.core.model.keys.Keys?;de.connect2x.trixnity.core.model.keys.Keys?){}[0]
 }
 
@@ -280,21 +297,23 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmKeysChangeEmitter { // de
 }
 
 abstract interface de.connect2x.trixnity.crypto.olm/OlmStore { // de.connect2x.trixnity.crypto.olm/OlmStore|null[0]
-    abstract suspend fun getDeviceKeys(de.connect2x.trixnity.core.model/UserId): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/DeviceKeys>? // de.connect2x.trixnity.crypto.olm/OlmStore.getDeviceKeys|getDeviceKeys(de.connect2x.trixnity.core.model.UserId){}[0]
-    abstract suspend fun getForgetFallbackKeyAfter(): kotlinx.coroutines.flow/Flow<kotlin.time/Instant?> // de.connect2x.trixnity.crypto.olm/OlmStore.getForgetFallbackKeyAfter|getForgetFallbackKeyAfter(){}[0]
+    abstract suspend fun getDeviceKeys(de.connect2x.trixnity.core.model/UserId): kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>>? // de.connect2x.trixnity.crypto.olm/OlmStore.getDeviceKeys|getDeviceKeys(de.connect2x.trixnity.core.model.UserId){}[0]
+    abstract suspend fun getForgetFallbackKeyAfter(): kotlin.time/Instant? // de.connect2x.trixnity.crypto.olm/OlmStore.getForgetFallbackKeyAfter|getForgetFallbackKeyAfter(){}[0]
     abstract suspend fun getHistoryVisibility(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility? // de.connect2x.trixnity.crypto.olm/OlmStore.getHistoryVisibility|getHistoryVisibility(de.connect2x.trixnity.core.model.RoomId){}[0]
     abstract suspend fun getInboundMegolmSession(kotlin/String, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession? // de.connect2x.trixnity.crypto.olm/OlmStore.getInboundMegolmSession|getInboundMegolmSession(kotlin.String;de.connect2x.trixnity.core.model.RoomId){}[0]
     abstract suspend fun getMembers(de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>): kotlin.collections/Set<de.connect2x.trixnity.core.model/UserId> // de.connect2x.trixnity.crypto.olm/OlmStore.getMembers|getMembers(de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<de.connect2x.trixnity.core.model.events.m.room.Membership>){}[0]
     abstract suspend fun getOlmAccount(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmStore.getOlmAccount|getOlmAccount(){}[0]
     abstract suspend fun getOlmPickleKey(): kotlin/String? // de.connect2x.trixnity.crypto.olm/OlmStore.getOlmPickleKey|getOlmPickleKey(){}[0]
+    abstract suspend fun getOlmSessions(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue): kotlin.collections/Set<de.connect2x.trixnity.crypto.olm/StoredOlmSession>? // de.connect2x.trixnity.crypto.olm/OlmStore.getOlmSessions|getOlmSessions(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue){}[0]
+    abstract suspend fun getOutboundMegolmSession(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession? // de.connect2x.trixnity.crypto.olm/OlmStore.getOutboundMegolmSession|getOutboundMegolmSession(de.connect2x.trixnity.core.model.RoomId){}[0]
     abstract suspend fun getRoomEncryptionAlgorithm(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm? // de.connect2x.trixnity.crypto.olm/OlmStore.getRoomEncryptionAlgorithm|getRoomEncryptionAlgorithm(de.connect2x.trixnity.core.model.RoomId){}[0]
     abstract suspend fun getTrustLevel(de.connect2x.trixnity.core.model/UserId, kotlin/String): de.connect2x.trixnity.crypto.key/DeviceTrustLevel? // de.connect2x.trixnity.crypto.olm/OlmStore.getTrustLevel|getTrustLevel(de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
-    abstract suspend fun updateForgetFallbackKeyAfter(kotlin.coroutines/SuspendFunction1<kotlin.time/Instant?, kotlin.time/Instant?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateForgetFallbackKeyAfter|updateForgetFallbackKeyAfter(kotlin.coroutines.SuspendFunction1<kotlin.time.Instant?,kotlin.time.Instant?>){}[0]
-    abstract suspend fun updateInboundMegolmMessageIndex(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long, kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex?, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateInboundMegolmMessageIndex|updateInboundMegolmMessageIndex(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex?,de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex?>){}[0]
-    abstract suspend fun updateInboundMegolmSession(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession?, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateInboundMegolmSession|updateInboundMegolmSession(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession?,de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession?>){}[0]
-    abstract suspend fun updateOlmAccount(kotlin.coroutines/SuspendFunction1<kotlin/String, kotlin/String>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOlmAccount|updateOlmAccount(kotlin.coroutines.SuspendFunction1<kotlin.String,kotlin.String>){}[0]
-    abstract suspend fun updateOlmSessions(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, kotlin.coroutines/SuspendFunction1<kotlin.collections/Set<de.connect2x.trixnity.crypto.olm/StoredOlmSession>?, kotlin.collections/Set<de.connect2x.trixnity.crypto.olm/StoredOlmSession>?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOlmSessions|updateOlmSessions(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.coroutines.SuspendFunction1<kotlin.collections.Set<de.connect2x.trixnity.crypto.olm.StoredOlmSession>?,kotlin.collections.Set<de.connect2x.trixnity.crypto.olm.StoredOlmSession>?>){}[0]
-    abstract suspend fun updateOutboundMegolmSession(de.connect2x.trixnity.core.model/RoomId, kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession?, de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOutboundMegolmSession|updateOutboundMegolmSession(de.connect2x.trixnity.core.model.RoomId;kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession?,de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession?>){}[0]
+    abstract suspend fun updateForgetFallbackKeyAfter(kotlin/Function1<kotlin.time/Instant?, kotlin.time/Instant?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateForgetFallbackKeyAfter|updateForgetFallbackKeyAfter(kotlin.Function1<kotlin.time.Instant?,kotlin.time.Instant?>){}[0]
+    abstract suspend fun updateInboundMegolmMessageIndex(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long, kotlin/Function1<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex?, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateInboundMegolmMessageIndex|updateInboundMegolmMessageIndex(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.Function1<de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex?,de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex?>){}[0]
+    abstract suspend fun updateInboundMegolmSession(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Function1<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession?, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateInboundMegolmSession|updateInboundMegolmSession(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Function1<de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession?,de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession?>){}[0]
+    abstract suspend fun updateOlmAccount(kotlin/Function1<kotlin/String, kotlin/String>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOlmAccount|updateOlmAccount(kotlin.Function1<kotlin.String,kotlin.String>){}[0]
+    abstract suspend fun updateOlmSessions(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, kotlin/Function1<kotlin.collections/Set<de.connect2x.trixnity.crypto.olm/StoredOlmSession>?, kotlin.collections/Set<de.connect2x.trixnity.crypto.olm/StoredOlmSession>?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOlmSessions|updateOlmSessions(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.Function1<kotlin.collections.Set<de.connect2x.trixnity.crypto.olm.StoredOlmSession>?,kotlin.collections.Set<de.connect2x.trixnity.crypto.olm.StoredOlmSession>?>){}[0]
+    abstract suspend fun updateOutboundMegolmSession(de.connect2x.trixnity.core.model/RoomId, kotlin/Function1<de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession?, de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession?>) // de.connect2x.trixnity.crypto.olm/OlmStore.updateOutboundMegolmSession|updateOutboundMegolmSession(de.connect2x.trixnity.core.model.RoomId;kotlin.Function1<de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession?,de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession?>){}[0]
 }
 
 abstract interface de.connect2x.trixnity.crypto.sign/SignService { // de.connect2x.trixnity.crypto.sign/SignService|null[0]
@@ -492,41 +511,42 @@ final class de.connect2x.trixnity.crypto.key/RecoveryKeyInvalidException : kotli
 }
 
 final class de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer { // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>, de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*>) // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.<init>|<init>(de.connect2x.trixnity.core.model.events.Event<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>;de.connect2x.trixnity.core.model.events.DecryptedOlmEvent<*>){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>, de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*>) // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.<init>|<init>(de.connect2x.trixnity.core.model.events.Event<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>;de.connect2x.trixnity.core.model.events.PlaintextOlmEvent<*>){}[0]
 
     final val decrypted // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.decrypted|{}decrypted[0]
-        final fun <get-decrypted>(): de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.decrypted.<get-decrypted>|<get-decrypted>(){}[0]
+        final fun <get-decrypted>(): de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.decrypted.<get-decrypted>|<get-decrypted>(){}[0]
     final val encrypted // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.encrypted|{}encrypted[0]
         final fun <get-encrypted>(): de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.encrypted.<get-encrypted>|<get-encrypted>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> = ..., de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*> = ...): de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.copy|copy(de.connect2x.trixnity.core.model.events.Event<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>;de.connect2x.trixnity.core.model.events.DecryptedOlmEvent<*>){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*> // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model.events/Event<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> = ..., de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*> = ...): de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.copy|copy(de.connect2x.trixnity.core.model.events.Event<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>;de.connect2x.trixnity.core.model.events.PlaintextOlmEvent<*>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.crypto.olm/OlmDecrypterImpl : de.connect2x.trixnity.crypto.olm/OlmDecrypter { // de.connect2x.trixnity.crypto.olm/OlmDecrypterImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.crypto.olm/OlmEncryptionService) // de.connect2x.trixnity.crypto.olm/OlmDecrypterImpl.<init>|<init>(de.connect2x.trixnity.crypto.olm.OlmEncryptionService){}[0]
+final class de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.core/UserInfo, kotlinx.serialization.json/Json, de.connect2x.trixnity.crypto.olm/OlmStore, de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceRequestHandler, de.connect2x.trixnity.crypto.olm/OlmEncryptionService, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl.<init>|<init>(de.connect2x.trixnity.core.UserInfo;kotlinx.serialization.json.Json;de.connect2x.trixnity.crypto.olm.OlmStore;de.connect2x.trixnity.crypto.olm.MegolmEncryptionServiceRequestHandler;de.connect2x.trixnity.crypto.olm.OlmEncryptionService;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver){}[0]
 
-    final fun subscribe(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer, kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmDecrypterImpl.subscribe|subscribe(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer,kotlin.Unit>){}[0]
-    final suspend fun handleOlmEvents(kotlin.collections/List<de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>>) // de.connect2x.trixnity.crypto.olm/OlmDecrypterImpl.handleOlmEvents|handleOlmEvents(kotlin.collections.List<de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>>){}[0]
+    final suspend fun decryptMegolm(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedMegolmEvent<*>> // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl.decryptMegolm|decryptMegolm(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>){}[0]
+    final suspend fun encryptMegolm(de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.room/EncryptionEventContent): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent> // de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl.encryptMegolm|encryptMegolm(de.connect2x.trixnity.core.model.events.MessageEventContent;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent){}[0]
 }
 
 final class de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl : de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl|null[0]
     constructor <init>(de.connect2x.trixnity.core/UserInfo, kotlinx.serialization.json/Json, de.connect2x.trixnity.crypto.olm/OlmStore, de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler, de.connect2x.trixnity.crypto.sign/SignService, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver) // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.<init>|<init>(de.connect2x.trixnity.core.UserInfo;kotlinx.serialization.json.Json;de.connect2x.trixnity.crypto.olm.OlmStore;de.connect2x.trixnity.crypto.olm.OlmEncryptionServiceRequestHandler;de.connect2x.trixnity.crypto.sign.SignService;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver){}[0]
 
-    final suspend fun decryptMegolm(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedMegolmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.decryptMegolm|decryptMegolm(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent>){}[0]
-    final suspend fun decryptOlm(de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/DecryptedOlmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.decryptOlm|decryptOlm(de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>){}[0]
-    final suspend fun encryptMegolm(de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.room/EncryptionEventContent): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedMessageEventContent.MegolmEncryptedMessageEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.encryptMegolm|encryptMegolm(de.connect2x.trixnity.core.model.events.MessageEventContent;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent){}[0]
-    final suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin/Boolean): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.Boolean){}[0]
+    final suspend fun decryptOlm(de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.decryptOlm|decryptOlm(de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>){}[0]
+    final suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model/UserId, kotlin/String): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
+    final suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, kotlin.collections/Set<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, kotlin/String>>): kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, kotlin/String>, kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;kotlin.collections.Set<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,kotlin.String>>){}[0]
+    final suspend fun recoverOlm(de.connect2x.trixnity.crypto.olm/OlmEncryptionService.OlmRecovery): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent?> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.recoverOlm|recoverOlm(de.connect2x.trixnity.crypto.olm.OlmEncryptionService.OlmRecovery){}[0]
 }
 
-final class de.connect2x.trixnity.crypto.olm/OlmEventHandler : de.connect2x.trixnity.core/EventHandler { // de.connect2x.trixnity.crypto.olm/OlmEventHandler|null[0]
-    constructor <init>(de.connect2x.trixnity.core/UserInfo, de.connect2x.trixnity.core/ClientEventEmitter<*>, de.connect2x.trixnity.crypto.olm/OlmKeysChangeEmitter, de.connect2x.trixnity.crypto.olm/OlmDecrypter, de.connect2x.trixnity.crypto.sign/SignService, de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler, de.connect2x.trixnity.crypto.olm/OlmStore, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver) // de.connect2x.trixnity.crypto.olm/OlmEventHandler.<init>|<init>(de.connect2x.trixnity.core.UserInfo;de.connect2x.trixnity.core.ClientEventEmitter<*>;de.connect2x.trixnity.crypto.olm.OlmKeysChangeEmitter;de.connect2x.trixnity.crypto.olm.OlmDecrypter;de.connect2x.trixnity.crypto.sign.SignService;de.connect2x.trixnity.crypto.olm.OlmEventHandlerRequestHandler;de.connect2x.trixnity.crypto.olm.OlmStore;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver){}[0]
+final class de.connect2x.trixnity.crypto.olm/OlmEventHandlerImpl : de.connect2x.trixnity.crypto.olm/OlmEventHandler { // de.connect2x.trixnity.crypto.olm/OlmEventHandlerImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.core/UserInfo, de.connect2x.trixnity.core/ClientEventEmitter<*>, de.connect2x.trixnity.crypto.olm/OlmKeysChangeEmitter, de.connect2x.trixnity.crypto.sign/SignService, de.connect2x.trixnity.crypto.olm/OlmEncryptionService, de.connect2x.trixnity.crypto.olm/OlmEventHandlerRequestHandler, de.connect2x.trixnity.crypto.olm/OlmStore, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver) // de.connect2x.trixnity.crypto.olm/OlmEventHandlerImpl.<init>|<init>(de.connect2x.trixnity.core.UserInfo;de.connect2x.trixnity.core.ClientEventEmitter<*>;de.connect2x.trixnity.crypto.olm.OlmKeysChangeEmitter;de.connect2x.trixnity.crypto.sign.SignService;de.connect2x.trixnity.crypto.olm.OlmEncryptionService;de.connect2x.trixnity.crypto.olm.OlmEventHandlerRequestHandler;de.connect2x.trixnity.crypto.olm.OlmStore;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver){}[0]
 
-    final fun startInCoroutineScope(kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.crypto.olm/OlmEventHandler.startInCoroutineScope|startInCoroutineScope(kotlinx.coroutines.CoroutineScope){}[0]
+    final fun startInCoroutineScope(kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.crypto.olm/OlmEventHandlerImpl.startInCoroutineScope|startInCoroutineScope(kotlinx.coroutines.CoroutineScope){}[0]
+    final fun subscribe(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.crypto.olm/DecryptedOlmEventContainer, kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.crypto.olm/OlmEventHandlerImpl.subscribe|subscribe(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer,kotlin.Unit>){}[0]
 }
 
 final class de.connect2x.trixnity.crypto.olm/OlmKeysChange { // de.connect2x.trixnity.crypto.olm/OlmKeysChange|null[0]
@@ -652,7 +672,7 @@ final class de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession { // de.
 }
 
 final class de.connect2x.trixnity.crypto.olm/StoredOlmSession { // de.connect2x.trixnity.crypto.olm/StoredOlmSession|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, kotlin/String, kotlin.time/Instant, kotlin.time/Instant, kotlin/String, kotlin/Boolean = ...) // de.connect2x.trixnity.crypto.olm/StoredOlmSession.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.String;kotlin.time.Instant;kotlin.time.Instant;kotlin.String;kotlin.Boolean){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, kotlin/String, kotlin.time/Instant, kotlin.time/Instant, kotlin/String, kotlin/Boolean) // de.connect2x.trixnity.crypto.olm/StoredOlmSession.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.String;kotlin.time.Instant;kotlin.time.Instant;kotlin.String;kotlin.Boolean){}[0]
 
     final val createdAt // de.connect2x.trixnity.crypto.olm/StoredOlmSession.createdAt|{}createdAt[0]
         final fun <get-createdAt>(): kotlin.time/Instant // de.connect2x.trixnity.crypto.olm/StoredOlmSession.createdAt.<get-createdAt>|<get-createdAt>(){}[0]
@@ -693,7 +713,7 @@ final class de.connect2x.trixnity.crypto.olm/StoredOlmSession { // de.connect2x.
 }
 
 final class de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession { // de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin.time/Instant = ..., kotlin/Long = ..., kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Set<kotlin/String>> = ..., kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.time.Instant;kotlin.Long;kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Set<kotlin.String>>;kotlin.String){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin.time/Instant, kotlin/Long, kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Set<kotlin/String>>, kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.time.Instant;kotlin.Long;kotlin.collections.Map<de.connect2x.trixnity.core.model.UserId,kotlin.collections.Set<kotlin.String>>;kotlin.String){}[0]
 
     final val createdAt // de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession.createdAt|{}createdAt[0]
         final fun <get-createdAt>(): kotlin.time/Instant // de.connect2x.trixnity.crypto.olm/StoredOutboundMegolmSession.createdAt.<get-createdAt>|<get-createdAt>(){}[0]
@@ -782,8 +802,6 @@ final inline fun <#A: reified de.connect2x.trixnity.core.model.keys/Key> (de.con
 final inline fun <#A: reified de.connect2x.trixnity.core.model.keys/Key> (de.connect2x.trixnity.core.model.keys/DeviceKeys).de.connect2x.trixnity.crypto.key/get(): #A? // de.connect2x.trixnity.crypto.key/get|get@de.connect2x.trixnity.core.model.keys.DeviceKeys(){0§<de.connect2x.trixnity.core.model.keys.Key>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.core.model.keys/Key> (de.connect2x.trixnity.core.model.keys/Keys).de.connect2x.trixnity.crypto.key/get(): #A? // de.connect2x.trixnity.crypto.key/get|get@de.connect2x.trixnity.core.model.keys.Keys(){0§<de.connect2x.trixnity.core.model.keys.Key>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.core.model.keys/Key> (de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/DeviceKeys, de.connect2x.trixnity.core.model/UserId>).de.connect2x.trixnity.crypto.key/get(): #A? // de.connect2x.trixnity.crypto.key/get|get@de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.DeviceKeys,de.connect2x.trixnity.core.model.UserId>(){0§<de.connect2x.trixnity.core.model.keys.Key>}[0]
-final suspend fun (de.connect2x.trixnity.crypto.olm/OlmStore).de.connect2x.trixnity.crypto.olm/findDeviceKeys(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue): de.connect2x.trixnity.core.model.keys/DeviceKeys? // de.connect2x.trixnity.crypto.olm/findDeviceKeys|findDeviceKeys@de.connect2x.trixnity.crypto.olm.OlmStore(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue){}[0]
-final suspend fun (de.connect2x.trixnity.crypto.olm/OlmStore).de.connect2x.trixnity.crypto.olm/getDeviceKeys(de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<de.connect2x.trixnity.core.model.events.m.room/Membership>): kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin.collections/Map<kotlin/String, de.connect2x.trixnity.core.model.keys/DeviceKeys>> // de.connect2x.trixnity.crypto.olm/getDeviceKeys|getDeviceKeys@de.connect2x.trixnity.crypto.olm.OlmStore(de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<de.connect2x.trixnity.core.model.events.m.room.Membership>){}[0]
 final suspend fun de.connect2x.trixnity.crypto.key/checkRecoveryKey(kotlin/ByteArray, de.connect2x.trixnity.core.model.events.m.secretstorage/SecretKeyEventContent.AesHmacSha2Key): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.crypto.key/checkRecoveryKey|checkRecoveryKey(kotlin.ByteArray;de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent.AesHmacSha2Key){}[0]
 final suspend fun de.connect2x.trixnity.crypto.key/decryptSecret(kotlin/ByteArray, kotlin/String, de.connect2x.trixnity.core.model.events.m.secretstorage/SecretKeyEventContent, kotlin/String, de.connect2x.trixnity.core.model.events.m.secretstorage/SecretEventContent, kotlinx.serialization.json/Json): kotlin/String? // de.connect2x.trixnity.crypto.key/decryptSecret|decryptSecret(kotlin.ByteArray;kotlin.String;de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent;kotlin.String;de.connect2x.trixnity.core.model.events.m.secretstorage.SecretEventContent;kotlinx.serialization.json.Json){}[0]
 final suspend fun de.connect2x.trixnity.crypto.key/encryptSecret(kotlin/ByteArray, kotlin/String, kotlin/String, kotlin/String, kotlinx.serialization.json/Json): kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // de.connect2x.trixnity.crypto.key/encryptSecret|encryptSecret(kotlin.ByteArray;kotlin.String;kotlin.String;kotlin.String;kotlinx.serialization.json.Json){}[0]

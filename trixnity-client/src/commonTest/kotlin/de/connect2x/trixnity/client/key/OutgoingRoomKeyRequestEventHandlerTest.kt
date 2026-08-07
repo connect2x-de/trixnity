@@ -1,36 +1,33 @@
 package de.connect2x.trixnity.client.key
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
-import io.kotest.matchers.maps.shouldHaveSize
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldNotBeEmpty
-import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import de.connect2x.trixnity.client.*
-import de.connect2x.trixnity.client.mocks.OlmDecrypterMock
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.clearOutdatedKeys
+import de.connect2x.trixnity.client.getInMemoryAccountStore
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.getInMemoryOlmStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
+import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
-import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
@@ -43,6 +40,18 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
+import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotBeEmpty
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
@@ -72,7 +81,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val cut = OutgoingRoomKeyRequestEventHandlerImpl(
         UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
         api,
-        OlmDecrypterMock(),
+        OlmEventHandlerMock(),
         accountStore,
         keyStore,
         olmCryptoStore,
@@ -103,7 +112,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent,
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),
@@ -141,7 +150,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent,
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),
@@ -191,7 +200,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent,
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),
@@ -208,7 +217,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent().copy(sessionKey = ExportedSessionKeyValue("dino")),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),
@@ -223,7 +232,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent(),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),
@@ -239,7 +248,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                DecryptedOlmEvent(
+                PlaintextOlmEvent(
                     forwardedRoomKeyEvent(),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 ),

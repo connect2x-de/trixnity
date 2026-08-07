@@ -1,23 +1,28 @@
 package de.connect2x.trixnity.client.cryptodriver
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.key.getDeviceKey
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.AccountStore
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.RoomStateStore
+import de.connect2x.trixnity.client.store.getByStateKey
+import de.connect2x.trixnity.client.store.members
+import de.connect2x.trixnity.client.store.toDeviceTrustLevel
 import de.connect2x.trixnity.client.user.LoadMembersService
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
+import kotlinx.coroutines.flow.first
 import kotlin.time.Instant
 
 class ClientOlmStore(
@@ -28,8 +33,8 @@ class ClientOlmStore(
     private val loadMembersService: LoadMembersService,
 ) : de.connect2x.trixnity.crypto.olm.OlmStore {
 
-    override suspend fun getDeviceKeys(userId: UserId): Map<String, DeviceKeys>? =
-        keyStore.getDeviceKeys(userId).first()?.mapValues { it.value.value.signed }
+    override suspend fun getDeviceKeys(userId: UserId): Map<String, SignedDeviceKeys>? =
+        keyStore.getDeviceKeys(userId).first()?.mapValues { it.value.value }
 
     override suspend fun getMembers(
         roomId: RoomId,
@@ -39,19 +44,25 @@ class ClientOlmStore(
         return roomStateStore.members(roomId, memberships)
     }
 
-    override suspend fun getTrustLevel(userId: UserId, deviceId: String): DeviceTrustLevel? =
+    override suspend fun getTrustLevel(userId: UserId, deviceId: String): DeviceTrustLevel =
         keyStore.getDeviceKey(userId, deviceId).first()?.trustLevel.toDeviceTrustLevel()
 
+    override suspend fun getOlmSessions(identityKeyValue: Curve25519KeyValue): Set<StoredOlmSession>? =
+        olmCryptoStore.getOlmSessions(identityKeyValue)
+
     override suspend fun updateOlmSessions(
-        senderKeyValue: Curve25519KeyValue,
-        updater: suspend (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
+        identityKeyValue: Curve25519KeyValue,
+        updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
     ) {
-        olmCryptoStore.updateOlmSessions(senderKeyValue, updater)
+        olmCryptoStore.updateOlmSessions(identityKeyValue, updater)
     }
+
+    override suspend fun getOutboundMegolmSession(roomId: RoomId): StoredOutboundMegolmSession? =
+        olmCryptoStore.getOutboundMegolmSession(roomId)
 
     override suspend fun updateOutboundMegolmSession(
         roomId: RoomId,
-        updater: suspend (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
+        updater: (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
     ) {
         olmCryptoStore.updateOutboundMegolmSession(roomId, updater)
     }
@@ -59,7 +70,7 @@ class ClientOlmStore(
     override suspend fun updateInboundMegolmSession(
         sessionId: String,
         roomId: RoomId,
-        updater: suspend (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
+        updater: (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
     ) {
         olmCryptoStore.updateInboundMegolmSession(sessionId, roomId, updater)
     }
@@ -72,21 +83,21 @@ class ClientOlmStore(
         sessionId: String,
         roomId: RoomId,
         messageIndex: Long,
-        updater: suspend (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
+        updater: (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
     ) {
         olmCryptoStore.updateInboundMegolmMessageIndex(sessionId, roomId, messageIndex, updater)
     }
 
     override suspend fun getOlmAccount(): String = checkNotNull(olmCryptoStore.getOlmAccount())
-    override suspend fun updateOlmAccount(updater: suspend (String) -> String) = olmCryptoStore.updateOlmAccount {
+    override suspend fun updateOlmAccount(updater: (String) -> String) = olmCryptoStore.updateOlmAccount {
         updater(checkNotNull(it))
     }
 
     override suspend fun getOlmPickleKey(): String? = checkNotNull(accountStore.getAccount()).olmPickleKey
 
-    override suspend fun getForgetFallbackKeyAfter(): Flow<Instant?> = olmCryptoStore.getForgetFallbackKeyAfter()
+    override suspend fun getForgetFallbackKeyAfter(): Instant? = olmCryptoStore.getForgetFallbackKeyAfter()
 
-    override suspend fun updateForgetFallbackKeyAfter(updater: suspend (Instant?) -> Instant?) =
+    override suspend fun updateForgetFallbackKeyAfter(updater: (Instant?) -> Instant?) =
         olmCryptoStore.updateForgetFallbackKeyAfter(updater)
 
     override suspend fun getHistoryVisibility(roomId: RoomId): HistoryVisibilityEventContent.HistoryVisibility? =

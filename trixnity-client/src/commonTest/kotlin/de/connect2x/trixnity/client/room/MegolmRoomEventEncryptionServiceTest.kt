@@ -4,7 +4,7 @@ import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.mocks.KeyBackupServiceMock
-import de.connect2x.trixnity.client.mocks.OlmEncryptionServiceMock
+import de.connect2x.trixnity.client.mocks.MegolmEncryptionServiceMock
 import de.connect2x.trixnity.client.mocks.OutgoingRoomKeyRequestEventHandlerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
@@ -22,8 +22,8 @@ import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAuthData
 import de.connect2x.trixnity.crypto.driver.CryptoDriverException
-import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.DecryptMegolmError
-import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptMegolmError
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.DecryptMegolmError
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.EncryptMegolmError
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -59,7 +59,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
             1, "", ""
         )
     }
-    private val olmEncryptionServiceMock = OlmEncryptionServiceMock()
+    private val megolmEncryptionServiceMock = MegolmEncryptionServiceMock()
     private val outgoingRoomKeyRequestEventHandlerMock = OutgoingRoomKeyRequestEventHandlerMock()
 
     private val cut = MegolmRoomEventEncryptionService(
@@ -69,7 +69,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
         olmCryptoStore = olmCryptoStore,
         keyBackupService = keyBackupServiceMock,
         outgoingRoomKeyRequestEventHandler = outgoingRoomKeyRequestEventHandlerMock,
-        olmEncryptionService = olmEncryptionServiceMock
+        megolmEncryptionService = megolmEncryptionServiceMock
     )
 
     private val session = "SESSION"
@@ -89,7 +89,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `encrypt » not wrap unexpected exception`() = runTest {
         val exception = RuntimeException("unexpected")
-        olmEncryptionServiceMock.returnEncryptMegolm = Result.failure(exception)
+        megolmEncryptionServiceMock.returnEncryptMegolm = Result.failure(exception)
 
         val result = cut.encrypt(RoomMessageEventContent.TextBased.Text("hi"), room)
         result?.isFailure shouldBe true
@@ -98,8 +98,8 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `encrypt » do not wrap EncryptMegolmError`() = runTest {
-        val exception = EncryptMegolmError.OlmLibraryError(CryptoDriverException(RuntimeException("failed")))
-        olmEncryptionServiceMock.returnEncryptMegolm = Result.failure(exception)
+        val exception = EncryptMegolmError.CryptoDriverError(CryptoDriverException(RuntimeException("failed")))
+        megolmEncryptionServiceMock.returnEncryptMegolm = Result.failure(exception)
 
         val result = cut.encrypt(RoomMessageEventContent.TextBased.Text("hi"), room)
         result?.isFailure shouldBe true
@@ -109,7 +109,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decrypt » not wrap unexpected exception`() = runTest {
         val exception = RuntimeException("unexpected")
-        olmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
+        megolmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
         olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
 
         val result = cut.decrypt(encryptedEvent)
@@ -120,7 +120,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decrypt » wrap DecryptMegolmError`() = runTest {
         val exception = DecryptMegolmError.ValidationFailed("failed")
-        olmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
+        megolmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
         olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
 
         val result = cut.decrypt(encryptedEvent)

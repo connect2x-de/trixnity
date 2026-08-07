@@ -2,18 +2,22 @@ package de.connect2x.trixnity.client.key
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import io.ktor.util.reflect.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
+import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
-import de.connect2x.trixnity.core.*
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.secret.SecretKeyRequestEventContent
@@ -21,6 +25,9 @@ import de.connect2x.trixnity.core.model.events.m.secret.SecretKeySendEventConten
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretEventContent
 import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.subscribe
+import de.connect2x.trixnity.core.subscribeContent
+import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
 import de.connect2x.trixnity.crypto.core.SecureRandom
@@ -30,9 +37,14 @@ import de.connect2x.trixnity.crypto.driver.keys.Ed25519PublicKey
 import de.connect2x.trixnity.crypto.driver.keys.Ed25519SecretKey
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
-import de.connect2x.trixnity.crypto.olm.OlmDecrypter
+import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.nextString
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -41,7 +53,7 @@ private val log = Logger("de.connect2x.trixnity.client.key.OutgoingSecretKeyRequ
 class OutgoingSecretKeyRequestEventHandler(
     userInfo: UserInfo,
     private val api: MatrixClientServerApiClient,
-    private val olmDecrypter: OlmDecrypter,
+    private val olmEventHandler: OlmEventHandler,
     private val keyBackupService: KeyBackupService,
     private val keyStore: KeyStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
@@ -53,7 +65,7 @@ class OutgoingSecretKeyRequestEventHandler(
     private val ownDeviceId = userInfo.deviceId
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        olmDecrypter.subscribe(::handleOutgoingKeyRequestAnswer).unsubscribeOnCompletion(scope)
+        olmEventHandler.subscribe(::handleOutgoingKeyRequestAnswer).unsubscribeOnCompletion(scope)
         api.sync.subscribe(Priority.AFTER_DEFAULT, ::cancelOldOutgoingKeyRequests).unsubscribeOnCompletion(scope)
         api.sync.subscribeContent(subscriber = ::handleChangedSecrets).unsubscribeOnCompletion(scope)
         // we use UNDISPATCHED because we want to ensure, that collect is called immediately

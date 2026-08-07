@@ -2,6 +2,7 @@ package de.connect2x.trixnity.crypto.driver.libolm.olm
 
 import de.connect2x.trixnity.crypto.driver.keys.PickleKey
 import de.connect2x.trixnity.crypto.driver.libolm.keys.LibOlmPickleKey
+import de.connect2x.trixnity.crypto.driver.libolm.rethrow
 import de.connect2x.trixnity.crypto.driver.olm.Message
 import de.connect2x.trixnity.crypto.driver.olm.Session
 import de.connect2x.trixnity.libolm.OlmMessage
@@ -41,7 +42,7 @@ value class LibOlmSession(private val inner: OlmSession) : Session {
             }
         )
 
-        return inner.decrypt(message)
+        return rethrow { inner.decrypt(message) }
     }
 
     override fun pickle(pickleKey: PickleKey?): String {

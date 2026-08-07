@@ -11,11 +11,22 @@ import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
 import de.connect2x.trixnity.clientserverapi.model.key.ClaimKeys
-import de.connect2x.trixnity.core.*
+import de.connect2x.trixnity.core.ClientEventEmitterImpl
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.SecretType.M_CROSS_SIGNING_SELF_SIGNING
 import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
@@ -27,7 +38,14 @@ import de.connect2x.trixnity.crypto.driver.keys.Ed25519PublicKey
 import de.connect2x.trixnity.crypto.driver.keys.Ed25519SecretKey
 import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.of
-import de.connect2x.trixnity.crypto.olm.*
+import de.connect2x.trixnity.crypto.olm.OlmEncryptionServiceImpl
+import de.connect2x.trixnity.crypto.olm.OlmEncryptionServiceRequestHandler
+import de.connect2x.trixnity.crypto.olm.OlmEventHandlerImpl
+import de.connect2x.trixnity.crypto.olm.OlmEventHandlerRequestHandler
+import de.connect2x.trixnity.crypto.olm.OlmKeysChange
+import de.connect2x.trixnity.crypto.olm.OlmKeysChangeEmitter
+import de.connect2x.trixnity.crypto.olm.OlmStore
+import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.crypto.sign.SignServiceImpl
 import de.connect2x.trixnity.crypto.sign.SignServiceStore
@@ -36,9 +54,26 @@ import de.connect2x.trixnity.crypto.sign.SignWith.KeyPair
 import de.connect2x.trixnity.crypto.sign.sign
 import de.connect2x.trixnity.utils.decodeBase64
 import de.connect2x.trixnity.utils.retry
-import io.ktor.utils.io.CancellationException
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -255,14 +290,14 @@ class DehydratedDeviceService(
     ) {
         val dehydratedDeviceOlmStore = object : OlmStore by olmStore {
             override suspend fun getOlmAccount(): String = olmAccountPickle
-            override suspend fun updateOlmAccount(updater: suspend (String) -> String) {
+            override suspend fun updateOlmAccount(updater: (String) -> String) {
                 updater(olmAccountPickle)
             }
 
             private val temporaryOlmSessions = MutableStateFlow<Set<StoredOlmSession>?>(null)
             override suspend fun updateOlmSessions(
-                senderKeyValue: KeyValue.Curve25519KeyValue,
-                updater: suspend (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
+                identityKeyValue: KeyValue.Curve25519KeyValue,
+                updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
             ) {
                 temporaryOlmSessions.update {
                     updater.invoke(it)
@@ -271,33 +306,34 @@ class DehydratedDeviceService(
         }
         val eventEmitter = object : ClientEventEmitterImpl<List<ClientEvent<*>>>() {}
         // TODO at the end, we only use ::handleOlmEncryptedRoomKeyEventContent and ::handleOlmEvents, so maybe just extract it
-        val olmEventHandler = OlmEventHandler(
+        val olmEventHandler = OlmEventHandlerImpl(
             userInfo = rehydratedUserInfo,
             eventEmitter = eventEmitter,
             olmKeysChangeEmitter = object : OlmKeysChangeEmitter {
                 override fun subscribeOneTimeKeysCount(subscriber: suspend (OlmKeysChange) -> Unit): () -> Unit =
                     { }
             },
-            decrypter = OlmDecrypterImpl(
-                OlmEncryptionServiceImpl(
-                    userInfo = rehydratedUserInfo,
-                    json = json,
-                    store = dehydratedDeviceOlmStore,
-                    requests = object : OlmEncryptionServiceRequestHandler {
-                        override suspend fun claimKeys(oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>): Result<ClaimKeys.Response> =
-                            Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
-
-                        override suspend fun sendToDevice(events: Map<UserId, Map<String, ToDeviceEventContent>>): Result<Unit> =
-                            Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
-                    },
-                    signService = signService,
-                    clock = clock,
-                    driver = driver,
-                )
+            olmEncryptionService = OlmEncryptionServiceImpl(
+                userInfo = rehydratedUserInfo,
+                json = json,
+                store = dehydratedDeviceOlmStore,
+                requests = object : OlmEncryptionServiceRequestHandler {
+                    override suspend fun claimKeys(oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>): Result<ClaimKeys.Response> =
+                        Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
+                },
+                signService = signService,
+                clock = clock,
+                driver = driver,
             ),
             signService = signService,
             requestHandler = object : OlmEventHandlerRequestHandler {
                 override suspend fun setOneTimeKeys(oneTimeKeys: Keys?, fallbackKeys: Keys?): Result<Unit> =
+                    Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
+
+                override suspend fun sendToDevice(
+                    events: Map<UserId, Map<String, ToDeviceEventContent>>,
+                    transactionId: String
+                ): Result<Unit> =
                     Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
             },
             store = dehydratedDeviceOlmStore,

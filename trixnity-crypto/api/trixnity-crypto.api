@@ -180,13 +180,13 @@ public final class de/connect2x/trixnity/crypto/key/UserTrustLevel$Unknown : de/
 }
 
 public final class de/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer {
-	public fun <init> (Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;)V
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/Event;
-	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;
-	public final fun copy (Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;)Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;)Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;Lde/connect2x/trixnity/core/model/events/Event;Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/DecryptedOlmEventContainer;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDecrypted ()Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;
+	public final fun getDecrypted ()Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;
 	public final fun getEncrypted ()Lde/connect2x/trixnity/core/model/events/Event;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -197,78 +197,122 @@ public final class de/connect2x/trixnity/crypto/olm/GetOlmPublicKeysKt {
 	public static synthetic fun getOlmPublicKeys$default (Lde/connect2x/trixnity/crypto/driver/CryptoDriver;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmPublicKeys;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/MembershipsAllowedToReceiveKeyKt {
-	public static final fun getMembershipsAllowedToReceiveKey (Lde/connect2x/trixnity/core/model/events/m/room/HistoryVisibilityEventContent$HistoryVisibility;)Ljava/util/Set;
-}
-
-public abstract interface class de/connect2x/trixnity/crypto/olm/OlmDecrypter {
-	public abstract fun handleOlmEvents (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun subscribe (Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function0;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmDecrypterImpl : de/connect2x/trixnity/crypto/olm/OlmDecrypter {
-	public fun <init> (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;)V
-	public fun handleOlmEvents (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun subscribe (Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function0;
-}
-
-public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService {
+public abstract interface class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService {
 	public abstract fun decryptMegolm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun decryptOlm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$ToDeviceEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun encryptMegolm-lefIFc8 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptionEventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun encryptOlm-_HzW4DU (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun encryptOlm-_HzW4DU$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
+public abstract interface class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$DeserializationError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
-	public fun <init> (Lkotlinx/serialization/SerializationException;)V
-	public final fun component1 ()Lkotlinx/serialization/SerializationException;
-	public final fun copy (Lkotlinx/serialization/SerializationException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$DeserializationError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$DeserializationError;Lkotlinx/serialization/SerializationException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$DeserializationError;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Lkotlinx/serialization/SerializationException;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$MegolmKeyNotFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
-	public fun <init> ()V
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$MegolmKeyUnknownMessageIndex : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
-	public fun <init> ()V
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$OlmLibraryError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$CryptoDriverError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
 	public fun <init> (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
 	public final fun component1 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
-	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$OlmLibraryError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$OlmLibraryError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$OlmLibraryError;
+	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$CryptoDriverError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$CryptoDriverError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$CryptoDriverError;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$ValidationFailed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError {
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$DeserializationError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
+	public fun <init> (Lkotlinx/serialization/SerializationException;)V
+	public final fun component1 ()Lkotlinx/serialization/SerializationException;
+	public final fun copy (Lkotlinx/serialization/SerializationException;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$DeserializationError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$DeserializationError;Lkotlinx/serialization/SerializationException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$DeserializationError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lkotlinx/serialization/SerializationException;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyNotFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
+	public fun <init> ()V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyUnknownMessageIndex : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
+	public fun <init> ()V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$ValidationFailed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$ValidationFailed;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$ValidationFailed;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptMegolmError$ValidationFailed;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$ValidationFailed;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$ValidationFailed;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$ValidationFailed;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getReason ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError {
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$CryptoDriverError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError {
+	public fun <init> (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
+	public final fun component1 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
+	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$CryptoDriverError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$CryptoDriverError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$CryptoDriverError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$NetworkError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$NetworkError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$NetworkError;Ljava/lang/Throwable;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$EncryptMegolmError$NetworkError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceImpl : de/connect2x/trixnity/crypto/olm/MegolmEncryptionService {
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceRequestHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun decryptMegolm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun encryptMegolm-lefIFc8 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptionEventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceRequestHandler {
+	public abstract fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/MembershipsAllowedToReceiveKeyKt {
+	public static final fun getMembershipsAllowedToReceiveKey (Lde/connect2x/trixnity/core/model/events/m/room/HistoryVisibilityEventContent$HistoryVisibility;)Ljava/util/Set;
+}
+
+public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService {
+	public abstract fun decryptOlm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$ToDeviceEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun encryptOlm (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun encryptOlm-Wo0uVPo (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun recoverOlm-gIAlu-s (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
+	public abstract fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$CryptoDriverError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
+	public fun <init> (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
+	public final fun component1 ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public final fun component2 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
+	public final fun copy (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$CryptoDriverError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$CryptoDriverError;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$CryptoDriverError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
+	public fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$DehydratedDeviceNotAllowed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
 	public fun <init> ()V
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$DeserializationError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
@@ -278,42 +322,40 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$Decrypt
 	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$DeserializationError;Lkotlinx/serialization/SerializationException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$DeserializationError;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getError ()Lkotlinx/serialization/SerializationException;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$KeyNotFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun copy (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$KeyNotFound;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$KeyNotFound;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$KeyNotFound;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKeyAlgorithm ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$NoMatchingOlmSessionFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
-	public fun <init> ()V
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$OlmLibraryError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
-	public final fun component1 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
-	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$OlmLibraryError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$OlmLibraryError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$OlmLibraryError;
+	public fun <init> (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;)V
+	public final fun component1 ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public final fun copy (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$NoMatchingOlmSessionFound;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$NoMatchingOlmSessionFound;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$NoMatchingOlmSessionFound;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
+	public fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$SenderDidNotEncryptForThisDeviceException : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$NoOlmSupported : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
+	public final fun getReason ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$SenderDidNotEncryptForThisDevice : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
 	public fun <init> ()V
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$TooManySessions : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
 	public fun <init> ()V
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$ValidationFailed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError {
@@ -322,25 +364,9 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$Decrypt
 	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$ValidationFailed;
 	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$ValidationFailed;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$DecryptOlmError$ValidationFailed;
 	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun getOlmRecovery ()Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public fun getOlmRecovery ()Ljava/lang/Void;
 	public final fun getReason ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$DefaultImpls {
-	public static synthetic fun encryptOlm-_HzW4DU$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-}
-
-public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError {
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError$OlmLibraryError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError {
-	public fun <init> (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
-	public final fun component1 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
-	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError$OlmLibraryError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError$OlmLibraryError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptMegolmError$OlmLibraryError;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -348,99 +374,84 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$Encrypt
 public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DehydratedDeviceNotCrossSigned : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> ()V
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$KeyNotFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun copy (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$KeyNotFound;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$KeyNotFound;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$KeyNotFound;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKeyAlgorithm ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OlmLibraryError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$CryptoDriverError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
 	public fun <init> (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)V
 	public final fun component1 ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
-	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OlmLibraryError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OlmLibraryError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OlmLibraryError;
+	public final fun copy (Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$CryptoDriverError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$CryptoDriverError;Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$CryptoDriverError;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getError ()Lde/connect2x/trixnity/crypto/driver/CryptoDriverException;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNetworkError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DehydratedDeviceNotCrossSigned : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+	public fun <init> ()V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NetworkError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
 	public fun <init> (Ljava/lang/Throwable;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNetworkError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNetworkError;Ljava/lang/Throwable;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNetworkError;
+	public final fun copy (Ljava/lang/Throwable;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NetworkError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NetworkError;Ljava/lang/Throwable;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NetworkError;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getError ()Ljava/lang/Throwable;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNotFound : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun copy (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNotFound;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNotFound;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyNotFound;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKeyAlgorithm ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NoOlmSupported : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getReason ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyRemoteServerError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Ljava/lang/String;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$RemoteHomeserverNotReachable : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+	public fun <init> ()V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyRemoteServerError;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyRemoteServerError;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyRemoteServerError;
+	public final fun component3 ()Lkotlin/time/Instant;
+	public final fun copy-pFTbHVM (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
+	public static synthetic fun copy-pFTbHVM$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKeyAlgorithm ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun getServer ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyVerificationFailed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Lde/connect2x/trixnity/crypto/sign/VerifyResult;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun component2 ()Lde/connect2x/trixnity/crypto/sign/VerifyResult;
-	public final fun copy (Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Lde/connect2x/trixnity/crypto/sign/VerifyResult;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyVerificationFailed;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyVerificationFailed;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Lde/connect2x/trixnity/crypto/sign/VerifyResult;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$OneTimeKeyVerificationFailed;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getKeyAlgorithm ()Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;
-	public final fun getVerifyResult ()Lde/connect2x/trixnity/crypto/sign/VerifyResult;
+	public final fun getDeviceId ()Ljava/lang/String;
+	public final fun getLastTry ()Lkotlin/time/Instant;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceImpl : de/connect2x/trixnity/crypto/olm/OlmEncryptionService {
 	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
-	public fun decryptMegolm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun decryptOlm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$ToDeviceEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun encryptMegolm-lefIFc8 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptionEventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun encryptOlm-_HzW4DU (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun encryptOlm (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun encryptOlm-Wo0uVPo (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recoverOlm-gIAlu-s (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler {
 	public abstract fun claimKeys-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun sendToDevice-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEventHandler : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/core/ClientEventEmitter;Lde/connect2x/trixnity/crypto/olm/OlmKeysChangeEmitter;Lde/connect2x/trixnity/crypto/olm/OlmDecrypter;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEventHandler : de/connect2x/trixnity/core/EventHandler {
+	public abstract fun subscribe (Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function0;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEventHandler$DefaultImpls {
+	public static fun startInCoroutineScope (Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lkotlinx/coroutines/CoroutineScope;)V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/OlmEventHandlerImpl : de/connect2x/trixnity/crypto/olm/OlmEventHandler {
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/core/ClientEventEmitter;Lde/connect2x/trixnity/crypto/olm/OlmKeysChangeEmitter;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
+	public fun subscribe (Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function0;
 }
 
 public abstract interface class de/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler {
+	public abstract fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setOneTimeKeys-984nOFY (Ljava/util/Set;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -482,19 +493,16 @@ public abstract interface class de/connect2x/trixnity/crypto/olm/OlmStore {
 	public abstract fun getMembers-RNkTX0s (Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getOlmAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getOlmPickleKey (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getOutboundMegolmSession-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getRoomEncryptionAlgorithm-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getTrustLevel-pFTbHVM (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateForgetFallbackKeyAfter (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateInboundMegolmMessageIndex-RxWrHTc (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateInboundMegolmSession-R_GNm0M (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateOlmAccount (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateOutboundMegolmSession-RNkTX0s (Ljava/lang/String;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/crypto/olm/OlmStoreKt {
-	public static final fun findDeviceKeys-PKisLvk (Lde/connect2x/trixnity/crypto/olm/OlmStore;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun getDeviceKeys-R_GNm0M (Lde/connect2x/trixnity/crypto/olm/OlmStore;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateForgetFallbackKeyAfter (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateInboundMegolmMessageIndex-RxWrHTc (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateInboundMegolmSession-R_GNm0M (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateOlmAccount (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateOutboundMegolmSession-RNkTX0s (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmMessageIndex {
@@ -578,7 +586,6 @@ public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$C
 public final class de/connect2x/trixnity/crypto/olm/StoredOlmSession {
 	public static final field Companion Lde/connect2x/trixnity/crypto/olm/StoredOlmSession$Companion;
 	public fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/time/Instant;Ljava/lang/String;Z)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lkotlin/time/Instant;Lkotlin/time/Instant;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Lkotlin/time/Instant;
@@ -615,7 +622,6 @@ public final class de/connect2x/trixnity/crypto/olm/StoredOlmSession$Companion {
 
 public final class de/connect2x/trixnity/crypto/olm/StoredOutboundMegolmSession {
 	public static final field Companion Lde/connect2x/trixnity/crypto/olm/StoredOutboundMegolmSession$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lkotlin/time/Instant;JLjava/util/Map;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Lkotlin/time/Instant;JLjava/util/Map;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component2 ()Lkotlin/time/Instant;

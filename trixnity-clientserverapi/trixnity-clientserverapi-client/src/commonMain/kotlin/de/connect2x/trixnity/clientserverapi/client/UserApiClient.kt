@@ -1,11 +1,21 @@
 package de.connect2x.trixnity.clientserverapi.client
 
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.util.reflect.*
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.model.user.*
+import de.connect2x.trixnity.clientserverapi.model.user.DeleteProfileField
+import de.connect2x.trixnity.clientserverapi.model.user.Filters
+import de.connect2x.trixnity.clientserverapi.model.user.GetFilter
+import de.connect2x.trixnity.clientserverapi.model.user.GetGlobalAccountData
+import de.connect2x.trixnity.clientserverapi.model.user.GetPresence
+import de.connect2x.trixnity.clientserverapi.model.user.GetProfile
+import de.connect2x.trixnity.clientserverapi.model.user.GetProfileField
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.clientserverapi.model.user.ReportUser
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
+import de.connect2x.trixnity.clientserverapi.model.user.SetFilter
+import de.connect2x.trixnity.clientserverapi.model.user.SetGlobalAccountData
+import de.connect2x.trixnity.clientserverapi.model.user.SetPresence
+import de.connect2x.trixnity.clientserverapi.model.user.SetProfileField
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
@@ -14,6 +24,11 @@ import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.contentType
 import de.connect2x.trixnity.utils.nextString
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 interface UserApiClient {
@@ -91,6 +106,7 @@ interface UserApiClient {
      */
     suspend fun sendToDevice(
         events: Map<UserId, Map<String, ToDeviceEventContent>>,
+        transactionId: String = Random.nextString(22),
     ): Result<Unit>
 
     /**
@@ -212,6 +228,7 @@ class UserApiClientImpl(
 
     override suspend fun sendToDevice(
         events: Map<UserId, Map<String, ToDeviceEventContent>>,
+        transactionId: String,
     ): Result<Unit> = runCatching {
         data class FlatEntry(
             val userId: UserId,
@@ -236,7 +253,7 @@ class UserApiClientImpl(
             coroutineScope {
                 eventsByType.values.forEach {
                     launch {
-                        sendToDeviceUnsafe(it).getOrThrow()
+                        sendToDeviceUnsafe(it, transactionId).getOrThrow()
                     }
                 }
             }

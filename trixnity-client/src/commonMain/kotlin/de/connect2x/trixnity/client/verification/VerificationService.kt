@@ -1,17 +1,19 @@
 package de.connect2x.trixnity.client.verification
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.*
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.key.KeySecretService
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.key.KeyTrustService
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.get
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.Cancel
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.Done
@@ -20,7 +22,9 @@ import de.connect2x.trixnity.client.verification.VerificationService.SelfVerific
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
-import de.connect2x.trixnity.core.*
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -37,12 +41,35 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Ve
 import de.connect2x.trixnity.core.model.events.m.secretstorage.DefaultSecretKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent.AesHmacSha2Key
+import de.connect2x.trixnity.core.subscribeContent
+import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
-import de.connect2x.trixnity.crypto.olm.OlmDecrypter
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.utils.nextString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
@@ -119,7 +146,7 @@ class VerificationServiceImpl(
     private val api: MatrixClientServerApiClient,
     private val keyStore: KeyStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
-    private val olmDecrypter: OlmDecrypter,
+    private val olmEventHandler: OlmEventHandler,
     private val olmEncryptionService: OlmEncryptionService,
     private val roomService: RoomService,
     private val userService: UserService,
@@ -142,7 +169,7 @@ class VerificationServiceImpl(
     override fun startInCoroutineScope(scope: CoroutineScope) {
         api.sync.subscribeContent(subscriber = ::handleDeviceVerificationRequestEvents)
             .unsubscribeOnCompletion(scope)
-        olmDecrypter.subscribe(::handleOlmDecryptedDeviceVerificationRequestEvents)
+        olmEventHandler.subscribe(::handleOlmDecryptedDeviceVerificationRequestEvents)
             .unsubscribeOnCompletion(scope)
         // we use UNDISPATCHED because we want to ensure, that collect is called immediately
         scope.launch(start = UNDISPATCHED) {
@@ -170,7 +197,7 @@ class VerificationServiceImpl(
                             theirDeviceId = content.fromDevice,
                             supportedMethods = supportedMethods,
                             api = api,
-                            olmDecrypter = olmDecrypter,
+                            olmEventHandler = olmEventHandler,
                             olmEncryptionService = olmEncryptionService,
                             keyStore = keyStore,
                             keyTrust = keyTrustService,
@@ -188,7 +215,7 @@ class VerificationServiceImpl(
                                 theirDeviceId = content.fromDevice,
                                 supportedMethods = supportedMethods,
                                 api = api,
-                                olmDecrypter = olmDecrypter,
+                                olmEventHandler = olmEventHandler,
                                 olmEncryptionService = olmEncryptionService,
                                 keyTrust = keyTrustService,
                                 keyStore = keyStore,
@@ -222,7 +249,7 @@ class VerificationServiceImpl(
                             theirDeviceId = content.fromDevice,
                             supportedMethods = supportedMethods,
                             api = api,
-                            olmDecrypter = olmDecrypter,
+                            olmEventHandler = olmEventHandler,
                             olmEncryptionService = olmEncryptionService,
                             keyTrust = keyTrustService,
                             keyStore = keyStore,
@@ -240,7 +267,7 @@ class VerificationServiceImpl(
                                 theirDeviceId = content.fromDevice,
                                 supportedMethods = supportedMethods,
                                 api = api,
-                                olmDecrypter = olmDecrypter,
+                                olmEventHandler = olmEventHandler,
                                 olmEncryptionService = olmEncryptionService,
                                 keyTrust = keyTrustService,
                                 keyStore = keyStore,
@@ -288,9 +315,12 @@ class VerificationServiceImpl(
         val request = VerificationRequestToDeviceEventContent(
             ownDeviceId, supportedMethods, clock.now().toEpochMilliseconds(), SecureRandom.nextString(22)
         )
-        api.user.sendToDevice(mapOf(theirUserId to theirDeviceIds.toSet().associateWith {
-            olmEncryptionService.encryptOlm(request, theirUserId, it).getOrNull() ?: request
-        })).getOrThrow()
+        val encryptedRequests =
+            olmEncryptionService.encryptOlm(request, theirDeviceIds.map { theirUserId to it }.toSet())
+                .mapValues { it.value.getOrNull() ?: request }
+                .entries.groupBy { it.key.first }
+                .mapValues { it.value.associate { it.key.second to it.value } }
+        api.user.sendToDevice(encryptedRequests).getOrThrow()
         ActiveDeviceVerificationImpl(
             request = request,
             requestIsOurs = true,
@@ -300,7 +330,7 @@ class VerificationServiceImpl(
             theirDeviceIds = theirDeviceIds.toSet(),
             supportedMethods = supportedMethods,
             api = api,
-            olmDecrypter = olmDecrypter,
+            olmEventHandler = olmEventHandler,
             olmEncryptionService = olmEncryptionService,
             keyTrust = keyTrustService,
             keyStore = keyStore,

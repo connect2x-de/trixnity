@@ -1,37 +1,33 @@
 package de.connect2x.trixnity.crypto.mocks
 
-import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.*
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.EventContent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
-import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 
 class OlmEncryptionServiceMock : OlmEncryptionService {
+    val encryptOlm = mutableMapOf<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>>()
+
     override suspend fun encryptOlm(
         content: EventContent,
-        userId: UserId,
-        deviceId: String,
-        forceNewSession: Boolean
-    ): Result<OlmEncryptedToDeviceEventContent> {
-        throw NotImplementedError()
-    }
+        recipientUserId: UserId,
+        recipientDeviceId: String
+    ): Result<OlmEncryptedToDeviceEventContent> =
+        checkNotNull(encryptOlm[recipientUserId to recipientDeviceId])
 
-    var decryptOlm: Result<DecryptedOlmEvent<*>>? = null
-    override suspend fun decryptOlm(event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>): Result<DecryptedOlmEvent<*>> =
-        decryptOlm ?: throw NotImplementedError()
+    override suspend fun encryptOlm(
+        content: EventContent,
+        recipients: Set<Pair<UserId, String>>
+    ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> = encryptOlm
 
-    override suspend fun encryptMegolm(
-        content: MessageEventContent,
-        roomId: RoomId,
-        settings: EncryptionEventContent
-    ): Result<MegolmEncryptedMessageEventContent> {
-        throw NotImplementedError()
-    }
+    var recoverOlm: Result<OlmEncryptedToDeviceEventContent?>? = null
+    override suspend fun recoverOlm(olmRecovery: OlmEncryptionService.OlmRecovery): Result<OlmEncryptedToDeviceEventContent?> =
+        checkNotNull(recoverOlm)
 
-    override suspend fun decryptMegolm(encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>): Result<DecryptedMegolmEvent<*>> {
-        throw NotImplementedError()
-    }
+
+    var decryptOlm = mutableListOf<Result<PlaintextOlmEvent<*>>>()
+    override suspend fun decryptOlm(event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>): Result<PlaintextOlmEvent<*>> =
+        decryptOlm.removeFirst()
 }

@@ -42,7 +42,7 @@ import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
-import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.DecryptMegolmError
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
@@ -320,7 +320,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvent » event can be decrypted » handle error`() = runTest {
         roomEventDecryptionServiceMock.returnDecrypt =
-            Result.failure(OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex())
+            Result.failure(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
         roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
         val result = cut.getTimelineEvent(room, eventId)
             .first { it?.content?.isFailure == true }
@@ -328,7 +328,7 @@ class RoomServiceTest : TrixnityBaseTest() {
             assertNotNull(this)
             event shouldBe encryptedTimelineEvent.event
             content?.exceptionOrNull() shouldBe
-                    TimelineEventContentError.DecryptionError(OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex())
+                    TimelineEventContentError.DecryptionError(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
         }
     }
 
