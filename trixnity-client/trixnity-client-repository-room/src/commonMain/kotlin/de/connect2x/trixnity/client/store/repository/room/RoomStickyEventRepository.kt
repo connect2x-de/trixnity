@@ -14,6 +14,8 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.StickyEventContent
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
 
@@ -76,21 +78,21 @@ internal class RoomStickyEventRepository(
 
     private val dao = db.stickyRoomEvent()
 
+    context(transaction: ReadTransaction)
     override suspend fun get(firstKey: StickyEventRepositoryFirstKey): Map<StickyEventRepositorySecondKey, StoredStickyEvent<StickyEventContent>> =
-        withRoomRead {
-            dao.get(firstKey.roomId, firstKey.type)
-                .associate {
-                    StickyEventRepositorySecondKey(
-                        it.sender,
-                        originalStickyKey(it.stickyKey)
-                    ) to json.decodeFromString(StoredStickyEvent.Serializer, it.value)
-                }
-        }
+        dao.get(firstKey.roomId, firstKey.type)
+            .associate {
+                StickyEventRepositorySecondKey(
+                    it.sender,
+                    originalStickyKey(it.stickyKey)
+                ) to json.decodeFromString(StoredStickyEvent.Serializer, it.value)
+            }
 
+    context(transaction: ReadTransaction)
     override suspend fun get(
         firstKey: StickyEventRepositoryFirstKey,
         secondKey: StickyEventRepositorySecondKey
-    ): StoredStickyEvent<StickyEventContent>? = withRoomRead {
+    ): StoredStickyEvent<StickyEventContent>? =
         dao.get(
             firstKey.roomId,
             firstKey.type,
@@ -99,77 +101,72 @@ internal class RoomStickyEventRepository(
         )?.let {
             json.decodeFromString(StoredStickyEvent.Serializer, it.value)
         }
-    }
 
+    context(transaction: ReadTransaction)
     override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
-        withRoomRead {
-            dao.getByEndTimeBefore(before.toEpochMilliseconds())
-                .map {
-                    StickyEventRepositoryFirstKey(
-                        it.roomId,
-                        it.type
-                    ) to StickyEventRepositorySecondKey(
-                        it.sender,
-                        originalStickyKey(it.stickyKey)
-                    )
-                }.toSet()
-        }
+        dao.getByEndTimeBefore(before.toEpochMilliseconds())
+            .map {
+                StickyEventRepositoryFirstKey(
+                    it.roomId,
+                    it.type
+                ) to StickyEventRepositorySecondKey(
+                    it.sender,
+                    originalStickyKey(it.stickyKey)
+                )
+            }.toSet()
 
+    context(transaction: ReadTransaction)
     override suspend fun getByEventId(
         roomId: RoomId,
         eventId: EventId
     ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? =
-        withRoomRead {
-            dao.getByEventId(roomId, eventId)
-                ?.let {
-                    StickyEventRepositoryFirstKey(
-                        it.roomId,
-                        it.type
-                    ) to StickyEventRepositorySecondKey(
-                        it.sender,
-                        originalStickyKey(it.stickyKey)
-                    )
-                }
-        }
+        dao.getByEventId(roomId, eventId)
+            ?.let {
+                StickyEventRepositoryFirstKey(
+                    it.roomId,
+                    it.type
+                ) to StickyEventRepositorySecondKey(
+                    it.sender,
+                    originalStickyKey(it.stickyKey)
+                )
+            }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(
         firstKey: StickyEventRepositoryFirstKey,
         secondKey: StickyEventRepositorySecondKey,
         value: StoredStickyEvent<StickyEventContent>
     ): Unit =
-        withRoomWrite {
-            dao.insert(
-                RoomStickyEvent(
-                    roomId = firstKey.roomId,
-                    type = firstKey.type,
-                    sender = secondKey.sender,
-                    stickyKey = dbStickyKey(secondKey.stickyKey),
-                    eventId = value.event.id,
-                    endTimeMs = value.endTime.toEpochMilliseconds(),
-                    value = json.encodeToString(StoredStickyEvent.Serializer, value),
-                )
-            )
-        }
 
+        dao.insert(
+            RoomStickyEvent(
+                roomId = firstKey.roomId,
+                type = firstKey.type,
+                sender = secondKey.sender,
+                stickyKey = dbStickyKey(secondKey.stickyKey),
+                eventId = value.event.id,
+                endTimeMs = value.endTime.toEpochMilliseconds(),
+                value = json.encodeToString(StoredStickyEvent.Serializer, value),
+            )
+        )
+
+    context(transaction: WriteTransaction)
     override suspend fun delete(
         firstKey: StickyEventRepositoryFirstKey,
         secondKey: StickyEventRepositorySecondKey
     ): Unit =
-        withRoomWrite {
-            dao.delete(
-                firstKey.roomId,
-                firstKey.type,
-                secondKey.sender,
-                dbStickyKey(secondKey.stickyKey)
-            )
-        }
+        dao.delete(
+            firstKey.roomId,
+            firstKey.type,
+            secondKey.sender,
+            dbStickyKey(secondKey.stickyKey)
+        )
 
-    override suspend fun deleteAll(): Unit = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll(): Unit =
         dao.deleteAll()
-    }
 
-    override suspend fun deleteByRoomId(roomId: RoomId): Unit = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId): Unit =
         dao.deleteByRoomId(roomId)
-    }
-
 }

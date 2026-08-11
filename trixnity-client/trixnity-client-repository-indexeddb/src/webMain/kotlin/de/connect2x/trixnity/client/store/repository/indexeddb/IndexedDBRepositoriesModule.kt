@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.store.repository.indexeddb
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
 import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
@@ -21,7 +22,6 @@ import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRe
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
@@ -58,7 +58,7 @@ fun RepositoriesModule.Companion.indexedDB(databaseName: String = "trixnity"): R
                 database.close()
             }
         }
-        single<RepositoryTransactionManager> { IndexedDBRepositoryTransactionManager(get(), allStoreNames) }
+        single<StoreTransactionManager> { IndexedDBStoreTransactionManager(get(), allStoreNames) }
         singleOf(::IndexedDBAccountRepository) { bind<AccountRepository>() }
         singleOf(::IndexedDBAuthenticationRepository) { bind<AuthenticationRepository>() }
         singleOf(::IndexedServerDataRepository) { bind<ServerDataRepository>() }

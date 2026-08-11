@@ -16,6 +16,7 @@ import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryAccountRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryAuthenticationRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryOlmAccountRepository
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.client.store.repository.inMemory
 import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
@@ -66,7 +67,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import de.connect2x.trixnity.crypto.driver.olm.Account as OlmAccount
 
 class MatrixClientTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     private val json = createMatrixEventJson()
@@ -211,45 +212,51 @@ class MatrixClientTest : TrixnityBaseTest() {
     fun `displayName » use the display name and avatar URL from the store when matrixClient is retrieved from the store and update when room user updates`() =
         runTest {
             val accountRepository = InMemoryAccountRepository().apply {
-                save(
-                    1, Account(
-                        olmPickleKey = null,
-                        accessToken = "abcdef",
-                        refreshToken = "ghijk",
-                        userId = userId,
-                        deviceId = "deviceId",
-                        baseUrl = "http://localhost",
-                        filter = Account.Filter(
-                            syncFilterId = "someFilter",
-                            syncOnceFilterId = "someFilter",
-                            eventTypesHash = with(mappings) { filterHash() },
-                        ),
-                        profile = Profile(
-                            ProfileField.DisplayName("bob"),
-                            ProfileField.AvatarUrl("mxc://localhost/123456")
-                        ),
-                        syncBatchToken = null,
+                tm.writeTransaction {
+                    save(
+                        1, Account(
+                            olmPickleKey = null,
+                            accessToken = "abcdef",
+                            refreshToken = "ghijk",
+                            userId = userId,
+                            deviceId = "deviceId",
+                            baseUrl = "http://localhost",
+                            filter = Account.Filter(
+                                syncFilterId = "someFilter",
+                                syncOnceFilterId = "someFilter",
+                                eventTypesHash = with(mappings) { filterHash() },
+                            ),
+                            profile = Profile(
+                                ProfileField.DisplayName("bob"),
+                                ProfileField.AvatarUrl("mxc://localhost/123456")
+                            ),
+                            syncBatchToken = null,
+                        )
                     )
-                )
+                }
             }
             val authenticationRepository = InMemoryAuthenticationRepository().apply {
-                save(
-                    1, Authentication(
-                        providerId = "classic",
-                        providerData = Json.encodeToString(
-                            ClassicMatrixClientAuthProviderData(
-                                baseUrl = Url("http://localhost"),
-                                accessToken = "abcdef",
-                                accessTokenExpiresInMs = null,
-                                refreshToken = "ghijk",
-                            )
-                        ),
-                        logoutInfo = null,
+                tm.writeTransaction {
+                    save(
+                        1, Authentication(
+                            providerId = "classic",
+                            providerData = Json.encodeToString(
+                                ClassicMatrixClientAuthProviderData(
+                                    baseUrl = Url("http://localhost"),
+                                    accessToken = "abcdef",
+                                    accessTokenExpiresInMs = null,
+                                    refreshToken = "ghijk",
+                                )
+                            ),
+                            logoutInfo = null,
+                        )
                     )
-                )
+                }
             }
             val olmAccountRepository = InMemoryOlmAccountRepository().apply {
-                save(1, accountPickle)
+                tm.writeTransaction {
+                    save(1, accountPickle)
+                }
             }
             val repositoriesModule =
                 RepositoriesModule {
@@ -405,42 +412,48 @@ class MatrixClientTest : TrixnityBaseTest() {
         hasCapability: Boolean,
     ): MatrixClient {
         val accountRepository = InMemoryAccountRepository().apply {
-            save(
-                1, Account(
-                    olmPickleKey = null,
-                    accessToken = "abcdef",
-                    refreshToken = "ghijk",
-                    userId = userId,
-                    deviceId = "deviceId",
-                    baseUrl = "http://localhost",
-                    filter = Account.Filter(
-                        syncFilterId = "someFilter",
-                        syncOnceFilterId = "someFilter",
-                        eventTypesHash = with(mappings) { filterHash() },
-                    ),
-                    profile = profile,
-                    syncBatchToken = null,
+            tm.writeTransaction {
+                save(
+                    1, Account(
+                        olmPickleKey = null,
+                        accessToken = "abcdef",
+                        refreshToken = "ghijk",
+                        userId = userId,
+                        deviceId = "deviceId",
+                        baseUrl = "http://localhost",
+                        filter = Account.Filter(
+                            syncFilterId = "someFilter",
+                            syncOnceFilterId = "someFilter",
+                            eventTypesHash = with(mappings) { filterHash() },
+                        ),
+                        profile = profile,
+                        syncBatchToken = null,
+                    )
                 )
-            )
+            }
         }
         val authenticationRepository = InMemoryAuthenticationRepository().apply {
-            save(
-                1, Authentication(
-                    providerId = "classic",
-                    providerData = Json.encodeToString(
-                        ClassicMatrixClientAuthProviderData(
-                            baseUrl = Url("http://localhost"),
-                            accessToken = "abcdef",
-                            accessTokenExpiresInMs = null,
-                            refreshToken = "ghijk",
-                        )
-                    ),
-                    logoutInfo = null,
+            tm.writeTransaction {
+                save(
+                    1, Authentication(
+                        providerId = "classic",
+                        providerData = Json.encodeToString(
+                            ClassicMatrixClientAuthProviderData(
+                                baseUrl = Url("http://localhost"),
+                                accessToken = "abcdef",
+                                accessTokenExpiresInMs = null,
+                                refreshToken = "ghijk",
+                            )
+                        ),
+                        logoutInfo = null,
+                    )
                 )
-            )
+            }
         }
         val olmAccountRepository = InMemoryOlmAccountRepository().apply {
-            save(1, accountPickle)
+            tm.writeTransaction {
+                save(1, accountPickle)
+            }
         }
         val repositoriesModule =
             RepositoriesModule {
@@ -660,8 +673,10 @@ class MatrixClientTest : TrixnityBaseTest() {
         runTest {
             loginStateSetup().use { cut ->
                 val authenticationStore = cut.di.get<AuthenticationStore>()
-                authenticationStore.updateAuthentication {
-                    it?.copy(logoutInfo = LogoutInfo(isSoft = true, isLocked = false))
+                tm.writeTransaction {
+                    authenticationStore.updateAuthentication {
+                        it?.copy(logoutInfo = LogoutInfo(isSoft = true, isLocked = false))
+                    }
                 }
                 cut.loginState.first { it == LOGGED_OUT_SOFT }
             }
@@ -671,8 +686,10 @@ class MatrixClientTest : TrixnityBaseTest() {
     fun `loginState » be LOGGED_OUT when logoutInfo not null`() = runTest {
         loginStateSetup().use { cut ->
             val authenticationStore = cut.di.get<AuthenticationStore>()
-            authenticationStore.updateAuthentication {
-                it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = false))
+            tm.writeTransaction {
+                authenticationStore.updateAuthentication {
+                    it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = false))
+                }
             }
             cut.loginState.first { it == LOGGED_OUT }
         }
@@ -682,8 +699,10 @@ class MatrixClientTest : TrixnityBaseTest() {
     fun `loginState » be LOCKED when locked`() = runTest {
         loginStateSetup().use { cut ->
             val authenticationStore = cut.di.get<AuthenticationStore>()
-            authenticationStore.updateAuthentication {
-                it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = true))
+            tm.writeTransaction {
+                authenticationStore.updateAuthentication {
+                    it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = true))
+                }
             }
             cut.loginState.first { it == LOCKED }
         }
@@ -693,8 +712,10 @@ class MatrixClientTest : TrixnityBaseTest() {
     fun `loginState » be LOGGED_IN when not locked anymore`() = runTest {
         loginStateSetup().use { cut ->
             val authenticationStore = cut.di.get<AuthenticationStore>()
-            authenticationStore.updateAuthentication {
-                it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = true))
+            tm.writeTransaction {
+                authenticationStore.updateAuthentication {
+                    it?.copy(logoutInfo = LogoutInfo(isSoft = false, isLocked = true))
+                }
             }
             cut.loginState.first { it == LOCKED }
             delay(200.milliseconds) // give it a moment to listen to sync
@@ -723,8 +744,10 @@ class MatrixClientTest : TrixnityBaseTest() {
 
         cut.use {
             val authenticationStore = cut.di.get<AuthenticationStore>()
-            authenticationStore.updateAuthentication {
-                it?.copy(logoutInfo = LogoutInfo(isSoft = true, isLocked = false))
+            tm.writeTransaction {
+                authenticationStore.updateAuthentication {
+                    it?.copy(logoutInfo = LogoutInfo(isSoft = true, isLocked = false))
+                }
             }
             cut.loginState.first { it == LOGGED_OUT_SOFT }
             cut.logout().getOrThrow()
@@ -764,43 +787,49 @@ class MatrixClientTest : TrixnityBaseTest() {
 
     private suspend fun TestScope.loginStateSetup(): MatrixClient {
         val accountRepository = InMemoryAccountRepository().apply {
-            save(
-                1, Account(
-                    olmPickleKey = null,
-                    userId = userId,
-                    deviceId = "deviceId",
-                    baseUrl = "http://localhost",
-                    filter = Account.Filter(
-                        syncFilterId = "someFilter",
-                        syncOnceFilterId = "backgroundFilter",
-                        eventTypesHash = with(mappings) { filterHash() },
-                    ),
-                    profile = Profile(
-                        ProfileField.DisplayName("bob"),
-                        ProfileField.AvatarUrl("mxc://localhost/123456")
-                    ),
-                    syncBatchToken = "sync",
+            tm.writeTransaction {
+                save(
+                    1, Account(
+                        olmPickleKey = null,
+                        userId = userId,
+                        deviceId = "deviceId",
+                        baseUrl = "http://localhost",
+                        filter = Account.Filter(
+                            syncFilterId = "someFilter",
+                            syncOnceFilterId = "backgroundFilter",
+                            eventTypesHash = with(mappings) { filterHash() },
+                        ),
+                        profile = Profile(
+                            ProfileField.DisplayName("bob"),
+                            ProfileField.AvatarUrl("mxc://localhost/123456")
+                        ),
+                        syncBatchToken = "sync",
+                    )
                 )
-            )
+            }
         }
         val authenticationRepository = InMemoryAuthenticationRepository().apply {
-            save(
-                1, Authentication(
-                    providerId = "classic",
-                    providerData = Json.encodeToString(
-                        ClassicMatrixClientAuthProviderData(
-                            baseUrl = Url("http://localhost"),
-                            accessToken = "abcdef",
-                            accessTokenExpiresInMs = null,
-                            refreshToken = "ghijk",
-                        )
-                    ),
-                    logoutInfo = null,
+            tm.writeTransaction {
+                save(
+                    1, Authentication(
+                        providerId = "classic",
+                        providerData = Json.encodeToString(
+                            ClassicMatrixClientAuthProviderData(
+                                baseUrl = Url("http://localhost"),
+                                accessToken = "abcdef",
+                                accessTokenExpiresInMs = null,
+                                refreshToken = "ghijk",
+                            )
+                        ),
+                        logoutInfo = null,
+                    )
                 )
-            )
+            }
         }
         val olmAccountRepository = InMemoryOlmAccountRepository().apply {
-            save(1, accountPickle)
+            tm.writeTransaction {
+                save(1, accountPickle)
+            }
         }
         val repositoriesModule =
             RepositoriesModule {
@@ -909,43 +938,49 @@ class MatrixClientTest : TrixnityBaseTest() {
 
     private suspend fun repositoriesModule(): RepositoriesModule {
         val accountRepository = InMemoryAccountRepository().apply {
-            save(
-                1, Account(
-                    olmPickleKey = null,
-                    userId = userId,
-                    deviceId = "deviceId",
-                    baseUrl = "http://localhost",
-                    filter = Account.Filter(
-                        syncFilterId = "someFilter",
-                        syncOnceFilterId = "backgroundFilter",
-                        eventTypesHash = with(mappings) { filterHash() },
-                    ),
-                    profile = Profile(
-                        ProfileField.DisplayName("bob"),
-                        ProfileField.AvatarUrl("mxc://localhost/123456")
-                    ),
-                    syncBatchToken = null,
+            tm.writeTransaction {
+                save(
+                    1, Account(
+                        olmPickleKey = null,
+                        userId = userId,
+                        deviceId = "deviceId",
+                        baseUrl = "http://localhost",
+                        filter = Account.Filter(
+                            syncFilterId = "someFilter",
+                            syncOnceFilterId = "backgroundFilter",
+                            eventTypesHash = with(mappings) { filterHash() },
+                        ),
+                        profile = Profile(
+                            ProfileField.DisplayName("bob"),
+                            ProfileField.AvatarUrl("mxc://localhost/123456")
+                        ),
+                        syncBatchToken = null,
+                    )
                 )
-            )
+            }
         }
         val authenticationRepository = InMemoryAuthenticationRepository().apply {
-            save(
-                1, Authentication(
-                    providerId = "classic",
-                    providerData = Json.encodeToString(
-                        ClassicMatrixClientAuthProviderData(
-                            baseUrl = Url("http://localhost"),
-                            accessToken = "abcdef",
-                            accessTokenExpiresInMs = null,
-                            refreshToken = "ghijk",
-                        )
-                    ),
-                    logoutInfo = null,
+            tm.writeTransaction {
+                save(
+                    1, Authentication(
+                        providerId = "classic",
+                        providerData = Json.encodeToString(
+                            ClassicMatrixClientAuthProviderData(
+                                baseUrl = Url("http://localhost"),
+                                accessToken = "abcdef",
+                                accessTokenExpiresInMs = null,
+                                refreshToken = "ghijk",
+                            )
+                        ),
+                        logoutInfo = null,
+                    )
                 )
-            )
+            }
         }
         val olmAccountRepository = InMemoryOlmAccountRepository().apply {
-            save(1, accountPickle)
+            tm.writeTransaction {
+                save(1, accountPickle)
+            }
         }
         return RepositoriesModule {
             val delegate = RepositoriesModule.inMemory().create()

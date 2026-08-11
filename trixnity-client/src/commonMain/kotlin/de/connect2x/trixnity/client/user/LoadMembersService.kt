@@ -2,13 +2,9 @@ package de.connect2x.trixnity.client.user
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.yield
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.store.RoomStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.utils.retry
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
@@ -16,6 +12,15 @@ import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.yield
 
 private val log = Logger("de.connect2x.trixnity.client.user.LoadMembersService")
 
@@ -25,6 +30,7 @@ fun interface LoadMembersService {
 
 class LoadMembersServiceImpl(
     private val roomStore: RoomStore,
+    private val tm: StoreTransactionManager,
     private val lazyMemberEventHandlers: List<LazyMemberEventHandler>,
     private val currentSyncState: CurrentSyncState,
     private val api: MatrixClientServerApiClient,
@@ -57,7 +63,9 @@ class LoadMembersServiceImpl(
                                     api.sync.emit(SyncEvents(Sync.Response(""), chunk))
                                     yield()
                                 }
-                                roomStore.update(roomId) { it?.copy(membersLoaded = true) }
+                                tm.writeTransaction {
+                                    roomStore.update(roomId) { it?.copy(membersLoaded = true) }
+                                }
                             } catch (matrixServerException: MatrixServerException) {
                                 log.warn(matrixServerException) { "aborted loading members" }
                             }

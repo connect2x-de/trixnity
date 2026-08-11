@@ -3,15 +3,7 @@ package de.connect2x.trixnity.client.store
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
-import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
-import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRepository
-import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
-import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
+import de.connect2x.trixnity.client.store.repository.*
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
@@ -37,7 +29,7 @@ class OlmCryptoStore(
     private val inboundMegolmSessionRepository: InboundMegolmSessionRepository,
     inboundMegolmMessageIndexRepository: InboundMegolmMessageIndexRepository,
     outboundMegolmSessionRepository: OutboundMegolmSessionRepository,
-    private val tm: RepositoryTransactionManager,
+    private val tm: StoreTransactionManager,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
     private val storeScope: CoroutineScope,
@@ -62,8 +54,11 @@ class OlmCryptoStore(
         }
     }
 
-    override suspend fun clearCache() {}
+    context(transaction: StoreWriteTransaction)
+    override suspend fun clearCache() {
+    }
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         _notBackedUpInboundMegolmSessions.value = mapOf()
         olmAccountCache.deleteAll()
@@ -84,21 +79,26 @@ class OlmCryptoStore(
         ).also(statisticCollector::addCache)
 
     suspend fun getOlmAccount() = olmAccountCache.get(1).first()
-    suspend fun updateOlmAccount(updater: suspend (String?) -> String) = olmAccountCache.update(1) {
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun updateOlmAccount(updater: (String?) -> String) = olmAccountCache.update(1) {
         updater(it)
     }
 
     suspend fun getForgetFallbackKeyAfter() = olmForgetFallbackKeyAfterCache.get(1).first()
-    suspend fun updateForgetFallbackKeyAfter(updater: suspend (Instant?) -> Instant?) =
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun updateForgetFallbackKeyAfter(updater: (Instant?) -> Instant?) =
         olmForgetFallbackKeyAfterCache.update(1, updater = updater)
 
     suspend fun getOlmSessions(
         senderKey: Curve25519KeyValue,
     ) = olmSessionsCache.get(senderKey).first()
 
+    context(transaction: StoreWriteTransaction)
     suspend fun updateOlmSessions(
         senderKey: Curve25519KeyValue,
-        updater: suspend (oldSessions: Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
+        updater: (oldSessions: Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
     ) = olmSessionsCache.update(senderKey, updater = updater)
 
     private val inboundMegolmSessionCache =
@@ -116,10 +116,11 @@ class OlmCryptoStore(
     ): Flow<StoredInboundMegolmSession?> =
         inboundMegolmSessionCache.get(InboundMegolmSessionRepositoryKey(sessionId, roomId))
 
+    context(transaction: StoreWriteTransaction)
     suspend fun updateInboundMegolmSession(
         sessionId: String,
         roomId: RoomId,
-        updater: suspend (oldInboundMegolmSession: StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
+        updater: (oldInboundMegolmSession: StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
     ) = inboundMegolmSessionCache.update(
         InboundMegolmSessionRepositoryKey(sessionId, roomId),
         updater = updater,
@@ -141,11 +142,12 @@ class OlmCryptoStore(
             config.cacheExpireDurations.inboundMegolmMessageIndex
         ).also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     suspend fun updateInboundMegolmMessageIndex(
         sessionId: String,
         roomId: RoomId,
         messageIndex: Long,
-        updater: suspend (oldMegolmSessionIndex: StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
+        updater: (oldMegolmSessionIndex: StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
     ) = inboundMegolmSessionIndexCache.update(
         InboundMegolmMessageIndexRepositoryKey(sessionId, roomId, messageIndex), updater = updater
     )
@@ -162,8 +164,14 @@ class OlmCryptoStore(
     suspend fun getOutboundMegolmSession(roomId: RoomId): StoredOutboundMegolmSession? =
         outboundMegolmSessionCache.get(roomId).first()
 
+    context(transaction: StoreWriteTransaction)
     suspend fun updateOutboundMegolmSession(
         roomId: RoomId,
-        updater: suspend (oldOutboundMegolmSession: StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
+        updater: (oldOutboundMegolmSession: StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
     ) = outboundMegolmSessionCache.update(roomId, updater = updater)
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun deleteOutboundMegolmSession(
+        roomId: RoomId,
+    ) = outboundMegolmSessionCache.set(roomId, null)
 }

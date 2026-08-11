@@ -1,16 +1,36 @@
 package de.connect2x.trixnity.client.store.cache
 
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.testClock
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import de.connect2x.trixnity.client.store.TransactionManagerImpl
-import de.connect2x.trixnity.client.store.repository.NoOpRepositoryTransactionManager
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.testClock
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -20,38 +40,54 @@ import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 class ObservableCacheTest : TrixnityBaseTest() {
-
+    private val noOpTm = NoOpStoreTransactionManager
+    private val tm = NoOpStoreTransactionManager
     private val cacheStore = InMemoryObservableCacheStore<String, String>()
 
-    private val cut = ObservableCache("test", cacheStore, testScope.backgroundScope, testScope.testClock)
+    private val cut = ObservableCache(
+        name = "test",
+        store = cacheStore,
+        tm = tm,
+        cacheScope = testScope.backgroundScope,
+        clock = testScope.testClock
+    )
     private val indexedCut by lazy {
         TestIndexedObservableCache(
-            "",
-            cacheStore,
-            testScope.backgroundScope,
-            testScope.testClock
+            name = "",
+            store = cacheStore,
+            tm = tm,
+            cacheScope = testScope.backgroundScope,
+            clock = testScope.testClock
         )
     }
 
 
     @Test
     fun `read » read value from repository and update cache`() = runTest {
-        cacheStore.persist("key", "a new value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
     }
 
     @Test
     fun `read » prefer cache`() = runTest {
-        cacheStore.persist("key", "a new value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
-        cacheStore.persist("key", "a changed value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a changed value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
 
     }
 
     @Test
     fun `read » remove from cache when not used anymore`() = runTest {
-        cacheStore.persist("key", "old value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "old value")
+        }
 
         val collectingJob = backgroundScope.launch {
             cut.get(key = "key").collect()
@@ -60,7 +96,9 @@ class ObservableCacheTest : TrixnityBaseTest() {
         cut.get(key = "key").first() shouldBe "old value"
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
-        cacheStore.persist("key", "new value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "new value")
+        }
         cut.get(key = "key").first() shouldBe "old value"
 
         delay(1.minutes + 1.milliseconds)
@@ -75,14 +113,20 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `read » remove from cache when cache time expired`() = runTest {
-        cacheStore.persist("key", "a new value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
-        cacheStore.persist("key", "another value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "another value")
+        }
         cut.get(key = "key").first() shouldBe "another value"
         // we check, that the value is not removed before the time expires
-        cacheStore.persist("key", "yet another value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "yet another value")
+        }
         cut.get(key = "key").stateIn(backgroundScope).value shouldBe "another value"
         // and that the value is not removed from cache, when there is a scope, that uses it
         delay(1.minutes + 1.milliseconds)
@@ -92,10 +136,21 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `read » infinite cache enabled » never remove from cache`() = runTest {
-        val cut = ObservableCache("", cacheStore, backgroundScope, testClock, expireDuration = Duration.INFINITE)
-        cacheStore.persist("key", "a new value")
+        val cut = ObservableCache(
+            name = "",
+            store = cacheStore,
+            tm = tm,
+            cacheScope = backgroundScope,
+            clock = testClock,
+            expireDuration = Duration.INFINITE
+        )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").stateIn(backgroundScope).value shouldBe "a new value"
-        cacheStore.persist("key", "aanother value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "aanother value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
@@ -104,61 +159,94 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `write » read value from repository and update cache`() = runTest {
-        cacheStore.persist("key", "from db")
-        cut.update(
-            key = "key",
-            updater = { oldValue ->
-                oldValue shouldBe "from db"
-                "updated value"
-            },
-        )
-        cacheStore.get("key") shouldBe "updated value"
-        cut.update(
-            key = "key",
-            updater = { oldValue ->
-                oldValue shouldBe "updated value"
-                "updated value 2"
-            },
-        )
-        cacheStore.get("key") shouldBe "updated value 2"
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "from db")
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { oldValue ->
+                    oldValue shouldBe "from db"
+                    "updated value"
+                },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "updated value"
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { oldValue ->
+                    oldValue shouldBe "updated value"
+                    "updated value 2"
+                },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "updated value 2"
+        }
     }
 
     @Test
     fun `write » prefer cache`() = runTest {
-        cacheStore.persist("key", "from db")
-        cut.update(
-            key = "key",
-            updater = { oldValue ->
-                oldValue shouldBe "from db"
-                "updated value"
-            },
-        )
-        cacheStore.get("key") shouldBe "updated value"
-        cacheStore.persist("key", "from db 2")
-        cut.update(
-            key = "key",
-            updater = { oldValue ->
-                oldValue shouldBe "updated value"
-                "updated value 2"
-            },
-        )
-        cacheStore.get("key") shouldBe "updated value 2"
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "from db")
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { oldValue ->
+                    oldValue shouldBe "from db"
+                    "updated value"
+                },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "updated value"
+        }
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "from db 2")
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { oldValue ->
+                    oldValue shouldBe "updated value"
+                    "updated value 2"
+                },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "updated value 2"
+        }
     }
 
     @Test
     fun `write » not save unchanged value`() = runTest {
-        cut.update(
-            key = "key",
-            updater = { "updated value" },
-        )
-        cacheStore.get("key") shouldBe "updated value"
-        cacheStore.persist("key", null)
-        cut.update(
-            key = "key",
-            updater = { "updated value" },
-        )
-        cacheStore.get("key") shouldBe null
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "updated value" },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "updated value"
+        }
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", null)
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "updated value" },
+            )
+        }
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe null
+        }
     }
+
 
     @Test
     fun `write » handle massive parallel manipulation of same key`() = runTest {
@@ -167,21 +255,30 @@ class ObservableCacheTest : TrixnityBaseTest() {
                 val database = MutableSharedFlow<String?>(replay = 3000)
 
                 class InMemoryObservableCacheStoreWithHistory : InMemoryObservableCacheStore<String, String>() {
+                    context(transaction: WriteTransaction)
                     override suspend fun persist(key: String, value: String?) {
-                        database.emit(value)
+                      database.emit(value)
                     }
                 }
 
-                val cut = ObservableCache("", InMemoryObservableCacheStoreWithHistory(), backgroundScope, testClock)
+                val cut = ObservableCache(
+                    name = "",
+                    store = InMemoryObservableCacheStoreWithHistory(),
+                    tm = tm,
+                    cacheScope = backgroundScope,
+                    clock = testClock
+                )
 
                 val result = measureTimedValue {
                     (0..99).map { i ->
                         async {
                             measureTimedValue {
-                                cut.update(
-                                    key = "key",
-                                    updater = { "$i" },
-                                )
+                                tm.writeTransaction {
+                                    cut.update(
+                                        key = "key",
+                                        updater = { "$i" },
+                                    )
+                                }
                             }.duration
                         }
                     }.awaitAll().reduce { acc, duration -> acc + duration }
@@ -203,26 +300,33 @@ class ObservableCacheTest : TrixnityBaseTest() {
     @Test
     fun `write » handle massive parallel manipulation of different keys`() = runTest {
         withContext(Dispatchers.Default) {
-
-
             suspend fun operation(): TimedValue<Duration> {
                 val database = MutableSharedFlow<String?>(replay = 3000)
 
                 class InMemoryObservableCacheStoreWithHistory : InMemoryObservableCacheStore<String, String>() {
+                    context(transaction: WriteTransaction)
                     override suspend fun persist(key: String, value: String?) {
-                        database.emit(key)
+                       database.emit(key)
                     }
                 }
 
-                val cut = ObservableCache("", InMemoryObservableCacheStoreWithHistory(), backgroundScope, testClock)
+                val cut = ObservableCache(
+                    name = "",
+                    store = InMemoryObservableCacheStoreWithHistory(),
+                    tm = tm,
+                    cacheScope = backgroundScope,
+                    clock = testClock
+                )
                 val result = measureTimedValue {
                     (0..99).map { i ->
-                        async {
+                        this@withContext.async {
                             measureTimedValue {
-                                cut.update(
-                                    key = "$i",
-                                    updater = { "value" },
-                                )
+                                tm.writeTransaction {
+                                    cut.update(
+                                        key = "$i",
+                                        updater = { "value" },
+                                    )
+                                }
                             }.duration
                         }
                     }.awaitAll().reduce { acc, duration -> acc + duration }
@@ -245,14 +349,18 @@ class ObservableCacheTest : TrixnityBaseTest() {
     fun `write » use same internal StateFlow when initial value is null`() = runTest {
         val readFlow = cut.get(key = "key").shareIn(backgroundScope, SharingStarted.Eagerly, 3)
         readFlow.first { it == null }
-        cut.update(
-            key = "key",
-            updater = { null } // this should not create a new internal StateFlow
-        )
-        cut.update(
-            key = "key",
-            updater = { "newValue" }
-        )
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { null } // this should not create a new internal StateFlow
+            )
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "newValue" }
+            )
+        }
         readFlow.first { it == "newValue" }
     }
 
@@ -261,16 +369,22 @@ class ObservableCacheTest : TrixnityBaseTest() {
         val startedCollect = MutableStateFlow(false)
         val readResult = async { cut.get("key").onEach { startedCollect.value = true }.filterNotNull().first() }
         startedCollect.first { it }
-        cut.set("key", "value")
+        tm.writeTransaction {
+            cut.set("key", "value")
+        }
         readResult.await() shouldBe "value"
     }
 
     @Test
     fun `write » fill value with set when cache entry present`() = runTest {
         cut.get("key").first() shouldBe null
-        cut.set("key", "value")
+        tm.writeTransaction {
+            cut.set("key", "value")
+        }
         cut.get("key").first() shouldBe "value"
-        cacheStore.get("key") shouldBe "value"
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "value"
+        }
     }
 
     @Test
@@ -278,90 +392,135 @@ class ObservableCacheTest : TrixnityBaseTest() {
         val startedCollect = MutableStateFlow(false)
         val readResult = async { cut.get("key").onEach { startedCollect.value = true }.filterNotNull().first() }
         startedCollect.first { it }
-        cut.update("key") { "value" }
+        tm.writeTransaction {
+            cut.update("key") { "value" }
+        }
         readResult.await() shouldBe "value"
     }
 
     @Test
     fun `write » skip cache when no read active`() = runTest {
-        cut.set("key", "value")
-        cacheStore.persist("key", "otherValue")
+        tm.writeTransaction {
+            cut.set("key", "value")
+        }
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "otherValue")
+        }
         cut.get("key").first() shouldBe "otherValue"
     }
 
     @Test
     fun `write » infinite cache not enabled » remove from cache when write cache time expired`() = runTest {
-        cut.update(
-            key = "key",
-            updater = { "updated value" },
-        )
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "updated value" },
+            )
+        }
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
-        cacheStore.persist("key", null)
-        cut.update(
-            key = "key",
-            updater = {
-                it shouldBe null
-                "updated value"
-            },
-        )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", null)
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = {
+                    it shouldBe null
+                    "updated value"
+                },
+            )
+        }
     }
 
     @Test
     fun `write » infinite cache not enabled » reset expireDuration on use`() = runTest {
-        cut.update(
-            key = "key",
-            updater = { "updated value 1" },
-        )
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "updated value 1" },
+            )
+        }
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
-        cut.update(
-            key = "key",
-            updater = {
-                it shouldBe "updated value 1"
-                "updated value 2"
-            },
-        )
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = {
+                    it shouldBe "updated value 1"
+                    "updated value 2"
+                },
+            )
+        }
         delay(1.milliseconds)
         cut.invalidate()
-        cacheStore.persist("key", null)
-        cut.update(
-            key = "key",
-            updater = {
-                it shouldBe "updated value 2"
-                "updated value"
-            },
-        )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", null)
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = {
+                    it shouldBe "updated value 2"
+                    "updated value"
+                },
+            )
+        }
     }
 
     @Test
     fun `write » infinite cache enabled » never remove from cache`() = runTest {
-        val cut = ObservableCache("", cacheStore, backgroundScope, testClock, expireDuration = Duration.INFINITE)
-        cut.update(
-            key = "key",
-            updater = { "updated value" },
+        val cut = ObservableCache(
+            name = "",
+            store = cacheStore,
+            tm = tm,
+            cacheScope = backgroundScope,
+            clock = testClock,
+            expireDuration = Duration.INFINITE
         )
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { "updated value" },
+            )
+        }
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
-        cacheStore.persist("key", "a new value")
-        cut.update(
-            key = "key",
-            updater = { oldValue ->
-                oldValue shouldBe "updated value"
-                "updated value"
-            },
-        )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
+        tm.writeTransaction {
+            cut.update(
+                key = "key",
+                updater = { oldValue ->
+                    oldValue shouldBe "updated value"
+                    "updated value"
+                },
+            )
+        }
     }
 
     @Test
     fun `write » removeFromCacheOnNull enabled » remove from cache when value is null set`() = runTest {
         val values = ConcurrentObservableMap<String, MutableStateFlow<CacheValue<String?>>>()
         val cut =
-            ObservableCache("", cacheStore, backgroundScope, testClock, removeFromCacheOnNull = true, values = values)
-        cacheStore.persist("key", "a new value")
+            ObservableCache(
+                name = "",
+                store = cacheStore,
+                tm = tm,
+                cacheScope = backgroundScope,
+                clock = testClock,
+                removeFromCacheOnNull = true,
+                values = values
+            )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
         values.getAll().size shouldBe 1
-        cut.set("key", null)
+        tm.writeTransaction {
+            cut.set("key", null)
+        }
         values.getAll().size shouldBe 0
     }
 
@@ -369,26 +528,39 @@ class ObservableCacheTest : TrixnityBaseTest() {
     fun `write » removeFromCacheOnNull enabled » remove from cache when value is null update`() = runTest {
         val values = ConcurrentObservableMap<String, MutableStateFlow<CacheValue<String?>>>()
         val cut =
-            ObservableCache("", cacheStore, backgroundScope, testClock, removeFromCacheOnNull = true, values = values)
-        cacheStore.persist("key", "a new value")
+            ObservableCache(
+                name = "",
+                store = cacheStore,
+                tm = tm,
+                cacheScope = backgroundScope,
+                clock = testClock,
+                removeFromCacheOnNull = true,
+                values = values
+            )
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "a new value")
+        }
         cut.get(key = "key").first() shouldBe "a new value"
         values.getAll().size shouldBe 1
-        cut.update("key") { null }
+        tm.writeTransaction {
+            cut.update("key") { null }
+        }
         values.getAll().size shouldBe 0
     }
 
     @Test
     fun `write » removeFromCacheOnNull enabled » keep null value cached until transaction commit`() = runTest {
-        val transactionManager = TransactionManagerImpl(NoOpRepositoryTransactionManager)
-        val cut = ObservableCache("test", cacheStore, backgroundScope, testClock, removeFromCacheOnNull = true)
+        val cut = ObservableCache("test", cacheStore, tm, backgroundScope, testClock, removeFromCacheOnNull = true)
 
-        cacheStore.persist("key", "old value")
+        noOpTm.writeTransaction {
+            cacheStore.persist("key", "old value")
+        }
         cut.get("key").first() shouldBe "old value"
 
         val deleteStarted = CompletableDeferred<Unit>()
         val allowCommit = CompletableDeferred<Unit>()
         val deleteJob = launch {
-            transactionManager.writeTransaction {
+            tm.writeTransaction {
                 cut.set("key", null)
                 // simulate that the deletion in the database has not gone through yet
                 cacheStore.persist("key", "old value")
@@ -413,12 +585,11 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `update cache entry when read during transaction after transaction`() = runTest {
-        val transactionManager = TransactionManagerImpl(NoOpRepositoryTransactionManager)
         launch {
-            transactionManager.writeTransaction {
+            tm.writeTransaction {
                 cut.set("key", "value")
                 cacheStore.persist("key", null) // simulate that write is only visible after transaction
-                delay(100.milliseconds)
+               delay(100.milliseconds)
             }
         }
         delay(50.milliseconds)
@@ -429,12 +600,13 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `rollback cache entry when used during transaction and failing`() = runTest {
-        val transactionManager = TransactionManagerImpl(NoOpRepositoryTransactionManager)
-        cut.update("key1") { "value0" }
-        cut.update("key2") { null }
+        tm.writeTransaction {
+            cut.update("key1") { "value0" }
+            cut.update("key2") { null }
+        }
         launch {
             shouldThrow<RuntimeException> {
-                transactionManager.writeTransaction {
+                tm.writeTransaction {
                     cut.update("key1") { "value1" }
                     cut.set("key1", "value2")
                     cut.set("key2", "value3")
@@ -455,18 +627,30 @@ class ObservableCacheTest : TrixnityBaseTest() {
     @Test
     fun `rollback cache entry on error`() = runTest {
         val throwingCacheStore = object : ObservableCacheStore<String, String> {
+            context(transaction: ReadTransaction)
             override suspend fun get(key: String): String? = "old"
 
+            context(transaction: WriteTransaction)
             override suspend fun persist(key: String, value: String?) {
                 throw RuntimeException("upsi")
             }
 
-            override suspend fun deleteAll() {}
+            context(transaction: WriteTransaction)
+            override suspend fun deleteAll() {
+            }
         }
-        val cut = ObservableCache("test", throwingCacheStore, testScope.backgroundScope, testScope.testClock)
+        val cut = ObservableCache(
+            name = "test",
+            store = throwingCacheStore,
+            tm = tm,
+            cacheScope = testScope.backgroundScope,
+            clock = testScope.testClock
+        )
         cut.get("key").first() shouldBe "old"
         shouldThrow<RuntimeException> {
-            cut.update("key") { "new" }
+            tm.writeTransaction {
+                cut.update("key") { "new" }
+            }
         }.message shouldBe "upsi"
         cut.get("key").first() shouldBe "old"
     }
@@ -476,20 +660,33 @@ class ObservableCacheTest : TrixnityBaseTest() {
         val onPersist = MutableStateFlow(false)
         val throwingCacheStore = object : ObservableCacheStore<String, String> {
             var value: String? = "old"
+
+            context(transaction: ReadTransaction)
             override suspend fun get(key: String): String? = value
 
+            context(transaction: WriteTransaction)
             override suspend fun persist(key: String, value: String?) {
                 onPersist.value = true
-                delay(50.milliseconds)
+               delay(50.milliseconds)
                 this.value = value
             }
 
-            override suspend fun deleteAll() {}
+            context(transaction: WriteTransaction)
+            override suspend fun deleteAll() {
+            }
         }
-        val cut = ObservableCache("test", throwingCacheStore, testScope.backgroundScope, testScope.testClock)
+        val cut = ObservableCache(
+            name = "test",
+            store = throwingCacheStore,
+            tm = tm,
+            cacheScope = testScope.backgroundScope,
+            clock = testScope.testClock
+        )
         cut.get("key").first() shouldBe "old"
         val job = async {
-            cut.update("key") { "new" }
+            tm.writeTransaction {
+                cut.update("key") { "new" }
+            }
         }
         onPersist.first { it }
         job.cancel()
@@ -499,14 +696,18 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `index » call onPut on cache insert`() = runTest {
-        indexedCut.update("key") { "value" }
+        tm.writeTransaction {
+            indexedCut.update("key") { "value" }
+        }
         indexedCut.index.onPut.value shouldBe "key"
         indexedCut.index.onRemove.value shouldBe null
     }
 
     @Test
     fun `index » call onSkipPut on cache skip`() = runTest {
-        indexedCut.set("key", "value")
+        tm.writeTransaction {
+            indexedCut.set("key", "value")
+        }
         indexedCut.index.onSkipPut.value shouldBe "key"
         indexedCut.index.onPut.value shouldBe null
         indexedCut.index.onRemove.value shouldBe null
@@ -514,15 +715,21 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `index » call not onPut on existing cache value`() = runTest {
-        indexedCut.set("key", "value")
+        tm.writeTransaction {
+            indexedCut.set("key", "value")
+        }
         indexedCut.index.onPut.value = null
-        indexedCut.set("key", "value")
+        tm.writeTransaction {
+            indexedCut.set("key", "value")
+        }
         indexedCut.index.onPut.value shouldBe null
     }
 
     @Test
     fun `index » call onRemove on cache remove`() = runTest {
-        indexedCut.update("key") { "value" }
+        tm.writeTransaction {
+            indexedCut.update("key") { "value" }
+        }
         delay(1.minutes + 1.milliseconds)
         indexedCut.invalidate()
         indexedCut.index.onPut.value shouldBe "key"
@@ -531,7 +738,9 @@ class ObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `index » call onRemoveALl on clear`() = runTest {
-        indexedCut.set("key", "value")
+        tm.writeTransaction {
+            indexedCut.set("key", "value")
+        }
         indexedCut.clear()
         indexedCut.index.onRemoveAllCalled.value shouldBe true
     }
@@ -539,7 +748,9 @@ class ObservableCacheTest : TrixnityBaseTest() {
     @Test
     fun `index » wait for index subsciptions before remove from cache`() = runTest {
         indexedCut.index.subscriptionCount = 1
-        indexedCut.update("key") { "value" }
+        tm.writeTransaction {
+            indexedCut.update("key") { "value" }
+        }
         delay(1.minutes + 1.milliseconds)
         indexedCut.invalidate()
         indexedCut.index.onRemove.value shouldBe null
@@ -552,7 +763,9 @@ class ObservableCacheTest : TrixnityBaseTest() {
     @Test
     fun `index » allow remove from cache when index subscriptions gt 0 but value==null`() = runTest {
         indexedCut.index.subscriptionCount = 1
-        indexedCut.update("key") { null }
+        tm.writeTransaction {
+            indexedCut.update("key") { null }
+        }
         delay(1.minutes + 1.milliseconds)
         indexedCut.invalidate()
         indexedCut.index.onRemove.first() shouldBe ("key" to true)
@@ -563,17 +776,23 @@ class ObservableCacheTest : TrixnityBaseTest() {
         val barrier = CompletableDeferred<Unit>()
         val myFlow = async { indexedCut.get("key").onStart { barrier.complete(Unit) }.drop(1).first() }
         barrier.await()
-        indexedCut.set("key", null)
-        indexedCut.update("key") { "my elem" }
+        tm.writeTransaction {
+            indexedCut.set("key", null)
+            indexedCut.update("key") { "my elem" }
+        }
         myFlow.await() shouldBe "my elem"
     }
 
     @Test
     fun `write » fill value with set when cache entry not present but subscribed`() = runTest {
         indexedCut.index.subscriptionCount = 1
-        indexedCut.set("key", "value")
+        tm.writeTransaction {
+            indexedCut.set("key", "value")
+        }
         indexedCut.get("key").first() shouldBe "value"
-        cacheStore.get("key") shouldBe "value"
+        tm.readTransaction {
+            cacheStore.get("key") shouldBe "value"
+        }
     }
 }
 
@@ -609,11 +828,12 @@ private class TestObservableCacheIndex<T> : ObservableCacheIndex<T> {
 private class TestIndexedObservableCache(
     name: String,
     store: InMemoryObservableCacheStore<String, String>,
+    tm: StoreTransactionManager,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
 ) : ObservableCache<String, String, InMemoryObservableCacheStore<String, String>>(
-    name, store, cacheScope, clock, expireDuration
+    name, store, tm, cacheScope, clock, expireDuration
 ) {
     val index = TestObservableCacheIndex<String>()
 

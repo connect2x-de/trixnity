@@ -1,18 +1,17 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.FullRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomRepository
 import de.connect2x.trixnity.core.model.RoomId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Clock
 
 class RoomStore(
     roomRepository: RoomRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
     storeScope: CoroutineScope,
@@ -28,8 +27,10 @@ class RoomStore(
         ) { it.roomId }
             .also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         roomCache.deleteAll()
     }
@@ -38,9 +39,11 @@ class RoomStore(
 
     fun get(roomId: RoomId): Flow<Room?> = roomCache.get(roomId)
 
-    suspend fun update(roomId: RoomId, updater: suspend (oldRoom: Room?) -> Room?) =
+    context(transaction: StoreWriteTransaction)
+    suspend fun update(roomId: RoomId, updater: (oldRoom: Room?) -> Room?) =
         roomCache.update(roomId, updater = updater)
 
+    context(transaction: StoreWriteTransaction)
     suspend fun delete(roomId: RoomId) =
         roomCache.set(roomId, null)
 }

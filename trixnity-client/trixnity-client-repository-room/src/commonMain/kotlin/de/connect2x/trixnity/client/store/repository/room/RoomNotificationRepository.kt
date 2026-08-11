@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.repository.NotificationRepository
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "Notification",
@@ -44,16 +50,17 @@ internal class RoomNotificationRepository(
 
     private val dao = db.notification()
 
-    override suspend fun getAll(): List<StoredNotification> = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredNotification> =
         dao.getAll().map { entity -> json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun get(key: String): StoredNotification? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: String): StoredNotification? =
         dao.get(key)
             ?.let { entity -> json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun save(key: String, value: StoredNotification) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: String, value: StoredNotification) =
         dao.insert(
             RoomNotification(
                 id = key,
@@ -61,17 +68,16 @@ internal class RoomNotificationRepository(
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) =
         dao.delete(roomId)
-    }
 
-    override suspend fun delete(key: String) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: String) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

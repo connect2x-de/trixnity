@@ -9,12 +9,12 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.key.GetKeys
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
@@ -59,7 +59,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 class OutdatedKeysHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val room = RoomId("!room:server")
     private val alice = UserId("alice", "server")
     private val bob = UserId("bob", "server")
@@ -94,32 +94,36 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
 
     private val cut = OutdatedKeysHandler(
-        api,
-        olmCryptoStore,
-        roomStore,
-        roomStateStore,
-        keyStore,
-        signServiceMock,
-        keyTrustServiceMock,
-        CurrentSyncState(currentSyncState),
-        UserInfo(us, ourDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        TransactionManagerMock(),
+        api = api,
+        olmCryptoStore = olmCryptoStore,
+        roomStore = roomStore,
+        roomStateStore = roomStateStore,
+        keyStore = keyStore,
+        signService = signServiceMock,
+        keyTrustService = keyTrustServiceMock,
+        currentSyncState = CurrentSyncState(currentSyncState),
+        userInfo = UserInfo(us, ourDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+        tm = tm,
     ).apply {
         startInCoroutineScope(testScope.backgroundScope)
     }
 
     @Test
     fun `handleDeviceLists » device key is tracked » add changed devices to outdated keys`() = runTest {
-        keyStore.updateOutdatedKeys { setOf(alice) }
-        keyStore.updateDeviceKeys(bob) { mapOf() }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+            keyStore.updateDeviceKeys(bob) { mapOf() }
+        }
         cut.handleDeviceLists(Sync.Response.DeviceLists(changed = setOf(bob)), SyncState.RUNNING)
         keyStore.getOutdatedKeysFlow().first() shouldContainExactly setOf(alice, bob)
     }
 
     @Test
     fun `handleDeviceLists » device key is tracked » remove key when user left`() = runTest {
-        keyStore.updateOutdatedKeys { setOf(alice, bob) }
-        keyStore.updateDeviceKeys(alice) { mapOf() }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice, bob) }
+            keyStore.updateDeviceKeys(alice) { mapOf() }
+        }
         cut.handleDeviceLists(Sync.Response.DeviceLists(left = setOf(alice)), SyncState.RUNNING)
         withContext(KeyStore.SkipOutdatedKeys) {
             keyStore.getDeviceKeys(alice).first() should beNull()
@@ -130,16 +134,20 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `handleDeviceLists » device key is not tracked » not add changed devices to outdated keys`() =
         runTest {
-            keyStore.updateOutdatedKeys { setOf(alice) }
+            tm.writeTransaction {
+                keyStore.updateOutdatedKeys { setOf(alice) }
+            }
             cut.handleDeviceLists(Sync.Response.DeviceLists(changed = setOf(bob)), SyncState.RUNNING)
             keyStore.getOutdatedKeysFlow().first() shouldContainExactly setOf(alice)
         }
 
     @Test
     fun `handleDeviceLists » do nothing on initial sync`() = runTest {
-        keyStore.updateOutdatedKeys { setOf(alice) }
-        keyStore.updateDeviceKeys(alice) { mapOf() }
-        keyStore.updateDeviceKeys(bob) { mapOf() }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+            keyStore.updateDeviceKeys(alice) { mapOf() }
+            keyStore.updateDeviceKeys(bob) { mapOf() }
+        }
         cut.handleDeviceLists(
             Sync.Response.DeviceLists(changed = setOf(bob), left = setOf(alice)),
             SyncState.INITIAL_SYNC
@@ -167,7 +175,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `handleDeviceLists » never remove own keys`() = runTest {
-        keyStore.updateDeviceKeys(us) { mapOf() }
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(us) { mapOf() }
+        }
         cut.handleDeviceLists(
             Sync.Response.DeviceLists(left = setOf(us, bob)),
             SyncState.RUNNING
@@ -177,9 +187,11 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `updateDeviceKeysFromChangedMembership » ignore unencrypted rooms`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
         val room2 = RoomId("!roo2:server")
-        roomStore.update(room2) { simpleRoom.copy(roomId = room2) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+            roomStore.update(room2) { simpleRoom.copy(roomId = room2) }
+        }
         cut.updateDeviceKeysFromChangedMembership(
             listOf(
                 StateEvent(
@@ -199,8 +211,10 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `updateDeviceKeysFromChangedMembership » remove device keys on leave or ban of the last encrypted room`() =
         runTest {
-            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
-            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            tm.writeTransaction {
+                roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+                keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -218,7 +232,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 keyStore.getDeviceKeys(alice).first() should beNull()
             }
 
-            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -240,22 +256,24 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `updateDeviceKeysFromChangedMembership » not remove device keys on leave or ban when there are more rooms`() =
         runTest {
-            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
-            val otherRoom = RoomId("!otherRoom:server")
-            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
-            roomStore.update(otherRoom) {
-                simpleRoom.copy(roomId = otherRoom, encrypted = true)
-            }
-            roomStateStore.save(
-                StateEvent(
-                    MemberEventContent(membership = Membership.JOIN),
-                    EventId("\$event"),
-                    alice,
-                    otherRoom,
-                    1234,
-                    stateKey = alice.full
+            tm.writeTransaction {
+                roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+                val otherRoom = RoomId("!otherRoom:server")
+                keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+                roomStore.update(otherRoom) {
+                    simpleRoom.copy(roomId = otherRoom, encrypted = true)
+                }
+                roomStateStore.save(
+                    StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("\$event"),
+                        alice,
+                        otherRoom,
+                        1234,
+                        stateKey = alice.full
+                    )
                 )
-            )
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -273,7 +291,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 keyStore.getDeviceKeys(alice).first() shouldNot beNull()
             }
 
-            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -295,9 +315,10 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `updateDeviceKeysFromChangedMembership » not remove our device keys on leave or ban when there are no more rooms`() =
         runTest {
-            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
-            keyStore.updateDeviceKeys(us) { mapOf(ourDevice to ourKeys) }
-
+            tm.writeTransaction {
+                roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+                keyStore.updateDeviceKeys(us) { mapOf(ourDevice to ourKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -311,12 +332,16 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 ),
                 SyncState.RUNNING
             )
-            roomStore.delete(room)
+            tm.writeTransaction {
+                roomStore.delete(room)
+            }
             withContext(KeyStore.SkipOutdatedKeys) {
                 keyStore.getDeviceKeys(us).first() shouldNot beNull()
             }
 
-            keyStore.updateDeviceKeys(us) { mapOf(ourDevice to ourKeys) }
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(us) { mapOf(ourDevice to ourKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -337,8 +362,10 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `updateDeviceKeysFromChangedMembership » ignore join when key already tracked`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
-        keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+        }
         cut.updateDeviceKeysFromChangedMembership(
             listOf(
                 StateEvent(
@@ -361,7 +388,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `updateDeviceKeysFromChangedMembership » not mark keys as outdated when not members loaded or loading`() =
         runTest {
-            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+            tm.writeTransaction {
+                roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -381,8 +410,10 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     @Test
     fun `updateDeviceKeysFromChangedMembership » not mark keys as outdated when join but keys are already tracked`() =
         runTest {
-            roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
-            keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            tm.writeTransaction {
+                roomStore.update(room) { simpleRoom.copy(roomId = room, encrypted = true) }
+                keyStore.updateDeviceKeys(alice) { mapOf(aliceDevice to aliceKeys) }
+            }
             cut.updateDeviceKeysFromChangedMembership(
                 listOf(
                     StateEvent(
@@ -427,7 +458,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf() }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf() }
+        }
         continually(500.milliseconds) {
             getKeysCalled shouldBe false
         }
@@ -445,7 +478,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getCrossSigningKeys(alice).first { it?.isEmpty() == true }
         keyStore.getDeviceKeys(alice).first { it?.isEmpty() == true }
     }
@@ -470,7 +505,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -501,7 +538,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first().shouldBeEmpty()
         keyTrustServiceMock.updateTrustLevelOfKeyChainSignedByCalled.value shouldBe null
@@ -526,7 +565,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -557,7 +598,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first().shouldBeEmpty()
         keyTrustServiceMock.updateTrustLevelOfKeyChainSignedByCalled.value shouldBe null
@@ -582,7 +625,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -602,13 +647,15 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 keysOf(Key.Ed25519Key("id", "value"))
             ), mapOf()
         )
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(key.signed, mapOf(alice to keysOf())),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(key.signed, mapOf(alice to keysOf())),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
+            }
         }
         apiConfig.endpoints {
             matrixJsonEndpoint(GetKeys) {
@@ -619,7 +666,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -649,7 +698,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first().shouldBeEmpty()
         keyTrustServiceMock.updateTrustLevelOfKeyChainSignedByCalled.value shouldBe null
@@ -673,7 +724,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -693,13 +746,15 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 keysOf(Key.Ed25519Key("id", "value"))
             ), mapOf()
         )
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(key.signed, mapOf(alice to keysOf())),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(key.signed, mapOf(alice to keysOf())),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
+            }
         }
         apiConfig.endpoints {
             matrixJsonEndpoint(GetKeys) {
@@ -709,7 +764,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKeys(alice).first() shouldContainExactly setOf(
             StoredCrossSigningKeys(key, KeySignatureTrustLevel.CrossSigned(false))
@@ -743,7 +800,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 }.also { call++ }
             }
         }
-        keyStore.updateOutdatedKeys { setOf(cedric, alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(cedric, alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         val storedCedricKeys = keyStore.getDeviceKeys(cedric).first()
         assertNotNull(storedCedricKeys)
@@ -763,7 +822,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
         )
 
         // check delete of device keys
-        keyStore.updateOutdatedKeys { setOf(alice) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         val storedAliceKeysAfterDelete = keyStore.getDeviceKeys(alice).first()
         assertNotNull(storedAliceKeysAfterDelete)
@@ -789,84 +850,87 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
             val room1 = RoomId("!room1:server")
             val room2 = RoomId("!room2:server")
             val room3 = RoomId("!room3:server")
-            roomStore.update(room1) {
-                simpleRoom.copy(roomId = room1, encrypted = true)
-            }
-            roomStore.update(room2) {
-                simpleRoom.copy(roomId = room2, encrypted = true)
-            }
-            roomStore.update(room3) {
-                simpleRoom.copy(roomId = room3, encrypted = true)
-            }
-            listOf(
-                // room1
-                StateEvent(
-                    HistoryVisibilityEventContent(HistoryVisibility.INVITED),
-                    EventId("\$event1"),
-                    alice,
-                    room1,
-                    1234,
-                    stateKey = ""
-                ),
-                StateEvent(
-                    MemberEventContent(membership = Membership.INVITE),
-                    EventId("\$event1"),
-                    alice,
-                    room1,
-                    1234,
-                    stateKey = alice.full
-                ),
-                StateEvent(
-                    MemberEventContent(membership = Membership.LEAVE),
-                    EventId("\$event4"),
-                    cedric,
-                    room1,
-                    1234,
-                    stateKey = cedric.full
-                ),
-                // room2
-                StateEvent(
-                    MemberEventContent(membership = Membership.JOIN),
-                    EventId("\$event2"),
-                    alice,
-                    room2,
-                    1234,
-                    stateKey = alice.full
-                ),
-                // room3
-                StateEvent(
-                    MemberEventContent(membership = Membership.JOIN),
-                    EventId("\$event3"),
-                    alice,
-                    room3,
-                    1234,
-                    stateKey = alice.full
-                ),
-            ).forEach { roomStateStore.save(it) }
+            tm.writeTransaction {
+                roomStore.update(room1) {
+                    simpleRoom.copy(roomId = room1, encrypted = true)
+                }
+                roomStore.update(room2) {
+                    simpleRoom.copy(roomId = room2, encrypted = true)
+                }
+                roomStore.update(room3) {
+                    simpleRoom.copy(roomId = room3, encrypted = true)
+                }
 
-            olmCryptoStore.updateOutboundMegolmSession(room1) {
-                StoredOutboundMegolmSession(
-                    roomId = room1,
-                    createdAt = testClock.now(),
-                    encryptedMessageCount = 1,
-                    newDevices = emptyMap(),
-                    pickled = ""
-                )
-            }
-            olmCryptoStore.updateOutboundMegolmSession(room3) {
-                StoredOutboundMegolmSession(
-                    roomId = room3,
-                    createdAt = testClock.now(),
-                    encryptedMessageCount = 1,
-                    newDevices = mapOf(
-                        cedric to setOf(cedricDevice),
-                        alice to setOf(aliceDevice1),
+                listOf(
+                    // room1
+                    StateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibility.INVITED),
+                        EventId("\$event1"),
+                        alice,
+                        room1,
+                        1234,
+                        stateKey = ""
                     ),
-                    pickled = ""
-                )
-            }
+                    StateEvent(
+                        MemberEventContent(membership = Membership.INVITE),
+                        EventId("\$event1"),
+                        alice,
+                        room1,
+                        1234,
+                        stateKey = alice.full
+                    ),
+                    StateEvent(
+                        MemberEventContent(membership = Membership.LEAVE),
+                        EventId("\$event4"),
+                        cedric,
+                        room1,
+                        1234,
+                        stateKey = cedric.full
+                    ),
+                    // room2
+                    StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("\$event2"),
+                        alice,
+                        room2,
+                        1234,
+                        stateKey = alice.full
+                    ),
+                    // room3
+                    StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("\$event3"),
+                        alice,
+                        room3,
+                        1234,
+                        stateKey = alice.full
+                    ),
+                ).forEach { roomStateStore.save(it) }
 
-            keyStore.updateOutdatedKeys { setOf(cedric, alice) }
+                olmCryptoStore.updateOutboundMegolmSession(room1) {
+                    StoredOutboundMegolmSession(
+                        roomId = room1,
+                        createdAt = testClock.now(),
+                        encryptedMessageCount = 1,
+                        newDevices = emptyMap(),
+                        pickled = ""
+                    )
+                }
+                olmCryptoStore.updateOutboundMegolmSession(room3) {
+                    StoredOutboundMegolmSession(
+                        roomId = room3,
+                        createdAt = testClock.now(),
+                        encryptedMessageCount = 1,
+                        newDevices = mapOf(
+                            cedric to setOf(cedricDevice),
+                            alice to setOf(aliceDevice1),
+                        ),
+                        pickled = ""
+                    )
+                }
+
+                keyStore.updateOutdatedKeys { setOf(cedric, alice) }
+            }
             keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
             olmCryptoStore.getOutboundMegolmSession(room1)?.newDevices shouldBe mapOf(
                 alice to setOf(aliceDevice2),
@@ -884,11 +948,13 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     fun `updateOutdatedkey » device keys » look for encrypted room where the user participates and reset megolm sessions when removed devices`() =
         runTest {
             currentSyncState.value = SyncState.RUNNING
-            keyStore.updateDeviceKeys(alice) {
-                mapOf(
-                    aliceDevice1 to StoredDeviceKeys(aliceKey1, KeySignatureTrustLevel.Valid(false)),
-                    aliceDevice2 to StoredDeviceKeys(aliceKey2, KeySignatureTrustLevel.Valid(false)),
-                )
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(
+                        aliceDevice1 to StoredDeviceKeys(aliceKey1, KeySignatureTrustLevel.Valid(false)),
+                        aliceDevice2 to StoredDeviceKeys(aliceKey2, KeySignatureTrustLevel.Valid(false)),
+                    )
+                }
             }
             apiConfig.endpoints {
                 matrixJsonEndpoint(GetKeys) {
@@ -902,19 +968,21 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 }
             }
             val room1 = RoomId("!room1:server")
-            roomStore.update(room1) {
-                simpleRoom.copy(roomId = room1, encrypted = true)
-            }
-            olmCryptoStore.updateOutboundMegolmSession(room1) {
-                StoredOutboundMegolmSession(
-                    roomId = room1,
-                    createdAt = testClock.now(),
-                    encryptedMessageCount = 1,
-                    newDevices = emptyMap(), pickled = ""
-                )
-            }
+            tm.writeTransaction {
+                roomStore.update(room1) {
+                    simpleRoom.copy(roomId = room1, encrypted = true)
+                }
+                olmCryptoStore.updateOutboundMegolmSession(room1) {
+                    StoredOutboundMegolmSession(
+                        roomId = room1,
+                        createdAt = testClock.now(),
+                        encryptedMessageCount = 1,
+                        newDevices = emptyMap(), pickled = ""
+                    )
+                }
 
-            keyStore.updateOutdatedKeys { setOf(alice) }
+                keyStore.updateOutdatedKeys { setOf(alice) }
+            }
             keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
             olmCryptoStore.getOutboundMegolmSession(room1) shouldBe null
         }
@@ -937,21 +1005,23 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            alice,
-                            setOf(CrossSigningKeysUsage.MasterKey),
-                            keysOf(Key.Ed25519Key("mk_id", "mk_value"))
-                        ),
-                        mapOf()
-                    ), levelBefore
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                alice,
+                                setOf(CrossSigningKeysUsage.MasterKey),
+                                keysOf(Key.Ed25519Key("mk_id", "mk_value"))
+                            ),
+                            mapOf()
+                        ), levelBefore
+                    )
                 )
-            )
+            }
+            keyStore.updateOutdatedKeys { setOf(alice) }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKey(alice, CrossSigningKeysUsage.MasterKey)
             ?.trustLevel shouldBe KeySignatureTrustLevel.NotAllDeviceKeysCrossSigned(
@@ -978,21 +1048,23 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            alice,
-                            setOf(CrossSigningKeysUsage.MasterKey),
-                            keysOf(Key.Ed25519Key("id", "value"))
-                        ),
-                        mapOf()
-                    ), levelBefore
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                alice,
+                                setOf(CrossSigningKeysUsage.MasterKey),
+                                keysOf(Key.Ed25519Key("id", "value"))
+                            ),
+                            mapOf()
+                        ), levelBefore
+                    )
                 )
-            )
+            }
+            keyStore.updateOutdatedKeys { setOf(alice) }
         }
-        keyStore.updateOutdatedKeys { setOf(alice) }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         keyStore.getCrossSigningKey(alice, CrossSigningKeysUsage.MasterKey)
             ?.trustLevel shouldBe levelBefore
@@ -1065,10 +1137,12 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            keyStore.updateCrossSigningKeys(alice) {
-                setOf(StoredCrossSigningKeys(aliceMasterKey, KeySignatureTrustLevel.CrossSigned(true)))
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(alice) {
+                    setOf(StoredCrossSigningKeys(aliceMasterKey, KeySignatureTrustLevel.CrossSigned(true)))
+                }
+                keyStore.updateOutdatedKeys { setOf(alice) }
             }
-            keyStore.updateOutdatedKeys { setOf(alice) }
             keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
             keyStore.getCrossSigningKey(alice, CrossSigningKeysUsage.MasterKey)
                 ?.trustLevel shouldBe KeySignatureTrustLevel.CrossSigned(true)
@@ -1085,7 +1159,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(cedric) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(cedric) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         val storedKeys = keyStore.getDeviceKeys(cedric).first()
         assertNotNull(storedKeys)
@@ -1102,7 +1178,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice, cedric) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice, cedric) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         val storedKeys = keyStore.getDeviceKeys(alice).first()
         assertNotNull(storedKeys)
@@ -1119,7 +1197,9 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        keyStore.updateOutdatedKeys { setOf(alice, cedric) }
+        tm.writeTransaction {
+            keyStore.updateOutdatedKeys { setOf(alice, cedric) }
+        }
         keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
         val storedKeys = keyStore.getDeviceKeys(alice).first()
         assertNotNull(storedKeys)

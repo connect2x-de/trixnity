@@ -1,12 +1,20 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedOutboundMegolmSession : Table("outbound_megolm_session") {
     val roomId = varchar("room_id", length = 255)
@@ -15,29 +23,37 @@ internal object ExposedOutboundMegolmSession : Table("outbound_megolm_session") 
 }
 
 internal class ExposedOutboundMegolmSessionRepository(private val json: Json) : OutboundMegolmSessionRepository {
-    override suspend fun get(key: RoomId): StoredOutboundMegolmSession? = withExposedRead {
-        ExposedOutboundMegolmSession.selectAll().where { ExposedOutboundMegolmSession.roomId eq key.full }.firstOrNull()
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: RoomId): StoredOutboundMegolmSession? {
+        return ExposedOutboundMegolmSession.selectAll().where { ExposedOutboundMegolmSession.roomId eq key.full }
+            .firstOrNull()
             ?.let {
                 json.decodeFromString(it[ExposedOutboundMegolmSession.value])
             }
     }
 
-    override suspend fun getAll(): List<StoredOutboundMegolmSession> = withExposedRead {
-        ExposedOutboundMegolmSession.selectAll().map { json.decodeFromString(it[ExposedOutboundMegolmSession.value]) }
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredOutboundMegolmSession> {
+        return ExposedOutboundMegolmSession.selectAll()
+            .map { json.decodeFromString<StoredOutboundMegolmSession>(it[ExposedOutboundMegolmSession.value]) }
+            .toList()
     }
 
-    override suspend fun save(key: RoomId, value: StoredOutboundMegolmSession): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: RoomId, value: StoredOutboundMegolmSession) {
         ExposedOutboundMegolmSession.upsert {
             it[roomId] = key.full
             it[ExposedOutboundMegolmSession.value] = json.encodeToString(value)
         }
     }
 
-    override suspend fun delete(key: RoomId): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: RoomId) {
         ExposedOutboundMegolmSession.deleteWhere { roomId eq key.full }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedOutboundMegolmSession.deleteAll()
     }
 }

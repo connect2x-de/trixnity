@@ -17,7 +17,7 @@ open class KeyedMutex<K : Any> {
     private val mutexByKeyMutex = Mutex()
     private val mutexByKey = mutableMapOf<K, ClaimedMutex>()
 
-    suspend fun <T : Any?> withLock(key: K, block: suspend () -> T): T {
+    suspend fun <T> withLock(key: K, block: suspend () -> T): T {
         return try {
             val mutex = claimMutex(key)
             mutex.withLock {

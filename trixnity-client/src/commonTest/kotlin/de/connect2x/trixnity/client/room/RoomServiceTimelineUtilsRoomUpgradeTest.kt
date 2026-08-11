@@ -19,6 +19,7 @@ import de.connect2x.trixnity.client.simpleUserInfo
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncBatchTokenStore
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents.Direction.BACKWARDS
@@ -45,7 +46,7 @@ import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
 class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val room = simpleRoom.roomId
     private val newRoom = RoomId("!new:server")
 
@@ -89,6 +91,7 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
             roomAccountDataStore = getInMemoryRoomAccountDataStore(),
             roomTimelineStore = roomTimelineStore,
             roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore(),
+            tm = tm,
             stickyEventStore = getInMemoryStickyEventStore(),
             roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
             mediaService = mediaServiceMock,
@@ -276,7 +279,9 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        roomStateStore.save(tombstoneEvent)
+        tm.writeTransaction {
+            roomStateStore.save(tombstoneEvent)
+        }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(room) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(room) else listOf()
@@ -291,7 +296,9 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        roomStateStore.save(createEvent2)
+        tm.writeTransaction {
+            roomStateStore.save(createEvent2)
+        }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(newRoom) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(newRoom) else listOf()
@@ -320,7 +327,9 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        roomStateStore.save(tombstoneEvent)
+        tm.writeTransaction {
+            roomStateStore.save(tombstoneEvent)
+        }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(room, room) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(room, room) else listOf()
@@ -336,7 +345,9 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        roomStateStore.save(createEvent2)
+        tm.writeTransaction {
+            roomStateStore.save(createEvent2)
+        }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(newRoom, newRoom) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(newRoom, newRoom) else listOf()
@@ -400,22 +411,26 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         testNoRetryAfter(false)
 
     private suspend fun roomUpgradeAfterSetup(roomKnown: Boolean) {
-        roomStore.update(newRoom) {
-            if (roomKnown) Room(newRoom, membership = Membership.INVITE) else null
-        }
-        roomTimelineStore.addAll(timeline)
-        with(roomStateStore) {
-            save(tombstoneEvent)
+        tm.writeTransaction {
+            roomStore.update(newRoom) {
+                if (roomKnown) Room(newRoom, membership = Membership.INVITE) else null
+            }
+            timeline.forEach { roomTimelineStore.add(it) }
+            with(roomStateStore) {
+                save(tombstoneEvent)
+            }
         }
     }
 
     private suspend fun roomUpgradeBeforeSetup(roomKnown: Boolean) {
-        roomStore.update(room) {
-            if (roomKnown) Room(room, membership = Membership.INVITE) else null
-        }
-        roomTimelineStore.addAll(timeline)
-        with(roomStateStore) {
-            save(createEvent2)
+        tm.writeTransaction {
+            roomStore.update(room) {
+                if (roomKnown) Room(room, membership = Membership.INVITE) else null
+            }
+            timeline.forEach { roomTimelineStore.add(it) }
+            with(roomStateStore) {
+                save(createEvent2)
+            }
         }
     }
 }

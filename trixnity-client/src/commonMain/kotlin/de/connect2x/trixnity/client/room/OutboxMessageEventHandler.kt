@@ -14,7 +14,7 @@ import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomOutboxMessage.SendError
 import de.connect2x.trixnity.client.store.RoomOutboxMessageStore
 import de.connect2x.trixnity.client.store.RoomStore
-import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.client.utils.retryLoop
@@ -59,7 +59,7 @@ class OutboxMessageEventHandler(
     private val eventContentMediaMappings: EventContentMediaMappings,
     private val currentSyncState: CurrentSyncState,
     private val userInfo: UserInfo,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
     private val clock: Clock,
 ) : EventHandler {
 
@@ -148,7 +148,9 @@ class OutboxMessageEventHandler(
                                     }
                                 } else {
                                     log.warn { "delete all outbox messages with $roomId because room does not exist" }
-                                    roomOutboxMessageStore.deleteByRoomId(roomId)
+                                    tm.writeTransaction {
+                                        roomOutboxMessageStore.deleteByRoomId(roomId)
+                                    }
                                 }
                                 log.trace { "finished send outbox messages in $roomId" }
                             }
@@ -175,8 +177,10 @@ class OutboxMessageEventHandler(
         val canSendMessage = userService.canSendEvent(roomId, outboxMessage.content).first()
         if (!canSendMessage) {
             log.warn { "cannot send message, because of missing permissions in this room" }
-            roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                it?.copy(sendError = SendError.NoEventPermission)
+            tm.writeTransaction {
+                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                    it?.copy(sendError = SendError.NoEventPermission)
+                }
             }
             return SendError.NoEventPermission
         }
@@ -211,8 +215,10 @@ class OutboxMessageEventHandler(
                     throw exception
                 }
             }
-            roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                it?.copy(sendError = sendError)
+            tm.writeTransaction {
+                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                    it?.copy(sendError = sendError)
+                }
             }
             return sendError
         }
@@ -221,8 +227,10 @@ class OutboxMessageEventHandler(
         val content = when {
             encryptedContent == null -> {
                 log.warn { "cannot send message, because encryption algorithm not supported" }
-                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                    it?.copy(sendError = SendError.EncryptionAlgorithmNotSupported)
+                tm.writeTransaction {
+                    roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                        it?.copy(sendError = SendError.EncryptionAlgorithmNotSupported)
+                    }
                 }
                 return SendError.EncryptionAlgorithmNotSupported
             }
@@ -232,8 +240,10 @@ class OutboxMessageEventHandler(
                 if (exception == null || exception is RoomEventEncryptionServiceError) {
                     val sendError = SendError.EncryptionError(exception?.message)
                     log.warn(encryptedContent.exceptionOrNull()) { "cannot send message" }
-                    roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                        it?.copy(sendError = sendError)
+                    tm.writeTransaction {
+                        roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                            it?.copy(sendError = sendError)
+                        }
                     }
                     return sendError
                 } else throw exception
@@ -256,13 +266,17 @@ class OutboxMessageEventHandler(
                 HttpStatusCode.TooManyRequests -> throw exception
                 else -> SendError.Unknown(exception.errorResponse)
             }
-            roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                it?.copy(sendError = sendError)
+            tm.writeTransaction {
+                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                    it?.copy(sendError = sendError)
+                }
             }
             return sendError
         }
-        roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-            it?.copy(sentAt = clock.now(), eventId = eventId)
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                it?.copy(sentAt = clock.now(), eventId = eventId)
+            }
         }
         if (config.markOwnMessageAsRead) {
             coroutineScope {

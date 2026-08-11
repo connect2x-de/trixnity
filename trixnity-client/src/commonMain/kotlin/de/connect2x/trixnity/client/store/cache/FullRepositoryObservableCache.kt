@@ -1,9 +1,16 @@
 package de.connect2x.trixnity.client.store.cache
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.*
 import de.connect2x.trixnity.client.store.repository.FullRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
+import de.connect2x.trixnity.utils.TransactionManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -53,7 +60,7 @@ private class FullRepositoryObservableCacheIndex<K>(
 
 internal open class FullRepositoryObservableCache<K : Any, V>(
     repository: FullRepository<K, V>,
-    tm: RepositoryTransactionManager,
+    private val tm: TransactionManager<*, *>,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
@@ -61,7 +68,8 @@ internal open class FullRepositoryObservableCache<K : Any, V>(
     private val valueToKeyMapper: (V) -> K,
 ) : ObservableCache<K, V, FullRepositoryObservableCacheStore<K, V>>(
     name = repository::class.simpleName ?: repository::class.toString(),
-    store = FullRepositoryObservableCacheStore(repository, tm),
+    store = FullRepositoryObservableCacheStore(repository),
+    tm = tm,
     cacheScope = cacheScope,
     clock = clock,
     expireDuration = expireDuration,
@@ -70,13 +78,15 @@ internal open class FullRepositoryObservableCache<K : Any, V>(
 ) {
 
     private val subscribersIndex = FullRepositoryObservableCacheIndex<K> {
-        store.getAll().forEach { value ->
-            val key = valueToKeyMapper(value)
-            set(
-                key = key,
-                value = value,
-                persistEnabled = false,
-            )
+        withCacheTransaction {
+            tm.readTransaction { store.getAll() }
+                .forEach { value ->
+                    val key = valueToKeyMapper(value)
+                    setCacheOnly(
+                        key = key,
+                        value = value,
+                    )
+                }
         }
     }
 

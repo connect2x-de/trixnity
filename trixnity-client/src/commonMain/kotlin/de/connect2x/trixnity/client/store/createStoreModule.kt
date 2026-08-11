@@ -1,16 +1,13 @@
 package de.connect2x.trixnity.client.store
 
-import de.connect2x.trixnity.client.media.MediaStore
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4354
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
-import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun createStoreModule() = module {
-    singleOf(::TransactionManagerImpl).bind<TransactionManager>()
     singleOf(::ObservableCacheStatisticCollector) {
         bind<EventHandler>()
         bind<ObservableCacheStatisticCollector>()
@@ -58,7 +55,6 @@ fun createStoreModule() = module {
                 getOrNull<GlobalAccountDataStore>(),
                 getOrNull<KeyStore>(),
                 getOrNull<MediaCacheMappingStore>(),
-                getOrNull<MediaStore>(),
                 getOrNull<OlmCryptoStore>(),
                 getOrNull<RoomAccountDataStore>(),
                 getOrNull<RoomOutboxMessageStore>(),

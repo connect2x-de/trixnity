@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.repository.NotificationStateRepository
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "NotificationState",
@@ -40,29 +46,28 @@ internal class RoomNotificationStateRepository(
 
     private val dao = db.notificationState()
 
-    override suspend fun getAll(): List<StoredNotificationState> = withRoomRead {
-        dao.getAll().map { entity -> json.decodeFromString(entity.value) }
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredNotificationState> = dao.getAll().map { entity ->
+        json.decodeFromString(entity.value)
     }
 
-    override suspend fun get(key: RoomId): StoredNotificationState? = withRoomRead {
-        dao.get(key)
-            ?.let { entity -> json.decodeFromString(entity.value) }
-    }
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: RoomId): StoredNotificationState? = dao.get(key)
+        ?.let { entity ->
+            json.decodeFromString(entity.value)
+        }
 
-    override suspend fun save(key: RoomId, value: StoredNotificationState) = withRoomWrite {
-        dao.insert(
-            RoomNotificationState(
-                roomId = value.roomId,
-                value = json.encodeToString(value),
-            )
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: RoomId, value: StoredNotificationState) = dao.insert(
+        RoomNotificationState(
+            roomId = value.roomId,
+            value = json.encodeToString(value),
         )
-    }
+    )
 
-    override suspend fun delete(key: RoomId) = withRoomWrite {
-        dao.delete(key)
-    }
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: RoomId) = dao.delete(key)
 
-    override suspend fun deleteAll() = withRoomWrite {
-        dao.deleteAll()
-    }
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() = dao.deleteAll()
 }

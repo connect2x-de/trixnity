@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(tableName = "OutdatedKeys")
 data class RoomOutdatedKeys(
@@ -33,25 +39,25 @@ internal class RoomOutdatedKeysRepository(
 ) : OutdatedKeysRepository {
     private val dao = db.outdatedKeys()
 
-    override suspend fun get(key: Long): Set<UserId>? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): Set<UserId>? =
         dao.get(key)
             ?.let { entity -> json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun save(key: Long, value: Set<UserId>) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: Set<UserId>) =
         dao.insert(
             RoomOutdatedKeys(
                 id = key,
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: Long) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

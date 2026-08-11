@@ -16,9 +16,11 @@ import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomTimelineStore
 import de.connect2x.trixnity.client.store.StickyEventStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
 import de.connect2x.trixnity.client.store.TimelineEventRelation
+import de.connect2x.trixnity.client.store.cache.withCacheTransaction
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.isEncrypted
 import de.connect2x.trixnity.client.store.isFirst
@@ -308,6 +310,7 @@ class RoomServiceImpl(
     private val roomTimelineStore: RoomTimelineStore,
     private val roomOutboxMessageStore: RoomOutboxMessageStore,
     private val stickyEventStore: StickyEventStore,
+    private val tm: StoreTransactionManager,
     private val roomEventEncryptionServices: List<RoomEventEncryptionService>,
     private val mediaService: MediaService,
     private val forgetRoomService: ForgetRoomService,
@@ -438,15 +441,29 @@ class RoomServiceImpl(
                             }
                         if (decryptedEventContent.isSuccess) {
                             log.trace { "getTimelineEvent: update decrypted TimelineEvent in store" }
-                            roomTimelineStore.update(
-                                timelineEvent.eventId,
-                                roomId,
-                                persistIntoRepository = this@RoomServiceImpl.matrixClientConfig.storeTimelineEventContentUnencrypted
-                            ) { oldEvent ->
+                            fun updater(oldEvent: TimelineEvent?): TimelineEvent? =
                                 // we check here again, because an event could be redacted at the same time
                                 if (oldEvent?.canBeDecrypted() == true) timelineEvent.copy(content = decryptedEventContent)
                                 else oldEvent
+
+                            if (this@RoomServiceImpl.matrixClientConfig.storeTimelineEventContentUnencrypted) {
+                                tm.writeTransaction {
+                                    roomTimelineStore.update(
+                                        timelineEvent.eventId,
+                                        roomId,
+                                        ::updater
+                                    )
+                                }
+                            } else {
+                                withCacheTransaction {
+                                    roomTimelineStore.updateCacheOnly(
+                                        timelineEvent.eventId,
+                                        roomId,
+                                        ::updater
+                                    )
+                                }
                             }
+
                         } else {
                             emit(timelineEvent.copy(content = decryptedEventContent))
                         }
@@ -857,18 +874,19 @@ class RoomServiceImpl(
         val content = MessageBuilder(roomId, this, mediaService, userInfo.userId).build(builder)
         requireNotNull(content) { "you must add some sort of content for sending a message" }
         val transactionId = useTransactionId ?: SecureRandom.nextString(22)
-        roomOutboxMessageStore.update(roomId, transactionId) {
-
-            RoomOutboxMessage(
-                transactionId = transactionId,
-                roomId = roomId,
-                content = content,
-                createdAt = createdAt,
-                sentAt = null,
-                keepMediaInCache = keepMediaInCache,
-                isDraft = isDraft,
-                stickyDuration = stickyDuration?.coerceIn(ZERO..1.hours),
-            )
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(roomId, transactionId) {
+                RoomOutboxMessage(
+                    transactionId = transactionId,
+                    roomId = roomId,
+                    content = content,
+                    createdAt = createdAt,
+                    sentAt = null,
+                    keepMediaInCache = keepMediaInCache,
+                    isDraft = isDraft,
+                    stickyDuration = stickyDuration?.coerceIn(ZERO..1.hours),
+                )
+            }
         }
         return transactionId
     }
@@ -897,9 +915,11 @@ class RoomServiceImpl(
 
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
         var content: MessageEventContent? = null
-        roomOutboxMessageStore.update(roomId, transactionId) {
-            content = it?.content
-            null
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(roomId, transactionId) {
+                content = it?.content
+                null
+            }
         }
         log.debug { "removed message with id $transactionId" }
 
@@ -911,7 +931,9 @@ class RoomServiceImpl(
     }
 
     override suspend fun retrySendMessage(roomId: RoomId, transactionId: String) {
-        roomOutboxMessageStore.update(roomId, transactionId) { it?.copy(sendError = null) }
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(roomId, transactionId) { it?.copy(sendError = null) }
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -946,9 +968,11 @@ class RoomServiceImpl(
                     it.filter { message -> message?.isDraft == true }
                 }
             }
-        }.first()
-        draftMessages.filterNotNull().forEach {
-            cancelSendMessage(roomId, it.transactionId)
+        }.first().filterNotNull()
+        if (draftMessages.isNotEmpty()) {
+            draftMessages.forEach {
+                cancelSendMessage(roomId, it.transactionId)
+            }
         }
     }
 
@@ -985,10 +1009,12 @@ class RoomServiceImpl(
             log.warn { "A draft message must exist when trying to send it. Use setDraftMessage first to create one " }
             return null
         }
-        roomOutboxMessageStore.update(
-            roomId,
-            draftMessage.transactionId
-        ) { it?.copy(isDraft = false) }
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(
+                roomId,
+                draftMessage.transactionId
+            ) { it?.copy(isDraft = false) }
+        }
         return draftMessage.transactionId
     }
 

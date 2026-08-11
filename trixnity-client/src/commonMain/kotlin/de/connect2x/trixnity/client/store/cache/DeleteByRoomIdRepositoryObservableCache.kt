@@ -1,14 +1,13 @@
 package de.connect2x.trixnity.client.store.cache
 
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreWriteTransaction
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdFullRepository
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdMapRepository
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdMinimalRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.core.model.RoomId
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -51,7 +50,7 @@ private class DeleteByRoomIdRepositoryObservableCacheIndex<K>(
 
 internal class MinimalDeleteByRoomIdRepositoryObservableCache<K : Any, V>(
     private val repository: DeleteByRoomIdMinimalRepository<K, V>,
-    private val tm: RepositoryTransactionManager,
+    private val tm: StoreTransactionManager,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
@@ -71,27 +70,21 @@ internal class MinimalDeleteByRoomIdRepositoryObservableCache<K : Any, V>(
         addIndex(roomIdIndex)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
-        coroutineScope {
-            launch {
-                tm.writeTransaction { repository.deleteByRoomId(roomId) }
-            }
-            launch {
-                roomIdIndex.getMapping(roomId).forEach {
-                    set(
-                        key = it,
-                        value = null,
-                        persistEnabled = false,
-                    )
-                }
-            }
+        repository.deleteByRoomId(roomId)
+        roomIdIndex.getMapping(roomId).forEach {
+            setCacheOnly(
+                key = it,
+                value = null,
+            )
         }
     }
 }
 
 internal class FullDeleteByRoomIdRepositoryObservableCache<K : Any, V>(
     private val repository: DeleteByRoomIdFullRepository<K, V>,
-    private val tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
@@ -113,27 +106,21 @@ internal class FullDeleteByRoomIdRepositoryObservableCache<K : Any, V>(
         addIndex(roomIdIndex)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
-        coroutineScope {
-            launch {
-                tm.writeTransaction { repository.deleteByRoomId(roomId) }
-            }
-            launch {
-                roomIdIndex.getMapping(roomId).forEach {
-                    set(
-                        key = it,
-                        value = null,
-                        persistEnabled = false,
-                    )
-                }
-            }
+        repository.deleteByRoomId(roomId)
+        roomIdIndex.getMapping(roomId).forEach {
+            setCacheOnly(
+                key = it,
+                value = null,
+            )
         }
     }
 }
 
 internal class MapDeleteByRoomIdRepositoryObservableCache<K1 : Any, K2, V>(
     private val repository: DeleteByRoomIdMapRepository<K1, K2, V>,
-    private val tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
@@ -152,20 +139,14 @@ internal class MapDeleteByRoomIdRepositoryObservableCache<K1 : Any, K2, V>(
         addIndex(roomIdIndex)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
-        coroutineScope {
-            launch {
-                tm.writeTransaction { repository.deleteByRoomId(roomId) }
-            }
-            launch {
-                roomIdIndex.getMapping(roomId).forEach {
-                    set(
-                        key = it,
-                        value = null,
-                        persistEnabled = false,
-                    )
-                }
-            }
+        repository.deleteByRoomId(roomId)
+        roomIdIndex.getMapping(roomId).forEach {
+            setCacheOnly(
+                key = it,
+                value = null,
+            )
         }
     }
 }

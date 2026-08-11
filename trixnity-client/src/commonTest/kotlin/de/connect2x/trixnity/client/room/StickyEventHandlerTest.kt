@@ -4,8 +4,8 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.store.StoredStickyEvent
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
@@ -38,6 +38,7 @@ import kotlin.time.Instant
 
 @OptIn(MSC4354::class, MSC4143::class)
 class StickyEventHandlerTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val roomId = RoomId("!room:server")
     private val alice = UserId("alice", "server")
 
@@ -56,7 +57,7 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
         stickyEventStore = store,
         roomEventEncryptionServices = listOf(encryptionService),
         clock = testScope.testClock,
-        tm = TransactionManagerMock(),
+        tm = tm,
         config = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC4354 = true },
     )
 
@@ -190,34 +191,36 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `removeInvalidStickyEvents - periodically`() = runTest {
-        store.save(
-            StoredStickyEvent(
-                event = RoomEvent.MessageEvent(
-                    content = RtcMemberEventContent(stickyKey = "sticky1", slotId = "1") as StickyEventContent,
-                    id = EventId("\$event"),
-                    sender = alice,
-                    roomId = roomId,
-                    originTimestamp = 2000L,
-                    sticky = StickyEventData(durationMs = 1000L)
+        tm.writeTransaction {
+            store.save(
+                StoredStickyEvent(
+                    event = RoomEvent.MessageEvent(
+                        content = RtcMemberEventContent(stickyKey = "sticky1", slotId = "1") as StickyEventContent,
+                        id = EventId("\$event"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 2000L,
+                        sticky = StickyEventData(durationMs = 1000L)
+                    ),
+                    startTime = Instant.fromEpochMilliseconds(0),
+                    endTime = Instant.fromEpochMilliseconds(0) + 2.minutes,
                 ),
-                startTime = Instant.fromEpochMilliseconds(0),
-                endTime = Instant.fromEpochMilliseconds(0) + 2.minutes,
-            ),
-        )
-        store.save(
-            StoredStickyEvent(
-                event = RoomEvent.MessageEvent(
-                    content = RtcMemberEventContent(stickyKey = "sticky2", slotId = "1") as StickyEventContent,
-                    id = EventId("\$event"),
-                    sender = alice,
-                    roomId = roomId,
-                    originTimestamp = 2000L,
-                    sticky = StickyEventData(durationMs = 1000L)
+            )
+            store.save(
+                StoredStickyEvent(
+                    event = RoomEvent.MessageEvent(
+                        content = RtcMemberEventContent(stickyKey = "sticky2", slotId = "1") as StickyEventContent,
+                        id = EventId("\$event"),
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 2000L,
+                        sticky = StickyEventData(durationMs = 1000L)
+                    ),
+                    startTime = Instant.fromEpochMilliseconds(0),
+                    endTime = Instant.fromEpochMilliseconds(0) + 4.minutes,
                 ),
-                startTime = Instant.fromEpochMilliseconds(0),
-                endTime = Instant.fromEpochMilliseconds(0) + 4.minutes,
-            ),
-        )
+            )
+        }
         val job = backgroundScope.launch { cut.removeInvalidStickyEvents() }
         delay(1.seconds)
         store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1").first().shouldNotBeNull()

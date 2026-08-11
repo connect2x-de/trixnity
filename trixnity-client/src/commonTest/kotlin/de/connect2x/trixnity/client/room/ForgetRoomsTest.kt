@@ -8,7 +8,6 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomTimelineStore
 import de.connect2x.trixnity.client.getInMemoryRoomUserStore
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
@@ -18,6 +17,7 @@ import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
 import de.connect2x.trixnity.client.store.get
 import de.connect2x.trixnity.client.store.getByStateKey
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
@@ -45,7 +45,7 @@ import kotlin.time.Instant
 
 @OptIn(MSC4354::class, MSC4143::class)
 class ForgetRoomsTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val room = simpleRoom.roomId
 
     private val roomStore = getInMemoryRoomStore()
@@ -66,37 +66,36 @@ class ForgetRoomsTest : TrixnityBaseTest() {
         stickyEventStore = roomStickyEventStore,
         roomOutboxMessageStore = roomOutboxMessageStore,
         notificationStore = notificationStore,
-        transactionManager = TransactionManagerMock(),
+        tm = tm,
     )
 
     @Test
     fun `invoke » forget rooms when membership is leave`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(room, membership = Membership.LEAVE) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(room, membership = Membership.LEAVE) }
 
-        fun timelineEvent(roomId: RoomId, i: Int) =
-            TimelineEvent(
-                MessageEvent(
-                    RoomMessageEventContent.TextBased.Text("$i"),
-                    EventId("$i"),
-                    UserId("sender", "server"),
-                    roomId,
-                    1234L,
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
-            )
-        roomTimelineStore.addAll(
-            listOf(
-                timelineEvent(room, 1),
-                timelineEvent(room, 2),
-            )
-        )
 
-        fun timelineEventRelation(roomId: RoomId, i: Int) =
-            TimelineEventRelation(roomId, EventId("r$i"), RelationType.Replace, EventId("$i"))
-        roomTimelineStore.addRelation(timelineEventRelation(room, 1))
-        roomTimelineStore.addRelation(timelineEventRelation(room, 2))
+            fun timelineEvent(roomId: RoomId, i: Int) =
+                TimelineEvent(
+                    MessageEvent(
+                        RoomMessageEventContent.TextBased.Text("$i"),
+                        EventId("$i"),
+                        UserId("sender", "server"),
+                        roomId,
+                        1234L,
+                    ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            roomTimelineStore.add(timelineEvent(room, 1))
+            roomTimelineStore.add(timelineEvent(room, 2))
+
+            fun timelineEventRelation(roomId: RoomId, i: Int) =
+                TimelineEventRelation(roomId, EventId("r$i"), RelationType.Replace, EventId("$i"))
+            roomTimelineStore.addRelation(timelineEventRelation(room, 1))
+            roomTimelineStore.addRelation(timelineEventRelation(room, 2))
+        }
 
         fun stateEvent(roomId: RoomId, i: Int) =
             StateEvent(
@@ -107,49 +106,52 @@ class ForgetRoomsTest : TrixnityBaseTest() {
                 1234L,
                 stateKey = "$i",
             )
-        roomStateStore.save(stateEvent(room, 1))
-        roomStateStore.save(stateEvent(room, 2))
+        tm.writeTransaction {
+            roomStateStore.save(stateEvent(room, 1))
+            roomStateStore.save(stateEvent(room, 2))
 
-        fun roomAccountDataEvent(roomId: RoomId, i: Int) =
-            RoomAccountDataEvent(
-                FullyReadEventContent(EventId("$i")),
-                roomId,
-                key = "$i",
+            fun roomAccountDataEvent(roomId: RoomId, i: Int) =
+                RoomAccountDataEvent(
+                    FullyReadEventContent(EventId("$i")),
+                    roomId,
+                    key = "$i",
+                )
+            roomAccountDataStore.save(roomAccountDataEvent(room, 1))
+            roomAccountDataStore.save(roomAccountDataEvent(room, 2))
+
+            fun roomUser(roomId: RoomId, i: Int) =
+                RoomUser(roomId, UserId("user$i", "server"), "$i", stateEvent(roomId, i))
+            roomUserStore.update(UserId("1"), room) { roomUser(room, 1) }
+            roomUserStore.update(UserId("2"), room) { roomUser(room, 2) }
+
+            roomOutboxMessageStore.update(room, "t1") {
+                RoomOutboxMessage(
+                    room, "t1",
+                    RoomMessageEventContent.TextBased.Text("hi"),
+                    testClock.now(),
+                )
+            }
+
+
+            val stickyEvent = MessageEvent(
+                content = RtcMemberEventContent(slotId = "slot", stickyKey = "sticky_key") as StickyEventContent,
+                id = EventId("${'$'}sticky"),
+                sender = UserId("sender", "server"),
+                roomId = room,
+                originTimestamp = 1234L,
+                sticky = StickyEventData(durationMs = 24_000),
             )
-        roomAccountDataStore.save(roomAccountDataEvent(room, 1))
-        roomAccountDataStore.save(roomAccountDataEvent(room, 2))
-
-        fun roomUser(roomId: RoomId, i: Int) =
-            RoomUser(roomId, UserId("user$i", "server"), "$i", stateEvent(roomId, i))
-        roomUserStore.update(UserId("1"), room) { roomUser(room, 1) }
-        roomUserStore.update(UserId("2"), room) { roomUser(room, 2) }
-
-        roomOutboxMessageStore.update(room, "t1") {
-            RoomOutboxMessage(
-                room, "t1",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now(),
+            roomStickyEventStore.save(
+                StoredStickyEvent(
+                    event = stickyEvent,
+                    startTime = Instant.fromEpochMilliseconds(24),
+                    endTime = Instant.fromEpochMilliseconds(24)
+                )
             )
-        }
 
-        val stickyEvent = MessageEvent(
-            content = RtcMemberEventContent(slotId = "slot", stickyKey = "sticky_key") as StickyEventContent,
-            id = EventId("${'$'}sticky"),
-            sender = UserId("sender", "server"),
-            roomId = room,
-            originTimestamp = 1234L,
-            sticky = StickyEventData(durationMs = 24_000),
-        )
-        roomStickyEventStore.save(
-            StoredStickyEvent(
-                event = stickyEvent,
-                startTime = Instant.fromEpochMilliseconds(24),
-                endTime = Instant.fromEpochMilliseconds(24)
-            )
-        )
-
-        notificationStore.update("notif") {
-            StoredNotification.Message("s", room, EventId("notif"), setOf())
+            notificationStore.update("notif") {
+                StoredNotification.Message("s", room, EventId("notif"), setOf())
+            }
         }
 
         roomStore.getAll().first { it.size == 1 }
@@ -188,7 +190,9 @@ class ForgetRoomsTest : TrixnityBaseTest() {
 
     @Test
     fun `invoke » not forget rooms when membership is not leave`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(room) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(room) }
+        }
         roomStore.getAll().first { it.size == 1 }
         cut(room, false)
         roomStore.get(room).first() shouldNotBe null
@@ -196,7 +200,9 @@ class ForgetRoomsTest : TrixnityBaseTest() {
 
     @Test
     fun `invoke » forget rooms when membership is not leave if forced`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(room) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(room) }
+        }
         roomStore.getAll().first { it.size == 1 }
         cut(room, true)
         roomStore.get(room).first() shouldBe null

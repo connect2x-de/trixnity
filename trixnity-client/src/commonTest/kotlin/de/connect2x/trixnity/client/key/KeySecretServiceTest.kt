@@ -1,15 +1,11 @@
 package de.connect2x.trixnity.client.key
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.user.SetGlobalAccountData
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.UserInfo
@@ -23,7 +19,10 @@ import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventCon
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent.AesHmacSha2Key.AesHmacSha2EncryptedData
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.crypto.SecretType.*
+import de.connect2x.trixnity.crypto.SecretType.M_CROSS_SIGNING_SELF_SIGNING
+import de.connect2x.trixnity.crypto.SecretType.M_CROSS_SIGNING_USER_SIGNING
+import de.connect2x.trixnity.crypto.SecretType.M_DEHYDRATED_DEVICE
+import de.connect2x.trixnity.crypto.SecretType.M_MEGOLM_BACKUP_V1
 import de.connect2x.trixnity.crypto.core.decryptAesHmacSha2
 import de.connect2x.trixnity.crypto.core.encryptAesHmacSha2
 import de.connect2x.trixnity.crypto.key.convert
@@ -32,12 +31,17 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.random.Random
 import kotlin.test.Test
 
 @OptIn(MSC3814::class)
 class KeySecretServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val userId = UserId("alice", "server")
     private val json = createMatrixEventJson()
     private val keyStore = getInMemoryKeyStore()
@@ -50,6 +54,7 @@ class KeySecretServiceTest : TrixnityBaseTest() {
         json = json,
         keyStore = keyStore,
         globalAccountDataStore = globalAccountDataStore,
+        tm = tm,
         api = api,
         userInfo = UserInfo(userId, "device", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
         matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true }
@@ -65,7 +70,9 @@ class KeySecretServiceTest : TrixnityBaseTest() {
                 GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key3"
             )
         )
-        keyStore.updateSecrets { existingPrivateKeys }
+        tm.writeTransaction {
+            keyStore.updateSecrets { existingPrivateKeys }
+        }
 
         val key = Random.nextBytes(32)
         val secret = Random.nextBytes(32).encodeUnpaddedBase64()
@@ -78,7 +85,9 @@ class KeySecretServiceTest : TrixnityBaseTest() {
         val event = GlobalAccountDataEvent(
             UserSigningKeyEventContent(mapOf("KEY" to json.encodeToJsonElement(encryptedData)))
         )
-        globalAccountDataStore.save(event)
+        tm.writeTransaction {
+            globalAccountDataStore.save(event)
+        }
 
         cut.decryptOrCreateMissingSecrets(key, "KEY", SecretKeyEventContent.AesHmacSha2Key())
         keyStore.getSecrets() shouldBe existingPrivateKeys + mapOf(

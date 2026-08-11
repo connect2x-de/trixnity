@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.repository.RoomUserRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 
 @Serializable
@@ -45,7 +46,8 @@ internal class IndexedDBRoomUserRepository(
         }
     }
 
-    override suspend fun deleteByRoomId(roomId: RoomId): Unit = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId): Unit = withWrite { store ->
         store.index(firstKeyIndexName).openCursor(keyOf(roomId.full))
             .collect {
                 store.delete(it.primaryKey)

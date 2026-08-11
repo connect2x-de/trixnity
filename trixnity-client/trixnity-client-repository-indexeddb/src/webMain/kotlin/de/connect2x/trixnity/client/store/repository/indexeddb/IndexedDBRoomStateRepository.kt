@@ -1,5 +1,13 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
+import de.connect2x.trixnity.client.store.repository.RoomStateRepository
+import de.connect2x.trixnity.client.store.repository.RoomStateRepositoryKey
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
+import de.connect2x.trixnity.idb.utils.KeyPath
+import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -7,12 +15,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import de.connect2x.trixnity.client.store.repository.RoomStateRepository
-import de.connect2x.trixnity.client.store.repository.RoomStateRepositoryKey
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
-import de.connect2x.trixnity.idb.utils.KeyPath
-import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import web.idb.IDBDatabase
 
 @Serializable
@@ -59,8 +61,9 @@ internal class IndexedDBRoomStateRepository(
         }
     }
 
+    context(transaction: ReadTransaction)
     override suspend fun getByRooms(roomIds: Set<RoomId>, type: String, stateKey: String): List<StateBaseEvent<*>> =
-        withIndexedDBRead { store ->
+        withRead { store ->
             val roomIdStrings = roomIds.map { it.full }
             store.index("type|stateKey").openCursor(keyOf(arrayOf(type, stateKey)))
                 .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
@@ -69,7 +72,8 @@ internal class IndexedDBRoomStateRepository(
                 .toList()
         }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
         store.index("roomId").openCursor(keyOf(roomId.full))
             .collect {
                 store.delete(it.primaryKey)

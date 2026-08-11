@@ -1,13 +1,19 @@
 package de.connect2x.trixnity.client.key
 
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.cryptodriver.ClientOlmStore
+import de.connect2x.trixnity.client.getInMemoryAccountStore
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.getInMemoryOlmStore
+import de.connect2x.trixnity.client.getInMemoryRoomStateStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.KeyServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
 import de.connect2x.trixnity.clientserverapi.model.device.GetDehydratedDevice
 import de.connect2x.trixnity.clientserverapi.model.device.GetDehydratedDeviceEvents
@@ -24,9 +30,15 @@ import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent.CiphertextInfo
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.SessionKeyValue
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
@@ -55,16 +67,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(MSC3814::class)
 class DehydratedDeviceServiceTestVodozemac : DehydratedDeviceServiceTest(VodozemacCryptoDriver)
 
-@OptIn(MSC3814::class)
 class DehydratedDeviceServiceTestLibOlm : DehydratedDeviceServiceTest(LibOlmCryptoDriver)
 
 @OptIn(MSC3814::class)
 abstract class DehydratedDeviceServiceTest(
     protected val driver: CryptoDriver,
 ) : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     protected val roomId = RoomId("!room:server")
     protected val alice = UserId("alice", "server")
     protected val bob = UserId("bob", "server")
@@ -78,6 +89,7 @@ abstract class DehydratedDeviceServiceTest(
         olmCryptoStore = olmCryptoStore,
         keyStore = keyStore,
         roomStateStore = getInMemoryRoomStateStore(),
+        tm = tm,
         loadMembersService = { _, _ -> },
     )
 
@@ -214,21 +226,23 @@ abstract class DehydratedDeviceServiceTest(
                 ), senderKey = KeyValue.of(bobAccount.curve25519Key)
             )
 
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                "BOB_DEVICE" to StoredDeviceKeys(
-                    SignedDeviceKeys(
-                        DeviceKeys(
-                            bob, "BOB_DEVICE", setOf(),
-                            keysOf(
-                                Key.of("BOB_DEVICE", bobAccount.ed25519Key),
-                                Key.of("BOB_DEVICE", bobAccount.curve25519Key),
-                            )
-                        ), mapOf()
-                    ),
-                    Valid(false)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    "BOB_DEVICE" to StoredDeviceKeys(
+                        SignedDeviceKeys(
+                            DeviceKeys(
+                                bob, "BOB_DEVICE", setOf(),
+                                keysOf(
+                                    Key.of("BOB_DEVICE", bobAccount.ed25519Key),
+                                    Key.of("BOB_DEVICE", bobAccount.curve25519Key),
+                                )
+                            ), mapOf()
+                        ),
+                        Valid(false)
+                    )
                 )
-            )
+            }
         }
 
         apiConfig.endpoints {
@@ -349,21 +363,23 @@ abstract class DehydratedDeviceServiceTest(
                 ), senderKey = KeyValue.of(bobAccount.curve25519Key)
             )
 
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                "BOB_DEVICE" to StoredDeviceKeys(
-                    SignedDeviceKeys(
-                        DeviceKeys(
-                            bob, "BOB_DEVICE", setOf(),
-                            keysOf(
-                                Key.of("BOB_DEVICE", bobAccount.ed25519Key),
-                                Key.of("BOB_DEVICE", bobAccount.curve25519Key),
-                            )
-                        ), mapOf()
-                    ),
-                    Valid(false)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    "BOB_DEVICE" to StoredDeviceKeys(
+                        SignedDeviceKeys(
+                            DeviceKeys(
+                                bob, "BOB_DEVICE", setOf(),
+                                keysOf(
+                                    Key.of("BOB_DEVICE", bobAccount.ed25519Key),
+                                    Key.of("BOB_DEVICE", bobAccount.curve25519Key),
+                                )
+                            ), mapOf()
+                        ),
+                        Valid(false)
+                    )
                 )
-            )
+            }
         }
 
         apiConfig.endpoints {
@@ -415,18 +431,20 @@ abstract class DehydratedDeviceServiceTest(
             matrixJsonEndpoint(SetDehydratedDevice) {
                 setDehydratedDevice = it
                 val deviceId = it.deviceId
-                keyStore.updateDeviceKeys(alice) {
-                    mapOf(
-                        deviceId to StoredDeviceKeys(
-                            SignedDeviceKeys(
-                                DeviceKeys(
-                                    alice, deviceId, setOf(),
-                                    keysOf()
-                                ), mapOf()
-                            ),
-                            KeySignatureTrustLevel.CrossSigned(true)
+                tm.writeTransaction {
+                    keyStore.updateDeviceKeys(alice) {
+                        mapOf(
+                            deviceId to StoredDeviceKeys(
+                                SignedDeviceKeys(
+                                    DeviceKeys(
+                                        alice, deviceId, setOf(),
+                                        keysOf()
+                                    ), mapOf()
+                                ),
+                                KeySignatureTrustLevel.CrossSigned(true)
+                            )
                         )
-                    )
+                    }
                 }
                 SetDehydratedDevice.Response(deviceId)
             }
@@ -437,13 +455,15 @@ abstract class DehydratedDeviceServiceTest(
         }
         delay(100.milliseconds)
         dehydrateDeviceJob.isActive shouldBe true
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                    ClientEvent.GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())),
-                    selfSigningPrivateKey
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
+                        ClientEvent.GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())),
+                        selfSigningPrivateKey
+                    )
                 )
-            )
+            }
         }
         delay(100.milliseconds)
         dehydrateDeviceJob.join()

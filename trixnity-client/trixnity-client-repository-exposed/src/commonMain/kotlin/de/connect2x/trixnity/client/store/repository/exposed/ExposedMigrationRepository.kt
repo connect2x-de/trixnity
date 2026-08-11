@@ -1,12 +1,15 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
 import de.connect2x.trixnity.client.store.repository.MigrationRepository
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.upsert
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedMigration : Table("migration") {
     val name = text("name")
@@ -16,26 +19,30 @@ internal object ExposedMigration : Table("migration") {
 }
 
 internal class ExposedMigrationRepository : MigrationRepository {
-    override suspend fun get(key: String): String? = withExposedRead {
-        ExposedMigration
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: String): String? {
+        return ExposedMigration
             .selectAll()
             .where { ExposedMigration.name eq key }
             .firstOrNull()
             ?.get(ExposedMigration.metadata)
     }
 
-    override suspend fun save(key: String, value: String): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: String, value: String) {
         ExposedMigration.upsert {
             it[name] = key
             it[metadata] = value
         }
     }
 
-    override suspend fun delete(key: String): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: String) {
         ExposedMigration.deleteWhere { ExposedMigration.name eq key }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedMigration.deleteAll()
     }
 }

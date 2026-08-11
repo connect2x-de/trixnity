@@ -1,16 +1,18 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
+import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
+import de.connect2x.trixnity.idb.utils.KeyPath
+import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toSet
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
-import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
-import de.connect2x.trixnity.idb.utils.KeyPath
-import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import web.idb.IDBDatabase
 import web.idb.IDBValidKey
 
@@ -59,25 +61,31 @@ internal class IndexedDBInboundMegolmSessionRepository(
         }
     }
 
-    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> = withIndexedDBRead { store ->
+    context(transaction: ReadTransaction)
+    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> = withRead { store ->
         store.index("hasBeenBackedUp").openCursor(IDBValidKey(0))
             .mapNotNull { json.decodeFromDynamicNullable(internalRepository.valueSerializer, it.value) }
             .map { it.toStoredInboundMegolmSession() }
             .toSet()
     }
 
+    context(transaction: ReadTransaction)
     override suspend fun get(key: InboundMegolmSessionRepositoryKey): StoredInboundMegolmSession? =
         internalRepository.get(key)?.toStoredInboundMegolmSession()
 
+    context(transaction: ReadTransaction)
     override suspend fun getAll(): List<StoredInboundMegolmSession> =
         internalRepository.getAll().map { it.toStoredInboundMegolmSession() }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(key: InboundMegolmSessionRepositoryKey, value: StoredInboundMegolmSession) =
         internalRepository.save(key, value.toIndexedDBInboundMegolmSession())
 
+    context(transaction: WriteTransaction)
     override suspend fun delete(key: InboundMegolmSessionRepositoryKey) =
         internalRepository.delete(key)
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteAll() =
         internalRepository.deleteAll()
 }

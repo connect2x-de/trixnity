@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client.store.cache
 
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -100,7 +100,7 @@ internal class ConcurrentObservableMap<K : Any, V> {
 
     suspend fun getAll(): Map<K, V> = _values.read { toMap() }
 
-    internal suspend fun <R> internalRead(reader: suspend Map<K, V>.() -> R) = _values.read(reader)
+    internal suspend fun <R> internalRead(reader: Map<K, V>.() -> R) = _values.read(reader)
 
     suspend fun removeAll() = _values.write {
         clear()

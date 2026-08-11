@@ -1,16 +1,19 @@
 package de.connect2x.trixnity.client.cryptodriver.vodozemac
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.createDefaultEventContentSerializerMappingsModule
 import de.connect2x.trixnity.client.createDefaultMatrixJsonModule
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.repository.AccountRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
+import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
+import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.RepositoryMigration
+import de.connect2x.trixnity.client.store.repository.inMemory
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
@@ -18,6 +21,12 @@ import de.connect2x.trixnity.vodozemac.megolm.GroupSession
 import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession
 import de.connect2x.trixnity.vodozemac.olm.Account
 import de.connect2x.trixnity.vodozemac.olm.Session
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.dsl.koinApplication
@@ -39,7 +48,7 @@ class MigrationTest {
                         single<RepositoryMigration> {
                             VodozemacRepositoryMigration(get(), get(), get(), get(), get(), get(), get())
                         }
-                        single<RepositoryTransactionManager> { NoOpRepositoryTransactionManager }
+                        single<StoreTransactionManager> { NoOpStoreTransactionManager }
                     },
                     createDefaultEventContentSerializerMappingsModule(),
                     createDefaultMatrixJsonModule()
@@ -67,7 +76,7 @@ class MigrationTest {
     private suspend fun KoinApplication.applyDatabase(db: Database) {
         val members = koin.members
 
-        members.transaction.writeTransaction {
+        members.tm.writeTransaction {
             members.accountRepository.save(key = 1, value = db.account)
             members.olmAccountRepository.save(key = 1, value = db.olmAccount)
             members.olmSessionRepository.save(key = db.olmSession.senderKey, value = setOf(db.olmSession))
@@ -85,7 +94,7 @@ class MigrationTest {
     private suspend fun KoinApplication.getDatabase(): Database {
         val members = koin.members
 
-        val db = members.transaction.readTransaction {
+        val db = members.tm.readTransaction {
             val account = members.accountRepository.get(key = 1).shouldNotBeNull()
             val olmAccount = members.olmAccountRepository.get(key = 1).shouldNotBeNull()
             val olmSession = members.olmSessionRepository.getAll().flatten().apply { size shouldBe 1 }.first()
@@ -105,7 +114,7 @@ class MigrationTest {
     }
 
     private data class KoinMembers(
-        val transaction: RepositoryTransactionManager,
+        val tm: StoreTransactionManager,
         val accountRepository: AccountRepository,
         val olmAccountRepository: OlmAccountRepository,
         val olmSessionRepository: OlmSessionRepository,
@@ -116,7 +125,7 @@ class MigrationTest {
     private val Koin.members: KoinMembers
         get() =
             KoinMembers(
-                transaction = get(),
+                tm = get(),
                 accountRepository = get(),
                 olmAccountRepository = get(),
                 olmSessionRepository = get(),

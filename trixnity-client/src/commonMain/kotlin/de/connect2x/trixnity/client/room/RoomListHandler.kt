@@ -9,7 +9,7 @@ import de.connect2x.trixnity.client.store.RoomDisplayName
 import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.ServerDataStore
-import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.get
 import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.client.utils.filterContent
@@ -64,7 +64,7 @@ class RoomListHandler(
     private val forgetRoomService: ForgetRoomService,
     private val roomService: RoomService,
     private val userInfo: UserInfo,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
     private val config: MatrixClientConfiguration,
 ) : EventHandler {
 
@@ -137,10 +137,11 @@ class RoomListHandler(
 
         updateIsDirectAndAvatarUrls(syncEvents, roomUpdates)
 
+        val finalRoomUpdates = roomUpdates.read { toMap() }.mapValues { it.value.read { toList() } }
         tm.writeTransaction {
-            roomUpdates.read { toMap() }.forEach { (roomId, updates) ->
+            finalRoomUpdates.forEach { (roomId, updates) ->
                 roomStore.update(roomId) { oldRoom ->
-                    updates.read { toList() }.fold(oldRoom) { room, update ->
+                    updates.fold(oldRoom) { room, update ->
                         update(room)
                     }
                 }
@@ -421,10 +422,8 @@ class RoomListHandler(
     private suspend fun forgetRooms(forgetRooms: Collection<RoomId>) {
         if (forgetRooms.isNotEmpty()) {
             log.debug { "forget rooms: $forgetRooms" }
-            tm.writeTransaction {
-                forgetRooms.forEach { roomId ->
-                    forgetRoomService(roomId, false)
-                }
+            forgetRooms.forEach { roomId ->
+                forgetRoomService(roomId, false)
             }
         }
     }

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.store.repository.room
 
 import androidx.room.RoomDatabase
 import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
 import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
@@ -21,7 +22,6 @@ import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRe
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
@@ -54,6 +54,7 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
                 }
             }
 
+            singleOf(::RoomStoreTransactionManager) { bind<StoreTransactionManager>() }
             singleOf(::RoomAccountRepository) { bind<AccountRepository>() }
             singleOf(::RoomAuthenticationRepository) { bind<AuthenticationRepository>() }
             singleOf(::RoomServerDataRepository) { bind<ServerDataRepository>() }
@@ -70,7 +71,6 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
             singleOf(::RoomOlmSessionRepository) { bind<OlmSessionRepository>() }
             singleOf(::RoomOutboundMegolmSessionRepository) { bind<OutboundMegolmSessionRepository>() }
             singleOf(::RoomOutdatedKeysRepository) { bind<OutdatedKeysRepository>() }
-            singleOf(::RoomRepositoryTransactionManager) { bind<RepositoryTransactionManager>() }
             singleOf(::RoomRoomAccountDataRepository) { bind<RoomAccountDataRepository>() }
             singleOf(::RoomRoomKeyRequestRepository) { bind<RoomKeyRequestRepository>() }
             singleOf(::RoomRoomOutboxMessageRepository) { bind<RoomOutboxMessageRepository>() }

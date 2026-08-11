@@ -29,6 +29,7 @@ fun createUserModule() = module {
     single<LoadMembersService> {
         LoadMembersServiceImpl(
             roomStore = get(),
+            tm = get(),
             lazyMemberEventHandlers = getAll(),
             currentSyncState = get(),
             api = get(),

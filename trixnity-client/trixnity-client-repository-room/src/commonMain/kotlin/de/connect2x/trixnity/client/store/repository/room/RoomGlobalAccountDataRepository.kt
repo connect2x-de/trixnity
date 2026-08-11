@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.GlobalAccountDataRepository
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "GlobalAccountData",
@@ -51,24 +57,25 @@ internal class RoomGlobalAccountDataRepository(
         .getContextual(GlobalAccountDataEvent::class)
         ?: throw IllegalArgumentException("could not find event serializer")
 
-    override suspend fun get(firstKey: String): Map<String, GlobalAccountDataEvent<*>> = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(firstKey: String): Map<String, GlobalAccountDataEvent<*>> =
         dao.getAllByType(firstKey)
             .associate { entity -> entity.key to json.decodeFromString(serializer, entity.event) }
-    }
 
+    context(transaction: ReadTransaction)
     override suspend fun get(
         firstKey: String,
         secondKey: String
-    ): GlobalAccountDataEvent<*>? = withRoomRead {
+    ): GlobalAccountDataEvent<*>? =
         dao.getByKeys(firstKey, secondKey)
             ?.let { entity -> json.decodeFromString(serializer, entity.event) }
-    }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(
         firstKey: String,
         secondKey: String,
         value: GlobalAccountDataEvent<*>
-    ) = withRoomWrite {
+    ) =
         dao.insert(
             RoomGlobalAccountData(
                 type = firstKey,
@@ -76,13 +83,12 @@ internal class RoomGlobalAccountDataRepository(
                 event = json.encodeToString(serializer, value),
             )
         )
-    }
 
-    override suspend fun delete(firstKey: String, secondKey: String) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(firstKey: String, secondKey: String) =
         dao.delete(firstKey, secondKey)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

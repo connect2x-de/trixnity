@@ -2,8 +2,8 @@ package de.connect2x.trixnity.client.user
 
 import de.connect2x.trixnity.client.getInMemoryRoomUserStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 
 class MemberEventHandlerTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
 
     private val roomId = RoomId("!room:localhost")
     private val user1 = UserId("user1", "server")
@@ -50,27 +51,29 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
     )
 
     private val roomUserStore = getInMemoryRoomUserStore {
-        update(user4, roomId) {
-            RoomUser(
-                roomId,
-                user4,
-                "U1 (@user4:server)",
-                StateEvent(
-                    MemberEventContent(displayName = "U1", membership = Membership.BAN),
-                    EventId("\$event4"),
-                    UserId("sender", "server"),
+        tm.writeTransaction {
+            update(user4, roomId) {
+                RoomUser(
                     roomId,
-                    1234,
-                    stateKey = user4.full
+                    user4,
+                    "U1 (@user4:server)",
+                    StateEvent(
+                        MemberEventContent(displayName = "U1", membership = Membership.BAN),
+                        EventId("\$event4"),
+                        UserId("sender", "server"),
+                        roomId,
+                        1234,
+                        stateKey = user4.full
+                    )
                 )
-            )
+            }
         }
     }
 
     private val cut = UserMemberEventHandler(
-        mockMatrixClientServerApiClient(),
-        roomUserStore,
-        TransactionManagerMock(),
+        api = mockMatrixClientServerApiClient(),
+        roomUserStore = roomUserStore,
+        tm = tm,
     )
 
     @Test
@@ -192,7 +195,9 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsMember()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.JOIN)
             )
@@ -213,7 +218,9 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsMember()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.JOIN)
             )
@@ -258,13 +265,17 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsMember()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) {
-                RoomUser(roomId, user2, "U1 (@user2:server)", event2)
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) {
+                    RoomUser(roomId, user2, "U1 (@user2:server)", event2)
+                }
             }
             val event3 =
                 user3Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user3, roomId) {
-                RoomUser(roomId, user3, "U1 (@user3:server)", event3)
+            tm.writeTransaction {
+                roomUserStore.update(user3, roomId) {
+                    RoomUser(roomId, user3, "U1 (@user3:server)", event3)
+                }
             }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.JOIN)
@@ -289,8 +300,10 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsMember()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) {
-                RoomUser(roomId, user2, "OLD (@user2:server)", event2)
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) {
+                    RoomUser(roomId, user2, "OLD (@user2:server)", event2)
+                }
             }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.JOIN)
@@ -307,13 +320,15 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsMember()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) {
-                RoomUser(roomId, user2, "OLD (@user2:server)", event2)
-            }
             val event3 =
                 user3Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
-            roomUserStore.update(user3, roomId) {
-                RoomUser(roomId, user3, "OLD (@user3:server)", event3)
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) {
+                    RoomUser(roomId, user2, "OLD (@user2:server)", event2)
+                }
+                roomUserStore.update(user3, roomId) {
+                    RoomUser(roomId, user3, "OLD (@user3:server)", event3)
+                }
             }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.JOIN)
@@ -336,7 +351,9 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsNotMemberAnymore()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) { RoomUser(roomId, user2, "U1", event2) }
+            }
             val event = user1Event.copy(
                 content = MemberEventContent(displayName = "U1", membership = Membership.BAN)
             )
@@ -357,13 +374,15 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
             setupUserIsNotMemberAnymore()
             val event2 =
                 user2Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user2, roomId) {
-                RoomUser(roomId, user2, "U1 (@user2:server)", event2)
-            }
             val event3 =
                 user3Event.copy(content = MemberEventContent(displayName = "U1", membership = Membership.JOIN))
-            roomUserStore.update(user3, roomId) {
-                RoomUser(roomId, user3, "U1 (@user3:server)", event3)
+            tm.writeTransaction {
+                roomUserStore.update(user2, roomId) {
+                    RoomUser(roomId, user2, "U1 (@user2:server)", event2)
+                }
+                roomUserStore.update(user3, roomId) {
+                    RoomUser(roomId, user3, "U1 (@user3:server)", event3)
+                }
             }
             val event = user1Event.copy(
                 content = MemberEventContent(
@@ -387,40 +406,46 @@ class MemberEventHandlerTest : TrixnityBaseTest() {
 
     private suspend fun setupNoOtherUserHasSameDisplayName() {
         setupUserIsMember()
-        roomUserStore.update(user2, roomId) {
-            RoomUser(
-                roomId,
-                user2,
-                "U2",
-                user2Event.copy(
-                    content = MemberEventContent(
-                        displayName = "U2",
-                        membership = Membership.JOIN
+        tm.writeTransaction {
+            roomUserStore.update(user2, roomId) {
+                RoomUser(
+                    roomId,
+                    user2,
+                    "U2",
+                    user2Event.copy(
+                        content = MemberEventContent(
+                            displayName = "U2",
+                            membership = Membership.JOIN
+                        )
                     )
                 )
-            )
+            }
         }
     }
 
     private suspend fun setupUserIsMember() {
-        roomUserStore.update(user1, roomId) {
-            RoomUser(
-                roomId,
-                user1,
-                "OLD",
-                user1Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
-            )
+        tm.writeTransaction {
+            roomUserStore.update(user1, roomId) {
+                RoomUser(
+                    roomId,
+                    user1,
+                    "OLD",
+                    user1Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
+                )
+            }
         }
     }
 
     private suspend fun setupUserIsNotMemberAnymore() {
-        roomUserStore.update(user1, roomId) {
-            RoomUser(
-                roomId,
-                user1,
-                "OLD",
-                user1Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
-            )
+        tm.writeTransaction {
+            roomUserStore.update(user1, roomId) {
+                RoomUser(
+                    roomId,
+                    user1,
+                    "OLD",
+                    user1Event.copy(content = MemberEventContent(displayName = "OLD", membership = Membership.JOIN))
+                )
+            }
         }
     }
 }

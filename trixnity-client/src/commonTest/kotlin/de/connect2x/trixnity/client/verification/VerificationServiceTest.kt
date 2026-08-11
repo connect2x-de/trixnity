@@ -20,6 +20,7 @@ import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.Cancel
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.TheirRequest
@@ -102,7 +103,7 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VerificationServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     init {
@@ -466,9 +467,11 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `createUserVerificationRequest » direct room with user exists » send request to existing room`() = runTest {
-        globalAccountDataStore.save(
-            GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
-        )
+        tm.writeTransaction {
+            globalAccountDataStore.save(
+                GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
+            )
+        }
         userServiceMock.roomUsers.put(
             Pair(bobUserId, roomId), flowOf(
                 RoomUser(
@@ -504,34 +507,32 @@ class VerificationServiceTest : TrixnityBaseTest() {
     fun `createUserVerificationRequest » direct room with user exists but other user left and a new direct room was created » send request to room with other user present`() =
         runTest {
             val abandonedRoom = RoomId("!abandonedRoom:Server")
-            globalAccountDataStore.save(
-                GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(abandonedRoom, roomId))))
-            )
-            userServiceMock.roomUsers.put(
-                Pair(bobUserId, abandonedRoom), flowOf(
-                    RoomUser(
-                        abandonedRoom, bobUserId, "Bob",
-                        ClientEvent.RoomEvent.StateEvent(
-                            MemberEventContent(membership = Membership.LEAVE),
-                            id = EventId("0"),
-                            sender = bobUserId,
-                            roomId = abandonedRoom, originTimestamp = testClock.now().toEpochMilliseconds(),
-                            stateKey = bobUserId.full
-                        )
+            tm.writeTransaction {
+                globalAccountDataStore.save(
+                    GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(abandonedRoom, roomId))))
+                )
+            }
+            userServiceMock.roomUsers[Pair(bobUserId, abandonedRoom)] = flowOf(
+                RoomUser(
+                    abandonedRoom, bobUserId, "Bob",
+                    ClientEvent.RoomEvent.StateEvent(
+                        MemberEventContent(membership = Membership.LEAVE),
+                        id = EventId("0"),
+                        sender = bobUserId,
+                        roomId = abandonedRoom, originTimestamp = testClock.now().toEpochMilliseconds(),
+                        stateKey = bobUserId.full
                     )
                 )
             )
-            userServiceMock.roomUsers.put(
-                Pair(bobUserId, roomId), flowOf(
-                    RoomUser(
-                        roomId, bobUserId, "Bob",
-                        ClientEvent.RoomEvent.StateEvent(
-                            MemberEventContent(membership = Membership.JOIN),
-                            id = EventId("0"),
-                            sender = bobUserId,
-                            roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
-                            stateKey = bobUserId.full
-                        )
+            userServiceMock.roomUsers[Pair(bobUserId, roomId)] = flowOf(
+                RoomUser(
+                    roomId, bobUserId, "Bob",
+                    ClientEvent.RoomEvent.StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        id = EventId("0"),
+                        sender = bobUserId,
+                        roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
+                        stateKey = bobUserId.full
                     )
                 )
             )
@@ -555,20 +556,20 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `activeUserVerifications » should update active verifications list according to verification states`() =
         runTest {
-            globalAccountDataStore.save(
-                GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
-            )
-            userServiceMock.roomUsers.put(
-                Pair(bobUserId, roomId), flowOf(
-                    RoomUser(
-                        roomId, bobUserId, "Bob",
-                        ClientEvent.RoomEvent.StateEvent(
-                            MemberEventContent(membership = Membership.JOIN),
-                            id = EventId("0"),
-                            sender = bobUserId,
-                            roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
-                            stateKey = bobUserId.full
-                        )
+            tm.writeTransaction {
+                globalAccountDataStore.save(
+                    GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
+                )
+            }
+            userServiceMock.roomUsers[Pair(bobUserId, roomId)] = flowOf(
+                RoomUser(
+                    roomId, bobUserId, "Bob",
+                    ClientEvent.RoomEvent.StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        id = EventId("0"),
+                        sender = bobUserId,
+                        roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
+                        stateKey = bobUserId.full
                     )
                 )
             )
@@ -604,16 +605,18 @@ class VerificationServiceTest : TrixnityBaseTest() {
     fun `return PreconditionsNotMet when initial sync is still running`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
             currentSyncState.value = SyncState.INITIAL_SYNC
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.NotCrossSigned
+                        )
                     )
-                )
-            }
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf()
+                }
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf()
+                }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.SyncNotRunning))
@@ -622,8 +625,10 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `return PreconditionsNotMet when device keys not fetched yet`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf()
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf()
+                }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.DeviceKeysNotFetchedYet))
@@ -632,13 +637,15 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `return PreconditionsNotMet when cross signing keys not fetched yet`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.NotCrossSigned
+                        )
                     )
-                )
+                }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.CrossSigningKeysNotFetchedYet))
@@ -647,16 +654,18 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `return NoCrossSigningEnabled when cross signing keys are fetched but empty`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.NotCrossSigned
+                        )
                     )
-                )
-            }
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf()
+                }
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf()
+                }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.NoCrossSigningEnabled
@@ -665,21 +674,23 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `return AlreadyCrossSigned when already cross signed`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.CrossSigned(true)
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.CrossSigned(true)
+                        )
                     )
-                )
-            }
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
+                }
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true)
+                        )
                     )
-                )
+                }
             }
             cut.getSelfVerificationMethods().first() shouldBe SelfVerificationMethods.AlreadyCrossSigned
         }
@@ -690,29 +701,31 @@ class VerificationServiceTest : TrixnityBaseTest() {
             matrixJsonEndpoint(SendToDevice("m.key.verification.request", "*")) {
             }
         }
-        keyStore.updateCrossSigningKeys(aliceUserId) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(aliceUserId) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(aliceUserId) {
-            mapOf(
-                aliceDeviceId to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.NotCrossSigned
-                ),
-                "DEV2" to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.CrossSigned(false)
-                ),
-                "DEV3" to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, "DEV3", setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(false)
+            }
+            keyStore.updateDeviceKeys(aliceUserId) {
+                mapOf(
+                    aliceDeviceId to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.NotCrossSigned
+                    ),
+                    "DEV2" to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.CrossSigned(false)
+                    ),
+                    "DEV3" to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, "DEV3", setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(false)
+                    )
                 )
-            )
+            }
         }
         val result = cut.getSelfVerificationMethods().first()
             .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods
@@ -725,21 +738,23 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `don't add CrossSignedDeviceVerification when there are no cross signed devices`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true)
+                        )
                     )
-                )
-            }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.NotCrossSigned
+                        )
                     )
-                )
+                }
             }
             cut.getSelfVerificationMethods().first()
                 .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
@@ -749,25 +764,27 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `don't add CrossSignedDeviceVerification when there is only a dehydrated device`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
-                    ),
-                )
-            }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
-                    ),
-                    "DEV2" to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf(), true), null),
-                        KeySignatureTrustLevel.CrossSigned(false)
-                    ),
-                )
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true)
+                        ),
+                    )
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.NotCrossSigned
+                        ),
+                        "DEV2" to StoredDeviceKeys(
+                            Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf(), true), null),
+                            KeySignatureTrustLevel.CrossSigned(false)
+                        ),
+                    )
+                }
             }
             cut.getSelfVerificationMethods().first()
                 .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
@@ -780,23 +797,25 @@ class VerificationServiceTest : TrixnityBaseTest() {
             name = "default key",
             passphrase = null,
         )
-        globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-        globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
-        keyStore.updateCrossSigningKeys(aliceUserId) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+            globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
+            keyStore.updateCrossSigningKeys(aliceUserId) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(aliceUserId) {
-            mapOf(
-                aliceDeviceId to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.NotCrossSigned
+            }
+            keyStore.updateDeviceKeys(aliceUserId) {
+                mapOf(
+                    aliceDeviceId to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.NotCrossSigned
+                    )
                 )
-            )
+            }
         }
         cut.getSelfVerificationMethods().first()
             .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods shouldBe setOf(
@@ -810,23 +829,25 @@ class VerificationServiceTest : TrixnityBaseTest() {
             name = "default key",
             passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2("salt", 10_000),
         )
-        globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-        globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
-        keyStore.updateCrossSigningKeys(aliceUserId) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+            globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
+            keyStore.updateCrossSigningKeys(aliceUserId) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(aliceUserId) {
-            mapOf(
-                aliceDeviceId to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.NotCrossSigned
+            }
+            keyStore.updateDeviceKeys(aliceUserId) {
+                mapOf(
+                    aliceDeviceId to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.NotCrossSigned
+                    )
                 )
-            )
+            }
         }
         cut.getSelfVerificationMethods().first()
             .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods shouldBe setOf(
@@ -838,35 +859,40 @@ class VerificationServiceTest : TrixnityBaseTest() {
     // TODO enable this on Js
     @Test
     fun `honor data class equality`() = runTest(setup = { getSelfVerificationMethodsSetup() }) {
-        globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-        globalAccountDataStore.save(
-            GlobalAccountDataEvent(
-                SecretKeyEventContent.AesHmacSha2Key(
-                    name = "default key",
-                    passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2("salt", 10_000),
-                ), "KEY"
-            )
-        )
-
-        keyStore.updateCrossSigningKeys(aliceUserId) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+            globalAccountDataStore.save(
+                GlobalAccountDataEvent(
+                    SecretKeyEventContent.AesHmacSha2Key(
+                        name = "default key",
+                        passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2(
+                            "salt",
+                            10_000
+                        ),
+                    ), "KEY"
                 )
             )
-        }
-        keyStore.updateDeviceKeys(aliceUserId) {
-            mapOf(
-                aliceDeviceId to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.NotCrossSigned
-                ),
-                "DEV2" to StoredDeviceKeys(
-                    Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.CrossSigned(false)
-                ),
-            )
+
+            keyStore.updateCrossSigningKeys(aliceUserId) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
+                )
+            }
+            keyStore.updateDeviceKeys(aliceUserId) {
+                mapOf(
+                    aliceDeviceId to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.NotCrossSigned
+                    ),
+                    "DEV2" to StoredDeviceKeys(
+                        Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.CrossSigned(false)
+                    ),
+                )
+            }
         }
 
         val methods1 = cut.getSelfVerificationMethods().first()

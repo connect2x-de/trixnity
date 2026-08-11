@@ -2,13 +2,20 @@ package de.connect2x.trixnity.client.server
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.*
 import de.connect2x.trixnity.client.store.ServerData
 import de.connect2x.trixnity.client.store.ServerDataStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2MatrixClientAuthProvider
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
 import de.connect2x.trixnity.core.EventHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
 
@@ -17,6 +24,7 @@ private val log = Logger("de.connect2x.trixnity.client.server.ServerDataService"
 class ServerDataService(
     private val api: MatrixClientServerApiClient,
     private val serverDataStore: ServerDataStore,
+    private val tm: StoreTransactionManager,
 ) : EventHandler {
     companion object {
         private const val MATRIX_SPEC_1_11 = "v1.11"
@@ -59,14 +67,16 @@ class ServerDataService(
                     val newCapabilities = newCapabilitiesAsync.await()
                     val newOAuth2ServerMetadata = newOAuth2ServerMetadataAsync.await()
                     if (newVersions != null && newMediaConfig != null && newCapabilities != null) {
-                        serverDataStore.setServerData(
-                            ServerData(
-                                versions = newVersions,
-                                mediaConfig = newMediaConfig,
-                                capabilities = newCapabilities,
-                                auth = newOAuth2ServerMetadata
+                        tm.writeTransaction {
+                            serverDataStore.setServerData(
+                                ServerData(
+                                    versions = newVersions,
+                                    mediaConfig = newMediaConfig,
+                                    capabilities = newCapabilities,
+                                    auth = newOAuth2ServerMetadata
+                                )
                             )
-                        )
+                        }
                         delay(1.days)
                     } else {
                         log.warn { "failed to get server versions" }

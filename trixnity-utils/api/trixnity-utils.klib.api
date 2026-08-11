@@ -14,10 +14,19 @@ open annotation class de.connect2x.trixnity.utils/TrixnityPrivateApi : kotlin/An
     constructor <init>() // de.connect2x.trixnity.utils/TrixnityPrivateApi.<init>|<init>(){}[0]
 }
 
+abstract interface <#A: de.connect2x.trixnity.utils/ReadTransaction, #B: de.connect2x.trixnity.utils/WriteTransaction> de.connect2x.trixnity.utils/TransactionManager { // de.connect2x.trixnity.utils/TransactionManager|null[0]
+    abstract suspend fun <#A1: kotlin/Any?> readTransaction(kotlin.coroutines/SuspendFunction1<#A, #A1>): #A1 // de.connect2x.trixnity.utils/TransactionManager.readTransaction|readTransaction(kotlin.coroutines.SuspendFunction1<1:0,0:0>){0§<kotlin.Any?>}[0]
+    abstract suspend fun <#A1: kotlin/Any?> writeTransaction(kotlin.coroutines/SuspendFunction1<#B, #A1>): #A1 // de.connect2x.trixnity.utils/TransactionManager.writeTransaction|writeTransaction(kotlin.coroutines.SuspendFunction1<1:1,0:0>){0§<kotlin.Any?>}[0]
+}
+
 abstract interface <#A: kotlin/Any?, #B: #A> de.connect2x.trixnity.utils/Concurrent { // de.connect2x.trixnity.utils/Concurrent|null[0]
     abstract suspend fun <#A1: kotlin/Any?> read(kotlin.coroutines/SuspendFunction1<#A, #A1>): #A1 // de.connect2x.trixnity.utils/Concurrent.read|read(kotlin.coroutines.SuspendFunction1<1:0,0:0>){0§<kotlin.Any?>}[0]
     abstract suspend fun <#A1: kotlin/Any?> write(kotlin.coroutines/SuspendFunction1<#B, #A1>): #A1 // de.connect2x.trixnity.utils/Concurrent.write|write(kotlin.coroutines.SuspendFunction1<1:1,0:0>){0§<kotlin.Any?>}[0]
 }
+
+abstract interface de.connect2x.trixnity.utils/ReadTransaction // de.connect2x.trixnity.utils/ReadTransaction|null[0]
+
+abstract interface de.connect2x.trixnity.utils/WriteTransaction : de.connect2x.trixnity.utils/ReadTransaction // de.connect2x.trixnity.utils/WriteTransaction|null[0]
 
 final class <#A: kotlin/Any?, #B: #A> de.connect2x.trixnity.utils/ConcurrentImpl : de.connect2x.trixnity.utils/Concurrent<#A, #B> { // de.connect2x.trixnity.utils/ConcurrentImpl|null[0]
     constructor <init>(kotlin/Function0<#B>) // de.connect2x.trixnity.utils/ConcurrentImpl.<init>|<init>(kotlin.Function0<1:1>){}[0]

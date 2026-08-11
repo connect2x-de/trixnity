@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -78,11 +79,12 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.koin.dsl.module
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -96,8 +98,8 @@ class TimelineEventIT : TrixnityBaseTest() {
 
     private lateinit var client1: MatrixClient
     private lateinit var client2: MatrixClient
-    private lateinit var database1: Database
-    private lateinit var database2: Database
+    private lateinit var database1: R2dbcDatabase
+    private lateinit var database2: R2dbcDatabase
     private lateinit var baseUrl: Url
     val password = "user$1passw0rd"
 
@@ -306,7 +308,7 @@ class TimelineEventIT : TrixnityBaseTest() {
                 override val primaryKey = PrimaryKey(this.roomId, this.eventId)
                 val value = text("value")
             }
-            newSuspendedTransaction(Dispatchers.IO, database) {
+            suspendTransaction(database) {
                 val result = exposedTimelineEvent.selectAll()
                     .where { exposedTimelineEvent.eventId.eq(eventId.full) and exposedTimelineEvent.roomId.eq(room.full) }
                     .firstOrNull()?.get(exposedTimelineEvent.value).shouldNotBeNull()
@@ -352,7 +354,7 @@ class TimelineEventIT : TrixnityBaseTest() {
                 override val primaryKey = PrimaryKey(roomId, this.eventId)
                 val value = text("value")
             }
-            newSuspendedTransaction(Dispatchers.IO, database) {
+            suspendTransaction(database) {
                 exposedTimelineEvent.selectAll()
                     .where { exposedTimelineEvent.eventId.eq(eventId.full) and exposedTimelineEvent.roomId.eq(room.full) }
                     .firstOrNull()?.get(exposedTimelineEvent.value).shouldNotContain("dino")

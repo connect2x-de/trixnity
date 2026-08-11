@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.client.media
 
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.MediaCacheMapping
 import de.connect2x.trixnity.client.store.MediaCacheMappingStore
 import de.connect2x.trixnity.client.store.ServerDataStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.MediaApiClient
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -22,7 +22,7 @@ import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 import de.connect2x.trixnity.utils.nextString
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import de.connect2x.trixnity.utils.toByteReadChannel
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -32,26 +32,6 @@ import kotlinx.serialization.json.jsonPrimitive
 private val log = Logger("de.connect2x.trixnity.client.media.MediaService")
 
 interface MediaService {
-    @Deprecated(
-        "Use getMedia with required maxSize and expectedSize instead",
-        ReplaceWith("getMedia(uri, maxSize, expectedSize, progress, saveToCache)")
-    )
-    suspend fun getMedia(
-        uri: String,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getMedia(uri, null, null, progress, saveToCache)
-
-    @Deprecated(
-        "Use getMedia with expectedSize instead",
-        ReplaceWith("getMedia(uri, maxSize, expectedSize, progress, saveToCache)")
-    )
-    suspend fun getMedia(
-        uri: String,
-        maxSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getMedia(uri, maxSize, null, progress, saveToCache)
 
     suspend fun getMedia(
         uri: String,
@@ -61,27 +41,6 @@ interface MediaService {
         saveToCache: Boolean = true,
     ): Result<PlatformMedia>
 
-    @Deprecated(
-        "Use getEncryptedMedia with required maxSize and expectedSize instead",
-        ReplaceWith("getEncryptedMedia(encryptedFile, maxSize, expectedSize, progress, saveToCache)")
-    )
-    suspend fun getEncryptedMedia(
-        encryptedFile: EncryptedFile,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getEncryptedMedia(encryptedFile, null, null, progress, saveToCache)
-
-    @Deprecated(
-        "Use getEncryptedMedia with expectedSize instead",
-        ReplaceWith("getEncryptedMedia(encryptedFile, maxSize, expectedSize, progress, saveToCache)")
-    )
-    suspend fun getEncryptedMedia(
-        encryptedFile: EncryptedFile,
-        maxSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getEncryptedMedia(encryptedFile, maxSize, null, progress, saveToCache)
-
     suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
@@ -89,35 +48,6 @@ interface MediaService {
         progress: MutableStateFlow<FileTransferProgress?>? = null,
         saveToCache: Boolean = true,
     ): Result<PlatformMedia>
-
-    @Deprecated(
-        "Use getThumbnail with required maxSize and expectedSize instead",
-        ReplaceWith("getThumbnail(uri, width, height, maxSize, expectedSize, method, animated, progress, saveToCache)")
-    )
-    suspend fun getThumbnail(
-        uri: String,
-        width: Long,
-        height: Long,
-        method: ThumbnailResizingMethod = CROP,
-        animated: Boolean = false,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getThumbnail(uri, width, height, null, null, method, animated, progress, saveToCache)
-
-    @Deprecated(
-        "Use getThumbnail with expectedSize instead",
-        ReplaceWith("getThumbnail(uri, width, height, maxSize, expectedSize, method, animated, progress, saveToCache)")
-    )
-    suspend fun getThumbnail(
-        uri: String,
-        width: Long,
-        height: Long,
-        maxSize: Long?,
-        method: ThumbnailResizingMethod = CROP,
-        animated: Boolean = false,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
-        saveToCache: Boolean = true,
-    ): Result<PlatformMedia> = getThumbnail(uri, width, height, maxSize, null, method, animated, progress, saveToCache)
 
     suspend fun getThumbnail(
         uri: String,
@@ -149,6 +79,7 @@ class MediaServiceImpl(
     private val mediaStore: MediaStore,
     private val serverDataStore: ServerDataStore,
     private val mediaCacheMappingStore: MediaCacheMappingStore,
+    private val tm: StoreTransactionManager,
 ) : MediaService {
     companion object {
         private const val MATRIX_SPEC_1_11 = "v1.11"
@@ -348,10 +279,12 @@ class MediaServiceImpl(
         return "$UPLOAD_MEDIA_CACHE_URI_PREFIX${SecureRandom.nextString(22)}".also { cacheUri ->
             var fileSize = 0L
             mediaStore.addMedia(cacheUri, content.onEach { fileSize += it.size })
-            mediaCacheMappingStore.saveMediaCacheMapping(
-                cacheUri,
-                MediaCacheMapping(cacheUri, size = fileSize, contentType = contentType?.toString())
-            )
+            tm.writeTransaction {
+                mediaCacheMappingStore.saveMediaCacheMapping(
+                    cacheUri,
+                    MediaCacheMapping(cacheUri, size = fileSize, contentType = contentType?.toString())
+                )
+            }
         }
     }
 
@@ -412,10 +345,14 @@ class MediaServiceImpl(
                 response.contentUri.also { mxcUri ->
                     if (keepMediaInCache) {
                         mediaStore.changeMediaUrl(cacheUri, mxcUri)
-                        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { it?.copy(mxcUri = mxcUri) }
+                        tm.writeTransaction {
+                            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { it?.copy(mxcUri = mxcUri) }
+                        }
                     } else {
                         mediaStore.deleteMedia(cacheUri)
-                        mediaCacheMappingStore.deleteMediaCacheMapping(cacheUri)
+                        tm.writeTransaction {
+                            mediaCacheMappingStore.deleteMediaCacheMapping(cacheUri)
+                        }
                     }
                 }
             }
@@ -425,7 +362,9 @@ class MediaServiceImpl(
     override suspend fun removeCachedMedia(uri: String) {
         if (mediaStore.getMedia(uri) != null) {
             mediaStore.deleteMedia(uri)
-            mediaCacheMappingStore.deleteMediaCacheMapping(uri)
+            tm.writeTransaction {
+                mediaCacheMappingStore.deleteMediaCacheMapping(uri)
+            }
         } else {
             log.info { "Tried removing media $uri from cache but media was not found locally." }
         }

@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
@@ -10,6 +12,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMapping
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "RoomOutboxMessage2",
@@ -50,15 +56,16 @@ internal class RoomRoomOutboxMessageRepository(
 ) : RoomOutboxMessageRepository {
     private val dao = db.roomOutboxMessage()
 
-    override suspend fun get(key: RoomOutboxMessageRepositoryKey): RoomOutboxMessage<*>? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: RoomOutboxMessageRepositoryKey): RoomOutboxMessage<*>? =
         dao.get(key.roomId, key.transactionId)?.toModel()
-    }
 
-    override suspend fun getAll(): List<RoomOutboxMessage<*>> = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<RoomOutboxMessage<*>> =
         dao.getAll().map { it.toModel() }
-    }
 
-    override suspend fun save(key: RoomOutboxMessageRepositoryKey, value: RoomOutboxMessage<*>) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: RoomOutboxMessageRepositoryKey, value: RoomOutboxMessage<*>) {
         val mapping = getMappingOrThrow { it.kClass.isInstance(value.content) }
         @Suppress("UNCHECKED_CAST")
         dao.insert(
@@ -74,17 +81,17 @@ internal class RoomRoomOutboxMessageRepository(
         )
     }
 
-    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) =
         dao.delete(key.roomId, key.transactionId)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) =
         dao.delete(roomId)
-    }
 
     private fun RoomRoomOutboxMessage.toModel(): RoomOutboxMessage<*> =
         json.decodeFromString(

@@ -4,7 +4,6 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.StickyEventRepository
 import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
 import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
@@ -29,7 +28,7 @@ import kotlin.time.Clock
 @MSC4354
 class StickyEventStore(
     private val stickyEventRepository: StickyEventRepository,
-    private val tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     private val contentMappings: EventContentSerializerMappings,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
@@ -45,22 +44,28 @@ class StickyEventStore(
         config.cacheExpireDurations.stickyEvent,
     ) { it.firstKey.roomId }.also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
+
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         stickyEventCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
         stickyEventCache.deleteByRoomId(roomId)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByEventId(roomId: RoomId, eventId: EventId) {
-        val key = tm.readTransaction { stickyEventRepository.getByEventId(roomId, eventId) }
+        val key = stickyEventRepository.getByEventId(roomId, eventId)
         if (key != null) {
             stickyEventCache.set(MapRepositoryCoroutinesCacheKey(key.first, key.second), null)
         }
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun save(storedStickyEvent: StoredStickyEvent<StickyEventContent>) {
         val event = storedStickyEvent.event
         if (event.sticky == null) return
@@ -86,11 +91,10 @@ class StickyEventStore(
         }
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteInvalid() {
         val now = clock.now()
-        val invalidEvents = tm.readTransaction {
-            stickyEventRepository.getByEndTimeBefore(now)
-        }
+        val invalidEvents = stickyEventRepository.getByEndTimeBefore(now)
         for (invalidEvent in invalidEvents) {
             stickyEventCache.update(MapRepositoryCoroutinesCacheKey(invalidEvent.first, invalidEvent.second)) {
                 if (it == null || it.endTime < now) null

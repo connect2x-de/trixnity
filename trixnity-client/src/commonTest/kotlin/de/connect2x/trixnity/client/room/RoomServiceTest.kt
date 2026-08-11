@@ -23,6 +23,7 @@ import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.SyncState.RUNNING
 import de.connect2x.trixnity.core.MSC4354
@@ -71,7 +72,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(MSC4354::class)
 class RoomServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val room = simpleRoom.roomId
 
     private val roomStore = getInMemoryRoomStore()
@@ -92,6 +93,7 @@ class RoomServiceTest : TrixnityBaseTest() {
         roomTimelineStore = roomTimelineStore,
         stickyEventStore = getInMemoryStickyEventStore(),
         roomOutboxMessageStore = roomOutboxMessageStore,
+        tm = tm,
         roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
         mediaService = mediaServiceMock,
         forgetRoomService = { _, _ -> },
@@ -173,8 +175,6 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvent » event not in database » try fill gaps until found`() = runTest {
         val lastEventId = EventId("\$eventWorld")
-        roomStore.update(room) { simpleRoom.copy(lastEventId = lastEventId) }
-        currentSyncState.value = RUNNING
         val event = MessageEvent(
             RoomMessageEventContent.TextBased.Text("hello"),
             eventId,
@@ -182,8 +182,11 @@ class RoomServiceTest : TrixnityBaseTest() {
             room,
             1
         )
-        roomTimelineStore.addAll(
-            listOf(
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(lastEventId = lastEventId) }
+            currentSyncState.value = RUNNING
+
+            roomTimelineStore.add(
                 TimelineEvent(
                     event = MessageEvent(
                         RoomMessageEventContent.TextBased.Text("world"),
@@ -197,10 +200,10 @@ class RoomServiceTest : TrixnityBaseTest() {
                     gap = TimelineEvent.Gap.GapBefore("start")
                 )
             )
-        )
+        }
         val timelineEventFlow = cut.getTimelineEvent(room, eventId)
-        roomTimelineStore.addAll(
-            listOf(
+        tm.writeTransaction {
+            roomTimelineStore.add(
                 TimelineEvent(
                     event = event,
                     previousEventId = null,
@@ -208,7 +211,7 @@ class RoomServiceTest : TrixnityBaseTest() {
                     gap = TimelineEvent.Gap.GapBefore("end")
                 )
             )
-        )
+        }
         timelineEventFlow.filterNotNull().first() shouldBe
                 TimelineEvent(
                     event = event,
@@ -221,14 +224,20 @@ class RoomServiceTest : TrixnityBaseTest() {
     private fun shouldJustReturnEvent(
         timelineEvent: TimelineEvent
     ) = runTest {
-        roomTimelineStore.addAll(listOf(timelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(timelineEvent)
+        }
         cut.getTimelineEvent(room, eventId).first() shouldBe timelineEvent
 
         // event gets changed later (e.g. redaction)
-        roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(encryptedTimelineEvent)
+        }
         val result = cut.getTimelineEvent(room, eventId)
         delay(20)
-        roomTimelineStore.addAll(listOf(timelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(timelineEvent)
+        }
         delay(20)
         result.first() shouldBe timelineEvent
     }
@@ -268,7 +277,9 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `getTimelineEvent » event can be decrypted » decrypt event`() = runTest {
         val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
         roomEventDecryptionServiceMock.returnDecrypt = Result.success(expectedDecryptedEvent)
-        roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(encryptedTimelineEvent)
+        }
         val result = cut.getTimelineEvent(room, eventId)
             .first { it?.content?.getOrNull() != null }
         assertSoftly(result) {
@@ -282,7 +293,9 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `getTimelineEvent » event can be decrypted » decrypt event only once`() = runTest {
         val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
         roomEventDecryptionServiceMock.returnDecrypt = Result.success(expectedDecryptedEvent)
-        roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(encryptedTimelineEvent)
+        }
 
         repeat(100) {
             cut.getTimelineEvent(room, eventId)
@@ -296,7 +309,9 @@ class RoomServiceTest : TrixnityBaseTest() {
         runTest {
             roomEventDecryptionServiceMock.decryptDelay = 10.seconds
             roomEventDecryptionServiceMock.returnDecrypt = null
-            roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+            tm.writeTransaction {
+                roomTimelineStore.add(encryptedTimelineEvent)
+            }
             val result =
                 async { cut.getTimelineEvent(room, eventId) { decryptionTimeout = ZERO }.collect() }
             result.job.children.count() shouldBe 0 // there are no decryption jobs
@@ -307,7 +322,9 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `getTimelineEvent » event can be decrypted » retry on decryption timeout`() = runTest {
         roomEventDecryptionServiceMock.decryptDelay = 10.seconds
         roomEventDecryptionServiceMock.returnDecrypt = null
-        roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(encryptedTimelineEvent)
+        }
         withTimeoutOrNull(100.milliseconds) {
             cut.getTimelineEvent(room, eventId) { decryptionTimeout = 50.milliseconds }.collect()
         }
@@ -321,7 +338,9 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `getTimelineEvent » event can be decrypted » handle error`() = runTest {
         roomEventDecryptionServiceMock.returnDecrypt =
             Result.failure(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
-        roomTimelineStore.addAll(listOf(encryptedTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(encryptedTimelineEvent)
+        }
         val result = cut.getTimelineEvent(room, eventId)
             .first { it?.content?.isFailure == true }
         assertSoftly(result) {
@@ -335,7 +354,10 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvent » content has been replaced » replace content with content of other timeline event`() =
         runTest {
-            roomTimelineStore.addAll(listOf(timelineEvent, replaceTimelineEvent))
+            tm.writeTransaction {
+                roomTimelineStore.add(timelineEvent)
+                roomTimelineStore.add(replaceTimelineEvent)
+            }
             cut.getTimelineEvent(room, eventId).first() shouldBe timelineEvent.copy(
                 content = Result.success(RoomMessageEventContent.TextBased.Text("edited hi"))
             )
@@ -375,7 +397,10 @@ class RoomServiceTest : TrixnityBaseTest() {
                     nextEventId = null,
                     gap = null
                 )
-            roomTimelineStore.addAll(listOf(timelineEventWithRelation, replaceTimelineEvent))
+            tm.writeTransaction {
+                roomTimelineStore.add(timelineEventWithRelation)
+                roomTimelineStore.add(replaceTimelineEvent)
+            }
             cut.getTimelineEvent(room, eventId).first() shouldBe timelineEventWithRelation.copy(
                 content = Result.success(
                     RoomMessageEventContent.TextBased.Text(
@@ -389,7 +414,10 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvent » content has been replaced » not replace content when disabled`() =
         runTest {
-            roomTimelineStore.addAll(listOf(timelineEvent, replaceTimelineEvent))
+            tm.writeTransaction {
+                roomTimelineStore.add(timelineEvent)
+                roomTimelineStore.add(replaceTimelineEvent)
+            }
             cut.getTimelineEvent(room, eventId) { allowReplaceContent = false }
                 .first() shouldBe timelineEvent.copy(
                 content = Result.success(RoomMessageEventContent.TextBased.Text("hi"))
@@ -421,7 +449,10 @@ class RoomServiceTest : TrixnityBaseTest() {
             nextEventId = null,
             gap = null
         )
-        roomTimelineStore.addAll(listOf(redactedTimelineEvent, replaceTimelineEvent))
+        tm.writeTransaction {
+            roomTimelineStore.add(redactedTimelineEvent)
+            roomTimelineStore.add(replaceTimelineEvent)
+        }
         cut.getTimelineEvent(room, eventId).first() shouldBe redactedTimelineEvent
     }
 
@@ -437,18 +468,26 @@ class RoomServiceTest : TrixnityBaseTest() {
             nextEventId = null,
             gap = null
         )
-        roomTimelineStore.addAll(listOf(event2Timeline))
+        tm.writeTransaction {
+            roomTimelineStore.add(event2Timeline)
+        }
         val result = async {
             cut.getLastTimelineEvent(room).take(3).toList()
         }
 
         with(roomStore) {
             delay(50)
-            update(room) { initialRoom }
+            tm.writeTransaction {
+                update(room) { initialRoom }
+            }
             delay(50)
-            update(room) { initialRoom.copy(lastEventId = event1.id) }
+            tm.writeTransaction {
+                update(room) { initialRoom.copy(lastEventId = event1.id) }
+            }
             delay(50)
-            update(room) { initialRoom.copy(lastEventId = event2.id) }
+            tm.writeTransaction {
+                update(room) { initialRoom.copy(lastEventId = event2.id) }
+            }
         }
 
         result.await()[0] shouldBe null
@@ -621,8 +660,8 @@ class RoomServiceTest : TrixnityBaseTest() {
             keepMediaInCache = true,
             isDraft = true,
         )
-        roomOutboxMessageStore.update(otherRoom, "1") {
-            message1
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(otherRoom, "1") { message1 }
         }
 
         val draft = cut.getDraftMessage(room)
@@ -642,8 +681,8 @@ class RoomServiceTest : TrixnityBaseTest() {
             keepMediaInCache = true,
             isDraft = true,
         )
-        roomOutboxMessageStore.update(room, "1") {
-            message1
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(room, "1") { message1 }
         }
 
         val draft = cut.getDraftMessage(room)
@@ -663,8 +702,8 @@ class RoomServiceTest : TrixnityBaseTest() {
             keepMediaInCache = true,
             isDraft = false, // <-- no draft
         )
-        roomOutboxMessageStore.update(room, "1") {
-            message1
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(room, "1") { message1 }
         }
 
         val draft = cut.getDraftMessage(room)
@@ -694,8 +733,8 @@ class RoomServiceTest : TrixnityBaseTest() {
             keepMediaInCache = true,
             isDraft = true,
         )
-        roomOutboxMessageStore.update(otherRoom, "1") {
-            message1
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(otherRoom, "1") { message1 }
         }
 
         cut.deleteDraftMessage(room)
@@ -727,11 +766,9 @@ class RoomServiceTest : TrixnityBaseTest() {
             isDraft = true,
         )
 
-        roomOutboxMessageStore.update(room, "1") {
-            message1
-        }
-        roomOutboxMessageStore.update(room, "2") {
-            message2
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(room, "1") { message1 }
+            roomOutboxMessageStore.update(room, "2") { message2 }
         }
 
         retry(100, 3_000.milliseconds, 30.milliseconds) {
@@ -783,8 +820,8 @@ class RoomServiceTest : TrixnityBaseTest() {
             isDraft = false,
         )
 
-        roomOutboxMessageStore.update(room, "1") {
-            message1
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(room, "1") { message1 }
         }
 
         cut.retrySendMessage(room, "1")

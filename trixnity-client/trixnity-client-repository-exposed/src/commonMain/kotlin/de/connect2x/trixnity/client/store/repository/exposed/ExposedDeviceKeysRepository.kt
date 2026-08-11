@@ -1,12 +1,18 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.repository.DeviceKeysRepository
 import de.connect2x.trixnity.core.model.UserId
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedDeviceKeys : Table("device_keys") {
     val userId = varchar("user_id", length = 255)
@@ -15,26 +21,30 @@ internal object ExposedDeviceKeys : Table("device_keys") {
 }
 
 internal class ExposedDeviceKeysRepository(private val json: Json) : DeviceKeysRepository {
-    override suspend fun get(key: UserId): Map<String, StoredDeviceKeys>? = withExposedRead {
-        ExposedDeviceKeys.selectAll().where { ExposedDeviceKeys.userId eq key.full }.firstOrNull()?.let {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: UserId): Map<String, StoredDeviceKeys>? {
+        return ExposedDeviceKeys.selectAll().where { ExposedDeviceKeys.userId eq key.full }.firstOrNull()?.let {
             it[ExposedDeviceKeys.value].let { deviceKeys ->
                 json.decodeFromString<Map<String, StoredDeviceKeys>>(deviceKeys)
             }
         }
     }
 
-    override suspend fun save(key: UserId, value: Map<String, StoredDeviceKeys>): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: UserId, value: Map<String, StoredDeviceKeys>) {
         ExposedDeviceKeys.upsert {
             it[userId] = key.full
             it[ExposedDeviceKeys.value] = json.encodeToString(value)
         }
     }
 
-    override suspend fun delete(key: UserId): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: UserId) {
         ExposedDeviceKeys.deleteWhere { userId eq key.full }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedDeviceKeys.deleteAll()
     }
 }

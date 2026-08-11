@@ -183,6 +183,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> = listOf(
             single<LoadMembersService> {
                 LoadMembersServiceImpl(
                     roomStore = get(),
+                    tm = get(),
                     lazyMemberEventHandlers = getAll(),
                     currentSyncState = get(),
                     api = get(),
@@ -230,6 +231,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> = listOf(
                     roomTimelineStore = get(),
                     stickyEventStore = get(),
                     roomOutboxMessageStore = get(),
+                    tm = get(),
                     roomEventEncryptionServices = getAll(),
                     forgetRoomService = get(),
                     mediaService = get(),

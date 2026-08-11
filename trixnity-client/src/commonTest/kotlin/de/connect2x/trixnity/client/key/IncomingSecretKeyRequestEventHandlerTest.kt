@@ -7,6 +7,7 @@ import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
@@ -35,7 +36,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlin.test.Test
 
 class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val alice = UserId("alice", "server")
     private val bob = UserId("bob", "server")
     private val aliceDevice = "ALICEDEVICE"
@@ -169,13 +170,15 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         notAnswerRequest(KeySignatureTrustLevel.Invalid("reason"))
 
     private suspend fun handleEncryptedIncomingKeyRequestsSetup() {
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
+            }
         }
         apiConfig.endpoints {
             matrixJsonEndpoint(
@@ -184,13 +187,15 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 sendToDeviceEvents = it.messages
             }
         }
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                    GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                    "secretUserSigningKey"
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
+                        GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
+                        "secretUserSigningKey"
+                    )
                 )
-            )
+            }
         }
         olmEncryptionServiceMock.returnEncryptOlm = Result.success(
             OlmEncryptedToDeviceEventContent(
@@ -208,13 +213,15 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 sendToDeviceEvents = it.messages
             }
         }
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                    GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                    "secretUserSigningKey"
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
+                        GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
+                        "secretUserSigningKey"
+                    )
                 )
-            )
+            }
         }
         olmEncryptionServiceMock.returnEncryptOlm = Result.success(
             OlmEncryptedToDeviceEventContent(
@@ -226,13 +233,15 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
     private fun answerRequest(returnedTrustLevel: KeySignatureTrustLevel) = runTest {
         processIncomingKeyRequestsSetup()
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                    returnedTrustLevel
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                        returnedTrustLevel
+                    )
                 )
-            )
+            }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
@@ -254,13 +263,15 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
     private fun notAnswerRequest(returnedTrustLevel: KeySignatureTrustLevel) = runTest {
         processIncomingKeyRequestsSetup()
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                    returnedTrustLevel
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                        returnedTrustLevel
+                    )
                 )
-            )
+            }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(

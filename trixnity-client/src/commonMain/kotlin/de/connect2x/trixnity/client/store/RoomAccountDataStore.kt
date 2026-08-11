@@ -1,14 +1,9 @@
 package de.connect2x.trixnity.client.store
 
-import io.ktor.util.reflect.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
@@ -16,12 +11,16 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 
 class RoomAccountDataStore(
     roomAccountDataRepository: RoomAccountDataRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     private val contentMappings: EventContentSerializerMappings,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
@@ -37,15 +36,20 @@ class RoomAccountDataStore(
             config.cacheExpireDurations.roomAccountData
         ) { it.firstKey.roomId }.also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
+
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         roomAccountDataCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
         roomAccountDataCache.deleteByRoomId(roomId)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun save(event: RoomAccountDataEvent<*>) {
         val eventType = when (val content = event.content) {
             is UnknownEventContent -> content.eventType

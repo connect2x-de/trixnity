@@ -1,12 +1,19 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.KeyVerificationState
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedKeyVerificationState : Table("key_verification_state") {
     val keyId = varchar("key_id", length = 255)
@@ -16,8 +23,9 @@ internal object ExposedKeyVerificationState : Table("key_verification_state") {
 }
 
 internal class ExposedKeyVerificationStateRepository(private val json: Json) : KeyVerificationStateRepository {
-    override suspend fun get(key: KeyVerificationStateKey): KeyVerificationState? = withExposedRead {
-        ExposedKeyVerificationState.selectAll().where {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: KeyVerificationStateKey): KeyVerificationState? {
+        return ExposedKeyVerificationState.selectAll().where {
             ExposedKeyVerificationState.keyId.eq(key.keyId) and
                     ExposedKeyVerificationState.keyAlgorithm.eq(key.keyAlgorithm.name)
         }.firstOrNull()?.let {
@@ -25,7 +33,8 @@ internal class ExposedKeyVerificationStateRepository(private val json: Json) : K
         }
     }
 
-    override suspend fun save(key: KeyVerificationStateKey, value: KeyVerificationState): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: KeyVerificationStateKey, value: KeyVerificationState) {
         ExposedKeyVerificationState.upsert {
             it[keyId] = key.keyId
             it[keyAlgorithm] = key.keyAlgorithm.name
@@ -33,14 +42,16 @@ internal class ExposedKeyVerificationStateRepository(private val json: Json) : K
         }
     }
 
-    override suspend fun delete(key: KeyVerificationStateKey): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: KeyVerificationStateKey) {
         ExposedKeyVerificationState.deleteWhere {
             keyId.eq(key.keyId) and
                     keyAlgorithm.eq(key.keyAlgorithm.name)
         }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedKeyVerificationState.deleteAll()
     }
 }

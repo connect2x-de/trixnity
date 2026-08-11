@@ -1,13 +1,11 @@
 package de.connect2x.trixnity.client.store
 
-import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.flatten
-import de.connect2x.trixnity.client.mocks.RepositoryTransactionManagerMock
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomUserReceiptsRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomUserRepository
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomUserRepository
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -18,19 +16,21 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership.JOIN
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
+import io.kotest.matchers.collections.shouldContainExactly
+import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 
 class RoomUserStoreTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val roomUserRepository = InMemoryRoomUserRepository() as RoomUserRepository
     private val cut = RoomUserStore(
-        roomUserRepository,
-        InMemoryRoomUserReceiptsRepository(),
-        RepositoryTransactionManagerMock(),
-        MatrixClientConfiguration(),
-        ObservableCacheStatisticCollector(),
-        testScope.backgroundScope,
-        testScope.testClock,
+        roomUserRepository = roomUserRepository,
+        roomUserReceiptsRepository = InMemoryRoomUserReceiptsRepository(),
+        tm = tm,
+        config = MatrixClientConfiguration(),
+        statisticCollector = ObservableCacheStatisticCollector(),
+        storeScope = testScope.backgroundScope,
+        clock = testScope.testClock,
     )
 
     private val roomId = RoomId("!room:server")
@@ -65,8 +65,10 @@ class RoomUserStoreTest : TrixnityBaseTest() {
 
     @Test
     fun `getAll » get all users of a room`() = runTest {
-        roomUserRepository.save(roomId, aliceId, aliceUser)
-        roomUserRepository.save(roomId, bobId, bobUser)
+        tm.writeTransaction {
+            roomUserRepository.save(roomId, aliceId, aliceUser)
+            roomUserRepository.save(roomId, bobId, bobUser)
+        }
 
         cut.getAll(roomId).flatten().first().values shouldContainExactly listOf(aliceUser, bobUser)
     }

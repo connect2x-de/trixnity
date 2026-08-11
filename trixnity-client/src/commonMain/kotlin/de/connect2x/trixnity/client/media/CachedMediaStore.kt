@@ -1,13 +1,6 @@
 package de.connect2x.trixnity.client.media
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.CacheValue
 import de.connect2x.trixnity.client.store.cache.ConcurrentObservableMap
@@ -15,6 +8,13 @@ import de.connect2x.trixnity.client.store.cache.RemoverJobExecutingIndex
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.KeyedMutex
 import de.connect2x.trixnity.utils.toByteArray
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
@@ -45,13 +45,10 @@ abstract class CachedMediaStore(
 
     abstract suspend fun deleteAllFromStore()
 
-    final override suspend fun clearCache() {
-        deleteAllFromStore()
-        mediaCache.removeAll()
-    }
 
     final override suspend fun deleteAll() {
-        clearCache()
+        deleteAllFromStore()
+        mediaCache.removeAll()
     }
 
     protected suspend fun toByteArray(

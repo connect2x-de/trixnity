@@ -1,11 +1,20 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
 import de.connect2x.trixnity.client.store.repository.NotificationUpdateRepository
 import de.connect2x.trixnity.core.model.RoomId
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedNotificationUpdate : Table("notification_update") {
     val id = varchar("id", length = 255)
@@ -18,18 +27,22 @@ internal class ExposedNotificationUpdateRepository(
     private val json: Json,
 ) : NotificationUpdateRepository {
 
-    override suspend fun getAll(): List<StoredNotificationUpdate> = withExposedRead {
-        ExposedNotificationUpdate.selectAll().map { json.decodeFromString(it[ExposedNotificationUpdate.value]) }
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredNotificationUpdate> {
+        return ExposedNotificationUpdate.selectAll()
+            .map { json.decodeFromString<StoredNotificationUpdate>(it[ExposedNotificationUpdate.value]) }.toList()
     }
 
-    override suspend fun get(key: String): StoredNotificationUpdate? = withExposedRead {
-        ExposedNotificationUpdate.selectAll().where {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: String): StoredNotificationUpdate? {
+        return ExposedNotificationUpdate.selectAll().where {
             ExposedNotificationUpdate.id.eq(key)
         }.firstOrNull()
             ?.let { json.decodeFromString(it[ExposedNotificationUpdate.value]) }
     }
 
-    override suspend fun save(key: String, value: StoredNotificationUpdate) = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: String, value: StoredNotificationUpdate) {
         ExposedNotificationUpdate.upsert {
             it[roomId] = value.roomId.full
             it[id] = key
@@ -37,14 +50,17 @@ internal class ExposedNotificationUpdateRepository(
         }
     }
 
-    override suspend fun delete(key: String) = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: String) {
         ExposedNotificationUpdate.deleteWhere { id.eq(key) }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedNotificationUpdate.deleteAll()
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         ExposedNotificationUpdate.deleteWhere { ExposedNotificationUpdate.roomId.eq(roomId.full) }
     }

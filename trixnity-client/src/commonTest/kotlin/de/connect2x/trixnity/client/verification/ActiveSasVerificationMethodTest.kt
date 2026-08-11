@@ -1,5 +1,51 @@
 package de.connect2x.trixnity.client.verification
 
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
+import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
+import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.Accept
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.ComparisonByUser
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.WaitForKeys
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.WaitForMacs
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasAcceptEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasHash
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasKeyAgreementProtocol
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMacEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMessageAuthenticationCode
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.KeyMismatch
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.MismatchedCommitment
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.UnexpectedMessage
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.UnknownMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent.SasStartEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Megolm
+import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.MacValue
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.crypto.driver.CryptoDriver
+import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
+import de.connect2x.trixnity.crypto.invoke
+import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.test.utils.getValue
+import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.suspendLazy
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
@@ -13,34 +59,10 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import de.connect2x.trixnity.client.getInMemoryKeyStore
-import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
-import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
-import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
-import de.connect2x.trixnity.client.store.StoredDeviceKeys
-import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.*
-import de.connect2x.trixnity.core.model.keys.MacValue
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.key.verification.*
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.*
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent.SasStartEventContent
-import de.connect2x.trixnity.core.model.keys.*
-import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Megolm
-import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
-import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.crypto.driver.CryptoDriver
-import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
-import de.connect2x.trixnity.crypto.invoke
-import de.connect2x.trixnity.crypto.of
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.test.utils.getValue
-import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.suspendLazy
 import kotlin.test.Test
 
 class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     private val alice = UserId("alice", "server")
@@ -595,65 +617,67 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     }
 
     private suspend fun currentStateIsComparisonByUserTheirMacAlreadyReceived(cut: ActiveSasVerificationMethod) {
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                bobDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            alice, aliceDevice, setOf(Megolm),
-                            keysOf(
-                                Ed25519Key(aliceDevice, "aliceKey"),
-                                Ed25519Key("HUHU", "buh")
-                            )
-                        ), mapOf()
-                    ), Valid(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    bobDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                alice, aliceDevice, setOf(Megolm),
+                                keysOf(
+                                    Ed25519Key(aliceDevice, "aliceKey"),
+                                    Ed25519Key("HUHU", "buh")
+                                )
+                            ), mapOf()
+                        ), Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            userId = alice,
-                            usage = setOf(CrossSigningKeysUsage.MasterKey),
-                            keys = keysOf(
-                                Ed25519Key("AAKey3", "key3")
-                            )
-                        ), mapOf()
-                    ), Valid(false)
+            }
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                userId = alice,
+                                usage = setOf(CrossSigningKeysUsage.MasterKey),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey3", "key3")
+                                )
+                            ), mapOf()
+                        ), Valid(false)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                bobDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            bob, bobDevice, setOf(Megolm),
-                            keysOf(
-                                Ed25519Key(bobDevice, "bobKey"),
-                                Ed25519Key("HUHU", "buh")
-                            )
-                        ), mapOf()
-                    ), Valid(true)
+            }
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    bobDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                bob, bobDevice, setOf(Megolm),
+                                keysOf(
+                                    Ed25519Key(bobDevice, "bobKey"),
+                                    Ed25519Key("HUHU", "buh")
+                                )
+                            ), mapOf()
+                        ), Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            userId = bob,
-                            usage = setOf(CrossSigningKeysUsage.MasterKey),
-                            keys = keysOf(
-                                Ed25519Key("BBKey3", "Bkey3")
-                            )
-                        ), mapOf()
-                    ), Valid(false)
+            }
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                userId = bob,
+                                usage = setOf(CrossSigningKeysUsage.MasterKey),
+                                keys = keysOf(
+                                    Ed25519Key("BBKey3", "Bkey3")
+                                )
+                            ), mapOf()
+                        ), Valid(false)
+                    )
                 )
-            )
+            }
         }
 
         val bobOlmSas = driver.sas()
@@ -701,35 +725,37 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     }
 
     private suspend fun currentStateIsWaitForMacs(cut: ActiveSasVerificationMethod) {
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                bobDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            bob, bobDevice, setOf(Megolm),
-                            keysOf(
-                                Ed25519Key(bobDevice, "bobKey"),
-                                Ed25519Key("HUHU", "buh")
-                            )
-                        ), mapOf()
-                    ), Valid(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    bobDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                bob, bobDevice, setOf(Megolm),
+                                keysOf(
+                                    Ed25519Key(bobDevice, "bobKey"),
+                                    Ed25519Key("HUHU", "buh")
+                                )
+                            ), mapOf()
+                        ), Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            userId = bob,
-                            usage = setOf(CrossSigningKeysUsage.MasterKey),
-                            keys = keysOf(
-                                Ed25519Key("AAKey3", "key3")
-                            )
-                        ), mapOf()
-                    ), Valid(false)
+            }
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                userId = bob,
+                                usage = setOf(CrossSigningKeysUsage.MasterKey),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey3", "key3")
+                                )
+                            ), mapOf()
+                        ), Valid(false)
+                    )
                 )
-            )
+            }
         }
 
         val bobOlmSas = driver.sas()

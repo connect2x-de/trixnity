@@ -1,12 +1,17 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.KeyVerificationState
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
 import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "KeyVerificationState",
@@ -39,12 +44,13 @@ internal class RoomKeyVerificationStateRepository(
 ) : KeyVerificationStateRepository {
     private val dao = db.keyVerificationState()
 
-    override suspend fun get(key: KeyVerificationStateKey): KeyVerificationState? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: KeyVerificationStateKey): KeyVerificationState? =
         dao.get(key.keyId, key.keyAlgorithm)
             ?.let { json.decodeFromString(it.verificationState) }
-    }
 
-    override suspend fun save(key: KeyVerificationStateKey, value: KeyVerificationState) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: KeyVerificationStateKey, value: KeyVerificationState) =
         dao.insert(
             RoomKeyVerificationState(
                 keyId = key.keyId,
@@ -52,13 +58,12 @@ internal class RoomKeyVerificationStateRepository(
                 verificationState = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: KeyVerificationStateKey) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: KeyVerificationStateKey) =
         dao.delete(key.keyId, key.keyAlgorithm)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

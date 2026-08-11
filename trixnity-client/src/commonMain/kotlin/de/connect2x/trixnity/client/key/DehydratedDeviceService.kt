@@ -56,7 +56,6 @@ import de.connect2x.trixnity.utils.decodeBase64
 import de.connect2x.trixnity.utils.retry
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -102,7 +101,6 @@ class DehydratedDeviceService(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun handleChanges() { // TODO unit test
         keyStore.getSecretsFlow()
             .map { it[SecretType.M_DEHYDRATED_DEVICE] }

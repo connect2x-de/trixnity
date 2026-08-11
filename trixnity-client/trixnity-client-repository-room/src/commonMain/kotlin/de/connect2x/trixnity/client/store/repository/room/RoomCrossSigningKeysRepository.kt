@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(tableName = "CrossSigningKeys")
 data class RoomCrossSigningKeys(
@@ -34,25 +40,25 @@ internal class RoomCrossSigningKeysRepository(
 ) : CrossSigningKeysRepository {
     private val dao = db.crossSigningKeys()
 
-    override suspend fun get(key: UserId): Set<StoredCrossSigningKeys>? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: UserId): Set<StoredCrossSigningKeys>? =
         dao.get(key)
             ?.let { entity -> json.decodeFromString<Set<StoredCrossSigningKeys>>(entity.value) }
-    }
 
-    override suspend fun save(key: UserId, value: Set<StoredCrossSigningKeys>) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: UserId, value: Set<StoredCrossSigningKeys>) =
         dao.insert(
             RoomCrossSigningKeys(
                 userId = key,
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: UserId) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: UserId) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

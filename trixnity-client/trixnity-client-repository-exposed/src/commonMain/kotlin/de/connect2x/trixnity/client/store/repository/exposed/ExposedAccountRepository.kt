@@ -3,13 +3,16 @@ package de.connect2x.trixnity.client.store.repository.exposed
 import de.connect2x.trixnity.client.store.Account
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteAll
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.upsert
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedAccount : LongIdTable("account") {
     val olmPickleKey = text("olm_pickle_key").nullable()
@@ -24,24 +27,28 @@ internal object ExposedAccount : LongIdTable("account") {
 }
 
 internal class ExposedAccountRepository(private val json: Json) : AccountRepository {
-    override suspend fun get(key: Long): Account? = withExposedRead {
-        ExposedAccount.selectAll().where { ExposedAccount.id eq key }.firstOrNull()?.let {
-            Account(
-                olmPickleKey = it[ExposedAccount.olmPickleKey],
-                baseUrl = it[ExposedAccount.baseUrl],
-                userId = it[ExposedAccount.userId]?.let { it1 -> UserId(it1) }
-                    ?: throw IllegalStateException("userId not found"),
-                deviceId = it[ExposedAccount.deviceId] ?: throw IllegalStateException("deviceId not found"),
-                accessToken = it[ExposedAccount.accessToken],
-                refreshToken = it[ExposedAccount.refreshToken],
-                syncBatchToken = it[ExposedAccount.syncBatchToken],
-                filter = it[ExposedAccount.filter]?.let { json.decodeFromString(it) },
-                profile = it[ExposedAccount.profile]?.let { json.decodeFromString(it) },
-            )
-        }
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): Account? {
+        return ExposedAccount.selectAll().where { ExposedAccount.id eq key }
+            .firstOrNull()
+            ?.let {
+                Account(
+                    olmPickleKey = it[ExposedAccount.olmPickleKey],
+                    baseUrl = it[ExposedAccount.baseUrl],
+                    userId = it[ExposedAccount.userId]?.let { it1 -> UserId(it1) }
+                        ?: throw IllegalStateException("userId not found"),
+                    deviceId = it[ExposedAccount.deviceId] ?: throw IllegalStateException("deviceId not found"),
+                    accessToken = it[ExposedAccount.accessToken],
+                    refreshToken = it[ExposedAccount.refreshToken],
+                    syncBatchToken = it[ExposedAccount.syncBatchToken],
+                    filter = it[ExposedAccount.filter]?.let { json.decodeFromString(it) },
+                    profile = it[ExposedAccount.profile]?.let { json.decodeFromString(it) },
+                )
+            }
     }
 
-    override suspend fun save(key: Long, value: Account): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: Account) {
         @Suppress("DEPRECATION")
         ExposedAccount.upsert {
             it[id] = key
@@ -57,11 +64,13 @@ internal class ExposedAccountRepository(private val json: Json) : AccountReposit
         }
     }
 
-    override suspend fun delete(key: Long): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) {
         ExposedAccount.deleteWhere { ExposedAccount.id eq key }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedAccount.deleteAll()
     }
 }

@@ -3,11 +3,10 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.MSC3814
@@ -19,6 +18,8 @@ import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.key.decryptSecret
 import de.connect2x.trixnity.crypto.key.encryptSecret
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 private val log = Logger("de.connect2x.trixnity.client.key.KeySecretService")
@@ -35,6 +36,7 @@ class KeySecretServiceImpl(
     private val json: Json,
     private val keyStore: KeyStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
+    private val tm: StoreTransactionManager,
     private val api: MatrixClientServerApiClient,
     private val userInfo: UserInfo,
     private val matrixClientConfiguration: MatrixClientConfiguration,
@@ -97,8 +99,10 @@ class KeySecretServiceImpl(
                     }
                 }
             }.toMap()
-        keyStore.updateSecrets {
-            it + decryptedSecrets
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                it + decryptedSecrets
+            }
         }
     }
 }

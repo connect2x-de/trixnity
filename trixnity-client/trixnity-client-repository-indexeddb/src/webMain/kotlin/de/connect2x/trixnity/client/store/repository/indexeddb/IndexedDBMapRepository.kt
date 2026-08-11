@@ -1,15 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.toList
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.repository.MapRepository
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedObjectStore
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 
 fun WrappedTransaction.createIndexedDBTwoDimensionsStoreRepository(
@@ -26,7 +27,6 @@ fun WrappedTransaction.createIndexedDBTwoDimensionsStoreRepository(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
     objectStoreName: String,
     val firstKeyIndexName: String,
@@ -39,7 +39,8 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
     val json: Json
 ) : MapRepository<K1, K2, V>, IndexedDBRepository(objectStoreName) {
 
-    override suspend fun get(firstKey: K1): Map<K2, V> = withIndexedDBRead { store ->
+    context(transaction: ReadTransaction)
+    override suspend fun get(firstKey: K1): Map<K2, V> = withRead { store ->
         store.index(firstKeyIndexName).openCursor(keyOf(firstKeySerializer(firstKey)))
             .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
             .map { secondKeyDestructor(it) to mapFromRepresentation(it) }
@@ -47,15 +48,17 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
             .associate { it.first to it.second }
     }
 
-    override suspend fun get(firstKey: K1, secondKey: K2): V? = withIndexedDBRead { store ->
+    context(transaction: ReadTransaction)
+    override suspend fun get(firstKey: K1, secondKey: K2): V? = withRead { store ->
         json.decodeFromDynamicNullable(
             representationSerializer,
             store.get(keyOf(firstKeySerializer(firstKey) + secondKeySerializer(secondKey)))
         )?.let(mapFromRepresentation)
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(firstKey: K1, secondKey: K2, value: V): Unit =
-        withIndexedDBWrite { store ->
+        withWrite { store ->
             store.put(
                 value = json.encodeToDynamic(
                     representationSerializer,
@@ -64,11 +67,13 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
             )
         }
 
-    override suspend fun delete(firstKey: K1, secondKey: K2): Unit = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun delete(firstKey: K1, secondKey: K2): Unit = withWrite { store ->
         store.delete(keyOf(firstKeySerializer(firstKey) + secondKeySerializer(secondKey)))
     }
 
-    override suspend fun deleteAll(): Unit = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll(): Unit = withWrite { store ->
         store.clear()
     }
 }

@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.KeyChainLink
 import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 
 @Entity(
     tableName = "KeyChainLink",
@@ -68,10 +74,11 @@ internal class RoomKeyChainLinkRepository(
 ) : KeyChainLinkRepository {
     private val dao = db.keyChainLink()
 
+    context(transaction: ReadTransaction)
     override suspend fun getBySigningKey(
         signingUserId: UserId,
         signingKey: Key.Ed25519Key
-    ): Set<KeyChainLink> = withRoomRead {
+    ): Set<KeyChainLink> =
         dao.getBySigningKeys(signingUserId, signingKey.id, signingKey.value.value)
             .map { entity ->
                 KeyChainLink(
@@ -87,9 +94,9 @@ internal class RoomKeyChainLinkRepository(
                     ),
                 )
             }.toSet()
-    }
 
-    override suspend fun save(keyChainLink: KeyChainLink) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(keyChainLink: KeyChainLink) =
         dao.insert(
             RoomKeyChainLink(
                 signingUserId = keyChainLink.signingUserId,
@@ -100,13 +107,13 @@ internal class RoomKeyChainLinkRepository(
                 signedKeyValue = keyChainLink.signedKey.value.value,
             )
         )
-    }
 
-    override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key) {
         dao.delete(signedUserId, signedKey.id, signedKey.value.value)
     }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

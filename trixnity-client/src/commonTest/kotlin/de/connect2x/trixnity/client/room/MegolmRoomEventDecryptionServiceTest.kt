@@ -7,6 +7,7 @@ import de.connect2x.trixnity.client.mocks.KeyBackupServiceMock
 import de.connect2x.trixnity.client.mocks.MegolmEncryptionServiceMock
 import de.connect2x.trixnity.client.mocks.OutgoingRoomKeyRequestEventHandlerMock
 import de.connect2x.trixnity.client.simpleRoom
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -36,24 +37,29 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val alice = UserId("alice", "server")
     private val room = simpleRoom.roomId
 
     private val roomStore = getInMemoryRoomStore {
-        update(room) { simpleRoom.copy(encrypted = true) }
+        tm.writeTransaction {
+            update(room) { simpleRoom.copy(encrypted = true) }
+        }
     }
 
     private val roomStateStore = getInMemoryRoomStateStore {
-        save(
-            ClientEvent.RoomEvent.StateEvent(
-                EncryptionEventContent(algorithm = EncryptionAlgorithm.Megolm),
-                EventId("enc_state"),
-                alice,
-                room,
-                1234,
-                stateKey = "",
+        tm.writeTransaction {
+            save(
+                ClientEvent.RoomEvent.StateEvent(
+                    EncryptionEventContent(algorithm = EncryptionAlgorithm.Megolm),
+                    EventId("enc_state"),
+                    alice,
+                    room,
+                    1234,
+                    stateKey = "",
+                )
             )
-        )
+        }
     }
 
     private val olmCryptoStore = getInMemoryOlmStore()
@@ -100,31 +106,35 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `encrypt » return null when room does not exist`() = runTest {
-        roomStateStore.save(
-            ClientEvent.RoomEvent.StateEvent(
-                EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
-                EventId("enc_state"),
-                alice,
-                room,
-                1234,
-                stateKey = "",
+        tm.writeTransaction {
+            roomStateStore.save(
+                ClientEvent.RoomEvent.StateEvent(
+                    EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
+                    EventId("enc_state"),
+                    alice,
+                    room,
+                    1234,
+                    stateKey = "",
+                )
             )
-        )
+        }
         cut.encrypt(RoomMessageEventContent.TextBased.Text("hi"), RoomId("unknown")) shouldBe null
     }
 
     @Test
     fun `encrypt » only encrypt in room with megolm algorithm`() = runTest {
-        roomStateStore.save(
-            ClientEvent.RoomEvent.StateEvent(
-                EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
-                EventId("enc_state"),
-                alice,
-                room,
-                1234,
-                stateKey = "",
+        tm.writeTransaction {
+            roomStateStore.save(
+                ClientEvent.RoomEvent.StateEvent(
+                    EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
+                    EventId("enc_state"),
+                    alice,
+                    room,
+                    1234,
+                    stateKey = "",
+                )
             )
-        )
+        }
         cut.encrypt(RoomMessageEventContent.TextBased.Text("hi"), room) shouldBe null
     }
 
@@ -152,25 +162,29 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `decrypt » only decrypt in room with megolm alroithm`() = runTest {
-        roomStateStore.save(
-            ClientEvent.RoomEvent.StateEvent(
-                EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
-                EventId("enc_state"),
-                alice,
-                room,
-                1234,
-                stateKey = "",
+        tm.writeTransaction {
+            roomStateStore.save(
+                ClientEvent.RoomEvent.StateEvent(
+                    EncryptionEventContent(algorithm = EncryptionAlgorithm.Unknown("super-duper-crypto")),
+                    EventId("enc_state"),
+                    alice,
+                    room,
+                    1234,
+                    stateKey = "",
+                )
             )
-        )
-        megolmEncyptionServiceMock.returnDecryptMegolm.add(Result.success(expectedDecryptedEvent))
-        olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+            megolmEncyptionServiceMock.returnDecryptMegolm.add(Result.success(expectedDecryptedEvent))
+            olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        }
         cut.decrypt(encryptedEvent) shouldBe null
     }
 
     @Test
     fun `decrypt » decrypt event`() = runTest {
         megolmEncyptionServiceMock.returnDecryptMegolm.add(Result.success(expectedDecryptedEvent))
-        olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        }
         cut.decrypt(encryptedEvent).shouldNotBeNull().getOrThrow() shouldBe expectedDecryptedEvent.content
     }
 
@@ -179,7 +193,9 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
         megolmEncyptionServiceMock.returnDecryptMegolm.add(
             Result.failure(DecryptMegolmError.ValidationFailed(""))
         )
-        olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        }
         cut.decrypt(encryptedEvent).shouldNotBeNull()
             .exceptionOrNull() shouldBe RoomEventEncryptionServiceError(DecryptMegolmError.ValidationFailed(""))
     }
@@ -190,7 +206,9 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
 
         val result = async { cut.decrypt(encryptedEvent) }
         delay(20.milliseconds)
-        olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        }
         delay(20.milliseconds)
         result.await().shouldNotBeNull().getOrThrow() shouldBe expectedDecryptedEvent.content
         keyBackupServiceMock.loadMegolmSessionCalled.value.first() shouldBe Pair(room, session)
@@ -203,7 +221,9 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
 
         val result = async { cut.decrypt(encryptedEvent) }
         delay(20.milliseconds)
-        olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession }
+        }
         delay(20.milliseconds)
         result.await().shouldNotBeNull().getOrThrow() shouldBe expectedDecryptedEvent.content
         outgoingRoomKeyRequestEventHandlerMock.requestRoomKeysCalled.value.first() shouldBe Pair(room, session)
@@ -215,14 +235,18 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
             megolmEncyptionServiceMock.returnDecryptMegolm.add(Result.failure(DecryptMegolmError.MegolmKeyUnknownMessageIndex()))
             megolmEncyptionServiceMock.returnDecryptMegolm.add(Result.success(expectedDecryptedEvent))
 
-            olmCryptoStore.updateInboundMegolmSession(session, room) {
-                storedSession.copy(firstKnownIndex = 4)
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(session, room) {
+                    storedSession.copy(firstKnownIndex = 4)
+                }
             }
             val result = async { cut.decrypt(encryptedEvent) }
 
             delay(20.milliseconds)
-            olmCryptoStore.updateInboundMegolmSession(session, room) {
-                storedSession.copy(firstKnownIndex = 3)
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(session, room) {
+                    storedSession.copy(firstKnownIndex = 3)
+                }
             }
             result.await().shouldNotBeNull().getOrThrow() shouldBe expectedDecryptedEvent.content
             keyBackupServiceMock.loadMegolmSessionCalled.value.size shouldBe 1

@@ -2,8 +2,6 @@ package de.connect2x.trixnity.client.integrationtests
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.MatrixClientConfiguration
@@ -42,11 +40,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.openjdk.jol.info.GraphStats
 import org.testcontainers.containers.Network
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
+import org.testcontainers.postgresql.PostgreSQLContainer.POSTGRESQL_PORT
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.test.Test
@@ -70,7 +69,7 @@ class PerformanceIT : TrixnityBaseTest() {
                 registerAndStartClient(
                     "exposed", "exposed", baseUrl,
                     repositoriesModule = RepositoriesModule.exposed(
-                        Database.connect("jdbc:h2:./build/tmp/test/${Random.nextString(22)};DB_CLOSE_DELAY=-1;")
+                        R2dbcDatabase.connect("r2dbc:h2:file:///./build/tmp/test/${Random.nextString(22)};DB_CLOSE_DELAY=-1;")
                     ),
                 ).client
             },
@@ -377,15 +376,12 @@ class PerformanceIT : TrixnityBaseTest() {
             )
         }
 
-    private fun PostgreSQLContainer.getDatabase(): Database {
-        val config = HikariConfig().apply {
-            jdbcUrl = this@getDatabase.getJdbcUrl()
-            driverClassName = "org.postgresql.Driver"
-            username = this@getDatabase.username
-            password = this@getDatabase.password
-            maximumPoolSize = 10
-        }
-        val dataSource = HikariDataSource(config)
-        return Database.connect(dataSource)
+    private fun PostgreSQLContainer.getDatabase(): R2dbcDatabase {
+        return R2dbcDatabase.connect(
+            url = "r2dbc:postgresql://${host}:${getMappedPort(POSTGRESQL_PORT)}/${databaseName}",
+            driver = "postgresql",
+            user = username,
+            password = password
+        )
     }
 }

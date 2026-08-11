@@ -10,6 +10,7 @@ import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
 import de.connect2x.trixnity.core.UserInfo
@@ -59,7 +60,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     private val alice = UserId("alice", "server")
@@ -79,15 +80,16 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
     private val cut = OutgoingRoomKeyRequestEventHandlerImpl(
-        UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api,
-        OlmEventHandlerMock(),
-        accountStore,
-        keyStore,
-        olmCryptoStore,
-        CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
-        testScope.testClock,
-        driver,
+        userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+        api = api,
+        olmEventHandler = OlmEventHandlerMock(),
+        accountStore = accountStore,
+        keyStore = keyStore,
+        olmCryptoStore = olmCryptoStore,
+        tm = tm,
+        currentSyncState = CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
+        clock = testScope.testClock,
+        driver = driver,
     )
 
     private val encryptedEvent = ToDeviceEvent(
@@ -195,7 +197,9 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
             forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
             pickled = pickleToInbound(sessionKeys(1).last()),
         )
-        olmCryptoStore.updateInboundMegolmSession(sessionId, room) { existingSession }
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(sessionId, room) { existingSession }
+        }
 
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
@@ -287,8 +291,10 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 )
             ), setOf(aliceDevice), (testClock.now() - 1.days - 1.seconds)
         )
-        keyStore.addRoomKeyRequest(request1)
-        keyStore.addRoomKeyRequest(request2)
+        tm.writeTransaction {
+            keyStore.addRoomKeyRequest(request1)
+            keyStore.addRoomKeyRequest(request2)
+        }
         keyStore.getAllRoomKeyRequestsFlow().first { it.size == 2 }
 
         cut.cancelOldOutgoingKeyRequests()
@@ -334,7 +340,9 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         assertRequest(storedRequest.content)
         assertRequest(requestToAlice2)
 
-        keyStore.deleteRoomKeyRequest(storedRequest.content.requestId)
+        tm.writeTransaction {
+            keyStore.deleteRoomKeyRequest(storedRequest.content.requestId)
+        }
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
         result.await()
     }
@@ -342,7 +350,9 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `requestRoomKeys » ignore when there is no verified device to send request to`() = runTest {
         requestRoomKeysSetup()
-        keyStore.updateDeviceKeys(alice) { null }
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) { null }
+        }
         cut.requestRoomKeys(room, sessionId)
         sendToDeviceEvents shouldBe null
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
@@ -355,7 +365,9 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         val result = async { cut.requestRoomKeys(room, sessionId) }
         delay(500.milliseconds)
         result.isActive shouldBe true
-        keyStore.deleteRoomKeyRequest("requestId")
+        tm.writeTransaction {
+            keyStore.deleteRoomKeyRequest("requestId")
+        }
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
         sendToDeviceEvents shouldBe null
         result.await()
@@ -371,25 +383,27 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
             }
         }
 
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                    KeySignatureTrustLevel.CrossSigned(true)
-                ),
-                aliceDevice2 to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice2, setOf(), keysOf()), mapOf()),
-                    KeySignatureTrustLevel.Valid(true)
-                ),
-                aliceDevice3 to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice3, setOf(), keysOf()), mapOf()),
-                    KeySignatureTrustLevel.Valid(false)
-                ),
-                aliceDevice4Dehydrated to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice4Dehydrated, setOf(), keysOf(), true), mapOf()),
-                    KeySignatureTrustLevel.CrossSigned(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                        KeySignatureTrustLevel.CrossSigned(true)
+                    ),
+                    aliceDevice2 to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice2, setOf(), keysOf()), mapOf()),
+                        KeySignatureTrustLevel.Valid(true)
+                    ),
+                    aliceDevice3 to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice3, setOf(), keysOf()), mapOf()),
+                        KeySignatureTrustLevel.Valid(false)
+                    ),
+                    aliceDevice4Dehydrated to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice4Dehydrated, setOf(), keysOf(), true), mapOf()),
+                        KeySignatureTrustLevel.CrossSigned(true)
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -415,31 +429,35 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
             .use(InboundGroupSession::pickle)
 
     private suspend fun TestScope.setRequest(receiverDeviceIds: Set<String>) {
-        keyStore.addRoomKeyRequest(
-            StoredRoomKeyRequest(
-                RoomKeyRequestEventContent(
-                    KeyRequestAction.REQUEST,
-                    aliceDevice,
-                    "requestId",
-                    RoomKeyRequestEventContent.RequestedKeyInfo(
-                        room,
-                        sessionId,
-                        EncryptionAlgorithm.Megolm,
-                    )
-                ), receiverDeviceIds, testClock.now()
+        tm.writeTransaction {
+            keyStore.addRoomKeyRequest(
+                StoredRoomKeyRequest(
+                    RoomKeyRequestEventContent(
+                        KeyRequestAction.REQUEST,
+                        aliceDevice,
+                        "requestId",
+                        RoomKeyRequestEventContent.RequestedKeyInfo(
+                            room,
+                            sessionId,
+                            EncryptionAlgorithm.Megolm,
+                        )
+                    ), receiverDeviceIds, testClock.now()
+                )
             )
-        )
+        }
         keyStore.getAllRoomKeyRequestsFlow().first { it.size == 1 }
     }
 
     private suspend fun setDeviceKeys(trusted: Boolean) {
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
-                    KeySignatureTrustLevel.CrossSigned(trusted)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
+                        KeySignatureTrustLevel.CrossSigned(trusted)
+                    )
                 )
-            )
+            }
         }
     }
 

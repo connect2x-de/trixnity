@@ -2,7 +2,7 @@ package de.connect2x.trixnity.client.store.cache
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.repository.MapRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
+import de.connect2x.trixnity.utils.TransactionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,14 +108,15 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
 
 internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
     repository: MapRepository<K1, K2, V>,
-    tm: RepositoryTransactionManager,
+    private val tm: TransactionManager<*, *>,
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
     values: ConcurrentObservableMap<MapRepositoryCoroutinesCacheKey<K1, K2>, MutableStateFlow<CacheValue<V?>>> = ConcurrentObservableMap(),
 ) : ObservableCache<MapRepositoryCoroutinesCacheKey<K1, K2>, V, MapRepositoryObservableCacheStore<K1, K2, V>>(
     name = repository::class.simpleName ?: repository::class.toString(),
-    store = MapRepositoryObservableCacheStore(repository, tm),
+    store = MapRepositoryObservableCacheStore(repository),
+    tm = tm,
     cacheScope = cacheScope,
     expireDuration = expireDuration,
     clock = clock,
@@ -124,12 +125,13 @@ internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
     private val mapRepositoryIndex: MapRepositoryObservableCacheIndex<K1, K2> =
         MapRepositoryObservableCacheIndex(name) { key ->
             log.trace { "load map from database by first key $key" }
-            store.getByFirstKey(key).forEach { value ->
-                set(
-                    key = MapRepositoryCoroutinesCacheKey(key, value.key),
-                    value = value.value,
-                    persistEnabled = false,
-                )
+            withCacheTransaction {
+                tm.readTransaction { store.getByFirstKey(key) }.forEach { value ->
+                    setCacheOnly(
+                        key = MapRepositoryCoroutinesCacheKey(key, value.key),
+                        value = value.value,
+                    )
+                }
             }
         }
 

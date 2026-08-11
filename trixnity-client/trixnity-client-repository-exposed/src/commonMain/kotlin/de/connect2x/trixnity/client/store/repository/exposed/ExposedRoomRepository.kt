@@ -1,12 +1,20 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.repository.RoomRepository
 import de.connect2x.trixnity.core.model.RoomId
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.r2dbc.deleteAll
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.upsert
 
 internal object ExposedRoom : Table("room") {
     val roomId = varchar("room_id", length = 255)
@@ -15,28 +23,33 @@ internal object ExposedRoom : Table("room") {
 }
 
 internal class ExposedRoomRepository(private val json: Json) : RoomRepository {
-    override suspend fun getAll(): List<Room> = withExposedRead {
-        ExposedRoom.selectAll().map { json.decodeFromString(it[ExposedRoom.value]) }
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<Room> {
+        return ExposedRoom.selectAll().map { json.decodeFromString<Room>(it[ExposedRoom.value]) }.toList()
     }
 
-    override suspend fun get(key: RoomId): Room? = withExposedRead {
-        ExposedRoom.selectAll().where { ExposedRoom.roomId eq key.full }.firstOrNull()?.let {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: RoomId): Room? {
+        return ExposedRoom.selectAll().where { ExposedRoom.roomId eq key.full }.firstOrNull()?.let {
             json.decodeFromString(it[ExposedRoom.value])
         }
     }
 
-    override suspend fun save(key: RoomId, value: Room): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: RoomId, value: Room) {
         ExposedRoom.upsert {
             it[roomId] = key.full
             it[ExposedRoom.value] = json.encodeToString(value)
         }
     }
 
-    override suspend fun delete(key: RoomId): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: RoomId) {
         ExposedRoom.deleteWhere { roomId eq key.full }
     }
 
-    override suspend fun deleteAll(): Unit = withExposedWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() {
         ExposedRoom.deleteAll()
     }
 }

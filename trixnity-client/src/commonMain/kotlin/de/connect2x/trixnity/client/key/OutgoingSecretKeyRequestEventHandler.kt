@@ -3,12 +3,7 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.GlobalAccountDataStore
-import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
-import de.connect2x.trixnity.client.store.KeyStore
-import de.connect2x.trixnity.client.store.StoredSecret
-import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
-import de.connect2x.trixnity.client.store.isVerified
+import de.connect2x.trixnity.client.store.*
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
@@ -57,6 +52,7 @@ class OutgoingSecretKeyRequestEventHandler(
     private val keyBackupService: KeyBackupService,
     private val keyStore: KeyStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
+    private val tm: StoreTransactionManager,
     private val currentSyncState: CurrentSyncState,
     private val clock: Clock,
     private val driver: CryptoDriver,
@@ -106,9 +102,11 @@ class OutgoingSecretKeyRequestEventHandler(
             // TODO should be encrypted (because this is meta data)
             api.user.sendToDevice(mapOf(ownUserId to receiverDeviceIds.associateWith { request }))
                 .onSuccess {
-                    keyStore.addSecretKeyRequest(
-                        StoredSecretKeyRequest(request, receiverDeviceIds, clock.now())
-                    )
+                    tm.writeTransaction {
+                        keyStore.addSecretKeyRequest(
+                            StoredSecretKeyRequest(request, receiverDeviceIds, clock.now())
+                        )
+                    }
                 }.getOrThrow()
         }
     }
@@ -230,8 +228,10 @@ class OutgoingSecretKeyRequestEventHandler(
                 log.warn { "could not find encrypted secret" }
                 return
             }
-            keyStore.updateSecrets {
-                it + (secretType to StoredSecret(encryptedSecret, content.secret))
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    it + (secretType to StoredSecret(encryptedSecret, content.secret))
+                }
             }
 
             request.cancelRequest(senderDeviceId)
@@ -257,7 +257,9 @@ class OutgoingSecretKeyRequestEventHandler(
             if (storedSecret?.event != event) {
                 keyStore.getAllSecretKeyRequests().filter { it.content.name == secretType.id }
                     .forEach { it.cancelRequest() }
-                keyStore.updateSecrets { it - secretType }
+                tm.writeTransaction {
+                    keyStore.updateSecrets { it - secretType }
+                }
             }
         }
     }
@@ -271,6 +273,8 @@ class OutgoingSecretKeyRequestEventHandler(
                 mapOf(ownUserId to cancelRequestTo.associateWith { cancelRequest })
             ).getOrThrow()
         }
-        keyStore.deleteSecretKeyRequest(content.requestId)
+        tm.writeTransaction {
+            keyStore.deleteSecretKeyRequest(content.requestId)
+        }
     }
 }

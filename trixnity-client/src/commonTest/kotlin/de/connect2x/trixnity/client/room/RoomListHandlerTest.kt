@@ -8,12 +8,12 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryServerDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.simpleUserInfo
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomDisplayName
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.JoinedRoom
@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlin.test.Test
 
 class RoomListHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val alice = UserId("alice", "server")
     private val bob = UserId("bob", "server")
     private val roomId = RoomId("!room:server")
@@ -75,7 +75,7 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         forgetRoomService = { roomId, _ -> forgetRooms.add(roomId) },
         roomService = roomServiceMock,
         userInfo = simpleUserInfo,
-        tm = TransactionManagerMock(),
+        tm = tm,
         config = config,
     )
 
@@ -129,7 +129,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `updateRoomList » lastEventId » must not update `() = runTest {
-        roomStore.update(roomId) { simpleRoom.copy(lastEventId = EventId("old")) }
+        tm.writeTransaction {
+            roomStore.update(roomId) { simpleRoom.copy(lastEventId = EventId("old")) }
+        }
         cut.updateRoomList(
             SyncEvents(
                 Sync.Response(
@@ -168,12 +170,14 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `updateRoomList » name » keep when no change`() = runTest {
-        roomStore.update(roomId) {
-            simpleRoom.copy(
-                lastEventId = createEvent.id,
-                name = RoomDisplayName("NAME", summary = null),
-                createEventContent = createEvent.content
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId) {
+                simpleRoom.copy(
+                    lastEventId = createEvent.id,
+                    name = RoomDisplayName("NAME", summary = null),
+                    createEventContent = createEvent.content
+                )
+            }
         }
         cut.updateRoomList(
             SyncEvents(
@@ -190,7 +194,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `isDirect » set the room to direct == 'true' when a DirectEventContent is found for the room`() =
         runTest {
-            roomStore.update(roomId) { Room(roomId, isDirect = false) }
+            tm.writeTransaction {
+                roomStore.update(roomId) { Room(roomId, isDirect = false) }
+            }
             val eventContent = DirectEventContent(
                 mappings = mapOf(
                     UserId("user1", "localhost") to setOf(RoomId("!room2:localhost"), roomId)
@@ -212,8 +218,10 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     fun `isDirect » membership is LEAVE or BAN » don't change isDirect`() =
         runTest {
             val roomId2 = RoomId("!room2:server")
-            roomStore.update(roomId) { Room(roomId, isDirect = true, membership = Membership.LEAVE) }
-            roomStore.update(roomId2) { Room(roomId2, isDirect = true, membership = Membership.BAN) }
+            tm.writeTransaction {
+                roomStore.update(roomId) { Room(roomId, isDirect = true, membership = Membership.LEAVE) }
+                roomStore.update(roomId2) { Room(roomId2, isDirect = true, membership = Membership.BAN) }
+            }
             val eventContent = DirectEventContent(
                 mappings = mapOf()
             )
@@ -237,8 +245,10 @@ class RoomListHandlerTest : TrixnityBaseTest() {
             val room2 = RoomId("!room2:localhost")
             val roomStore = roomStore
 
-            roomStore.update(room1) { Room(room1, isDirect = true) }
-            roomStore.update(room2) { Room(room2, isDirect = true) }
+            tm.writeTransaction {
+                roomStore.update(room1) { Room(room1, isDirect = true) }
+                roomStore.update(room2) { Room(room2, isDirect = true) }
+            }
             val eventContent = DirectEventContent(
                 mappings = mapOf(
                     UserId("user1", "localhost") to setOf(room2)
@@ -260,17 +270,19 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `avatarUrl » room is direct » set the avatar URL to a member's avatar URL`() = runTest {
-        roomStore.update(roomId) { Room(roomId, avatarUrl = null) }
-        roomStateStore.save(
-            StateEvent(
-                MemberEventContent("mxc://localhost/abcdef", membership = Membership.JOIN),
-                EventId("1"),
-                bob,
-                roomId,
-                0L,
-                stateKey = alice.full,
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, avatarUrl = null) }
+            roomStateStore.save(
+                StateEvent(
+                    MemberEventContent("mxc://localhost/abcdef", membership = Membership.JOIN),
+                    EventId("1"),
+                    bob,
+                    roomId,
+                    0L,
+                    stateKey = alice.full,
+                )
             )
-        )
+        }
         val eventContent = DirectEventContent(
             mappings = mapOf(
                 alice to setOf(
@@ -293,8 +305,22 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `avatarUrl » membership is LEAVE or BAN » don't change avatar'`() = runTest {
         val roomId2 = RoomId("!room2:localhost")
-        roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/abcdef", membership = Membership.LEAVE) }
-        roomStore.update(roomId2) { Room(roomId2, avatarUrl = "mxc://localhost/abcdef", membership = Membership.BAN) }
+        tm.writeTransaction {
+            roomStore.update(roomId) {
+                Room(
+                    roomId,
+                    avatarUrl = "mxc://localhost/abcdef",
+                    membership = Membership.LEAVE
+                )
+            }
+            roomStore.update(roomId2) {
+                Room(
+                    roomId2,
+                    avatarUrl = "mxc://localhost/abcdef",
+                    membership = Membership.BAN
+                )
+            }
+        }
         val eventContent = DirectEventContent(
             mappings = mapOf()
         )
@@ -312,7 +338,14 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `avatarUrl » room is direct » update the room's avatar URL`() = runTest {
-        roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/old") }
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/old") }
+            globalAccountDataStore.save(
+                ClientEvent.GlobalAccountDataEvent(
+                    DirectEventContent(mappings = mapOf(alice to setOf(roomId)))
+                )
+            )
+        }
         val event1 = StateEvent(
             MemberEventContent(
                 avatarUrl = "mxc://localhost/right",
@@ -335,11 +368,7 @@ class RoomListHandlerTest : TrixnityBaseTest() {
             0L,
             stateKey = bob.full,
         )
-        globalAccountDataStore.save(
-            ClientEvent.GlobalAccountDataEvent(
-                DirectEventContent(mappings = mapOf(alice to setOf(roomId)))
-            )
-        )
+
 
         cut.updateRoomList(SyncEvents(Sync.Response(""), listOf(event1, event2)))
 
@@ -349,27 +378,29 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `avatarUrl » room is direct » when the avatar URL is explicitly set use it instead of member's avatar URL`() =
         runTest {
-            roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/123456") }
-            roomStateStore.save(
-                StateEvent(
-                    MemberEventContent("mxc://localhost/abcdef", membership = Membership.JOIN),
-                    EventId("1"),
-                    bob,
-                    roomId,
-                    0L,
-                    stateKey = alice.full,
+            tm.writeTransaction {
+                roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/123456") }
+                roomStateStore.save(
+                    StateEvent(
+                        MemberEventContent("mxc://localhost/abcdef", membership = Membership.JOIN),
+                        EventId("1"),
+                        bob,
+                        roomId,
+                        0L,
+                        stateKey = alice.full,
+                    )
                 )
-            )
-            roomStateStore.save(
-                StateEvent(
-                    AvatarEventContent("mxc://localhost/123456"),
-                    EventId("1"),
-                    bob,
-                    roomId,
-                    0L,
-                    stateKey = "",
+                roomStateStore.save(
+                    StateEvent(
+                        AvatarEventContent("mxc://localhost/123456"),
+                        EventId("1"),
+                        bob,
+                        roomId,
+                        0L,
+                        stateKey = "",
+                    )
                 )
-            )
+            }
             val eventContent = DirectEventContent(
                 mappings = mapOf(
                     alice to setOf(
@@ -392,25 +423,27 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `avatarUrl » room is direct » set the avatar URL to a member of a direct room when the new avatar URL is empty`() =
         runTest {
-            roomStore.update(roomId) { Room(roomId, isDirect = true, avatarUrl = "mxc://localhost/abcdef") }
-            globalAccountDataStore.save(
-                ClientEvent.GlobalAccountDataEvent(
-                    DirectEventContent(mappings = mapOf(bob to setOf(roomId, RoomId("!room2:localhost"))))
+            tm.writeTransaction {
+                roomStore.update(roomId) { Room(roomId, isDirect = true, avatarUrl = "mxc://localhost/abcdef") }
+                globalAccountDataStore.save(
+                    ClientEvent.GlobalAccountDataEvent(
+                        DirectEventContent(mappings = mapOf(bob to setOf(roomId, RoomId("!room2:localhost"))))
+                    )
                 )
-            )
-            roomStateStore.save(
-                StateEvent(
-                    MemberEventContent(
-                        avatarUrl = "mxc://localhost/123456",
-                        membership = Membership.JOIN
-                    ),
-                    EventId("1"),
-                    bob,
-                    roomId,
-                    0L,
-                    stateKey = bob.full
+                roomStateStore.save(
+                    StateEvent(
+                        MemberEventContent(
+                            avatarUrl = "mxc://localhost/123456",
+                            membership = Membership.JOIN
+                        ),
+                        EventId("1"),
+                        bob,
+                        roomId,
+                        0L,
+                        stateKey = bob.full
+                    )
                 )
-            )
+            }
             val event = StateEvent(
                 AvatarEventContent(""),
                 EventId("1"),
@@ -428,7 +461,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `avatarUrl » room id not direct » do nothing on member event`() = runTest {
-        roomStore.update(roomId) { Room(roomId) }
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId) }
+        }
         val event = StateEvent(
             MemberEventContent(
                 avatarUrl = "mxc://localhost/123456",
@@ -448,7 +483,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `avatarUrl » room id not direct » set the avatar URL for normal rooms`() = runTest {
-        roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/abcdef") }
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/abcdef") }
+        }
         val event = StateEvent(
             AvatarEventContent("mxc://localhost/123456"),
             EventId("1"),
@@ -465,7 +502,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `avatarUrl » room id not direct » set an empty avatar URL for normal rooms`() = runTest {
-        roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/abcdef") }
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, avatarUrl = "mxc://localhost/abcdef") }
+        }
         val event = StateEvent(
             AvatarEventContent(""),
             EventId("1"),
@@ -488,7 +527,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
             invitedMemberCount = 2,
         )
         val roomBefore = simpleRoom.copy(name = RoomDisplayName(explicitName = "bla", summary = roomSummary))
-        roomStore.update(roomId) { roomBefore }
+        tm.writeTransaction {
+            roomStore.update(roomId) { roomBefore }
+        }
         cut.calculateDisplayName(roomId, summary = roomSummary, membership = Membership.JOIN) shouldBe null
     }
 
@@ -504,7 +545,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `displayName » name event found in store » set explicit name`() = runTest {
-        roomStateStore.save(nameEvent(1, user1, "explicit"))
+        tm.writeTransaction {
+            roomStateStore.save(nameEvent(1, user1, "explicit"))
+        }
         cut.calculateDisplayName(roomId, summary = JoinedRoom.RoomSummary(), membership = Membership.JOIN)
             .shouldNotBeNull { explicitName shouldBe "explicit" }
     }
@@ -521,7 +564,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `displayName » name alias event found in store » set explicit name`() = runTest {
-        roomStateStore.save(canonicalAliasEvent(1, user1, RoomAliasId("#explicit:room")))
+        tm.writeTransaction {
+            roomStateStore.save(canonicalAliasEvent(1, user1, RoomAliasId("#explicit:room")))
+        }
         cut.calculateDisplayName(roomId, summary = JoinedRoom.RoomSummary(), membership = Membership.JOIN)
             .shouldNotBeNull { explicitName shouldBe "#explicit:room" }
     }
@@ -621,13 +666,15 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `displayName » no name event found » no explicit heroes set » use joined members as heroes excluding us`() =
         runTest {
-            listOf(
-                memberEvent(1, user1, "User1-Display", Membership.JOIN),
-                memberEvent(2, user2, "User2-Display", Membership.INVITE),
-                memberEvent(3, user3, "User3-Display", Membership.JOIN),
-                memberEvent(4, user4, "User4-Display", Membership.INVITE),
-                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
-            ).forEach { roomStateStore.save(it) }
+            tm.writeTransaction {
+                listOf(
+                    memberEvent(1, user1, "User1-Display", Membership.JOIN),
+                    memberEvent(2, user2, "User2-Display", Membership.INVITE),
+                    memberEvent(3, user3, "User3-Display", Membership.JOIN),
+                    memberEvent(4, user4, "User4-Display", Membership.INVITE),
+                    memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+                ).forEach { roomStateStore.save(it) }
+            }
             val summary = JoinedRoom.RoomSummary(
                 joinedMemberCount = 3,
                 invitedMemberCount = 2,
@@ -644,13 +691,15 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `displayName » no name event found » no explicit heroes set » no joined members » use left members as heroes`() =
         runTest {
-            listOf(
-                memberEvent(1, user1, "User1-Display", Membership.LEAVE),
-                memberEvent(2, user2, "User2-Display", Membership.LEAVE),
-                memberEvent(3, user3, "User3-Display", Membership.BAN),
-                memberEvent(4, user4, "User4-Display", Membership.LEAVE),
-                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
-            ).forEach { roomStateStore.save(it) }
+            tm.writeTransaction {
+                listOf(
+                    memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+                    memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+                    memberEvent(3, user3, "User3-Display", Membership.BAN),
+                    memberEvent(4, user4, "User4-Display", Membership.LEAVE),
+                    memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+                ).forEach { roomStateStore.save(it) }
+            }
             val summary = JoinedRoom.RoomSummary(
                 joinedMemberCount = 1,
                 invitedMemberCount = 0,
@@ -681,13 +730,15 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `displayName » no name event found » joined members is gt 1 » isEmpty is false`() = runTest {
-        listOf(
-            memberEvent(1, user1, "User1-Display", Membership.LEAVE),
-            memberEvent(2, user2, "User2-Display", Membership.LEAVE),
-            memberEvent(3, user3, "User3-Display", Membership.BAN),
-            memberEvent(4, user4, "User4-Display", Membership.INVITE),
-            memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
-        ).forEach { roomStateStore.save(it) }
+        tm.writeTransaction {
+            listOf(
+                memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+                memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+                memberEvent(3, user3, "User3-Display", Membership.BAN),
+                memberEvent(4, user4, "User4-Display", Membership.INVITE),
+                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+            ).forEach { roomStateStore.save(it) }
+        }
         val summary = JoinedRoom.RoomSummary(
             joinedMemberCount = 1,
             invitedMemberCount = 1,
@@ -703,13 +754,15 @@ class RoomListHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `displayName » no name event found » joined members is eq 1 » isEmpty is true`() = runTest {
-        listOf(
-            memberEvent(1, user1, "User1-Display", Membership.LEAVE),
-            memberEvent(2, user2, "User2-Display", Membership.LEAVE),
-            memberEvent(3, user3, "User3-Display", Membership.BAN),
-            memberEvent(4, user4, "User4-Display", Membership.LEAVE),
-            memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
-        ).forEach { roomStateStore.save(it) }
+        tm.writeTransaction {
+            listOf(
+                memberEvent(1, user1, "User1-Display", Membership.LEAVE),
+                memberEvent(2, user2, "User2-Display", Membership.LEAVE),
+                memberEvent(3, user3, "User3-Display", Membership.BAN),
+                memberEvent(4, user4, "User4-Display", Membership.LEAVE),
+                memberEvent(5, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+            ).forEach { roomStateStore.save(it) }
+        }
         val summary = JoinedRoom.RoomSummary(
             joinedMemberCount = 1,
             invitedMemberCount = 0,
@@ -726,10 +779,12 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `displayName » no name event found » joined members is eq 1 » summary does not set it » isEmpty is true`() =
         runTest {
-            listOf(
-                memberEvent(1, user1, "User1-Display", Membership.INVITE),
-                memberEvent(2, simpleUserInfo.userId, "me-Display", Membership.JOIN),
-            ).forEach { roomStateStore.save(it) }
+            tm.writeTransaction {
+                listOf(
+                    memberEvent(1, user1, "User1-Display", Membership.INVITE),
+                    memberEvent(2, simpleUserInfo.userId, "me-Display", Membership.JOIN),
+                ).forEach { roomStateStore.save(it) }
+            }
             val roomSummary = JoinedRoom.RoomSummary(
                 heroes = listOf(),
                 joinedMemberCount = null,
@@ -741,7 +796,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
                     summary = roomSummary.copy(joinedMemberCount = 0)
                 )
             )
-            roomStore.update(roomId) { roomBefore }
+            tm.writeTransaction {
+                roomStore.update(roomId) { roomBefore }
+            }
             cut.calculateDisplayName(roomId, summary = roomSummary, membership = Membership.JOIN) shouldNotBeNull {
                 otherUsersCount shouldBe 1
                 isEmpty shouldBe false
@@ -760,7 +817,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
                 summary = oldSummary,
             )
         )
-        roomStore.update(roomId) { roomBefore }
+        tm.writeTransaction {
+            roomStore.update(roomId) { roomBefore }
+        }
         val roomSummary = JoinedRoom.RoomSummary(
             heroes = listOf(user1),
             joinedMemberCount = 3,
@@ -797,7 +856,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     @Test
     fun `deleteLeftRooms » not forget rooms on leave when disabled`() = runTest {
         config.deleteRooms = DeleteRooms.Never
-        roomStore.update(roomId) { simpleRoom.copy(membership = Membership.LEAVE) }
+        tm.writeTransaction {
+            roomStore.update(roomId) { simpleRoom.copy(membership = Membership.LEAVE) }
+        }
 
         roomStore.getAll().first { it.size == 1 }
 
@@ -820,7 +881,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         runTest {
             config.deleteRooms = DeleteRooms.WhenNotJoined
             val room = simpleRoom.copy(membership = Membership.LEAVE)
-            roomStore.update(roomId) { room }
+            tm.writeTransaction {
+                roomStore.update(roomId) { room }
+            }
             roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
             roomServiceMock.returnGetTimelineEvents = flowOf(flowOf())
 
@@ -844,7 +907,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         runTest {
             config.deleteRooms = DeleteRooms.WhenNotJoined
             val room = simpleRoom.copy(membership = Membership.LEAVE)
-            roomStore.update(roomId) { room }
+            tm.writeTransaction {
+                roomStore.update(roomId) { room }
+            }
             roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
             roomServiceMock.returnGetTimelineEvents = flowOf(
                 flowOf(
@@ -883,7 +948,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         runTest {
             config.deleteRooms = DeleteRooms.WhenNotJoined
             val room = simpleRoom.copy(membership = Membership.LEAVE)
-            roomStore.update(roomId) { room }
+            tm.writeTransaction {
+                roomStore.update(roomId) { room }
+            }
             roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
             roomServiceMock.returnGetTimelineEvents = flowOf(
                 flowOf(
@@ -924,7 +991,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         runTest {
             config.deleteRooms = DeleteRooms.WhenNotJoined
             val room = simpleRoom.copy(membership = Membership.LEAVE)
-            roomStore.update(roomId) { room }
+            tm.writeTransaction {
+                roomStore.update(roomId) { room }
+            }
             roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
             roomServiceMock.returnGetTimelineEvents = flowOf(
                 flowOf(
@@ -963,7 +1032,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
     fun `deleteLeftRooms » only own state events found in room so do delete`() = runTest {
         config.deleteRooms = DeleteRooms.WhenNotJoined
         val room = simpleRoom.copy(membership = Membership.LEAVE)
-        roomStore.update(roomId) { room }
+        tm.writeTransaction {
+            roomStore.update(roomId) { room }
+        }
         roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
         roomServiceMock.returnGetTimelineEvents = flowOf(
             flowOf(
@@ -1003,7 +1074,9 @@ class RoomListHandlerTest : TrixnityBaseTest() {
         runTest {
             config.deleteRooms = DeleteRooms.Never
             val room = simpleRoom.copy(membership = Membership.LEAVE)
-            roomStore.update(roomId) { room }
+            tm.writeTransaction {
+                roomStore.update(roomId) { room }
+            }
             roomServiceMock.rooms.value = mapOf(roomId to MutableStateFlow(room))
             roomServiceMock.returnGetTimelineEvents = flowOf(
                 flowOf(

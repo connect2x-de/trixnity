@@ -1,25 +1,24 @@
 package de.connect2x.trixnity.client.store
 
-import io.ktor.util.reflect.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.MapRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.GlobalAccountDataRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 
 class GlobalAccountDataStore(
     globalAccountDataRepository: GlobalAccountDataRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     private val contentMappings: EventContentSerializerMappings,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
@@ -35,12 +34,15 @@ class GlobalAccountDataStore(
             config.cacheExpireDurations.globalAccountDate
         ).also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         globalAccountDataCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun save(event: GlobalAccountDataEvent<out GlobalAccountDataEventContent>) {
         val eventType = when (val content = event.content) {
             is UnknownEventContent -> content.eventType
