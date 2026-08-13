@@ -39,7 +39,7 @@ stages:
 compile:mac:
   stage: compile
   interruptible: true
-  tags: [ "connect2x-mac" ]
+  tags: [ "c2x","mac","shell","medium" ]
   rules:
     - *if-merge-request
   script:
@@ -51,7 +51,7 @@ compile:mac:
 compile:linux:
   stage: compile
   interruptible: true
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "c2x","linux","shell","medium" ]
   rules:
     - *if-merge-request
   script:
@@ -67,7 +67,7 @@ check:vulnerable-dependencies:
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","shell","small" ]
   variables:
     WITH_LOCK: true
   rules:
@@ -91,7 +91,7 @@ check:changelog:
   stage: check
   interruptible: true
   timeout: 5m
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","shell","small" ]
   image:
     name: alpine/git:latest
     entrypoint: [ "" ] # tell gitlab to use `sh` instead of `git sh`
@@ -113,7 +113,7 @@ check:abi:
   interruptible: true
   timeout: 1h
   needs: [ "compile:mac" ]
-  tags: [ "connect2x-mac" ]
+  tags: [ "c2x","mac","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -126,7 +126,7 @@ test:unit:mac:
   interruptible: true
   timeout: 1h
   needs: [ "compile:mac" ]
-  tags: [ "connect2x-mac-arm" ]
+  tags: [ "c2x","mac","arm64","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -141,7 +141,7 @@ test:unit:jvm-android:
   interruptible: true
   timeout: 1h
   needs: [ "compile:linux" ]
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -156,7 +156,7 @@ test:unit:linux:
   interruptible: true
   timeout: 1h
   needs: [ "compile:linux" ]
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","linux","amd64","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -170,7 +170,7 @@ test:unit:js:
   interruptible: true
   timeout: 1h
   needs: [ "compile:linux" ]
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -184,7 +184,7 @@ test:integration:jvm:
   interruptible: true
   timeout: 1h
   needs: [ "compile:linux" ]
-  tags: [ "connect2x-linux-shell-small" ]
+  tags: [ "c2x","shell","small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -196,7 +196,7 @@ test:integration:jvm:
 
 publish:snapshot:
   stage: publish
-  tags: [ "connect2x-mac" ]
+  tags: [ "c2x","mac","shell","medium" ]
   timeout: 2h
   rules:
     - *if-dev-release
@@ -211,7 +211,7 @@ publish:snapshot:
 
 publish:release:
   stage: publish
-  tags: [ "connect2x-mac" ]
+  tags: [ "c2x","mac","shell","medium" ]
   timeout: 2h
   rules:
     - *if-release
@@ -223,7 +223,7 @@ publish:release:
 
 pages:
   stage: publish
-  tags: [ "connect2x-linux" ]
+  tags: [ "c2x","linux","docker","small" ]
   image: node:lts
   rules:
     - *if-dev-release
