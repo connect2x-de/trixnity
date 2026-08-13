@@ -11,11 +11,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- Refactored E2EE to be more clean, testable and support clearly scoped database transactions
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fixed E2EE bug, where a network error can prevent sending outbound megolm sessions
+- Fixed E2EE bug, where possibly new outbound megolm session are created without a need
 
 ### Security
 

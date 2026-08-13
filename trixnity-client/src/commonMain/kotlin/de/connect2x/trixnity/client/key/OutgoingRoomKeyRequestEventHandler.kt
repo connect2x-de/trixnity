@@ -2,28 +2,36 @@ package de.connect2x.trixnity.client.key
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.AccountStore
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
+import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.client.utils.retry
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.core.*
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.subscribe
+import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
-import de.connect2x.trixnity.crypto.olm.OlmDecrypter
+import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.utils.nextString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 
@@ -39,7 +47,7 @@ interface OutgoingRoomKeyRequestEventHandler {
 class OutgoingRoomKeyRequestEventHandlerImpl(
     userInfo: UserInfo,
     private val api: MatrixClientServerApiClient,
-    private val olmDecrypter: OlmDecrypter,
+    private val olmEventHandler: OlmEventHandler,
     private val accountStore: AccountStore,
     private val keyStore: KeyStore,
     private val olmCryptoStore: OlmCryptoStore,
@@ -51,7 +59,7 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
     private val ownDeviceId = userInfo.deviceId
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        olmDecrypter.subscribe(::handleOutgoingKeyRequestAnswer).unsubscribeOnCompletion(scope)
+        olmEventHandler.subscribe(::handleOutgoingKeyRequestAnswer).unsubscribeOnCompletion(scope)
         api.sync.subscribe(Priority.AFTER_DEFAULT, ::cancelOldOutgoingKeyRequests).unsubscribeOnCompletion(scope)
     }
 

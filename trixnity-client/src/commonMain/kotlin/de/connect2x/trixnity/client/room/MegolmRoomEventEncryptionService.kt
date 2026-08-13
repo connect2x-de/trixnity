@@ -18,7 +18,7 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventConte
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
-import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -34,7 +34,7 @@ class MegolmRoomEventEncryptionService(
     private val olmCryptoStore: OlmCryptoStore,
     private val keyBackupService: KeyBackupService,
     private val outgoingRoomKeyRequestEventHandler: OutgoingRoomKeyRequestEventHandler,
-    private val olmEncryptionService: OlmEncryptionService
+    private val megolmEncryptionService: MegolmEncryptionService
 ) : RoomEventEncryptionService {
     override suspend fun encrypt(
         content: MessageEventContent,
@@ -50,7 +50,7 @@ class MegolmRoomEventEncryptionService(
 
         loadMembersService(roomId, wait = true)
 
-        return olmEncryptionService.encryptMegolmCatching(content, roomId, encryptionEventContent)
+        return megolmEncryptionService.encryptMegolmCatching(content, roomId, encryptionEventContent)
     }
 
     override suspend fun decrypt(event: RoomEvent.MessageEvent<*>): Result<MessageEventContent>? {
@@ -76,17 +76,17 @@ class MegolmRoomEventEncryptionService(
         @Suppress("UNCHECKED_CAST")
         val encryptedEvent = event as RoomEvent<MegolmEncryptedMessageEventContent>
 
-        val decryptEventAttempt = olmEncryptionService.decryptMegolmCatching(encryptedEvent)
+        val decryptEventAttempt = megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
         val exception = decryptEventAttempt.exceptionOrNull()
         val decryptedEvent =
-            if (exception is RoomEventEncryptionServiceError && exception.cause is OlmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex) {
+            if (exception is RoomEventEncryptionServiceError && exception.cause is MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex) {
                 log.debug { "unknwon message index, so we request key backup and start to wait for inbound megolm session to decrypt $eventId in $roomId again" }
                 waitForInboundMegolmSessionAndRequest(
                     roomId,
                     content.sessionId,
                     firstKnownIndexLessThen = firstKnownIndex
                 )
-                olmEncryptionService.decryptMegolmCatching(encryptedEvent)
+                megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
             } else decryptEventAttempt
         log.trace { "decrypted TimelineEvent $eventId in $roomId" }
         return decryptedEvent.map { it.content }
@@ -103,21 +103,21 @@ class MegolmRoomEventEncryptionService(
         }
     }
 
-    private suspend fun OlmEncryptionService.encryptMegolmCatching(
+    private suspend fun MegolmEncryptionService.encryptMegolmCatching(
         content: MessageEventContent,
         roomId: RoomId,
         settings: EncryptionEventContent
     ): Result<MegolmEncryptedMessageEventContent> =
         encryptMegolm(content, roomId, settings).recoverCatching { e ->
-            if (e is OlmEncryptionService.EncryptMegolmError) throw RoomEventEncryptionServiceError(e)
+            if (e is MegolmEncryptionService.EncryptMegolmError) throw RoomEventEncryptionServiceError(e)
             else throw e
         }
 
-    private suspend fun OlmEncryptionService.decryptMegolmCatching(
+    private suspend fun MegolmEncryptionService.decryptMegolmCatching(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
     ): Result<DecryptedMegolmEvent<*>> =
         decryptMegolm(encryptedEvent).recoverCatching { e ->
-            if (e is OlmEncryptionService.DecryptMegolmError) throw RoomEventEncryptionServiceError(e)
+            if (e is MegolmEncryptionService.DecryptMegolmError) throw RoomEventEncryptionServiceError(e)
             else throw e
         }
 }

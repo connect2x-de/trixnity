@@ -951,7 +951,8 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Use
 	public abstract fun reportUser-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchUsers-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun searchUsers-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun sendToDevice-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun sendToDevice-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun sendToDeviceUnsafe-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun sendToDeviceUnsafe-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun sendToDeviceUnsafe-BWLJW6A (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -967,6 +968,7 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Use
 public final class de/connect2x/trixnity/clientserverapi/client/UserApiClient$DefaultImpls {
 	public static synthetic fun getAccountData-Wo0uVPo$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun searchUsers-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun sendToDevice-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun sendToDeviceUnsafe-0E7RQCE$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun sendToDeviceUnsafe-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun setAccountData-Wo0uVPo$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Lde/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -984,7 +986,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/UserApiClientImp
 	public fun getProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun reportUser-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun searchUsers-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun sendToDevice-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendToDeviceUnsafe-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendToDeviceUnsafe-BWLJW6A (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setAccountData-Wo0uVPo (Lde/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

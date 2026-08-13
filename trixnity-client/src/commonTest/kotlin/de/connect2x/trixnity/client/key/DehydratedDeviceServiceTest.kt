@@ -19,7 +19,7 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
@@ -93,8 +93,8 @@ abstract class DehydratedDeviceServiceTest(
     protected val json = createMatrixEventJson()
 
     @OptIn(ExperimentalSerializationApi::class)
-    protected val decryptedOlmEventSerializer =
-        requireNotNull(json.serializersModule.getContextual(DecryptedOlmEvent::class))
+    protected val plaintextOlmEventSerializer =
+        requireNotNull(json.serializersModule.getContextual(PlaintextOlmEvent::class))
     protected val matrixClientConfiguration = MatrixClientConfiguration()
 
     protected val cut = DehydratedDeviceService(
@@ -194,7 +194,7 @@ abstract class DehydratedDeviceServiceTest(
         )
         val encryptedMessage = olmSession.encrypt(
             json.encodeToString(
-                decryptedOlmEventSerializer, DecryptedOlmEvent(
+                plaintextOlmEventSerializer, PlaintextOlmEvent(
                     content = megolmSession,
                     sender = bob,
                     senderKeys = keysOf(
@@ -327,8 +327,8 @@ abstract class DehydratedDeviceServiceTest(
         ).use { olmSession ->
             olmSession.encrypt(
                 json.encodeToString(
-                    decryptedOlmEventSerializer,
-                    DecryptedOlmEvent(
+                    plaintextOlmEventSerializer,
+                    PlaintextOlmEvent(
                         content = megolmSession,
                         sender = bob,
                         senderKeys = keysOf(

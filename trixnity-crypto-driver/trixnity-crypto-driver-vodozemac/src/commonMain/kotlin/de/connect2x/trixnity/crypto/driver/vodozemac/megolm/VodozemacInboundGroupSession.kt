@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.megolm
 
 import de.connect2x.trixnity.crypto.driver.keys.PickleKey
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
-import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKey
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.driver.megolm.MegolmMessage
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession as Inner
 
@@ -26,7 +26,7 @@ value class VodozemacInboundGroupSession(val inner: Inner) : InboundGroupSession
     override fun decrypt(message: MegolmMessage): InboundGroupSession.DecryptedMessage = rethrow {
         require(message is VodozemacMegolmMessage)
 
-        val result = inner.decrypt(message.inner)
+        val result = rethrow { inner.decrypt(message.inner) }
 
         InboundGroupSession.DecryptedMessage(
             plaintext = result.plaintext.value,

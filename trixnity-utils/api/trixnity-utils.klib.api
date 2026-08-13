@@ -28,6 +28,22 @@ final class <#A: kotlin/Any?, #B: #A> de.connect2x.trixnity.utils/ConcurrentImpl
     final object Companion // de.connect2x.trixnity.utils/ConcurrentImpl.Companion|null[0]
 }
 
+final class <#A: kotlin/Any?, #B: kotlin/Any?> de.connect2x.trixnity.utils/AtomicUpdateAndRunResult { // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult|null[0]
+    constructor <init>(#A, #B) // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.<init>|<init>(1:0;1:1){}[0]
+
+    final val result // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.result|{}result[0]
+        final fun <get-result>(): #A // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.result.<get-result>|<get-result>(){}[0]
+    final val update // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.update|{}update[0]
+        final fun <get-update>(): #B // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.update.<get-update>|<get-update>(){}[0]
+
+    final fun component1(): #A // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.component1|component1(){}[0]
+    final fun component2(): #B // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.component2|component2(){}[0]
+    final fun copy(#A = ..., #B = ...): de.connect2x.trixnity.utils/AtomicUpdateAndRunResult<#A, #B> // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.copy|copy(1:0;1:1){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.utils/AtomicUpdateAndRunResult.toString|toString(){}[0]
+}
+
 final class de.connect2x.trixnity.utils/ReentrantMutexContextElement : kotlin.coroutines/CoroutineContext.Element { // de.connect2x.trixnity.utils/ReentrantMutexContextElement|null[0]
     constructor <init>(de.connect2x.trixnity.utils/ReentrantMutexContextKey) // de.connect2x.trixnity.utils/ReentrantMutexContextElement.<init>|<init>(de.connect2x.trixnity.utils.ReentrantMutexContextKey){}[0]
 
@@ -99,6 +115,8 @@ final fun <#A: kotlin/Any?> de.connect2x.trixnity.utils/concurrentMutableSet(): 
 final fun <#A: kotlin/Any?> de.connect2x.trixnity.utils/retryFlow(kotlin.time/Duration = ..., kotlin/Double = ..., kotlin.time/Duration = ..., kotlin.ranges/ClosedRange<kotlin/Double> = ..., kotlin.coroutines/SuspendFunction2<kotlin/Throwable, kotlin.time/Duration, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines.flow/FlowCollector<#A>, kotlin/Unit>): kotlinx.coroutines.flow/Flow<#A> // de.connect2x.trixnity.utils/retryFlow|retryFlow(kotlin.time.Duration;kotlin.Double;kotlin.time.Duration;kotlin.ranges.ClosedRange<kotlin.Double>;kotlin.coroutines.SuspendFunction2<kotlin.Throwable,kotlin.time.Duration,kotlin.Unit>;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.flow.FlowCollector<0:0>,kotlin.Unit>){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> de.connect2x.trixnity.utils/retryFlow(kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.utils/RetryFlowDelayConfig> = ..., kotlin.coroutines/SuspendFunction2<kotlin/Throwable, kotlin.time/Duration, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction1<kotlinx.coroutines.flow/FlowCollector<#A>, kotlin/Unit>): kotlinx.coroutines.flow/Flow<#A> // de.connect2x.trixnity.utils/retryFlow|retryFlow(kotlinx.coroutines.flow.Flow<de.connect2x.trixnity.utils.RetryFlowDelayConfig>;kotlin.coroutines.SuspendFunction2<kotlin.Throwable,kotlin.time.Duration,kotlin.Unit>;kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.flow.FlowCollector<0:0>,kotlin.Unit>){0§<kotlin.Any?>}[0]
 final fun de.connect2x.trixnity.utils/byteArrayFlowFromSource(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction0<okio/Source>): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // de.connect2x.trixnity.utils/byteArrayFlowFromSource|byteArrayFlowFromSource(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction0<okio.Source>){}[0]
+final inline fun <#A: kotlin/Any?, #B: kotlin/Any?> de.connect2x.trixnity.utils/atomicUpdateAndRun(kotlin/Function0<#B>, kotlin/Function1<kotlin/Function1<#B, #B>, kotlin/Unit>, kotlin/Function1<#B, de.connect2x.trixnity.utils/AtomicUpdateAndRunResult<#A, #B>>): #A // de.connect2x.trixnity.utils/atomicUpdateAndRun|atomicUpdateAndRun(kotlin.Function0<0:1>;kotlin.Function1<kotlin.Function1<0:1,0:1>,kotlin.Unit>;kotlin.Function1<0:1,de.connect2x.trixnity.utils.AtomicUpdateAndRunResult<0:0,0:1>>){0§<kotlin.Any?>;1§<kotlin.Any?>}[0]
+final inline fun <#A: kotlin/Any?> de.connect2x.trixnity.utils/atomicUpdate(kotlin/Function0<#A>, kotlin/Function1<kotlin/Function1<#A, #A>, kotlin/Unit>, kotlin/Function1<#A, #A>) // de.connect2x.trixnity.utils/atomicUpdate|atomicUpdate(kotlin.Function0<0:0>;kotlin.Function1<kotlin.Function1<0:0,0:0>,kotlin.Unit>;kotlin.Function1<0:0,0:0>){0§<kotlin.Any?>}[0]
 final suspend fun (kotlinx.coroutines.flow/Flow<kotlin/ByteArray>).de.connect2x.trixnity.utils/toByteArray(): kotlin/ByteArray // de.connect2x.trixnity.utils/toByteArray|toByteArray@kotlinx.coroutines.flow.Flow<kotlin.ByteArray>(){}[0]
 final suspend fun (kotlinx.coroutines.flow/Flow<kotlin/ByteArray>).de.connect2x.trixnity.utils/toByteArray(kotlin/Long): kotlin/ByteArray? // de.connect2x.trixnity.utils/toByteArray|toByteArray@kotlinx.coroutines.flow.Flow<kotlin.ByteArray>(kotlin.Long){}[0]
 final suspend fun (kotlinx.coroutines.flow/Flow<kotlin/ByteArray>).de.connect2x.trixnity.utils/toByteReadChannel(): io.ktor.utils.io/ByteReadChannel // de.connect2x.trixnity.utils/toByteReadChannel|toByteReadChannel@kotlinx.coroutines.flow.Flow<kotlin.ByteArray>(){}[0]

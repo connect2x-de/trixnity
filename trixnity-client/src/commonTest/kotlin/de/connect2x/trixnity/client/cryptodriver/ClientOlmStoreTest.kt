@@ -1,8 +1,5 @@
 package de.connect2x.trixnity.client.cryptodriver
 
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
@@ -16,6 +13,9 @@ import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 
 class ClientOlmStoreTest : TrixnityBaseTest() {
@@ -35,12 +35,13 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
 
     @Test
     fun `getDeviceKeys » identity key is present » return identity key`() = runTest {
-        val deviceKeys = DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key")))
+        val deviceKeys =
+            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
 
         keyStore.updateDeviceKeys(alice) {
             mapOf(
                 aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(deviceKeys),
+                    deviceKeys,
                     KeySignatureTrustLevel.Valid(true)
                 )
             )
@@ -51,14 +52,15 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
     @Test
     fun `getDeviceKeys » identity key is not present » fetch and return identity key when found`() =
         runTest {
-            val deviceKeys = DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key")))
+            val deviceKeys =
+                SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
 
             val result = async { cut.getDeviceKeys(alice) }
             keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
                     aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(deviceKeys),
+                        deviceKeys,
                         KeySignatureTrustLevel.Valid(true)
                     )
                 )

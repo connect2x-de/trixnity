@@ -1,24 +1,17 @@
 package de.connect2x.trixnity.client.key
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.maps.shouldHaveSize
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
-import io.kotest.matchers.string.beEmpty
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestScope
-import kotlinx.serialization.json.JsonPrimitive
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.continually
+import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.KeyBackupServiceMock
-import de.connect2x.trixnity.client.mocks.OlmDecrypterMock
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
+import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
 import de.connect2x.trixnity.clientserverapi.model.device.GetDehydratedDevice
@@ -32,7 +25,7 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
@@ -43,8 +36,15 @@ import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEven
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.secret.SecretKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.secret.SecretKeySendEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAuthData
+import de.connect2x.trixnity.core.model.keys.SignedCrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.core.encryptAesHmacSha2
@@ -63,6 +63,21 @@ import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.maps.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.beEmpty
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.days
@@ -90,7 +105,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val cut = OutgoingSecretKeyRequestEventHandler(
         UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
         api,
-        OlmDecrypterMock(),
+        OlmEventHandlerMock(),
         keyBackup,
         keyStore,
         globalAccountDataStore,
@@ -134,7 +149,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         globalAccountDataStore.save(secretEvent)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -149,7 +164,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     fun `handleOutgoingKeyRequestAnswer » ignore when sender device id cannot be found`() = runTest {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -166,7 +181,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf("OTHER_DEVICE"))
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -182,7 +197,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setDeviceKeys(false)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -201,7 +216,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             setCrossSigningKeys(crossSigningPublicKey)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", "dino"),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -222,7 +237,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", keyBackupPrivateKey),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -247,7 +262,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -273,7 +288,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", keyBackupPrivateKey),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -293,7 +308,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             returnDehydratedDevice(key)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", "wrong key"),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -315,7 +330,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(secretEvent)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", key),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -337,7 +352,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(secretEvent)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", key),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -355,7 +370,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setCrossSigningKeys(crossSigningPublicKey)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -375,7 +390,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         globalAccountDataStore.save(secretEvent)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -396,7 +411,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         globalAccountDataStore.save(secretEvent)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", keyBackupPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )
@@ -418,7 +433,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(secretEvent)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, DecryptedOlmEvent(
+                    encryptedEvent, PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", key),
                         alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                     )
@@ -446,7 +461,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         globalAccountDataStore.save(secretEvent)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
                     alice, keysOf(aliceDevice2Key), null, alice, keysOf()
                 )

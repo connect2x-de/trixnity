@@ -1816,44 +1816,6 @@ public final class de/connect2x/trixnity/core/model/events/DecryptedMegolmEvent$
 	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
 }
 
-public final class de/connect2x/trixnity/core/model/events/DecryptedOlmEvent : de/connect2x/trixnity/core/model/events/Event {
-	public static final field Companion Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent$Companion;
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/EventContent;
-	public final fun component2-hu1aZbM ()Ljava/lang/String;
-	public final fun component3-0CwQoJw ()Ljava/util/Set;
-	public final fun component4 ()Lde/connect2x/trixnity/core/model/keys/Signed;
-	public final fun component5-hu1aZbM ()Ljava/lang/String;
-	public final fun component6-0CwQoJw ()Ljava/util/Set;
-	public final fun copy-IvmLHoc (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;)Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;
-	public static synthetic fun copy-IvmLHoc$default (Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getContent ()Lde/connect2x/trixnity/core/model/events/EventContent;
-	public final fun getRecipient-hu1aZbM ()Ljava/lang/String;
-	public final fun getRecipientKeys-0CwQoJw ()Ljava/util/Set;
-	public final fun getSender-hu1aZbM ()Ljava/lang/String;
-	public final fun getSenderDeviceKeys ()Lde/connect2x/trixnity/core/model/keys/Signed;
-	public final fun getSenderKeys-0CwQoJw ()Ljava/util/Set;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/core/model/events/DecryptedOlmEvent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public fun <init> (Lkotlinx/serialization/KSerializer;)V
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/DecryptedOlmEvent;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public final fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/core/model/events/DecryptedOlmEvent$Companion {
-	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
-}
-
 public final class de/connect2x/trixnity/core/model/events/EmptyEventContent : de/connect2x/trixnity/core/model/events/EphemeralDataUnitContent, de/connect2x/trixnity/core/model/events/EphemeralEventContent, de/connect2x/trixnity/core/model/events/EventContent, de/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent, de/connect2x/trixnity/core/model/events/MessageEventContent, de/connect2x/trixnity/core/model/events/RoomAccountDataEventContent, de/connect2x/trixnity/core/model/events/RoomEventContent, de/connect2x/trixnity/core/model/events/StateEventContent, de/connect2x/trixnity/core/model/events/ToDeviceEventContent {
 	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/EmptyEventContent;
 	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/EmptyEventContent;
@@ -2413,6 +2375,44 @@ public final synthetic class de/connect2x/trixnity/core/model/events/PersistentD
 
 public final class de/connect2x/trixnity/core/model/events/PersistentDataUnit$UnsignedData$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/PlaintextOlmEvent : de/connect2x/trixnity/core/model/events/Event {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent$Companion;
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/EventContent;
+	public final fun component2-hu1aZbM ()Ljava/lang/String;
+	public final fun component3-0CwQoJw ()Ljava/util/Set;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/keys/Signed;
+	public final fun component5-hu1aZbM ()Ljava/lang/String;
+	public final fun component6-0CwQoJw ()Ljava/util/Set;
+	public final fun copy-IvmLHoc (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;)Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;
+	public static synthetic fun copy-IvmLHoc$default (Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/EventContent;
+	public final fun getRecipient-hu1aZbM ()Ljava/lang/String;
+	public final fun getRecipientKeys-0CwQoJw ()Ljava/util/Set;
+	public final fun getSender-hu1aZbM ()Ljava/lang/String;
+	public final fun getSenderDeviceKeys ()Lde/connect2x/trixnity/core/model/keys/Signed;
+	public final fun getSenderKeys-0CwQoJw ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/PlaintextOlmEvent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public fun <init> (Lkotlinx/serialization/KSerializer;)V
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/PlaintextOlmEvent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/PlaintextOlmEvent$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
 }
 
 public final class de/connect2x/trixnity/core/model/events/RedactedEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent, de/connect2x/trixnity/core/model/events/RoomEventContent, de/connect2x/trixnity/core/model/events/StateEventContent {

@@ -1,19 +1,31 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
+import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
+import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRepository
+import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
+import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -76,9 +88,13 @@ class OlmCryptoStore(
         updater(it)
     }
 
-    suspend fun getForgetFallbackKeyAfter() = olmForgetFallbackKeyAfterCache.get(1)
+    suspend fun getForgetFallbackKeyAfter() = olmForgetFallbackKeyAfterCache.get(1).first()
     suspend fun updateForgetFallbackKeyAfter(updater: suspend (Instant?) -> Instant?) =
         olmForgetFallbackKeyAfterCache.update(1, updater = updater)
+
+    suspend fun getOlmSessions(
+        senderKey: Curve25519KeyValue,
+    ) = olmSessionsCache.get(senderKey).first()
 
     suspend fun updateOlmSessions(
         senderKey: Curve25519KeyValue,

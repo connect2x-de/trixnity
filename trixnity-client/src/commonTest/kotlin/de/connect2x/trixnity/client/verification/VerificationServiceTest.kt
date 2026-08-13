@@ -1,11 +1,31 @@
 package de.connect2x.trixnity.client.verification
 
-import de.connect2x.trixnity.client.*
-import de.connect2x.trixnity.client.mocks.*
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.clearOutdatedKeys
+import de.connect2x.trixnity.client.eventually
+import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
+import de.connect2x.trixnity.client.mocks.KeySecretServiceMock
+import de.connect2x.trixnity.client.mocks.KeyServiceMock
+import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
+import de.connect2x.trixnity.client.mocks.OlmEncryptionServiceMock
+import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
+import de.connect2x.trixnity.client.mocks.RoomServiceMock
+import de.connect2x.trixnity.client.mocks.UserServiceMock
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
+import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.Cancel
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.TheirRequest
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod.*
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.CrossSignedDeviceVerification
 import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods
 import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet.Reason
 import de.connect2x.trixnity.clientserverapi.client.SyncBatchTokenStore
@@ -24,8 +44,8 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
 import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
@@ -40,9 +60,13 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import de.connect2x.trixnity.core.model.events.m.secretstorage.DefaultSecretKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.CryptoDriverException
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
@@ -63,7 +87,11 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.currentTime
 import kotlin.test.Test
@@ -89,7 +117,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
     private val roomId = RoomId("!room:server")
 
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
-    private val olmDecrypterMock = OlmDecrypterMock()
+    private val olmEventHandlerMock = OlmEventHandlerMock()
     private val olmEncryptionServiceMock = OlmEncryptionServiceMock()
     private val syncBatchTokenStore = SyncBatchTokenStore.inMemory()
     private val roomServiceMock = RoomServiceMock()
@@ -111,7 +139,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
         api = api,
         keyStore = keyStore,
         globalAccountDataStore = globalAccountDataStore,
-        olmDecrypter = olmDecrypterMock,
+        olmEventHandler = olmEventHandlerMock,
         olmEncryptionService = olmEncryptionServiceMock,
         roomService = roomServiceMock,
         keyService = keyServiceMock,
@@ -211,10 +239,10 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `init » handleOlmDecryptedDeviceVerificationRequestEvents » ignore request that is timed out`() = runTest {
         val request = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), 1111, "transaction1")
-        olmDecrypterMock.eventSubscribers.first().first()(
+        olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                DecryptedOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
             )
         )
         cut.activeDeviceVerification.value shouldBe null
@@ -228,10 +256,10 @@ class VerificationServiceTest : TrixnityBaseTest() {
             currentTime,
             "transaction1"
         )
-        olmDecrypterMock.eventSubscribers.first().first()(
+        olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                DecryptedOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
             )
         )
         val activeDeviceVerification = cut.activeDeviceVerification.first { it != null }
@@ -258,16 +286,16 @@ class VerificationServiceTest : TrixnityBaseTest() {
             currentTime,
             "transaction2"
         )
-        olmDecrypterMock.eventSubscribers.first().first()(
+        olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                DecryptedOlmEvent(request1, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request1, bobUserId, keysOf(), null, aliceUserId, keysOf())
             )
         )
-        olmDecrypterMock.eventSubscribers.first().first()(
+        olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                DecryptedOlmEvent(request2, aliceUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request2, aliceUserId, keysOf(), null, aliceUserId, keysOf())
             )
         )
         val activeDeviceVerification = cut.activeDeviceVerification.first { it != null }
@@ -392,7 +420,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
             }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
-            Result.failure(OlmEncryptionService.EncryptOlmError.OlmLibraryError(CryptoDriverException(Exception("dino"))))
+            Result.failure(OlmEncryptionService.EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("dino"))))
         val createdVerification = cut.createDeviceVerificationRequest(bobUserId, setOf(bobDeviceId)).getOrThrow()
         val activeDeviceVerification = cut.activeDeviceVerification.filterNotNull().first()
         createdVerification shouldBe activeDeviceVerification

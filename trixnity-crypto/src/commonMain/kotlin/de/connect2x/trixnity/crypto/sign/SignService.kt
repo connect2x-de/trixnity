@@ -10,6 +10,7 @@ import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable
 import de.connect2x.trixnity.core.model.keys.Signatures
 import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.canonicalJsonString
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
@@ -24,7 +25,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.serializer
 
 interface SignService {
-    suspend fun getSelfSignedDeviceKeys(): Signed<DeviceKeys, UserId>
+    suspend fun getSelfSignedDeviceKeys(): SignedDeviceKeys
     suspend fun signatures(
         jsonObject: JsonObject,
         signWith: SignWith = SignWith.DeviceKey,

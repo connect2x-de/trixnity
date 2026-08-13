@@ -86,7 +86,7 @@ fun createRoomModule() = module {
             olmCryptoStore = get(),
             keyBackupService = get(named<KeyBackupService>()),
             outgoingRoomKeyRequestEventHandler = get(named<OutgoingRoomKeyRequestEventHandler>()),
-            olmEncryptionService = get(),
+            megolmEncryptionService = get(),
         )
     }
     singleOf(::UnencryptedRoomEventEncryptionService) {

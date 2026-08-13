@@ -108,6 +108,7 @@ import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
@@ -698,27 +699,30 @@ abstract class RepositoryTestSuite(
         val key2 = Curve25519KeyValue("curve2")
         val session1 =
             StoredOlmSession(
-                key1,
-                "session1",
-                Instant.fromEpochMilliseconds(1234),
-                Instant.fromEpochMilliseconds(1234),
-                pickled = "1"
+                senderKey = key1,
+                sessionId = "session1",
+                lastUsedAt = Instant.fromEpochMilliseconds(1234),
+                createdAt = Instant.fromEpochMilliseconds(1234),
+                pickled = "1",
+                initiatedByThisDevice = false,
             )
         val session2 =
             StoredOlmSession(
-                key2,
-                "session2",
-                Instant.fromEpochMilliseconds(1234),
-                Instant.fromEpochMilliseconds(1234),
-                pickled = "2"
+                senderKey = key2,
+                sessionId = "session2",
+                lastUsedAt = Instant.fromEpochMilliseconds(1234),
+                createdAt = Instant.fromEpochMilliseconds(1234),
+                pickled = "2",
+                initiatedByThisDevice = false,
             )
         val session3 =
             StoredOlmSession(
-                key2,
-                "session3",
-                Instant.fromEpochMilliseconds(1234),
-                Instant.fromEpochMilliseconds(1234),
-                pickled = "2"
+                senderKey = key2,
+                sessionId = "session3",
+                lastUsedAt = Instant.fromEpochMilliseconds(1234),
+                createdAt = Instant.fromEpochMilliseconds(1234),
+                pickled = "2",
+                initiatedByThisDevice = false,
             )
 
         rtm.writeTransaction {
@@ -738,8 +742,19 @@ abstract class RepositoryTestSuite(
         val cut = di.get<OutboundMegolmSessionRepository>()
         val key1 = RoomId("!room1:server")
         val key2 = RoomId("!room2:server")
-        val session1 = StoredOutboundMegolmSession(key1, pickled = "1")
-        val session2 = StoredOutboundMegolmSession(key2, pickled = "2")
+        val session1 = StoredOutboundMegolmSession(
+            roomId = key1,
+            createdAt = testClock.now(),
+            encryptedMessageCount = 1,
+            newDevices = emptyMap(),
+            pickled = "1"
+        )
+        val session2 = StoredOutboundMegolmSession(
+            roomId = key2,
+            createdAt = testClock.now(),
+            encryptedMessageCount = 1,
+            newDevices = emptyMap(), pickled = "2"
+        )
         val session2Copy = session2.copy(
             newDevices = mapOf(
                 UserId("bob", "server") to setOf("Device1"),

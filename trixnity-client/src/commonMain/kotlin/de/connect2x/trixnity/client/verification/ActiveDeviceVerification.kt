@@ -1,21 +1,26 @@
 package de.connect2x.trixnity.client.verification
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.delay
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.key.KeyTrustService
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.m.key.verification.*
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.Accepted
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.Timeout
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationReadyEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
 import de.connect2x.trixnity.core.subscribeContent
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
-import de.connect2x.trixnity.crypto.olm.OlmDecrypter
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
+import de.connect2x.trixnity.crypto.olm.OlmEventHandler
+import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
@@ -32,7 +37,7 @@ class ActiveDeviceVerificationImpl(
     private val theirDeviceIds: Set<String> = setOf(),
     supportedMethods: Set<VerificationMethod>,
     private val api: MatrixClientServerApiClient,
-    private val olmDecrypter: OlmDecrypter,
+    private val olmEventHandler: OlmEventHandler,
     private val olmEncryptionService: OlmEncryptionService,
     keyTrust: KeyTrustService,
     keyStore: KeyStore,
@@ -61,18 +66,21 @@ class ActiveDeviceVerificationImpl(
             if (theirDeviceId == null && step is VerificationCancelEventContent) theirDeviceIds
             else setOfNotNull(theirDeviceId)
 
-        if (theirDeviceIds.isNotEmpty())
-            api.user.sendToDevice(mapOf(theirUserId to theirDeviceIds.associateWith {
-                olmEncryptionService.encryptOlm(step, theirUserId, it).getOrNull()
-                    ?: step
-            })).getOrThrow()
+        if (theirDeviceIds.isNotEmpty()) {
+            val encryptedSteps =
+                olmEncryptionService.encryptOlm(step, theirDeviceIds.map { theirUserId to it }.toSet())
+                    .mapValues { it.value.getOrNull() ?: step }
+                    .entries.groupBy { it.key.first }
+                    .mapValues { it.value.associate { it.key.second to it.value } }
+            api.user.sendToDevice(encryptedSteps).getOrThrow()
+        }
     }
 
     override suspend fun lifecycle() {
         val unsubscribeHandleVerificationStepEvents =
             api.sync.subscribeContent(subscriber = ::handleVerificationStepEvents)
         val unsubscribeHandleOlmDecryptedVerificationRequestEvents =
-            olmDecrypter.subscribe(::handleOlmDecryptedVerificationRequestEvents)
+            olmEventHandler.subscribe(::handleOlmDecryptedVerificationRequestEvents)
         try {
             // we do this, because otherwise the timeline job could run infinite, when no new timeline event arrives
             while (isVerificationRequestActive(timestamp, clock, state.value)) {
@@ -107,11 +115,17 @@ class ActiveDeviceVerificationImpl(
                     val cancelEvent =
                         VerificationCancelEventContent(Accepted, "accepted by other device", relatesTo, transactionId)
                     try {
-                        api.user.sendToDevice(mapOf(theirUserId to cancelDeviceIds.associateWith {
-                            olmEncryptionService.encryptOlm(cancelEvent, theirUserId, it).getOrNull() ?: cancelEvent
-                        })).getOrThrow()
+                        val encryptedCancelEvents =
+                            olmEncryptionService.encryptOlm(
+                                cancelEvent,
+                                cancelDeviceIds.map { theirUserId to it }.toSet()
+                            )
+                                .mapValues { it.value.getOrNull() ?: cancelEvent }
+                                .entries.groupBy { it.key.first }
+                                .mapValues { it.value.associate { it.key.second to it.value } }
+                        api.user.sendToDevice(encryptedCancelEvents).getOrThrow()
                     } catch (error: Exception) {
-                        log.warn { "could not send cancel to other device ids ($cancelDeviceIds)" }
+                        log.warn(error) { "could not send cancel to other device ids ($cancelDeviceIds)" }
                     }
                 }
             }

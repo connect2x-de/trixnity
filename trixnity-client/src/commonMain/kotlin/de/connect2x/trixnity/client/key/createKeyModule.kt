@@ -32,7 +32,7 @@ fun createKeyModule() = module {
         OutgoingSecretKeyRequestEventHandler(
             userInfo = get(),
             api = get(),
-            olmDecrypter = get(),
+            olmEventHandler = get(),
             keyBackupService = get(named<KeyBackupService>()),
             keyStore = get(),
             globalAccountDataStore = get(),

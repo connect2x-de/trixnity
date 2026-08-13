@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.client.key
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.OlmDecrypterMock
 import de.connect2x.trixnity.client.mocks.OlmEncryptionServiceMock
+import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredSecret
@@ -14,20 +12,26 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
-import de.connect2x.trixnity.core.model.events.DecryptedOlmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.secret.SecretKeyRequestEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlin.test.Test
 
 class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
@@ -47,7 +51,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val cut = IncomingSecretKeyRequestEventHandler(
         UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
         api,
-        OlmDecrypterMock(),
+        OlmEventHandlerMock(),
         olmEncryptionServiceMock,
         keyStore
     ).apply {
@@ -68,7 +72,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
@@ -88,7 +92,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
@@ -108,7 +112,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
@@ -121,7 +125,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         )
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST_CANCELLATION,
@@ -232,7 +236,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
@@ -260,7 +264,7 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, DecryptedOlmEvent(
+                encryptedEvent, PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,

@@ -1,21 +1,16 @@
 package de.connect2x.trixnity.client.key
 
-import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainExactly
-import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.maps.shouldContainExactly
-import io.kotest.matchers.nulls.beNull
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNot
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.continually
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.getInMemoryOlmStore
+import de.connect2x.trixnity.client.getInMemoryRoomStateStore
+import de.connect2x.trixnity.client.getInMemoryRoomStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.mocks.TransactionManagerMock
+import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
@@ -33,13 +28,31 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent.HistoryVisibility
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
 import de.connect2x.trixnity.crypto.sign.VerifyResult
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.maps.shouldBeEmpty
+import io.kotest.matchers.maps.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.milliseconds
@@ -831,10 +844,20 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 ),
             ).forEach { roomStateStore.save(it) }
 
-            olmCryptoStore.updateOutboundMegolmSession(room1) { StoredOutboundMegolmSession(room1, pickled = "") }
+            olmCryptoStore.updateOutboundMegolmSession(room1) {
+                StoredOutboundMegolmSession(
+                    roomId = room1,
+                    createdAt = testClock.now(),
+                    encryptedMessageCount = 1,
+                    newDevices = emptyMap(),
+                    pickled = ""
+                )
+            }
             olmCryptoStore.updateOutboundMegolmSession(room3) {
                 StoredOutboundMegolmSession(
-                    room3,
+                    roomId = room3,
+                    createdAt = testClock.now(),
+                    encryptedMessageCount = 1,
                     newDevices = mapOf(
                         cedric to setOf(cedricDevice),
                         alice to setOf(aliceDevice1),
@@ -882,7 +905,14 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
             roomStore.update(room1) {
                 simpleRoom.copy(roomId = room1, encrypted = true)
             }
-            olmCryptoStore.updateOutboundMegolmSession(room1) { StoredOutboundMegolmSession(room1, pickled = "") }
+            olmCryptoStore.updateOutboundMegolmSession(room1) {
+                StoredOutboundMegolmSession(
+                    roomId = room1,
+                    createdAt = testClock.now(),
+                    encryptedMessageCount = 1,
+                    newDevices = emptyMap(), pickled = ""
+                )
+            }
 
             keyStore.updateOutdatedKeys { setOf(alice) }
             keyStore.getOutdatedKeysFlow().first { it.isEmpty() }

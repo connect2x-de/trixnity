@@ -1,12 +1,13 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.olm
 
 import de.connect2x.trixnity.crypto.driver.keys.PickleKey
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
 import de.connect2x.trixnity.crypto.driver.olm.Message
 import de.connect2x.trixnity.crypto.driver.olm.Session
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.olm.OlmMessage
-import de.connect2x.trixnity.vodozemac.olm.Session as Inner
 import kotlin.jvm.JvmInline
+import de.connect2x.trixnity.vodozemac.olm.Session as Inner
 
 @JvmInline
 value class VodozemacSession(val inner: Inner) : Session {
@@ -33,7 +34,7 @@ value class VodozemacSession(val inner: Inner) : Session {
             else -> error("unreachable")
         }
 
-        return inner.decrypt(message)
+        return rethrow { inner.decrypt(message) }
     }
 
     override fun pickle(pickleKey: PickleKey?): String {

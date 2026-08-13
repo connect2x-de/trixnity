@@ -19,7 +19,7 @@ value class LibOlmInboundGroupSession(val inner: OlmInboundGroupSession) : Inbou
     override fun decrypt(message: MegolmMessage): InboundGroupSession.DecryptedMessage = rethrow {
         require(message is LibOlmMegolmMessage)
 
-        val result = inner.decrypt(message.inner)
+        val result = rethrow { inner.decrypt(message.inner) }
 
         InboundGroupSession.DecryptedMessage(
             plaintext = result.message, messageIndex = result.index.toInt()
