@@ -197,6 +197,7 @@ test:integration:jvm:
 publish:snapshot:
   stage: publish
   tags: [ "c2x","mac","shell","medium" ]
+  resource_group: publish:snapshot-$CI_COMMIT_REF_SLUG
   timeout: 2h
   rules:
     - *if-dev-release
@@ -212,6 +213,7 @@ publish:snapshot:
 publish:release:
   stage: publish
   tags: [ "c2x","mac","shell","medium" ]
+  resource_group: publish:release-$CI_COMMIT_TAG
   timeout: 2h
   rules:
     - *if-release
