@@ -10,6 +10,7 @@ kotlin {
     // does not use addNativeTargets() because some ar not supported yet
     addNativeAppleTargets()
     linuxX64()
+    addWebTarget(rootDir, nodeJsEnabled = false)
     applyDefaultHierarchyTemplate()
     sourceSets {
         all {
