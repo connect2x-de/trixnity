@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.Room
+import androidx.room3.Room
 import de.connect2x.sqlitenity.encrypted.driver.EncryptedSQLiteDriver
 import de.connect2x.sqlitenity.encrypted.driver.EncryptionKey
 import de.connect2x.trixnity.client.RepositoriesModule

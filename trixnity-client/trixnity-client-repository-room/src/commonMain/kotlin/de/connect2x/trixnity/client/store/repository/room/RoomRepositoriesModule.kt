@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.RoomDatabase
+import androidx.room3.RoomDatabase
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository

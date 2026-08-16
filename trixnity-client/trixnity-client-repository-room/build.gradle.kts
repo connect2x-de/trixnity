@@ -2,7 +2,7 @@ plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.ksp)
-    alias(sharedLibs.plugins.androidx.room)
+    alias(sharedLibs.plugins.androidx.room3)
 }
 
 kotlin {
@@ -24,7 +24,7 @@ kotlin {
 
                 implementation(sharedLibs.lognity.api)
 
-                api(sharedLibs.androidx.roomRuntime)
+                api(sharedLibs.androidx.room3Runtime)
             }
         }
         commonTest {
@@ -40,7 +40,7 @@ kotlin {
     }
 }
 
-room { schemaDirectory("$projectDir/schemas") }
+room3 { schemaDirectory("$projectDir/schemas") }
 
 dependencies {
     configurations
@@ -50,5 +50,5 @@ dependencies {
                 it.name.contains("Common").not() &&
                 it.name.contains("Test").not()
         }
-        .forEach { add(it.name, sharedLibs.androidx.roomCompiler) }
+        .forEach { add(it.name, sharedLibs.androidx.room3Compiler) }
 }

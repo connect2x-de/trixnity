@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.integrationtests
 
-import androidx.room.Room
+import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClient
