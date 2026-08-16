@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- chunk receipts to reduce the transaction duration
+
 ### Security
 
 ## 5.9.2
