@@ -1,22 +1,21 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomUserReceiptsRepository
 import de.connect2x.trixnity.client.store.repository.RoomUserRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Clock
 
 class RoomUserStore(
     roomUserRepository: RoomUserRepository,
     roomUserReceiptsRepository: RoomUserReceiptsRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
     storeScope: CoroutineScope,
@@ -40,17 +39,22 @@ class RoomUserStore(
             config.cacheExpireDurations.roomUserReceipts
         ) { it.firstKey }.also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
+
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         roomUserCache.deleteAll()
         roomUserReceiptsCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
         roomUserCache.deleteByRoomId(roomId)
         roomUserReceiptsCache.deleteByRoomId(roomId)
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteReceiptsByRoomId(roomId: RoomId) {
         roomUserReceiptsCache.deleteByRoomId(roomId)
     }
@@ -67,15 +71,17 @@ class RoomUserStore(
     fun getReceipts(userId: UserId, roomId: RoomId): Flow<RoomUserReceipts?> =
         roomUserReceiptsCache.get(MapRepositoryCoroutinesCacheKey(roomId, userId))
 
+    context(transaction: StoreWriteTransaction)
     suspend fun update(
         userId: UserId,
         roomId: RoomId,
-        updater: suspend (oldRoomUser: RoomUser?) -> RoomUser?
+        updater: (oldRoomUser: RoomUser?) -> RoomUser?
     ) = roomUserCache.update(MapRepositoryCoroutinesCacheKey(roomId, userId), updater = updater)
 
+    context(transaction: StoreWriteTransaction)
     suspend fun updateReceipts(
         userId: UserId,
         roomId: RoomId,
-        updater: suspend (oldRoomUser: RoomUserReceipts?) -> RoomUserReceipts?
+        updater: (oldRoomUser: RoomUserReceipts?) -> RoomUserReceipts?
     ) = roomUserReceiptsCache.update(MapRepositoryCoroutinesCacheKey(roomId, userId), updater = updater)
 }

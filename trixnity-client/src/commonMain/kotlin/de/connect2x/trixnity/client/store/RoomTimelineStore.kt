@@ -1,23 +1,27 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.store.cache.CacheTransaction
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.MinimalDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.repository.TimelineEventKey
+import de.connect2x.trixnity.client.store.repository.TimelineEventRelationKey
+import de.connect2x.trixnity.client.store.repository.TimelineEventRelationRepository
+import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.RelationType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 
 class RoomTimelineStore(
     timelineEventRepository: TimelineEventRepository,
     timelineEventRelationRepository: TimelineEventRelationRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
     storeScope: CoroutineScope,
@@ -39,13 +43,16 @@ class RoomTimelineStore(
             config.cacheExpireDurations.timelineEventRelation
         ) { it.firstKey.roomId }.also(statisticCollector::addCache)
 
-
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
+
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         timelineEventCache.deleteAll()
         timelineEventRelationCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
         timelineEventCache.deleteByRoomId(roomId)
         timelineEventRelationCache.deleteByRoomId(roomId)
@@ -54,21 +61,29 @@ class RoomTimelineStore(
     fun get(eventId: EventId, roomId: RoomId): Flow<TimelineEvent?> =
         timelineEventCache.get(TimelineEventKey(eventId, roomId))
 
+    context(transaction: StoreWriteTransaction)
     suspend fun update(
         eventId: EventId,
         roomId: RoomId,
-        persistIntoRepository: Boolean = true,
-        updater: suspend (oldTimelineEvent: TimelineEvent?) -> TimelineEvent?
+        updater: (oldTimelineEvent: TimelineEvent?) -> TimelineEvent?
     ) = timelineEventCache.update(
         TimelineEventKey(eventId, roomId),
-        persistIntoRepository,
         updater = updater
     )
 
-    suspend fun addAll(events: List<TimelineEvent>) {
-        events.forEach { event ->
-            timelineEventCache.set(TimelineEventKey(event.eventId, event.roomId), event)
-        }
+    context(transaction: CacheTransaction)
+    suspend fun updateCacheOnly(
+        eventId: EventId,
+        roomId: RoomId,
+        updater: (oldTimelineEvent: TimelineEvent?) -> TimelineEvent?
+    ) = timelineEventCache.updateCacheOnly(
+        TimelineEventKey(eventId, roomId),
+        updater = updater
+    )
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun add(timelineEvent: TimelineEvent) {
+        timelineEventCache.set(TimelineEventKey(timelineEvent.eventId, timelineEvent.roomId), timelineEvent)
     }
 
     fun getRelations(
@@ -80,28 +95,27 @@ class RoomTimelineStore(
             TimelineEventRelationKey(relatedEventId, roomId, relationType)
         )
 
+    context(transaction: StoreWriteTransaction)
     suspend fun addRelation(relation: TimelineEventRelation) {
-        timelineEventRelationCache.update(
+        timelineEventRelationCache.set(
             MapRepositoryCoroutinesCacheKey(
                 TimelineEventRelationKey(relation.relatedEventId, relation.roomId, relation.relationType),
                 relation.eventId
-            )
-        ) {
-            relation
-        }
+            ), relation
+        )
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteRelation(relation: TimelineEventRelation) {
-        timelineEventRelationCache.update(
+        timelineEventRelationCache.set(
             MapRepositoryCoroutinesCacheKey(
                 TimelineEventRelationKey(relation.relatedEventId, relation.roomId, relation.relationType),
                 relation.eventId
-            )
-        ) {
-            null
-        }
+            ), null
+        )
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteRelations(
         relatedEventId: EventId,
         roomId: RoomId,

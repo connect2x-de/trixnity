@@ -1,13 +1,22 @@
 package de.connect2x.trixnity.client.user
 
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.*
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.ClockMock
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
+import de.connect2x.trixnity.client.getInMemoryRoomStateStore
+import de.connect2x.trixnity.client.getInMemoryRoomStore
+import de.connect2x.trixnity.client.getInMemoryRoomTimelineStore
+import de.connect2x.trixnity.client.getInMemoryRoomUserStore
+import de.connect2x.trixnity.client.getInMemoryUserPresenceStore
+import de.connect2x.trixnity.client.simpleRoom
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.EventId
@@ -17,21 +26,36 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.EventType
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.room.*
-import de.connect2x.trixnity.core.model.events.m.room.Membership.*
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.Membership.BAN
+import de.connect2x.trixnity.core.model.events.m.room.Membership.INVITE
+import de.connect2x.trixnity.core.model.events.m.room.Membership.JOIN
+import de.connect2x.trixnity.core.model.events.m.room.Membership.LEAVE
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 class UserServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val alice = UserId("alice", "server")
     private val me = UserId("me", "server")
     private val roomId = simpleRoom.roomId
@@ -89,11 +113,17 @@ class UserServiceTest : TrixnityBaseTest() {
     private val globalAccountDataStore = getInMemoryGlobalAccountDataStore()
     private val userPresenceStore = getInMemoryUserPresenceStore()
     private val roomTimelineStore = getInMemoryRoomTimelineStore()
-    private val roomStore = getInMemoryRoomStore { update(roomId) { Room(roomId, membership = JOIN) } }
+    private val roomStore = getInMemoryRoomStore {
+        tm.writeTransaction {
+            update(roomId) { Room(roomId, membership = JOIN) }
+        }
+    }
 
     private val roomStateStore = getInMemoryRoomStateStore {
-        save(powerLevelsEvent(PowerLevelsEventContent()))
-        save(createEvent(UserId("creator", "server")))
+        tm.writeTransaction {
+            save(powerLevelsEvent(PowerLevelsEventContent()))
+            save(createEvent(UserId("creator", "server")))
+        }
     }
 
     private val currentSyncState = MutableStateFlow(SyncState.RUNNING).also {
@@ -826,17 +856,19 @@ class UserServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `canSendEvent - return false when not member of room`() = runTest {
-        roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
-        val powerLevelsEvent = powerLevelsEvent(
-            PowerLevelsEventContent(
-                users = mapOf(
-                    me to 55,
-                    alice to 50
-                ),
-                events = mapOf(EventType(RoomMessageEventContent::class, "m.room.message") to 55),
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
+            val powerLevelsEvent = powerLevelsEvent(
+                PowerLevelsEventContent(
+                    users = mapOf(
+                        me to 55,
+                        alice to 50
+                    ),
+                    events = mapOf(EventType(RoomMessageEventContent::class, "m.room.message") to 55),
+                )
             )
-        )
-        roomStateStore.save(powerLevelsEvent)
+            roomStateStore.save(powerLevelsEvent)
+        }
         cut.canSendEvent<RoomMessageEventContent>(roomId).first() shouldBe false
     }
 
@@ -851,7 +883,9 @@ class UserServiceTest : TrixnityBaseTest() {
                 events = mapOf(EventType(RoomMessageEventContent::class, "m.room.message") to 55),
             )
         )
-        roomStateStore.save(powerLevelsEvent)
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+        }
         cut.canSendEvent<RoomMessageEventContent>(roomId).first() shouldBe true
     }
 
@@ -866,7 +900,9 @@ class UserServiceTest : TrixnityBaseTest() {
                 events = mapOf(EventType(RoomMessageEventContent::class, "m.room.message") to 56),
             )
         )
-        roomStateStore.save(powerLevelsEvent)
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+        }
         cut.canSendEvent<RoomMessageEventContent>(roomId).first() shouldBe false
     }
 
@@ -879,7 +915,9 @@ class UserServiceTest : TrixnityBaseTest() {
                 stateDefault = 55
             )
         )
-        roomStateStore.save(powerLevelsEvent)
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+        }
         cut.canSendEvent<NameEventContent>(roomId).first() shouldBe false
     }
 
@@ -892,56 +930,25 @@ class UserServiceTest : TrixnityBaseTest() {
                 eventsDefault = 55
             )
         )
-        roomStateStore.save(powerLevelsEvent)
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+        }
         cut.canSendEvent<RoomMessageEventContent>(roomId).first() shouldBe false
     }
 
     @Test
     fun `canSetPowerLevelToMax - other user not member`() =
         runTest {
-            roomStateStore.save(powerLevelsEvent)
+            tm.writeTransaction {
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
         }
 
     @Test
     fun `canSetPowerLevelToMax - return null when not member of room`() = runTest {
-        roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
-        roomUserStore.update(alice, roomId) { aliceRoomUser() }
-        val powerLevelsEvent = powerLevelsEvent(
-            PowerLevelsEventContent(
-                users = mapOf(
-                    me to 55,
-                    alice to 50
-                ),
-                events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 55),
-                stateDefault = 60L
-            )
-        )
-        roomStateStore.save(powerLevelsEvent)
-        cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
-    }
-
-    @Test
-    fun `canSetPowerLevelToMax - eventsMap is not null - not allow to change the power level when events power_levels value gt own power level`() =
-        runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            val powerLevelsEvent = powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 55,
-                        alice to 50
-                    ),
-                    events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 56),
-                    stateDefault = 60L
-                )
-            )
-            roomStateStore.save(powerLevelsEvent)
-            cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
-        }
-
-    @Test
-    fun `canSetPowerLevelToMax - eventsMap is not null - return own power level as max power level value when events power_levels value == own power level`() =
-        runTest {
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
             roomUserStore.update(alice, roomId) { aliceRoomUser() }
             val powerLevelsEvent = powerLevelsEvent(
                 PowerLevelsEventContent(
@@ -954,40 +961,85 @@ class UserServiceTest : TrixnityBaseTest() {
                 )
             )
             roomStateStore.save(powerLevelsEvent)
+        }
+        cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
+    }
+
+    @Test
+    fun `canSetPowerLevelToMax - eventsMap is not null - not allow to change the power level when events power_levels value gt own power level`() =
+        runTest {
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 50
+                        ),
+                        events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 56),
+                        stateDefault = 60L
+                    )
+                )
+                roomStateStore.save(powerLevelsEvent)
+            }
+            cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
+        }
+
+    @Test
+    fun `canSetPowerLevelToMax - eventsMap is not null - return own power level as max power level value when events power_levels value == own power level`() =
+        runTest {
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 50
+                        ),
+                        events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 55),
+                        stateDefault = 60L
+                    )
+                )
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe PowerLevel.User(55)
         }
 
     @Test
     fun `canSetPowerLevelToMax - eventsMap is null - not allow to change the power level when stateDefault value gt own power level`() =
         runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            val powerLevelsEvent = powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 55,
-                        alice to 50
-                    ),
-                    stateDefault = 56
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 50
+                        ),
+                        stateDefault = 56
+                    )
                 )
-            )
-            roomStateStore.save(powerLevelsEvent)
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
         }
 
     @Test
     fun `canSetPowerLevelToMax - eventsMap is null - return own power level as max power level value when stateDefault value == own power level`() =
         runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            val powerLevelsEvent = powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 55,
-                        alice to 50
-                    ),
-                    stateDefault = 55
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 50
+                        ),
+                        stateDefault = 55
+                    )
                 )
-            )
-            roomStateStore.save(powerLevelsEvent)
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe PowerLevel.User(55)
         }
 
@@ -995,18 +1047,20 @@ class UserServiceTest : TrixnityBaseTest() {
     @Test
     fun `canSetPowerLevelToMax - oldUserPowerLevel gt ownPowerLevel - not allow to change the power level when otherUserId != me`() =
         runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            val powerLevelsEvent = powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 55,
-                        alice to 56
-                    ),
-                    events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 55),
-                    stateDefault = 55
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 56
+                        ),
+                        events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 55),
+                        stateDefault = 55
+                    )
                 )
-            )
-            roomStateStore.save(powerLevelsEvent)
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
         }
 
@@ -1014,169 +1068,170 @@ class UserServiceTest : TrixnityBaseTest() {
     @Test
     fun `canSetPowerLevelToMax - oldUserPowerLevel == ownPowerLevel - not allow to change the power level when otherUserId != me`() =
         runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            roomStateStore.save(powerLevelsEvent)
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe null
         }
 
     @Test
     fun `canSetPowerLevelToMax - oldUserPowerLevel == ownPowerLevel - return own power level as max power level value when otherUserId == me`() =
         runTest {
-            roomUserStore.update(me, roomId) { aliceRoomUser() }
-            roomStateStore.save(powerLevelsEvent)
+            tm.writeTransaction {
+                roomUserStore.update(me, roomId) { aliceRoomUser() }
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, me).first() shouldBe PowerLevel.User(55)
         }
 
     @Test
     fun `canSetPowerLevelToMax - oldUserPowerLevel == ownPowerLevel - return own power level as max power level value when all criteria are met`() =
         runTest {
-            roomUserStore.update(alice, roomId) { aliceRoomUser() }
-            val powerLevelsEvent = powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 55,
-                        alice to 54
-                    ),
-                    events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 52),
-                    stateDefault = 52
+            tm.writeTransaction {
+                roomUserStore.update(alice, roomId) { aliceRoomUser() }
+                val powerLevelsEvent = powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 55,
+                            alice to 54
+                        ),
+                        events = mapOf(EventType(PowerLevelsEventContent::class, "m.room.power_levels") to 52),
+                        stateDefault = 52
+                    )
                 )
-            )
-            roomStateStore.save(powerLevelsEvent)
+                roomStateStore.save(powerLevelsEvent)
+            }
             cut.canSetPowerLevelToMax(roomId, alice).first() shouldBe PowerLevel.User(55)
         }
 
 
     @Test
     fun `canRedactEvent - return false when not member of room`() = runTest {
-        roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
-        roomStateStore.save(
-            StateEvent(
-                content = PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 40,
+        tm.writeTransaction {
+            roomStore.update(roomId) { Room(roomId, membership = LEAVE) }
+            roomStateStore.save(
+                StateEvent(
+                    content = PowerLevelsEventContent(
+                        users = mapOf(
+                            me to 40,
+                        ),
+                        redact = 30,
                     ),
-                    redact = 30,
-                ),
-                id = EventId("eventId"),
-                sender = me,
-                roomId = roomId,
-                originTimestamp = 0L,
-                stateKey = "",
+                    id = EventId("eventId"),
+                    sender = me,
+                    roomId = roomId,
+                    originTimestamp = 0L,
+                    stateKey = "",
+                )
             )
-        )
-        roomTimelineStore.addAll(listOf(eventByOtherUser))
+            roomTimelineStore.add(eventByOtherUser)
+        }
         cut.canRedactEvent(eventByOtherUser.roomId, eventByOtherUser.eventId).firstOrNull() shouldBe false
     }
 
     @Test
     fun `canRedactEvent - return true if it is the event of the user and the user's power level is at least as high as the needed event redaction level`() =
         runTest {
-            roomStateStore.save(
-                StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(
-                            me to 40,
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 40,
+                            ),
+                            events = mapOf(
+                                EventType(RedactionEventContent::class, "m.room.redaction") to 30,
+                            )
                         ),
-                        events = mapOf(
-                            EventType(RedactionEventContent::class, "m.room.redaction") to 30,
-                        )
-                    ),
-                    id = EventId("eventId"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
                 )
-            )
-            roomTimelineStore.addAll(listOf(eventByUser))
+                roomTimelineStore.add(eventByUser)
+            }
             cut.canRedactEvent(eventByUser.roomId, eventByUser.eventId).firstOrNull() shouldBe true
         }
 
     @Test
     fun `canRedactEvent - return true if it is the event of another user but the user's power level is at least as high as the needed redaction power level`() =
         runTest {
-            roomStateStore.save(
-                StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(
-                            me to 40,
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 40,
+                            ),
+                            redact = 30,
                         ),
-                        redact = 30,
-                    ),
-                    id = EventId("eventId"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
                 )
-            )
-            roomTimelineStore.addAll(listOf(eventByOtherUser))
+                roomTimelineStore.add(eventByOtherUser)
+            }
             cut.canRedactEvent(eventByOtherUser.roomId, eventByOtherUser.eventId).firstOrNull() shouldBe true
         }
 
     @Test
     fun `canRedactEvent - return false if the user has no high enough power level for event redactions`() =
         runTest {
-            roomStateStore.save(
-                StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(
-                            me to 20,
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 20,
+                            ),
+                            events = mapOf(
+                                EventType(RedactionEventContent::class, "m.room.redaction") to 30,
+                            )
                         ),
-                        events = mapOf(
-                            EventType(RedactionEventContent::class, "m.room.redaction") to 30,
-                        )
-                    ),
-                    id = EventId("eventId"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
                 )
-            )
-            roomTimelineStore.addAll(listOf(eventByUser))
+                roomTimelineStore.add(eventByUser)
+            }
             cut.canRedactEvent(eventByUser.roomId, eventByUser.eventId).firstOrNull() shouldBe false
         }
 
     @Test
     fun `canRedactEvent - return false if the user has no high enough power level for redactions of events of other users`() =
         runTest {
-            roomStateStore.save(
-                StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(
-                            me to 20,
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 20,
+                            ),
+                            redact = 30,
                         ),
-                        redact = 30,
-                    ),
-                    id = EventId("eventId"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
                 )
-            )
-            roomTimelineStore.addAll(listOf(eventByOtherUser))
+                roomTimelineStore.add(eventByOtherUser)
+            }
             cut.canRedactEvent(eventByOtherUser.roomId, eventByOtherUser.eventId).firstOrNull() shouldBe false
         }
 
     @Test
     fun `canRedactEvent - not allow to redact an already redacted event`() = runTest {
-        roomStateStore.save(
-            StateEvent(
-                content = PowerLevelsEventContent(
-                    users = mapOf(
-                        me to 40,
-                    ),
-                    redact = 30,
-                ),
-                id = EventId("eventId"),
-                sender = me,
-                roomId = roomId,
-                originTimestamp = 0L,
-                stateKey = "",
-            )
-        )
         val event = TimelineEvent(
             event = MessageEvent(
                 content = RedactedEventContent(eventType = "redacted"),
@@ -1189,13 +1244,7 @@ class UserServiceTest : TrixnityBaseTest() {
             nextEventId = null,
             gap = null,
         )
-        roomTimelineStore.addAll(listOf(event))
-        cut.canRedactEvent(event.roomId, event.eventId).firstOrNull() shouldBe false
-    }
-
-    @Test
-    fun `canRedactEvent - react to changes in the power levels - react to changes in the user's power levels`() =
-        runTest {
+        tm.writeTransaction {
             roomStateStore.save(
                 StateEvent(
                     content = PowerLevelsEventContent(
@@ -1211,24 +1260,51 @@ class UserServiceTest : TrixnityBaseTest() {
                     stateKey = "",
                 )
             )
-            roomTimelineStore.addAll(listOf(eventByOtherUser))
+            roomTimelineStore.add(event)
+        }
+        cut.canRedactEvent(event.roomId, event.eventId).firstOrNull() shouldBe false
+    }
+
+    @Test
+    fun `canRedactEvent - react to changes in the power levels - react to changes in the user's power levels`() =
+        runTest {
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 40,
+                            ),
+                            redact = 30,
+                        ),
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
+                )
+                roomTimelineStore.add(eventByOtherUser)
+            }
             val resultFlow = cut.canRedactEvent(eventByOtherUser.roomId, eventByOtherUser.eventId)
             resultFlow.first() shouldBe true
-            roomStateStore.save(
-                StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(
-                            me to 20,
+            tm.writeTransaction {
+                roomStateStore.save(
+                    StateEvent(
+                        content = PowerLevelsEventContent(
+                            users = mapOf(
+                                me to 20,
+                            ),
+                            redact = 30,
                         ),
-                        redact = 30,
-                    ),
-                    id = EventId("eventId"),
-                    sender = me,
-                    roomId = roomId,
-                    originTimestamp = 0L,
-                    stateKey = "",
+                        id = EventId("eventId"),
+                        sender = me,
+                        roomId = roomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
                 )
-            )
+            }
             resultFlow.first() shouldBe false
         }
 
@@ -1241,7 +1317,9 @@ class UserServiceTest : TrixnityBaseTest() {
     fun `getUserPresence - sync is not running - should be null`() = runTest {
         val lastActive = Instant.fromEpochMilliseconds(24)
         currentSyncState.value = SyncState.STARTED
-        userPresenceStore.setPresence(alice, UserPresence(Presence.ONLINE, clock.now(), lastActive))
+        tm.writeTransaction {
+            userPresenceStore.setPresence(alice, UserPresence(Presence.ONLINE, clock.now(), lastActive))
+        }
         cut.getPresence(alice).first() shouldBe null
     }
 
@@ -1255,7 +1333,9 @@ class UserServiceTest : TrixnityBaseTest() {
                 isCurrentlyActive = true,
                 statusMessage = "status"
             )
-        userPresenceStore.setPresence(alice, presence)
+        tm.writeTransaction {
+            userPresenceStore.setPresence(alice, presence)
+        }
         cut.getPresence(alice).first() shouldBe presence
     }
 
@@ -1269,7 +1349,9 @@ class UserServiceTest : TrixnityBaseTest() {
                     lastActive = clock.now() - 4.minutes,
                     statusMessage = "status"
                 )
-            userPresenceStore.setPresence(alice, presence)
+            tm.writeTransaction {
+                userPresenceStore.setPresence(alice, presence)
+            }
             val result = cut.getPresence(alice).stateIn(backgroundScope)
             result.value shouldBe presence
 
@@ -1286,7 +1368,9 @@ class UserServiceTest : TrixnityBaseTest() {
                     lastActive = clock.now(),
                     statusMessage = "status"
                 )
-            userPresenceStore.setPresence(alice, presence2)
+            tm.writeTransaction {
+                userPresenceStore.setPresence(alice, presence2)
+            }
             delay(100.milliseconds)
             result.value shouldBe presence2
         }
@@ -1300,7 +1384,9 @@ class UserServiceTest : TrixnityBaseTest() {
                     lastUpdate = clock.now() - 4.minutes,
                     statusMessage = "status"
                 )
-            userPresenceStore.setPresence(alice, presence)
+            tm.writeTransaction {
+                userPresenceStore.setPresence(alice, presence)
+            }
             val result = cut.getPresence(alice).stateIn(backgroundScope)
             result.value shouldBe presence
 
@@ -1319,7 +1405,7 @@ class UserServiceTest : TrixnityBaseTest() {
                     lastUpdate = clock.now() - 6.minutes,
                     statusMessage = "status"
                 )
-            userPresenceStore.setPresence(alice, presence)
+            tm.writeTransaction { userPresenceStore.setPresence(alice, presence) }
             cut.getPresence(alice).first() shouldBe null
         }
 
@@ -1339,9 +1425,11 @@ class UserServiceTest : TrixnityBaseTest() {
                 ), kick = kickLevel
             )
         )
-        roomStateStore.save(powerLevelsEvent)
-        roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
-        roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+            roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+            roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        }
         cut.canKickUser(roomId, alice).first() shouldBe expect
     }
 
@@ -1361,9 +1449,11 @@ class UserServiceTest : TrixnityBaseTest() {
                 ), ban = banLevel
             )
         )
-        roomStateStore.save(powerLevelsEvent)
-        roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
-        roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+            roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+            roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        }
         cut.canBanUser(roomId, alice).first() shouldBe expect
     }
 
@@ -1380,8 +1470,10 @@ class UserServiceTest : TrixnityBaseTest() {
                 ), invite = inviteLevel
             )
         )
-        roomStateStore.save(powerLevelsEvent)
-        roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+            roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+        }
         cut.canInvite(roomId).first() shouldBe expect
     }
 
@@ -1399,9 +1491,11 @@ class UserServiceTest : TrixnityBaseTest() {
                 ), invite = inviteLevel
             )
         )
-        roomStateStore.save(powerLevelsEvent)
-        roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
-        roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        tm.writeTransaction {
+            roomStateStore.save(powerLevelsEvent)
+            roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+            roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        }
         cut.canInviteUser(roomId, alice).first() shouldBe expect
     }
 
@@ -1411,22 +1505,24 @@ class UserServiceTest : TrixnityBaseTest() {
         otherMembership: Membership = JOIN,
         expect: Boolean
     ) {
-        roomUserStore.update(alice, roomId) { aliceRoomUser(BAN) }
+        tm.writeTransaction {
+            roomUserStore.update(alice, roomId) { aliceRoomUser(BAN) }
 
-        val powerLevelsEvent =
-            powerLevelsEvent(
-                PowerLevelsEventContent(
-                    users = mapOf(
-                        me to myLevel,
-                        alice to otherLevel
-                    ), kick = kickLevel,
-                    ban = banLevel
+            val powerLevelsEvent =
+                powerLevelsEvent(
+                    PowerLevelsEventContent(
+                        users = mapOf(
+                            me to myLevel,
+                            alice to otherLevel
+                        ), kick = kickLevel,
+                        ban = banLevel
+                    )
                 )
-            )
 
-        roomStateStore.save(powerLevelsEvent)
-        roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
-        roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+            roomStateStore.save(powerLevelsEvent)
+            roomStore.update(roomId) { Room(roomId, membership = ownMembership) }
+            roomUserStore.update(alice, roomId) { aliceRoomUser(otherMembership) }
+        }
         cut.canUnbanUser(roomId, alice).first() shouldBe expect
     }
 

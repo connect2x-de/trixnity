@@ -4,7 +4,6 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomStateRepository
 import de.connect2x.trixnity.client.store.repository.RoomStateRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
@@ -25,7 +24,7 @@ import kotlin.time.Clock
 
 class RoomStateStore(
     private val roomStateRepository: RoomStateRepository,
-    private val tm: RepositoryTransactionManager,
+    private val tm: StoreTransactionManager,
     private val contentMappings: EventContentSerializerMappings,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
@@ -40,11 +39,15 @@ class RoomStateStore(
         config.cacheExpireDurations.roomState
     ) { it.firstKey.roomId }.also(statisticCollector::addCache)
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
+
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         roomStateCache.deleteAll()
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun deleteByRoomId(roomId: RoomId) {
         roomStateCache.deleteByRoomId(roomId)
     }
@@ -54,6 +57,7 @@ class RoomStateStore(
             ?: throw IllegalArgumentException("Cannot find state event, because it is not supported. You need to register it first.")
     }
 
+    context(transaction: StoreWriteTransaction)
     suspend fun save(event: StateBaseEvent<*>, skipWhenAlreadyPresent: Boolean = false) {
         val roomId = event.roomId
         val stateKey = event.stateKey

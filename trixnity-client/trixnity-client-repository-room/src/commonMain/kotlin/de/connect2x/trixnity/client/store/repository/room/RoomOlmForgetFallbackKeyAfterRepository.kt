@@ -1,7 +1,14 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRepository
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlin.time.Instant
 
 @Entity(tableName = "OlmForgetFallbackKeyAfter")
@@ -30,24 +37,24 @@ internal class RoomOlmForgetFallbackKeyAfterRepository(
 ) : OlmForgetFallbackKeyAfterRepository {
     private val dao = db.olmForgetFallbackKeyAfter()
 
-    override suspend fun get(key: Long): Instant? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): Instant? =
         dao.get(key)?.instant
-    }
 
-    override suspend fun save(key: Long, value: Instant) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: Instant) =
         dao.insert(
             RoomOlmForgetFallbackKeyAfter(
                 id = key,
                 instant = value,
             )
         )
-    }
 
-    override suspend fun delete(key: Long) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

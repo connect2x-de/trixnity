@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client.store
 
-import de.connect2x.trixnity.client.mocks.RepositoryTransactionManagerMock
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryAccountRepository
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.user.Profile
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.model.UserId
@@ -15,11 +15,11 @@ import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class AccountStoreTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val repository = InMemoryAccountRepository() as AccountRepository
     private val cut = AccountStore(
         repository,
-        RepositoryTransactionManagerMock(),
+        tm,
         ObservableCacheStatisticCollector(),
         testScope.backgroundScope,
         testScope.testClock,
@@ -27,26 +27,28 @@ class AccountStoreTest : TrixnityBaseTest() {
 
     @Test
     fun `init » load values from database`() = runTest {
-        repository.save(
-            1, Account(
-                olmPickleKey = null,
-                baseUrl = "http://localhost",
-                userId = UserId("user", "server"),
-                deviceId = "device",
-                accessToken = "access_token",
-                refreshToken = "refresh_token",
-                syncBatchToken = "sync_token",
-                filter = Account.Filter(
-                    syncFilterId = "filter_id",
-                    syncOnceFilterId = "background_filter_id",
-                    eventTypesHash = "someHash",
-                ),
-                profile = Profile(
-                    ProfileField.DisplayName("display name"),
-                    ProfileField.AvatarUrl("mxc://localhost/123456")
-                ),
+        tm.writeTransaction {
+            repository.save(
+                1, Account(
+                    olmPickleKey = null,
+                    baseUrl = "http://localhost",
+                    userId = UserId("user", "server"),
+                    deviceId = "device",
+                    accessToken = "access_token",
+                    refreshToken = "refresh_token",
+                    syncBatchToken = "sync_token",
+                    filter = Account.Filter(
+                        syncFilterId = "filter_id",
+                        syncOnceFilterId = "background_filter_id",
+                        eventTypesHash = "someHash",
+                    ),
+                    profile = Profile(
+                        ProfileField.DisplayName("display name"),
+                        ProfileField.AvatarUrl("mxc://localhost/123456")
+                    ),
+                )
             )
-        )
+        }
 
         cut.init(this)
 

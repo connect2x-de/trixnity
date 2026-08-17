@@ -40,9 +40,8 @@ kotlin {
                 implementation(libs.testcontainers)
                 implementation(libs.testcontainers.postgresql)
                 implementation(libs.testcontainers.junitJupiter)
-                implementation(libs.h2)
-                implementation(libs.postgresql)
-                implementation(libs.hikari)
+                implementation(libs.r2dbc.h2)
+                implementation(libs.r2dbc.postgresql)
 
                 // If/When this is removed, also remove [jolOpens]
                 implementation(libs.openjdk.jol)

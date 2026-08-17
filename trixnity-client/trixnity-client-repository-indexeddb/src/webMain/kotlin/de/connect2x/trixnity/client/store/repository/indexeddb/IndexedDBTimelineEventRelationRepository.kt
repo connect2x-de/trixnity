@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.store.TimelineEventRelation
 import de.connect2x.trixnity.client.store.repository.TimelineEventRelationKey
 import de.connect2x.trixnity.client.store.repository.TimelineEventRelationRepository
@@ -10,6 +8,9 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 
 @Serializable
@@ -64,7 +65,8 @@ internal class IndexedDBTimelineEventRelationRepository(
         }
     }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
         store.index("roomId").openCursor(keyOf(roomId.full))
             .collect {
                 store.delete(it.primaryKey)

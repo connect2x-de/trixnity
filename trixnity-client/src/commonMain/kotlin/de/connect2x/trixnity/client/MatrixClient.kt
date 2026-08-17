@@ -21,6 +21,7 @@ import de.connect2x.trixnity.client.store.OlmCryptoStore
 import de.connect2x.trixnity.client.store.RootStore
 import de.connect2x.trixnity.client.store.ServerData
 import de.connect2x.trixnity.client.store.ServerDataStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.RepositoryMigration
 import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
 import de.connect2x.trixnity.clientserverapi.client.LogoutInfo
@@ -209,6 +210,7 @@ suspend fun MatrixClient.Companion.create(
 
         runMigrationsAndInitStores(di)
 
+        val tm = di.get<StoreTransactionManager>()
         val authenticationStore = di.get<AuthenticationStore>()
         val accountStore = di.get<AccountStore>()
 
@@ -220,8 +222,9 @@ suspend fun MatrixClient.Companion.create(
 
         val authProviderDataStore =
             AuthenticationStoreMatrixClientAuthProviderDataStore(
-                di.get<MatrixClientAuthProviderDataSerializerMappings>(),
-                authenticationStore
+                mappings = di.get(),
+                store = authenticationStore,
+                tm = tm
             )
 
         if (isFirstInit) {
@@ -245,13 +248,17 @@ suspend fun MatrixClient.Companion.create(
             when {
                 initialAccount?.accessToken != null && initialAccount.baseUrl != null -> {
                     log.debug { "migrate to new authentication system" }
-                    accountStore.updateAccount { it?.copy(baseUrl = null, accessToken = null, refreshToken = null) }
-                    ClassicMatrixClientAuthProviderData(
+                    val authProviderData = ClassicMatrixClientAuthProviderData(
                         baseUrl = Url(initialAccount.baseUrl),
                         accessToken = initialAccount.accessToken,
                         accessTokenExpiresInMs = null,
                         refreshToken = initialAccount.refreshToken
-                    ).also { authProviderDataStore.setAuthData(it) }
+                    )
+                    tm.writeTransaction {
+                        accountStore.updateAccount { it?.copy(baseUrl = null, accessToken = null, refreshToken = null) }
+                    }
+                    authProviderDataStore.setAuthData(authProviderData)
+                    authProviderData
                 }
 
                 initialAuthentication != null && authProviderData != null -> {
@@ -281,7 +288,7 @@ suspend fun MatrixClient.Companion.create(
 
         val authProvider = finalAuthProviderData.createAuthProvider(
             store = authProviderDataStore,
-            onLogout = { onLogout(it, authenticationStore) },
+            onLogout = { onLogout(it, authenticationStore, tm) },
             httpClientEngine = config.httpClientEngine,
             httpClientConfig = config.httpClientConfig
         )
@@ -290,7 +297,7 @@ suspend fun MatrixClient.Companion.create(
             authProvider = authProvider,
             json = di.get(),
             eventContentSerializerMappings = di.get(),
-            syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore),
+            syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
             syncErrorDelayConfig = config.syncErrorDelayConfig,
             coroutineContext = finalCoroutineContext,
             httpClientEngine = config.httpClientEngine,
@@ -309,21 +316,31 @@ suspend fun MatrixClient.Companion.create(
                         )
                 } else null
             if (isFirstInit) {
-                accountStore.updateAccount {
-                    Account(
-                        olmPickleKey = null,
-                        userId = userId,
-                        deviceId = deviceId,
-                        syncBatchToken = null,
-                        profile = newProfile
-                    )
+                tm.writeTransaction {
+                    accountStore.updateAccount {
+                        Account(
+                            olmPickleKey = null,
+                            userId = userId,
+                            deviceId = deviceId,
+                            syncBatchToken = null,
+                            profile = newProfile
+                        )
+                    }
                 }
             } else if (newProfile != null) { // migration path
-                accountStore.updateAccount { it?.copy(profile = newProfile) }
+                tm.writeTransaction {
+                    accountStore.updateAccount { it?.copy(profile = newProfile) }
+                }
             }
 
-
-            val userInfo = getUserInfo(userId, deviceId, di)
+            val userInfo = getUserInfo(
+                userId = userId,
+                deviceId = deviceId,
+                driver = di.get(),
+                accountStore = di.get(),
+                olmCryptoStore = di.get(),
+                tm = tm
+            )
 
             koinApplication.modules(module {
                 single { userInfo }
@@ -336,15 +353,17 @@ suspend fun MatrixClient.Companion.create(
                 val selfSignedDeviceKeys = di.get<SignService>().getSelfSignedDeviceKeys()
 
                 api.key.setKeys(deviceKeys = selfSignedDeviceKeys).getOrThrow()
-                selfSignedDeviceKeys.signed.keys.forEach {
-                    it.value.valueOrNull?.let { keyValue ->
-                        keyStore.saveKeyVerificationState(
-                            it,
-                            KeyVerificationState.Verified(keyValue)
-                        )
+                tm.writeTransaction {
+                    selfSignedDeviceKeys.signed.keys.forEach {
+                        it.value.valueOrNull?.let { keyValue ->
+                            keyStore.saveKeyVerificationState(
+                                it,
+                                KeyVerificationState.Verified(keyValue)
+                            )
+                        }
                     }
+                    keyStore.updateOutdatedKeys { it + userId }
                 }
-                keyStore.updateOutdatedKeys { it + userId }
             }
 
             log.trace { "finished create MatrixClient" }
@@ -362,6 +381,7 @@ suspend fun MatrixClient.Companion.create(
 private class AuthenticationStoreMatrixClientAuthProviderDataStore(
     private val mappings: MatrixClientAuthProviderDataSerializerMappings,
     private val store: AuthenticationStore,
+    private val tm: StoreTransactionManager,
 ) : MatrixClientAuthProviderDataStore {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -377,44 +397,53 @@ private class AuthenticationStoreMatrixClientAuthProviderDataStore(
             json.decodeFromString(mapping.serializer, authentication.providerData)
         }
 
-    override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) = store.updateAuthentication {
-        if (authData != null) {
-            val mapping = checkNotNull(mappings.find { it.kClass == authData::class }) {
-                "authProviderData kClass=${authData::class} is not supported. Supported types: ${mappings.map { it.kClass }}"
-            }
+    override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) =
+        tm.writeTransaction {
+            store.updateAuthentication {
+                if (authData != null) {
+                    val mapping = checkNotNull(mappings.find { it.kClass == authData::class }) {
+                        "authProviderData kClass=${authData::class} is not supported. Supported types: ${mappings.map { it.kClass }}"
+                    }
 
-            @Suppress("UNCHECKED_CAST")
-            val providerData =
-                json.encodeToString(mapping.serializer as KSerializer<MatrixClientAuthProviderData>, authData)
-            it?.copy(providerData = providerData)
-                ?: Authentication(
-                    providerId = mapping.id,
-                    providerData = providerData,
-                    logoutInfo = null,
-                )
-        } else null
-    }
+                    @Suppress("UNCHECKED_CAST")
+                    val providerData =
+                        json.encodeToString(mapping.serializer as KSerializer<MatrixClientAuthProviderData>, authData)
+                    it?.copy(providerData = providerData)
+                        ?: Authentication(
+                            providerId = mapping.id,
+                            providerData = providerData,
+                            logoutInfo = null,
+                        )
+                } else null
+            }
+        }
 }
 
 private class AccountStoreSyncBatchTokenStore(
     private val store: AccountStore,
+    private val tm: StoreTransactionManager,
 ) : SyncBatchTokenStore {
     override suspend fun getSyncBatchToken(): String? =
         store.getAccount()?.syncBatchToken
 
     override suspend fun setSyncBatchToken(token: String) {
-        store.updateAccount { it?.copy(syncBatchToken = token) }
+        tm.writeTransaction {
+            store.updateAccount { it?.copy(syncBatchToken = token) }
+        }
     }
 }
 
 private suspend fun onLogout(
     logoutInfo: LogoutInfo,
     authenticationStore: AuthenticationStore,
+    tm: StoreTransactionManager,
 ) {
     log.debug { "This device has been logged out ($logoutInfo)." }
     withContext(NonCancellable) {
-        authenticationStore.updateAuthentication {
-            it?.copy(logoutInfo = logoutInfo)
+        tm.writeTransaction {
+            authenticationStore.updateAuthentication {
+                it?.copy(logoutInfo = logoutInfo)
+            }
         }
     }
 }
@@ -427,19 +456,27 @@ private suspend fun runMigrationsAndInitStores(di: Koin) {
     di.getAll<RepositoryMigration>().forEach { it.run() }
     val rootStore = di.get<RootStore>()
     rootStore.init(di.get())
+    di.get<MediaStore>().init(di.get())
 }
 
-private suspend fun getUserInfo(userId: UserId, deviceId: String, di: Koin): UserInfo {
-    val driver = di.get<CryptoDriver>()
+private suspend fun getUserInfo(
+    userId: UserId,
+    deviceId: String,
+    driver: CryptoDriver,
+    accountStore: AccountStore,
+    olmCryptoStore: OlmCryptoStore,
+    tm: StoreTransactionManager
+): UserInfo {
 
-    val pickleKey = driver.key.pickleKey(di.get<AccountStore>().getAccount()?.olmPickleKey)
+    val pickleKey = driver.key.pickleKey(accountStore.getAccount()?.olmPickleKey)
 
-    val olmCryptoStore = di.get<OlmCryptoStore>()
     val (signingKey, identityKey) = (olmCryptoStore.getOlmAccount()
         ?.let { driver.olm.account.fromPickle(it, pickleKey) }
         ?: driver.olm.account())
         .use { account ->
-            olmCryptoStore.updateOlmAccount { account.pickle(pickleKey) }
+            tm.writeTransaction {
+                olmCryptoStore.updateOlmAccount { account.pickle(pickleKey) }
+            }
 
             useAll(
                 { account.ed25519Key },
@@ -456,6 +493,7 @@ class MatrixClientImpl internal constructor(
     override val di: Koin,
 ) : MatrixClient {
     private val coroutineScope: CoroutineScope = di.get()
+    private val tm: StoreTransactionManager = di.get()
     private val rootStore: RootStore = di.get()
     private val authenticationStore: AuthenticationStore = di.get()
     private val accountStore: AccountStore = di.get()
@@ -519,13 +557,17 @@ class MatrixClientImpl internal constructor(
                         LOGGED_OUT -> {
                             log.info { "stop sync and delete all" }
                             stopSync()
-                            rootStore.deleteAll()
+                            tm.writeTransaction {
+                                rootStore.deleteAll()
+                            }
                         }
 
                         LOCKED -> {
                             log.info { "account is locked - waiting for successful sync for unlocking" }
                             api.sync.subscribeAsFlow(ClientEventEmitter.Priority.FIRST).first()
-                            authenticationStore.updateAuthentication { it?.copy(logoutInfo = null) }
+                            tm.writeTransaction {
+                                authenticationStore.updateAuthentication { it?.copy(logoutInfo = null) }
+                            }
                             log.info { "account unlocked" }
                         }
 
@@ -552,14 +594,16 @@ class MatrixClientImpl internal constructor(
                     api.user.setFilter(userId, filter)
                         .getOrThrow().also { log.debug { "set new background filter for sync with id $it: $filter" } }
                 }
-                accountStore.updateAccount {
-                    it?.copy(
-                        filter = Account.Filter(
-                            syncFilterId = newSyncFilterId,
-                            syncOnceFilterId = newSyncOnceFilterId,
-                            eventTypesHash = eventTypesHash,
+                tm.writeTransaction {
+                    accountStore.updateAccount {
+                        it?.copy(
+                            filter = Account.Filter(
+                                syncFilterId = newSyncFilterId,
+                                syncOnceFilterId = newSyncOnceFilterId,
+                                eventTypesHash = eventTypesHash,
+                            )
                         )
-                    )
+                    }
                 }
             }
             started.delegate.value = true
@@ -620,7 +664,10 @@ class MatrixClientImpl internal constructor(
     }
 
     internal suspend fun deleteAll() {
-        rootStore.deleteAll()
+        tm.writeTransaction {
+            rootStore.deleteAll()
+        }
+        mediaStore.deleteAll()
     }
 
     /**
@@ -628,15 +675,20 @@ class MatrixClientImpl internal constructor(
      */
     override suspend fun clearCache(): Result<Unit> = kotlin.runCatching {
         stopSync()
-        accountStore.updateAccount { it?.copy(syncBatchToken = null) }
-        rootStore.clearCache()
+        tm.writeTransaction {
+            accountStore.updateAccount { it?.copy(syncBatchToken = null) }
+            rootStore.clearCache()
+        }
+        mediaStore.deleteAll()
         startSync()
     }
 
     override suspend fun clearMediaCache(): Result<Unit> = kotlin.runCatching {
         stopSync()
-        mediaCacheMappingStore.clearCache()
-        mediaStore.clearCache()
+        tm.writeTransaction {
+            mediaCacheMappingStore.clearCache()
+        }
+        mediaStore.deleteAll()
         startSync()
     }
 
@@ -688,7 +740,9 @@ class MatrixClientImpl internal constructor(
 
     override suspend fun setProfileField(profileField: ProfileField): Result<Unit> {
         return api.user.setProfileField(userId, profileField).map {
-            accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) + profileField) }
+            tm.writeTransaction {
+                accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) + profileField) }
+            }
         }
     }
 
@@ -696,14 +750,26 @@ class MatrixClientImpl internal constructor(
         val profileFieldsCapabilities = serverData.value?.capabilities?.capabilities?.profileFields
         return if (profileFieldsCapabilities != null) {
             api.user.deleteProfileField(userId, key)
-                .map { accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) } }
+                .map {
+                    tm.writeTransaction {
+                        accountStore.updateAccount {
+                            it?.copy(profile = (it.profile ?: Profile()) - key)
+                        }
+                    }
+                }
         } else {
             // the old spec only allows "deleting" the displayname and avatar_url by emptying the String.
             when (key) {
                 ProfileField.DisplayName -> setProfileField(ProfileField.DisplayName(""))
                 ProfileField.AvatarUrl -> setProfileField(ProfileField.AvatarUrl(""))
                 else -> api.user.deleteProfileField(userId, key)
-                    .map { accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) } }
+                    .map {
+                        tm.writeTransaction {
+                            accountStore.updateAccount {
+                                it?.copy(profile = (it.profile ?: Profile()) - key)
+                            }
+                        }
+                    }
             }
         }
     }

@@ -1,7 +1,14 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 
 @Entity(tableName = "OlmAccount")
 data class RoomOlmAccount(
@@ -29,24 +36,24 @@ internal class RoomOlmAccountRepository(
 ) : OlmAccountRepository {
     private val dao = db.olmAccount()
 
-    override suspend fun get(key: Long): String? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): String? =
         dao.get(key)?.pickled
-    }
 
-    override suspend fun save(key: Long, value: String) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: String) =
         dao.insert(
             RoomOlmAccount(
                 id = key,
                 pickled = value,
             )
         )
-    }
 
-    override suspend fun delete(key: Long) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) =
         dao.delete(id = key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

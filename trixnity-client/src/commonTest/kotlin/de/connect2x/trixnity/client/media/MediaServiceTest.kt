@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.getInMemoryMediaCacheMapping
 import de.connect2x.trixnity.client.getInMemoryServerDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.store.MediaCacheMapping
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
@@ -16,35 +17,32 @@ import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldNotHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
-import io.kotest.matchers.string.shouldStartWith
 import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.collections.shouldNotHaveSize
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.ContentType
+import io.kotest.matchers.string.shouldStartWith
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
 import io.ktor.http.ContentType.Application.OctetStream
 import io.ktor.http.ContentType.Text.Plain
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 
 class MediaServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val mediaCacheMappingStore = getInMemoryMediaCacheMapping()
     private val serverDataStore = getInMemoryServerDataStore()
     private lateinit var coroutineScope: CoroutineScope
@@ -66,7 +64,13 @@ class MediaServiceTest : TrixnityBaseTest() {
         mediaStore = InMemoryMediaStore(coroutineScope, config, Clock.System).apply {
             scheduleSetup { deleteAll() }
         }
-        cut = MediaServiceImpl(api, mediaStore, serverDataStore, mediaCacheMappingStore)
+        cut = MediaServiceImpl(
+            api = api,
+            mediaStore = mediaStore,
+            serverDataStore = serverDataStore,
+            mediaCacheMappingStore = mediaCacheMappingStore,
+            tm = tm
+        )
     }
 
     @AfterTest
@@ -101,7 +105,9 @@ class MediaServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getMedia » is cache uri » prefer cache but use mxcUri when already uploaded`() = runTest {
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { MediaCacheMapping(cacheUri, mxcUri, 4) }
+        tm.writeTransaction {
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { MediaCacheMapping(cacheUri, mxcUri, 4) }
+        }
         mediaStore.addMedia(mxcUri, "test".encodeToByteArray().toByteArrayFlow())
         cut.getMedia(cacheUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
     }
@@ -140,7 +146,9 @@ class MediaServiceTest : TrixnityBaseTest() {
             progressFlow.filterNotNull().collect { emissions.add(it) }
         }
 
-        cut.getMedia(mxcUri,
+        cut.getMedia(
+            mxcUri,
+            null,
             data.size.toLong(),
             progressFlow,
         ).getOrThrow()
@@ -184,7 +192,8 @@ class MediaServiceTest : TrixnityBaseTest() {
     @Test
     fun `getEncryptedMedia » prefer cache and decrypt`() = runTest {
         mediaStore.addMedia(mxcUri, rawFile.toByteArrayFlow())
-        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()
+            ?.decodeToString() shouldBe "test"
     }
 
     @Test
@@ -195,7 +204,8 @@ class MediaServiceTest : TrixnityBaseTest() {
                 respond(rawFile, HttpStatusCode.OK)
             }
         }
-        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+        cut.getEncryptedMedia(encryptedFile, maxSize = null).getOrThrow().toByteArray()
+            ?.decodeToString() shouldBe "test"
         mediaStore.media.value[mxcUri] shouldBe listOf(rawFile)
     }
 
@@ -222,7 +232,8 @@ class MediaServiceTest : TrixnityBaseTest() {
         }
         val encryptedFileWithWrongHash = encryptedFile.copy(hashes = mapOf("sha256" to "nope"))
         shouldThrow<MediaValidationException> {
-            cut.getEncryptedMedia(encryptedFileWithWrongHash, maxSize = null).getOrThrow().toByteArray()?.decodeToString()
+            cut.getEncryptedMedia(encryptedFileWithWrongHash, maxSize = null).getOrThrow().toByteArray()
+                ?.decodeToString()
         }
         mediaStore.getMedia(mxcUri) shouldBe null
     }
@@ -238,7 +249,8 @@ class MediaServiceTest : TrixnityBaseTest() {
         val fileSizeLimit = 1L
 
         val exception = shouldThrow<DownloadLimitExceededException> {
-            cut.getEncryptedMedia(encryptedFile, fileSizeLimit).getOrThrow().toByteArray()?.decodeToString() shouldBe "test"
+            cut.getEncryptedMedia(encryptedFile, fileSizeLimit).getOrThrow().toByteArray()
+                ?.decodeToString() shouldBe "test"
         }
 
         exception.message shouldContain "File could not be downloaded because it would exceed the limit"
@@ -263,6 +275,7 @@ class MediaServiceTest : TrixnityBaseTest() {
         cut.getEncryptedMedia(
             encryptedFile,
             maxSize = 1_000_000L,
+            null,
             progressFlow,
         ).getOrThrow()
             .toByteArray()
@@ -382,8 +395,10 @@ class MediaServiceTest : TrixnityBaseTest() {
             }
         }
         mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
-            MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+        tm.writeTransaction {
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+                MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+            }
         }
 
         cut.uploadMedia(cacheUri).getOrThrow() shouldBe mxcUri
@@ -410,8 +425,10 @@ class MediaServiceTest : TrixnityBaseTest() {
             }
         }
         mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
-            MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+        tm.writeTransaction {
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+                MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+            }
         }
 
         cut.uploadMedia(cacheUri, keepMediaInCache = false).getOrThrow() shouldBe mxcUri
@@ -434,8 +451,10 @@ class MediaServiceTest : TrixnityBaseTest() {
             }
         }
         mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
-            MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+        tm.writeTransaction {
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+                MediaCacheMapping(cacheUri, null, 4, Plain.toString())
+            }
         }
 
         cut.uploadMedia(cacheUri).getOrThrow() shouldBe mxcUri
@@ -447,9 +466,11 @@ class MediaServiceTest : TrixnityBaseTest() {
     @Test
     fun `uploadMedia » contain exception when file too large`() = runTest {
         val oldServerData = serverDataStore.getServerData()
-        serverDataStore.setServerData(oldServerData.copy(mediaConfig = oldServerData.mediaConfig.copy(maxUploadSize = 4)))
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
-            MediaCacheMapping(cacheUri, null, 5, Plain.toString())
+        tm.writeTransaction {
+            serverDataStore.setServerData(oldServerData.copy(mediaConfig = oldServerData.mediaConfig.copy(maxUploadSize = 4)))
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+                MediaCacheMapping(cacheUri, null, 5, Plain.toString())
+            }
         }
         shouldThrow<MediaTooLargeException> {
             cut.uploadMedia(cacheUri).getOrThrow()
@@ -458,8 +479,10 @@ class MediaServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `removeCachedMedia » remove media from store`() = runTest {
-        mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
-            MediaCacheMapping(cacheUri, null, 5, Plain.toString())
+        tm.writeTransaction {
+            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) {
+                MediaCacheMapping(cacheUri, null, 5, Plain.toString())
+            }
         }
         mediaStore.addMedia(cacheUri, "test".encodeToByteArray().toByteArrayFlow())
 

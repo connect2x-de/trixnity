@@ -18,6 +18,7 @@ import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.simpleUserInfo
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
@@ -44,7 +45,7 @@ import kotlinx.coroutines.flow.toList
 import kotlin.test.Test
 
 class TimelineEventAggregationTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val room = simpleRoom.roomId
 
     private val roomTimelineStore = getInMemoryRoomTimelineStore()
@@ -64,6 +65,7 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
         roomTimelineStore = roomTimelineStore,
         stickyEventStore = getInMemoryStickyEventStore(),
         roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore(),
+        tm = tm,
         roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
         mediaService = mediaServiceMock,
         forgetRoomService = { _, _ -> },
@@ -103,10 +105,12 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
     @Test
     fun `use latest replacement from same sender`() = runTest {
         getTimelineEventReplaceAggregationSetup()
-        roomTimelineStore.apply {
-            addRelation(TimelineEventRelation(room, EventId("2"), RelationType.Replace, EventId("1")))
-            addRelation(TimelineEventRelation(room, EventId("3"), RelationType.Replace, EventId("1")))
-            addRelation(TimelineEventRelation(room, EventId("4"), RelationType.Replace, EventId("1")))
+        tm.writeTransaction {
+            roomTimelineStore.apply {
+                addRelation(TimelineEventRelation(room, EventId("2"), RelationType.Replace, EventId("1")))
+                addRelation(TimelineEventRelation(room, EventId("3"), RelationType.Replace, EventId("1")))
+                addRelation(TimelineEventRelation(room, EventId("4"), RelationType.Replace, EventId("1")))
+            }
         }
 
         cut.getTimelineEventReplaceAggregation(room, EventId("1")).first() shouldBe
@@ -116,16 +120,16 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
     @Test
     fun `fallback to server aggregation when newer`() = runTest {
         getTimelineEventReplaceAggregationSetup()
-        roomTimelineStore.apply {
-            addAll(
+        tm.writeTransaction {
+            roomTimelineStore.apply {
                 listOf(
                     timelineEvent(
                         "1", 1,
                         replacedBy = ServerAggregation.Replace(EventId("3"), UserId("sender", "server"), 3)
                     ),
-                )
-            )
-            addRelation(TimelineEventRelation(room, EventId("2"), RelationType.Replace, EventId("1")))
+                ).forEach { add(it) }
+                addRelation(TimelineEventRelation(room, EventId("2"), RelationType.Replace, EventId("1")))
+            }
         }
 
         cut.getTimelineEventReplaceAggregation(room, EventId("1")).first() shouldBe
@@ -188,34 +192,29 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
         receivedValues.first { it == 1 }
 
         with(roomTimelineStore) {
-            addAll(
-                listOf(
-                    reactionUser3Thumbs
+            tm.writeTransaction {
+                add(reactionUser3Thumbs)
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("6"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("6"),
-                    RelationType.Annotation,
-                    EventId("1")
-                )
-            )
-
+            }
             receivedValues.first { it == 2 }
-            addAll(
-                listOf(
-                    reactionUser3Dog
+            tm.writeTransaction {
+                add(reactionUser3Dog)
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("7"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("7"),
-                    RelationType.Annotation,
-                    EventId("1")
-                )
-            )
+            }
         }
 
         result.await() shouldBe listOf(
@@ -261,94 +260,95 @@ class TimelineEventAggregationTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `getTimelineEventReactionAggregation » does not return if reaction content is not ReactionEventContent`() = runTest {
-        val reactionUser2Thumbs3 = timelineEvent(
-            "2", 2, UserId("2", "server"),
-            eventContent = RoomMessageEventContent.TextBased.Text(
-                relatesTo = RelatesTo.Annotation(EventId("1"), "👍"),
-                body = "Not Relevant",
-            )
-        )
-        with(roomTimelineStore) {
-            addAll(
-                listOf(
-                    originalEvent,
-                    reactionUser2Thumbs3
+    fun `getTimelineEventReactionAggregation » does not return if reaction content is not ReactionEventContent`() =
+        runTest {
+            val reactionUser2Thumbs3 = timelineEvent(
+                "2", 2, UserId("2", "server"),
+                eventContent = RoomMessageEventContent.TextBased.Text(
+                    relatesTo = RelatesTo.Annotation(EventId("1"), "👍"),
+                    body = "Not Relevant",
                 )
             )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("2"),
-                    RelationType.Annotation,
-                    EventId("1")
-                )
-            )
-        }
+            tm.writeTransaction {
+                with(roomTimelineStore) {
+                    listOf(
+                        originalEvent,
+                        reactionUser2Thumbs3
+                    ).forEach { add(it) }
+                    addRelation(
+                        TimelineEventRelation(
+                            room,
+                            EventId("2"),
+                            RelationType.Annotation,
+                            EventId("1")
+                        )
+                    )
+                }
+            }
 
-        cut.getTimelineEventReactionAggregation(room, EventId("1")).first() shouldBe
-                TimelineEventAggregation.Reaction(
-                    mapOf()
-                )
-    }
+            cut.getTimelineEventReactionAggregation(room, EventId("1")).first() shouldBe
+                    TimelineEventAggregation.Reaction(
+                        mapOf()
+                    )
+        }
 
 
     private suspend fun getTimelineEventReplaceAggregationSetup() {
-        with(roomTimelineStore) {
-            addAll(
+        tm.writeTransaction {
+            with(roomTimelineStore) {
                 listOf(
                     timelineEvent("1", 1),
                     timelineEvent("2", 2),
                     timelineEvent("3", 3),
                     timelineEvent("4", 4, UserId("otherSender", "server"))
-                )
-            )
+                ).forEach { add(it) }
+            }
         }
     }
 
     private suspend fun getTimelineEventReactionAggregationSetup() {
-        with(roomTimelineStore) {
-            addAll(
+        tm.writeTransaction {
+            with(roomTimelineStore) {
                 listOf(
                     originalEvent,
                     reactionUser2Thumbs1,
                     reactionUser2Thumbs2,
                     reactionUser2Unicorn,
                     reactionUser1Thumbs
+                ).forEach { add(it) }
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("2"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("2"),
-                    RelationType.Annotation,
-                    EventId("1")
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("3"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("3"),
-                    RelationType.Annotation,
-                    EventId("1")
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("4"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("4"),
-                    RelationType.Annotation,
-                    EventId("1")
+                addRelation(
+                    TimelineEventRelation(
+                        room,
+                        EventId("5"),
+                        RelationType.Annotation,
+                        EventId("1")
+                    )
                 )
-            )
-            addRelation(
-                TimelineEventRelation(
-                    room,
-                    EventId("5"),
-                    RelationType.Annotation,
-                    EventId("1")
-                )
-            )
+            }
         }
     }
 }

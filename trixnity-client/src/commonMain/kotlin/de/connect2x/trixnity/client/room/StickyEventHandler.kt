@@ -3,8 +3,8 @@ package de.connect2x.trixnity.client.room
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.StickyEventStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredStickyEvent
-import de.connect2x.trixnity.client.store.TransactionManager
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
 import de.connect2x.trixnity.core.EventHandler
@@ -40,7 +40,7 @@ class StickyEventHandler(
     private val stickyEventStore: StickyEventStore,
     private val roomEventEncryptionServices: List<RoomEventEncryptionService>,
     private val clock: Clock,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
     private val config: MatrixClientConfiguration,
 ) : EventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
@@ -55,26 +55,29 @@ class StickyEventHandler(
     internal suspend fun removeInvalidStickyEvents() {
         while (currentCoroutineContext().isActive) {
             delay(2.minutes)
-            stickyEventStore.deleteInvalid()
+            tm.writeTransaction {
+                stickyEventStore.deleteInvalid()
+            }
         }
     }
 
     internal suspend fun setStickyEvents(stickyEvents: List<ClientEvent.RoomEvent<StickyEventContent>>) {
         if (stickyEvents.isNotEmpty()) {
             val now = clock.now()
-            tm.writeTransaction {
-                for (stickyEvent in stickyEvents) {
-                    val sticky = stickyEvent.sticky ?: continue
-                    val startTime = minOf(now, Instant.fromEpochMilliseconds(stickyEvent.originTimestamp))
-                    val stickyDuration = sticky.durationMs.milliseconds.coerceIn(ZERO..1.hours)
-                    val endTime = startTime + stickyDuration
-                    stickyEventStore.save(
-                        StoredStickyEvent(
-                            event = stickyEvent,
-                            startTime = startTime,
-                            endTime = endTime
-                        )
-                    )
+            val stickyEventUpdates = stickyEvents.mapNotNull { stickyEvent ->
+                val sticky = stickyEvent.sticky ?: return@mapNotNull null
+                val startTime = minOf(now, Instant.fromEpochMilliseconds(stickyEvent.originTimestamp))
+                val stickyDuration = sticky.durationMs.milliseconds.coerceIn(ZERO..1.hours)
+                val endTime = startTime + stickyDuration
+                StoredStickyEvent(
+                    event = stickyEvent,
+                    startTime = startTime,
+                    endTime = endTime
+                )
+            }
+            if (stickyEventUpdates.isNotEmpty()) {
+                tm.writeTransaction {
+                    stickyEventUpdates.forEach { stickyEventStore.save(it) }
                 }
             }
         }

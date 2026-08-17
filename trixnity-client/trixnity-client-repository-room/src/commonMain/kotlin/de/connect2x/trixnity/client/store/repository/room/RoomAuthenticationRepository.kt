@@ -1,9 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.Authentication
 import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(tableName = "Authentication")
 data class RoomAuthentication(
@@ -33,24 +40,24 @@ internal class RoomAuthenticationRepository(
 
     private val dao = db.authentication()
 
-    override suspend fun get(key: Long): Authentication? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): Authentication? =
         dao.get(key)?.value?.let { json.decodeFromString(it) }
-    }
 
-    override suspend fun save(key: Long, value: Authentication) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: Authentication) =
         dao.insert(
             RoomAuthentication(
                 id = key,
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: Long) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

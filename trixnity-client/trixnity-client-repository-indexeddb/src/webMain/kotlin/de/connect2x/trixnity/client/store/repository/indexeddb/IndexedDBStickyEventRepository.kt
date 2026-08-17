@@ -11,6 +11,8 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -19,7 +21,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 import web.idb.IDBKeyRange
-import kotlin.js.toJsNumber
 import kotlin.time.Instant
 
 @Serializable
@@ -92,8 +93,9 @@ internal class IndexedDBStickyEventRepository(
             else stickyKey.removePrefix(STICKY_KEY_NON_NULL_PREFIX)
     }
 
+    context(transaction: ReadTransaction)
     override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
-        withIndexedDBRead { store ->
+        withRead { store ->
             store.index("endTimeMs")
                 .openCursor(IDBKeyRange.upperBound(before.toEpochMilliseconds().toDouble().toJsNumber(), true))
                 .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
@@ -104,11 +106,12 @@ internal class IndexedDBStickyEventRepository(
                 .toSet()
         }
 
+    context(transaction: ReadTransaction)
     override suspend fun getByEventId(
         roomId: RoomId,
         eventId: EventId
     ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? =
-        withIndexedDBRead { store ->
+        withRead { store ->
             store.index("roomId|eventId")
                 .openCursor(keyOf(arrayOf(roomId.full, eventId.full)))
                 .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
@@ -119,10 +122,12 @@ internal class IndexedDBStickyEventRepository(
                 .firstOrNull()
         }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
         store.index("roomId").openCursor(keyOf(roomId.full))
             .collect {
                 store.delete(it.primaryKey)
             }
+
     }
 }

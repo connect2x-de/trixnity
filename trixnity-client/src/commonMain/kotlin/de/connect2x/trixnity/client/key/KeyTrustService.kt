@@ -1,16 +1,28 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.flow.*
-import de.connect2x.trixnity.client.store.*
-import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.KeyChainLink
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Blocked
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.CrossSigned
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Invalid
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.NotCrossSigned
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.KeyVerificationState
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
 import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.MasterKey
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.Signatures
+import de.connect2x.trixnity.core.model.keys.SignedCrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.SecretType.M_CROSS_SIGNING_SELF_SIGNING
 import de.connect2x.trixnity.crypto.SecretType.M_CROSS_SIGNING_USER_SIGNING
@@ -19,8 +31,16 @@ import de.connect2x.trixnity.crypto.driver.keys.Ed25519PublicKey
 import de.connect2x.trixnity.crypto.driver.keys.Ed25519SecretKey
 import de.connect2x.trixnity.crypto.key.decryptSecret
 import de.connect2x.trixnity.crypto.key.get
-import de.connect2x.trixnity.crypto.sign.*
+import de.connect2x.trixnity.crypto.sign.SignService
+import de.connect2x.trixnity.crypto.sign.SignWith
+import de.connect2x.trixnity.crypto.sign.VerifyResult
+import de.connect2x.trixnity.crypto.sign.sign
+import de.connect2x.trixnity.crypto.sign.verify
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlin.jvm.JvmName
 
 private val log = Logger("de.connect2x.trixnity.client.key.KeyTrustService")
@@ -47,6 +67,7 @@ class KeyTrustServiceImpl(
     private val userInfo: UserInfo,
     private val keyStore: KeyStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
+    private val tm: StoreTransactionManager,
     private val signService: SignService,
     private val api: MatrixClientServerApiClient,
     private val driver: CryptoDriver,
@@ -114,35 +135,40 @@ class KeyTrustServiceImpl(
 
     private suspend fun updateTrustLevelOfKey(userId: UserId, key: Ed25519Key) {
         val keyId = key.id
-
-        if (keyId != null) {
-            val foundKey = MutableStateFlow(false)
-
-            keyStore.updateDeviceKeys(userId) { oldDeviceKeys ->
-                val foundDeviceKeys = oldDeviceKeys?.get(keyId)
-                if (foundDeviceKeys != null) {
-                    val newTrustLevel = calculateDeviceKeysTrustLevel(foundDeviceKeys.value)
-                    foundKey.value = true
-                    log.trace { "updated device keys ${foundDeviceKeys.value.signed.deviceId} of user $userId with trust level $newTrustLevel" }
-                    oldDeviceKeys + (keyId to foundDeviceKeys.copy(trustLevel = newTrustLevel))
-                } else oldDeviceKeys
-            }
-            if (foundKey.value.not()) {
-                keyStore.updateCrossSigningKeys(userId) { oldKeys ->
-                    val foundCrossSigningKeys = oldKeys?.firstOrNull { keys ->
-                        keys.value.signed.keys.keys.filterIsInstance<Ed25519Key>().any { it.id == keyId }
-                    }
-                    if (foundCrossSigningKeys != null) {
-                        val newTrustLevel = calculateCrossSigningKeysTrustLevel(foundCrossSigningKeys.value)
-                        foundKey.value = true
-                        log.trace { "updated cross signing key ${foundCrossSigningKeys.value.signed.usage.firstOrNull()?.name} of user $userId with trust level $newTrustLevel" }
-                        (oldKeys - foundCrossSigningKeys) + foundCrossSigningKeys.copy(trustLevel = newTrustLevel)
-
-                    } else oldKeys
+        if (keyId == null) {
+            log.warn { "could not update trust level, because key id of $key was null" }
+            return
+        }
+        val foundDeviceKeys = keyStore.getDeviceKeys(userId).first()?.get(keyId)
+        if (foundDeviceKeys != null) {
+            val newTrustLevel = calculateDeviceKeysTrustLevel(foundDeviceKeys.value)
+            log.trace { "updated device keys ${foundDeviceKeys.value.signed.deviceId} of user $userId with trust level $newTrustLevel" }
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(userId) { oldDeviceKeys ->
+                    if (oldDeviceKeys?.get(keyId) == foundDeviceKeys) {
+                        oldDeviceKeys + (keyId to foundDeviceKeys.copy(trustLevel = newTrustLevel))
+                    } else oldDeviceKeys
                 }
             }
-            if (foundKey.value.not()) log.warn { "could not find device or cross signing keys of $key" }
-        } else log.warn { "could not update trust level, because key id of $key was null" }
+        } else {
+            val foundCrossSigningKeys = keyStore.getCrossSigningKeys(userId).first()?.firstOrNull { keys ->
+                keys.value.signed.keys.keys.filterIsInstance<Ed25519Key>().any { it.id == keyId }
+            }
+            if (foundCrossSigningKeys != null) {
+                val newTrustLevel = calculateCrossSigningKeysTrustLevel(foundCrossSigningKeys.value)
+                tm.writeTransaction {
+                    keyStore.updateCrossSigningKeys(userId) { oldKeys ->
+                        if (oldKeys?.contains(foundCrossSigningKeys) == true) {
+                            log.trace { "updated cross signing key ${foundCrossSigningKeys.value.signed.usage.firstOrNull()?.name} of user $userId with trust level $newTrustLevel" }
+                            (oldKeys - foundCrossSigningKeys) + foundCrossSigningKeys.copy(trustLevel = newTrustLevel)
+
+                        } else oldKeys
+                    }
+                }
+            } else {
+                log.warn { "could not find device or cross signing keys of $key" }
+            }
+        }
     }
 
     override suspend fun calculateDeviceKeysTrustLevel(deviceKeys: SignedDeviceKeys): KeySignatureTrustLevel {
@@ -205,7 +231,9 @@ class KeyTrustServiceImpl(
     ): KeySignatureTrustLevel? {
         log.trace { "search in signatures of $signedKey for trust level calculation: $signatures" }
         visitedKeys.add(signedUserId to signedKey.id)
-        keyStore.deleteKeyChainLinksBySignedKey(signedUserId, signedKey)
+        tm.writeTransaction {
+            keyStore.deleteKeyChainLinksBySignedKey(signedUserId, signedKey)
+        }
         val states = signatures.flatMap { (signingUserId, signatureKeys) ->
             signatureKeys
                 .filterIsInstance<Ed25519Key>()
@@ -263,7 +291,9 @@ class KeyTrustServiceImpl(
 
                     val signingKey = signingCrossSigningKey ?: signingDeviceKey
                     if (signingKey != null) {
-                        keyStore.saveKeyChainLink(KeyChainLink(signingUserId, signingKey, signedUserId, signedKey))
+                        tm.writeTransaction {
+                            keyStore.saveKeyChainLink(KeyChainLink(signingUserId, signingKey, signedUserId, signedKey))
+                        }
                     }
 
                     listOf(crossSigningKeyState, deviceKeyState)
@@ -298,7 +328,9 @@ class KeyTrustServiceImpl(
         val signedDeviceKeys = keys.mapNotNull { key ->
             val deviceKey = key.id?.let { keyStore.getDeviceKey(userId, it).first() }?.value?.signed
             if (deviceKey != null) {
-                keyStore.saveKeyVerificationState(key, KeyVerificationState.Verified(key.value.value))
+                tm.writeTransaction {
+                    keyStore.saveKeyVerificationState(key, KeyVerificationState.Verified(key.value.value))
+                }
                 updateTrustLevelOfKey(userId, key)
                 try {
                     if (userId == userInfo.userId && deviceKey.get<Ed25519Key>() == key) {
@@ -314,7 +346,9 @@ class KeyTrustServiceImpl(
         val signedCrossSigningKeys = keys.mapNotNull { key ->
             val crossSigningKey = key.id?.let { keyStore.getCrossSigningKey(userId, it) }?.value?.signed
             if (crossSigningKey != null) {
-                keyStore.saveKeyVerificationState(key, KeyVerificationState.Verified(key.value.value))
+                tm.writeTransaction {
+                    keyStore.saveKeyVerificationState(key, KeyVerificationState.Verified(key.value.value))
+                }
                 updateTrustLevelOfKey(userId, key)
                 if (crossSigningKey.usage.contains(MasterKey)) {
                     if (crossSigningKey.get<Ed25519Key>() == key) {

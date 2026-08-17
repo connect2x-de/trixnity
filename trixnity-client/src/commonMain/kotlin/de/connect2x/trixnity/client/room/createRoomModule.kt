@@ -103,6 +103,7 @@ fun createRoomModule() = module {
             roomTimelineStore = get(),
             stickyEventStore = get(),
             roomOutboxMessageStore = get(),
+            tm = get(),
             roomEventEncryptionServices = getAll(),
             forgetRoomService = get(),
             mediaService = get(),

@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.client.room
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.CoroutineScope
 import de.connect2x.trixnity.client.store.RoomStateStore
-import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.user.LazyMemberEventHandler
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -14,13 +13,14 @@ import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
+import kotlinx.coroutines.CoroutineScope
 
 private val log = Logger("de.connect2x.trixnity.client.room.RoomStateEventHandler")
 
 class RoomStateEventHandler(
     private val api: MatrixClientServerApiClient,
     private val roomStateStore: RoomStateStore,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
 ) : EventHandler, LazyMemberEventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
         api.sync.subscribeEventList<StateEventContent, StateBaseEvent<StateEventContent>>(Priority.STORE_EVENTS) {

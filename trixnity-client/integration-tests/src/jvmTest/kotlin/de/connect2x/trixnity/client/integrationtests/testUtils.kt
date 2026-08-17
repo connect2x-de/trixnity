@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -87,7 +87,7 @@ suspend fun MatrixClientServerApiClient.register(
     return ClassicMatrixClientAuthProviderData(baseUrl, accessToken, expiresIn, refreshToken)
 }
 
-fun newDatabase() = Database.connect("jdbc:h2:mem:${Random.nextString(22)};DB_CLOSE_DELAY=-1;")
+fun newDatabase() = R2dbcDatabase.connect("r2dbc:h2:mem:///${Random.nextString(22)};DB_CLOSE_DELAY=-1;")
 
 data class StartedClient(
     val client: MatrixClient,

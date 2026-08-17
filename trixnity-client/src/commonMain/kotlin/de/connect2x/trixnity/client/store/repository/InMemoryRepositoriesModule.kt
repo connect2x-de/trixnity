@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.client.store.repository
 
 import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.core.MSC4354
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 fun RepositoriesModule.Companion.inMemory() = RepositoriesModule {
     module {
-        single<RepositoryTransactionManager> { NoOpRepositoryTransactionManager }
+        single<StoreTransactionManager> { NoOpStoreTransactionManager }
 
         singleOf<AccountRepository>(::InMemoryAccountRepository)
         singleOf<AuthenticationRepository>(::InMemoryAuthenticationRepository)

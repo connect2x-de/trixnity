@@ -8,7 +8,7 @@ import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomTimelineStore
 import de.connect2x.trixnity.client.store.RoomUserStore
 import de.connect2x.trixnity.client.store.StickyEventStore
-import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -30,12 +30,12 @@ class ForgetRoomServiceImpl(
     private val stickyEventStore: StickyEventStore,
     private val roomOutboxMessageStore: RoomOutboxMessageStore,
     private val notificationStore: NotificationStore,
-    private val transactionManager: TransactionManager,
+    private val tm: StoreTransactionManager,
 ) : ForgetRoomService {
     override suspend fun invoke(roomId: RoomId, force: Boolean) {
         if (force || roomStore.get(roomId).first()?.membership == Membership.LEAVE) {
             withContext(NonCancellable) {
-                transactionManager.writeTransaction {
+                tm.writeTransaction {
                     roomStore.delete(roomId)
                     roomTimelineStore.deleteByRoomId(roomId)
                     roomStateStore.deleteByRoomId(roomId)

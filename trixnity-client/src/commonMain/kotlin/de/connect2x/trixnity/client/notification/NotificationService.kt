@@ -13,6 +13,7 @@ import de.connect2x.trixnity.client.store.NotificationStore
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomAccountDataStore
 import de.connect2x.trixnity.client.store.RoomStateStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationState.SyncWithTimeline.IsRead
@@ -159,6 +160,7 @@ class NotificationServiceImpl(
     private val globalAccountDataStore: GlobalAccountDataStore,
     private val accountStore: AccountStore,
     private val notificationStore: NotificationStore,
+    private val tm: StoreTransactionManager,
     private val api: MatrixClientServerApiClient,
     private val matrixClientStarted: MatrixClientStarted,
     private val eventContentSerializerMappings: EventContentSerializerMappings,
@@ -291,11 +293,13 @@ class NotificationServiceImpl(
         }
 
     override suspend fun dismiss(id: String) {
-        notificationStore.update(id) { notification ->
-            when (notification) {
-                is StoredNotification.Message -> notification.copy(dismissed = true)
-                is StoredNotification.State -> notification.copy(dismissed = true)
-                null -> null
+        tm.writeTransaction {
+            notificationStore.update(id) { notification ->
+                when (notification) {
+                    is StoredNotification.Message -> notification.copy(dismissed = true)
+                    is StoredNotification.State -> notification.copy(dismissed = true)
+                    null -> null
+                }
             }
         }
     }
@@ -314,9 +318,11 @@ class NotificationServiceImpl(
                 }
                 emit(notificationUpdate)
                 emit(null) // wait for processed by collector
-                notificationStore.updateUpdate(storedNotificationUpdate.id) {
-                    if (it == storedNotificationUpdate) null
-                    else it
+                tm.writeTransaction {
+                    notificationStore.updateUpdate(storedNotificationUpdate.id) {
+                        if (it == storedNotificationUpdate) null
+                        else it
+                    }
                 }
             }
         }
@@ -341,14 +347,16 @@ class NotificationServiceImpl(
             }
         }
 
-        notificationStore.updateState(roomId) {
-            when (it) {
-                is StoredNotificationState.Push,
-                is StoredNotificationState.Read,
-                is StoredNotificationState.SyncWithoutTimeline -> it
+        tm.writeTransaction {
+            notificationStore.updateState(roomId) {
+                when (it) {
+                    is StoredNotificationState.Push,
+                    is StoredNotificationState.Read,
+                    is StoredNotificationState.SyncWithoutTimeline -> it
 
-                is StoredNotificationState.SyncWithTimeline -> it.copy(needsSync = true)
-                null -> StoredNotificationState.Push(roomId)
+                    is StoredNotificationState.SyncWithTimeline -> it.copy(needsSync = true)
+                    null -> StoredNotificationState.Push(roomId)
+                }
             }
         }
         return false

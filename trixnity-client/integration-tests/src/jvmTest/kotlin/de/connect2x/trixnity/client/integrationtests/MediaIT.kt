@@ -20,7 +20,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -32,7 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 class MediaIT : TrixnityBaseTest() {
 
     private lateinit var client: MatrixClient
-    private lateinit var database: Database
+    private lateinit var database: R2dbcDatabase
 
     @Container
     val synapseDocker = synapseDocker()
@@ -72,7 +72,7 @@ class MediaIT : TrixnityBaseTest() {
             val cacheUri =
                 client.media.prepareUploadMedia("Test".toByteArray().toByteArrayFlow(), ContentType.Text.Plain)
             val mxcUri = client.media.uploadMedia(cacheUri).getOrThrow()
-            client.media.getMedia(mxcUri).getOrThrow().toByteArray()?.decodeToString() shouldBe "Test"
+            client.media.getMedia(mxcUri, maxSize = null).getOrThrow().toByteArray()?.decodeToString() shouldBe "Test"
         }
     }
 
@@ -92,7 +92,7 @@ class MediaIT : TrixnityBaseTest() {
             val cacheUri =
                 client.media.prepareUploadMedia(miniPng.toByteArrayFlow(), ContentType.Image.PNG)
             val mxcUri = client.media.uploadMedia(cacheUri).getOrThrow()
-            client.media.getThumbnail(mxcUri, 100, 100).getOrThrow().toByteArray()?.size shouldNotBe 0
+            client.media.getThumbnail(mxcUri, 100, 100, maxSize = null).getOrThrow().toByteArray()?.size shouldNotBe 0
         }
     }
 }

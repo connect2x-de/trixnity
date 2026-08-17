@@ -11,37 +11,29 @@ import kotlinx.coroutines.withContext
 import web.console.console
 import web.events.EventHandler
 import web.idb.IDBDatabase
-import web.idb.IDBTransaction
 import web.idb.IDBTransactionMode
 import web.idb.readonly
 import web.idb.readwrite
-import kotlin.Array
-import kotlin.OptIn
-import kotlin.String
-import kotlin.Unit
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toJsArray
-import kotlin.js.toJsString
 
 suspend fun <T> IDBDatabase.readTransaction(
     vararg names: String,
     block: suspend WrappedTransaction.() -> T
 ): T = transaction(
-        names = names,
-        mode = IDBTransactionMode.readonly,
-        block = block,
-    )
+    names = names,
+    mode = IDBTransactionMode.readonly,
+    block = block,
+)
 
 suspend fun <T> IDBDatabase.writeTransaction(
     vararg names: String,
     block: suspend WrappedTransaction.() -> T
 ): T = transaction(
-        names = names,
-        mode = IDBTransactionMode.readwrite,
-        block = block,
-    )
+    names = names,
+    mode = IDBTransactionMode.readwrite,
+    block = block,
+)
 
 
 private suspend fun <T> IDBDatabase.transaction(

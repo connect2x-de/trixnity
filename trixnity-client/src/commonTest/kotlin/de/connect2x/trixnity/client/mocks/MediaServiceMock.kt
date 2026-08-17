@@ -6,7 +6,7 @@ import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.utils.ByteArrayFlow
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.time.Duration
@@ -14,23 +14,6 @@ import kotlin.time.Duration
 class MediaServiceMock : MediaService {
     override suspend fun getMedia(
         uri: String,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getMedia(
-        uri: String,
-        maxSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getMedia(
-        uri: String,
         maxSize: Long?,
         expectedSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>?,
@@ -41,50 +24,8 @@ class MediaServiceMock : MediaService {
 
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getEncryptedMedia(
-        encryptedFile: EncryptedFile,
-        maxSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getEncryptedMedia(
-        encryptedFile: EncryptedFile,
         maxSize: Long?,
         expectedSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getThumbnail(
-        uri: String,
-        width: Long,
-        height: Long,
-        method: ThumbnailResizingMethod,
-        animated: Boolean,
-        progress: MutableStateFlow<FileTransferProgress?>?,
-        saveToCache: Boolean,
-    ): Result<PlatformMedia> {
-        throw NotImplementedError()
-    }
-
-    override suspend fun getThumbnail(
-        uri: String,
-        width: Long,
-        height: Long,
-        maxSize: Long?,
-        method: ThumbnailResizingMethod,
-        animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> {

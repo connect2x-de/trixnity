@@ -1,7 +1,16 @@
 package de.connect2x.trixnity.client.cryptodriver.vodozemac
 
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreWriteTransaction
+import de.connect2x.trixnity.client.store.repository.AccountRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
+import de.connect2x.trixnity.client.store.repository.MigrationRepository
+import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
+import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
+import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.RepositoryMigration
 import de.connect2x.trixnity.vodozemac.PickleKey
 import de.connect2x.trixnity.vodozemac.megolm.GroupSession
 import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession
@@ -12,7 +21,7 @@ private val log =
     Logger("de.connect2x.trixnity.client.cryptodriver.vodozemac.VodozemacRepositoryMigration")
 
 data class VodozemacRepositoryMigration(
-    val transactionManager: RepositoryTransactionManager,
+    val tm: StoreTransactionManager,
     val migrationRepository: MigrationRepository,
     val accountRepository: AccountRepository,
     val olmAccountRepository: OlmAccountRepository,
@@ -32,7 +41,9 @@ private enum class MigrationVersion(val value: String) {
 }
 
 private suspend fun VodozemacRepositoryMigration.applyVodozemacMigrations() {
+    context(transaction: StoreWriteTransaction)
     suspend fun applyInitialMigration() {
+        context(transaction: StoreWriteTransaction)
         suspend fun save() {
             migrationRepository.save(MIGRATION_NAME, MigrationVersion.V1.value)
         }
@@ -59,7 +70,7 @@ private suspend fun VodozemacRepositoryMigration.applyVodozemacMigrations() {
         save()
     }
 
-    transactionManager.writeTransaction {
+    tm.writeTransaction {
         val version = migrationRepository.get(MIGRATION_NAME)
 
         when (version) {
@@ -68,11 +79,13 @@ private suspend fun VodozemacRepositoryMigration.applyVodozemacMigrations() {
     }
 }
 
-suspend fun OlmAccountRepository.updatePickle(block: suspend (String) -> String) {
+context(transaction: StoreWriteTransaction)
+suspend fun OlmAccountRepository.updatePickle(block: (String) -> String) {
     get(1)?.also { save(1, block(it)) }
 }
 
-private suspend fun OlmSessionRepository.updatePickles(block: suspend (String) -> String) {
+context(transaction: StoreWriteTransaction)
+private suspend fun OlmSessionRepository.updatePickles(block: (String) -> String) {
     getAll()
         .asSequence()
         .mapNotNull { sessions ->
@@ -86,7 +99,8 @@ private suspend fun OlmSessionRepository.updatePickles(block: suspend (String) -
         }
 }
 
-private suspend fun OutboundMegolmSessionRepository.updatePickles(block: suspend (String) -> String) {
+context(transaction: StoreWriteTransaction)
+private suspend fun OutboundMegolmSessionRepository.updatePickles(block: (String) -> String) {
     getAll()
         .asSequence()
         .forEach { session ->
@@ -97,7 +111,8 @@ private suspend fun OutboundMegolmSessionRepository.updatePickles(block: suspend
         }
 }
 
-private suspend fun InboundMegolmSessionRepository.updatePickles(block: suspend (String) -> String) {
+context(transaction: StoreWriteTransaction)
+private suspend fun InboundMegolmSessionRepository.updatePickles(block: (String) -> String) {
     getAll()
         .asSequence()
         .forEach { session ->

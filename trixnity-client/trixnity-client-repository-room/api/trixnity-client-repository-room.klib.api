@@ -1020,24 +1020,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys 
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction : kotlin.coroutines/CoroutineContext.Element { // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction|null[0]
-    constructor <init>(kotlinx.coroutines.sync/Mutex) // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.<init>|<init>(kotlinx.coroutines.sync.Mutex){}[0]
-
-    final val key // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.key|{}key[0]
-        final fun <get-key>(): kotlin.coroutines/CoroutineContext.Key<*> // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.key.<get-key>|<get-key>(){}[0]
-    final val mutex // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.mutex|{}mutex[0]
-        final fun <get-mutex>(): kotlinx.coroutines.sync/Mutex // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.mutex.<get-mutex>|<get-mutex>(){}[0]
-
-    final object Key : kotlin.coroutines/CoroutineContext.Key<de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction> // de.connect2x.trixnity.client.store.repository.room/RoomReadTransaction.Key|null[0]
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/RoomRepositoryTransactionManager : de.connect2x.trixnity.client.store.repository/RepositoryTransactionManager { // de.connect2x.trixnity.client.store.repository.room/RoomRepositoryTransactionManager|null[0]
-    constructor <init>(de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomRepositoryTransactionManager.<init>|<init>(de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase){}[0]
-
-    final suspend fun <#A1: kotlin/Any?> readTransaction(kotlin.coroutines/SuspendFunction0<#A1>): #A1 // de.connect2x.trixnity.client.store.repository.room/RoomRepositoryTransactionManager.readTransaction|readTransaction(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
-    final suspend fun writeTransaction(kotlin.coroutines/SuspendFunction0<kotlin/Unit>) // de.connect2x.trixnity.client.store.repository.room/RoomRepositoryTransactionManager.writeTransaction|writeTransaction(kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
-}
-
 final class de.connect2x.trixnity.client.store.repository.room/RoomRoom { // de.connect2x.trixnity.client.store.repository.room/RoomRoom|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomRoom.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
 
@@ -1285,6 +1267,19 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent {
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent.toString|toString(){}[0]
 }
 
+final class de.connect2x.trixnity.client.store.repository.room/RoomStoreTransactionManager : de.connect2x.trixnity.client.store/StoreTransactionManager { // de.connect2x.trixnity.client.store.repository.room/RoomStoreTransactionManager|null[0]
+    constructor <init>(de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomStoreTransactionManager.<init>|<init>(de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase){}[0]
+}
+
+final class de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction : de.connect2x.trixnity.client.store.cache/CacheTransaction, de.connect2x.trixnity.client.store/StoreWriteTransaction { // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction|null[0]
+    constructor <init>(de.connect2x.trixnity.client.store.cache/CacheTransaction) // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction.<init>|<init>(de.connect2x.trixnity.client.store.cache.CacheTransaction){}[0]
+
+    final val onCommitActions // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction.onCommitActions|{}onCommitActions[0]
+        final fun <get-onCommitActions>(): de.connect2x.trixnity.utils/Concurrent<kotlin.collections/List<kotlin.coroutines/SuspendFunction0<kotlin/Unit>>, kotlin.collections/MutableList<kotlin.coroutines/SuspendFunction0<kotlin/Unit>>> // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction.onCommitActions.<get-onCommitActions>|<get-onCommitActions>(){}[0]
+    final val onRollbackActions // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction.onRollbackActions|{}onRollbackActions[0]
+        final fun <get-onRollbackActions>(): de.connect2x.trixnity.utils/Concurrent<kotlin.collections/List<kotlin.coroutines/SuspendFunction0<kotlin/Unit>>, kotlin.collections/MutableList<kotlin.coroutines/SuspendFunction0<kotlin/Unit>>> // de.connect2x.trixnity.client.store.repository.room/RoomStoreWriteTransaction.onRollbackActions.<get-onRollbackActions>|<get-onRollbackActions>(){}[0]
+}
+
 final class de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent { // de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId;kotlin.String){}[0]
 
@@ -1372,17 +1367,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsD
     final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.Companion|null[0]
         final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
     }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction : kotlin.coroutines/CoroutineContext.Element { // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction|null[0]
-    constructor <init>(kotlinx.coroutines.sync/Mutex) // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.<init>|<init>(kotlinx.coroutines.sync.Mutex){}[0]
-
-    final val key // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.key|{}key[0]
-        final fun <get-key>(): kotlin.coroutines/CoroutineContext.Key<*> // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.key.<get-key>|<get-key>(){}[0]
-    final val mutex // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.mutex|{}mutex[0]
-        final fun <get-mutex>(): kotlinx.coroutines.sync/Mutex // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.mutex.<get-mutex>|<get-mutex>(){}[0]
-
-    final object Key : kotlin.coroutines/CoroutineContext.Key<de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction> // de.connect2x.trixnity.client.store.repository.room/RoomWriteTransaction.Key|null[0]
 }
 
 final class de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl : de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao { // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl|null[0]
@@ -1531,5 +1515,3 @@ final object de.connect2x.trixnity.client.store.repository.room/TrixnityRoomData
 }
 
 final fun (de.connect2x.trixnity.client/RepositoriesModule.Companion).de.connect2x.trixnity.client.store.repository.room/room(androidx.room/RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase>): de.connect2x.trixnity.client/RepositoriesModule // de.connect2x.trixnity.client.store.repository.room/room|room@de.connect2x.trixnity.client.RepositoriesModule.Companion(androidx.room.RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase>){}[0]
-final suspend inline fun <#A: kotlin/Any?> de.connect2x.trixnity.client.store.repository.room/withRoomRead(crossinline kotlin.coroutines/SuspendFunction0<#A>): #A // de.connect2x.trixnity.client.store.repository.room/withRoomRead|withRoomRead(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
-final suspend inline fun <#A: kotlin/Any?> de.connect2x.trixnity.client.store.repository.room/withRoomWrite(crossinline kotlin.coroutines/SuspendFunction0<#A>) // de.connect2x.trixnity.client.store.repository.room/withRoomWrite|withRoomWrite(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]

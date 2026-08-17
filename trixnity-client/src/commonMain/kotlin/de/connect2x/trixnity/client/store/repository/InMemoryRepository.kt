@@ -37,47 +37,61 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.time.Instant
 
 abstract class InMemoryMinimalRepository<K, V> : MinimalRepository<K, V> {
     val content = MutableStateFlow<Map<K, V>>(mapOf())
+
+    context(transaction: ReadTransaction)
     override suspend fun get(key: K): V? = content.value[key]
 
+    context(transaction: WriteTransaction)
     override suspend fun save(key: K, value: V) {
         content.update { it + (key to value) }
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun delete(key: K) {
         content.update { it - key }
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteAll() {
         content.value = emptyMap()
     }
 }
 
 abstract class InMemoryFullRepository<K, V> : FullRepository<K, V>, InMemoryMinimalRepository<K, V>() {
+    context(transaction: ReadTransaction)
     override suspend fun getAll(): List<V> = content.value.values.toList()
 }
 
 abstract class InMemoryMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
     val content = MutableStateFlow<Map<K1, Map<K2, V>>>(mapOf())
+
+    context(transaction: ReadTransaction)
     override suspend fun get(firstKey: K1): Map<K2, V> =
         content.value[firstKey].orEmpty()
 
+    context(transaction: ReadTransaction)
     override suspend fun get(firstKey: K1, secondKey: K2): V? =
         content.value[firstKey]?.get(secondKey)
 
+    context(transaction: WriteTransaction)
     override suspend fun save(firstKey: K1, secondKey: K2, value: V) {
         content.update { it + (firstKey to ((it[firstKey] ?: mapOf()) + (secondKey to value))) }
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun delete(firstKey: K1, secondKey: K2) {
         content.update { it + (firstKey to ((it[firstKey] ?: mapOf()) - secondKey)) }
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteAll() {
         content.value = emptyMap()
     }
@@ -114,6 +128,7 @@ class InMemoryOutboundMegolmSessionRepository : OutboundMegolmSessionRepository,
     InMemoryFullRepository<RoomId, StoredOutboundMegolmSession>()
 
 class InMemoryRoomUserRepository : RoomUserRepository, InMemoryMapRepository<RoomId, UserId, RoomUser>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { it - roomId }
     }
@@ -121,6 +136,7 @@ class InMemoryRoomUserRepository : RoomUserRepository, InMemoryMapRepository<Roo
 
 class InMemoryRoomUserReceiptsRepository : RoomUserReceiptsRepository,
     InMemoryMapRepository<RoomId, UserId, RoomUserReceipts>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { it - roomId }
     }
@@ -128,6 +144,7 @@ class InMemoryRoomUserReceiptsRepository : RoomUserReceiptsRepository,
 
 class InMemoryRoomStateRepository : RoomStateRepository,
     InMemoryMapRepository<RoomStateRepositoryKey, String, ClientEvent.StateBaseEvent<*>>() {
+    context(transaction: ReadTransaction)
     override suspend fun getByRooms(
         roomIds: Set<RoomId>,
         type: String,
@@ -136,6 +153,7 @@ class InMemoryRoomStateRepository : RoomStateRepository,
         content.value.filterKeys { roomIds.contains(it.roomId) && it.type == type }
             .values.flatMap { entry -> entry.filterKeys { it == stateKey }.values }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
@@ -143,6 +161,7 @@ class InMemoryRoomStateRepository : RoomStateRepository,
 
 class InMemoryTimelineEventRepository : TimelineEventRepository,
     InMemoryMinimalRepository<TimelineEventKey, TimelineEvent>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
@@ -150,6 +169,7 @@ class InMemoryTimelineEventRepository : TimelineEventRepository,
 
 class InMemoryTimelineEventRelationRepository : TimelineEventRelationRepository,
     InMemoryMapRepository<TimelineEventRelationKey, EventId, TimelineEventRelation>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
@@ -159,6 +179,7 @@ class InMemoryTimelineEventRelationRepository : TimelineEventRelationRepository,
 @MSC4354
 class InMemoryStickyEventRepository : StickyEventRepository,
     InMemoryMapRepository<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey, StoredStickyEvent<StickyEventContent>>() {
+    context(transaction: ReadTransaction)
     override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
         content.value
             .flatMap { (key, values) ->
@@ -167,10 +188,12 @@ class InMemoryStickyEventRepository : StickyEventRepository,
                 }.map { key to it.key }
             }.toSet()
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
 
+    context(transaction: ReadTransaction)
     override suspend fun getByEventId(
         roomId: RoomId,
         eventId: EventId
@@ -191,6 +214,7 @@ class InMemoryUserPresenceRepository : UserPresenceRepository,
 
 class InMemoryRoomAccountDataRepository : RoomAccountDataRepository,
     InMemoryMapRepository<RoomAccountDataRepositoryKey, String, RoomAccountDataEvent<*>>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
@@ -204,6 +228,7 @@ class InMemoryRoomKeyRequestRepository : RoomKeyRequestRepository,
 
 class InMemoryInboundMegolmSessionRepository : InboundMegolmSessionRepository,
     InMemoryFullRepository<InboundMegolmSessionRepositoryKey, StoredInboundMegolmSession>() {
+    context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
         content.value.values.filter { it.hasBeenBackedUp.not() }.toSet()
 }
@@ -212,12 +237,14 @@ class InMemoryRoomRepository : RoomRepository, InMemoryFullRepository<RoomId, Ro
 
 class InMemoryRoomOutboxMessageRepository : RoomOutboxMessageRepository,
     InMemoryFullRepository<RoomOutboxMessageRepositoryKey, RoomOutboxMessage<*>>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
 }
 
 class InMemoryNotificationRepository : NotificationRepository, InMemoryFullRepository<String, StoredNotification>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterValues { it.roomId != roomId } }
     }
@@ -225,6 +252,7 @@ class InMemoryNotificationRepository : NotificationRepository, InMemoryFullRepos
 
 class InMemoryNotificationUpdateRepository : NotificationUpdateRepository,
     InMemoryFullRepository<String, StoredNotificationUpdate>() {
+    context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterValues { it.roomId != roomId } }
     }
@@ -235,20 +263,25 @@ class InMemoryNotificationStateRepository : NotificationStateRepository,
 
 class InMemoryKeyChainLinkRepository : KeyChainLinkRepository {
     private val values = MutableStateFlow<Set<KeyChainLink>>(setOf())
+
+    context(transaction: WriteTransaction)
     override suspend fun save(keyChainLink: KeyChainLink) {
         values.update { it + keyChainLink }
     }
 
+    context(transaction: ReadTransaction)
     override suspend fun getBySigningKey(signingUserId: UserId, signingKey: Key.Ed25519Key): Set<KeyChainLink> {
         return values.value.filter { it.signingUserId == signingUserId && it.signingKey == signingKey }.toSet()
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key) {
         values.update {
             it.filter { value -> value.signedUserId == signedUserId && value.signedKey == signedKey }.toSet()
         }
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteAll() {
         values.value = setOf()
     }

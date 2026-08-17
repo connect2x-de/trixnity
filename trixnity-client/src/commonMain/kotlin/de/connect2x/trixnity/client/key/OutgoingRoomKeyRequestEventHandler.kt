@@ -3,11 +3,7 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.AccountStore
-import de.connect2x.trixnity.client.store.KeyStore
-import de.connect2x.trixnity.client.store.OlmCryptoStore
-import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
-import de.connect2x.trixnity.client.store.isVerified
+import de.connect2x.trixnity.client.store.*
 import de.connect2x.trixnity.client.utils.retry
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -51,6 +47,7 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
     private val accountStore: AccountStore,
     private val keyStore: KeyStore,
     private val olmCryptoStore: OlmCryptoStore,
+    private val tm: StoreTransactionManager,
     private val currentSyncState: CurrentSyncState,
     private val clock: Clock,
     private val driver: CryptoDriver,
@@ -93,18 +90,20 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
                     return
                 }
             val newForwardingCurve25519KeyChain = content.forwardingKeyChain + event.encrypted.content.senderKey
-            olmCryptoStore.updateInboundMegolmSession(content.sessionId, content.roomId) {
-                if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                else StoredInboundMegolmSession(
-                    senderKey = content.senderKey,
-                    sessionId = content.sessionId,
-                    roomId = content.roomId, firstKnownIndex = firstKnownIndex.toLong(),
-                    isTrusted = false, // TODO we could add more trust, if we verify the key chain
-                    hasBeenBackedUp = false, // actually not known if it has been backed up
-                    senderSigningKey = content.senderClaimedKey,
-                    forwardingCurve25519KeyChain = newForwardingCurve25519KeyChain,
-                    pickled = pickledSession
-                )
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(content.sessionId, content.roomId) {
+                    if (it != null && it.firstKnownIndex <= firstKnownIndex) it
+                    else StoredInboundMegolmSession(
+                        senderKey = content.senderKey,
+                        sessionId = content.sessionId,
+                        roomId = content.roomId, firstKnownIndex = firstKnownIndex.toLong(),
+                        isTrusted = false, // TODO we could add more trust, if we verify the key chain
+                        hasBeenBackedUp = false, // actually not known if it has been backed up
+                        senderSigningKey = content.senderClaimedKey,
+                        forwardingCurve25519KeyChain = newForwardingCurve25519KeyChain,
+                        pickled = pickledSession
+                    )
+                }
             }
             keyStore.getAllRoomKeyRequests()
                 .find { request -> request.content.body?.roomId == content.roomId && request.content.body?.sessionId == content.sessionId }
@@ -130,7 +129,9 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
                 mapOf(ownUserId to cancelRequestTo.associateWith { cancelRequest })
             ).getOrThrow()
         }
-        keyStore.deleteRoomKeyRequest(content.requestId)
+        tm.writeTransaction {
+            keyStore.deleteRoomKeyRequest(content.requestId)
+        }
     }
 
     override suspend fun requestRoomKeys(
@@ -169,9 +170,11 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
                 // TODO should be encrypted (because this is meta data)
                 api.user.sendToDevice(mapOf(ownUserId to receiverDeviceIds.associateWith { request }))
                     .onSuccess {
-                        keyStore.addRoomKeyRequest(
-                            StoredRoomKeyRequest(request, receiverDeviceIds, clock.now())
-                        )
+                        tm.writeTransaction {
+                            keyStore.addRoomKeyRequest(
+                                StoredRoomKeyRequest(request, receiverDeviceIds, clock.now())
+                            )
+                        }
                     }.getOrThrow()
             }
         }

@@ -1,18 +1,18 @@
 package de.connect2x.trixnity.client.user
 
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.ClockMock
 import de.connect2x.trixnity.client.getInMemoryUserPresenceStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.EphemeralEvent
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -26,7 +26,7 @@ class PresenceEventHandlerTest : TrixnityBaseTest() {
     private val cut =
         UserPresenceEventHandler(
             userPresenceStore,
-            TransactionManagerMock(),
+            NoOpStoreTransactionManager,
             clock,
             mockMatrixClientServerApiClient()
         )

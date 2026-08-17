@@ -21,12 +21,14 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.io.File
@@ -39,7 +41,7 @@ import kotlin.time.Duration.Companion.seconds
 class OutboxIT : TrixnityBaseTest() {
 
     private lateinit var client: MatrixClient
-    private lateinit var database: Database
+    private lateinit var database: R2dbcDatabase
 
     @Container
     val synapseDocker = synapseDocker()
@@ -106,8 +108,9 @@ class OutboxIT : TrixnityBaseTest() {
                 override val primaryKey = PrimaryKey(roomId, transactionId)
             }
             withCluePrintln("check empty database") {
-                newSuspendedTransaction(Dispatchers.IO, database) {
-                    exposedRoomOutbox.selectAll().map { it[exposedRoomOutbox.transactionId] } shouldBe emptyList()
+                suspendTransaction(database) {
+                    exposedRoomOutbox.selectAll().map { it[exposedRoomOutbox.transactionId] }
+                        .toList() shouldBe emptyList()
                 }
             }
         }

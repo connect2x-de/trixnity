@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.store.AccountStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -30,6 +31,7 @@ private val log = Logger("de.connect2x.trixnity.client.user.ProfileEventHandler"
 class ProfileEventHandler(
     private val api: MatrixClientServerApiClient,
     private val accountStore: AccountStore,
+    private val tm: StoreTransactionManager,
     private val userInfo: UserInfo,
     private val currentSyncState: CurrentSyncState
 ) : EventHandler {
@@ -69,8 +71,10 @@ class ProfileEventHandler(
             }
             api.user.getProfile(userInfo.userId)
                 .onSuccess { profile ->
-                    accountStore.updateAccount { account ->
-                        account?.copy(profile = profile)
+                    tm.writeTransaction {
+                        accountStore.updateAccount { account ->
+                            account?.copy(profile = profile)
+                        }
                     }
                 }.getOrThrow()
         }

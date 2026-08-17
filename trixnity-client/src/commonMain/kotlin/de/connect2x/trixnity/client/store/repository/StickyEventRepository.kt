@@ -6,6 +6,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.StickyEventContent
+import de.connect2x.trixnity.utils.ReadTransaction
 import kotlin.time.Instant
 
 
@@ -18,7 +19,10 @@ interface StickyEventRepository :
     ): String =
         firstKey.roomId.full + firstKey.type + secondKey.sender.full + secondKey.stickyKey
 
+    context(transaction: ReadTransaction)
     suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>>
+
+    context(transaction: ReadTransaction)
     suspend fun getByEventId(
         roomId: RoomId,
         eventId: EventId

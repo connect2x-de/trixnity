@@ -8,6 +8,7 @@ import de.connect2x.trixnity.client.mocks.OlmEncryptionServiceMock
 import de.connect2x.trixnity.client.mocks.OlmEventHandlerMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
@@ -38,6 +39,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlin.test.Test
 
 class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
 
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
@@ -196,13 +198,15 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
 
     private suspend fun handleEncryptedIncomingKeyRequestsSetup() {
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
+            }
         }
         apiConfig.endpoints {
             matrixJsonEndpoint(
@@ -217,23 +221,25 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 senderKey = Curve25519KeyValue("")
             )
         )
-        olmStore.updateInboundMegolmSession(sessionId, room) {
-            val outboundSession = driver.megolm.groupSession()
-            val inboundSession = driver.megolm.inboundGroupSession(
-                sessionKey = outboundSession.sessionKey
-            )
+        tm.writeTransaction {
+            olmStore.updateInboundMegolmSession(sessionId, room) {
+                val outboundSession = driver.megolm.groupSession()
+                val inboundSession = driver.megolm.inboundGroupSession(
+                    sessionKey = outboundSession.sessionKey
+                )
 
-            StoredInboundMegolmSession(
-                senderKey = senderKey.value,
-                senderSigningKey = senderSigningKey.value,
-                sessionId = sessionId,
-                roomId = room,
-                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-                hasBeenBackedUp = true,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
-                pickled = inboundSession.pickle(),
-            )
+                StoredInboundMegolmSession(
+                    senderKey = senderKey.value,
+                    senderSigningKey = senderSigningKey.value,
+                    sessionId = sessionId,
+                    roomId = room,
+                    firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = inboundSession.pickle(),
+                )
+            }
         }
     }
 
@@ -251,35 +257,39 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 senderKey = Curve25519KeyValue("")
             )
         )
-        olmStore.updateInboundMegolmSession(sessionId, room) {
-            val outboundSession = driver.megolm.groupSession()
-            val inboundSession = driver.megolm.inboundGroupSession(
-                sessionKey = outboundSession.sessionKey
-            )
+        tm.writeTransaction {
+            olmStore.updateInboundMegolmSession(sessionId, room) {
+                val outboundSession = driver.megolm.groupSession()
+                val inboundSession = driver.megolm.inboundGroupSession(
+                    sessionKey = outboundSession.sessionKey
+                )
 
-            StoredInboundMegolmSession(
-                senderKey = senderKey.value,
-                senderSigningKey = senderSigningKey.value,
-                sessionId = sessionId,
-                roomId = room,
-                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-                hasBeenBackedUp = true,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
-                pickled = inboundSession.pickle(),
-            )
+                StoredInboundMegolmSession(
+                    senderKey = senderKey.value,
+                    senderSigningKey = senderSigningKey.value,
+                    sessionId = sessionId,
+                    roomId = room,
+                    firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = inboundSession.pickle(),
+                )
+            }
         }
     }
 
     private fun answerRequest(returnedTrustLevel: KeySignatureTrustLevel) = runTest {
         processIncomingKeyRequestsSetup()
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                    returnedTrustLevel
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                        returnedTrustLevel
+                    )
                 )
-            )
+            }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
@@ -306,13 +316,15 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private fun notAnswerRequest(returnedTrustLevel: KeySignatureTrustLevel) = runTest {
         processIncomingKeyRequestsSetup()
 
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                    returnedTrustLevel
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                        returnedTrustLevel
+                    )
                 )
-            )
+            }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(

@@ -19,6 +19,7 @@ import de.connect2x.trixnity.client.simpleUserInfo
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncBatchTokenStore
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.startOnce
@@ -61,6 +62,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @OptIn(MSC4354::class)
 class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val room = simpleRoom.roomId
     private val newRoom = RoomId("!new:server")
 
@@ -90,6 +92,7 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             roomTimelineStore = roomTimelineStore,
             stickyEventStore = getInMemoryStickyEventStore(),
             roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore(),
+            tm = tm,
             roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
             mediaService = mediaServiceMock,
             forgetRoomService = { _, _ -> },
@@ -266,14 +269,14 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             cut.getTimelineEvents(room, event3.id).take(4).toList().map { it.first() }
         }
         timelineEventHandlerMock.unsafeFillTimelineGaps.first { it }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 timelineEvent3,
                 timelineEvent2.copy(gap = null, previousEventId = event0.id),
                 timelineEvent0,
                 timelineEvent1.copy(gap = null, nextEventId = event0.id)
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
         result.await() shouldBe listOf(
             timelineEvent3,
             timelineEvent2.copy(gap = null, previousEventId = event0.id),
@@ -293,14 +296,14 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
                 }.toList().map { it.first() }
             }
             timelineEventHandlerMock.unsafeFillTimelineGaps.first { it }
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
                 listOf(
                     timelineEvent3,
                     timelineEvent2.copy(gap = null, previousEventId = event0.id),
                     timelineEvent0,
                     timelineEvent1.copy(gap = null, nextEventId = event0.id)
-                )
-            )
+                ).forEach { roomTimelineStore.add(it) }
+            }
             result.await() shouldBe listOf(
                 timelineEvent3,
                 timelineEvent2.copy(gap = null, previousEventId = event0.id),
@@ -322,13 +325,13 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvents » complete timeline in store » flow should be finished when all collected`() =
         runTest {
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
                 listOf(
                     timelineEvent1.copy(gap = null, previousEventId = null, event = createEvent),
                     timelineEvent2,
                     timelineEvent3
-                )
-            )
+                ).forEach { roomTimelineStore.add(it) }
+            }
             cut.getTimelineEvents(room, event3.id)
                 .toList().map { it.first() } shouldBe listOf(
                 timelineEvent3,
@@ -354,7 +357,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
 
     @Test
     fun `getTimelineEvents » toFlowList » transform to list`() = runTest {
-        roomTimelineStore.addAll(listOf(timelineEvent1, timelineEvent2, timelineEvent3))
+        tm.writeTransaction {
+            listOf(timelineEvent1, timelineEvent2, timelineEvent3).forEach { roomTimelineStore.add(it) }
+        }
         val size = MutableStateFlow(2)
         val resultList = MutableStateFlow<List<TimelineEvent>?>(null)
         backgroundScope.launch {
@@ -459,7 +464,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     @Test
     fun `getLastTimelineEvents » get timeline events`() = runTest {
         getLastTimelineEventsSetup()
-        roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        }
         cut.getLastTimelineEvents(room)
             .first()
             .shouldNotBeNull()
@@ -473,7 +480,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     @Test
     fun `getLastTimelineEvents » cancel old timeline event flow`() = runTest {
         getLastTimelineEventsSetup()
-        roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
+        }
         val collectedEvents = MutableStateFlow<List<TimelineEvent?>?>(null)
         backgroundScope.launch {
             cut.getLastTimelineEvents(room)
@@ -489,7 +498,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             timelineEvent1,
         )
 
-        roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        }
         collectedEvents.first { it?.first()?.eventId == event3.id }
         collectedEvents.value shouldBe listOf(
             timelineEvent3,
@@ -503,7 +514,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
         val size = MutableStateFlow(2)
         val resultList = MutableStateFlow<List<TimelineEvent>?>(null)
 
-        roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
+        }
         backgroundScope.launch {
             cut.getLastTimelineEvents(room)
                 .toFlowList(size)
@@ -515,7 +528,9 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             timelineEvent1,
         )
 
-        roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
+        }
         size.value = 1
         resultList.first { it?.size == 1 && it.first().eventId == event3.id } shouldBe listOf(
             timelineEvent3
@@ -539,15 +554,15 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             10
         )
         syncBatchTokenStore.setSyncBatchToken("token1")
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 timelineEvent1.copy(content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout)),
                 timelineEvent1.copy(
                     content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout),
                     event = event1.copy(id = event10.id, roomId = RoomId("!other:server"))
                 )
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
         apiConfig.endpoints {
             matrixJsonEndpoint(Sync(timeout = 0, since = "token1")) {
                 Sync.Response(
@@ -587,41 +602,49 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     }
 
     private suspend fun allRequestedEventsInStoreSetup() {
-        roomTimelineStore.addAll(listOf(timelineEvent1, timelineEvent2, timelineEvent3))
+        tm.writeTransaction {
+            listOf(timelineEvent1, timelineEvent2, timelineEvent3).forEach { roomTimelineStore.add(it) }
+        }
     }
 
     private suspend fun notAllRequestedEventsInStoreSetup() {
-        roomTimelineStore.addAll(
+
+        tm.writeTransaction {
             listOf(
                 timelineEvent1.copy(gap = TimelineEvent.Gap.GapAfter("after-1")),
                 timelineEvent2.copy(gap = TimelineEvent.Gap.GapBefore("before-2")),
                 timelineEvent3
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
     }
 
     private suspend fun roomUpgradesSetup() {
-        roomTimelineStore.addAll(timeline)
-        with(roomStateStore) {
-            save(tombstoneEvent)
-            save(createEvent1)
-            save(createEvent2)
+        tm.writeTransaction {
+            timeline.forEach { roomTimelineStore.add(it) }
+            with(roomStateStore) {
+                save(tombstoneEvent)
+                save(createEvent1)
+                save(createEvent2)
+            }
         }
     }
 
     private suspend fun getTimelineEventsAroundSetup() {
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 newTimelineEvent1,
                 timelineEvent2,
                 newTimelineEvent3,
                 timelineEvent4
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
     }
 
 
     private suspend fun getLastTimelineEventsSetup() {
-        roomTimelineStore.addAll(listOf(timelineEvent1, timelineEvent2, timelineEvent3))
+        tm.writeTransaction {
+            listOf(timelineEvent1, timelineEvent2, timelineEvent3)
+                .forEach { roomTimelineStore.add(it) }
+        }
     }
 }

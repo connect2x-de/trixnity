@@ -1,27 +1,40 @@
 package de.connect2x.trixnity.client.verification
 
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldNotBeBlank
-import io.kotest.matchers.types.shouldBeInstanceOf
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.ComparisonByUser
 import de.connect2x.trixnity.client.verification.ActiveSasVerificationState.TheirSasStart
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.key.verification.*
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasAcceptEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasHash
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasKeyAgreementProtocol
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMacEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMessageAuthenticationCode
+import de.connect2x.trixnity.core.model.events.m.key.verification.SasMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code.UnknownMethod
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent.SasStartEventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldNotBeBlank
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlin.test.Test
 
 class ActiveSasVerificationStateTest : TrixnityBaseTest() {
@@ -90,57 +103,59 @@ class ActiveSasVerificationStateTest : TrixnityBaseTest() {
         val olmSas1 = driver.sas()
         val olmSas2 = driver.sas()
         val establishedSas = olmSas1.diffieHellman(olmSas2.publicKey)
-        keyStore.updateDeviceKeys(UserId("alice", "server")) {
-            mapOf(
-                "AAAAAA" to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            userId = UserId("alice", "server"),
-                            deviceId = "AAAAAA",
-                            algorithms = setOf(),
-                            keys = keysOf(
-                                Ed25519Key("AAKey1", "key1"), Ed25519Key("AAKey2", "key2")
-                            )
-                        ), mapOf()
-                    ), KeySignatureTrustLevel.Valid(true)
-                ), "AAAAAA_OTHER" to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            userId = UserId("alice", "server"),
-                            deviceId = "AAAAAA_OTHER",
-                            algorithms = setOf(),
-                            keys = keysOf(
-                                Ed25519Key("AAKey1_Other", "key1_other"), Ed25519Key("AAKey2_Other", "key2_other")
-                            )
-                        ), mapOf()
-                    ), KeySignatureTrustLevel.Valid(true)
+        NoOpStoreTransactionManager.writeTransaction {
+            keyStore.updateDeviceKeys(UserId("alice", "server")) {
+                mapOf(
+                    "AAAAAA" to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                userId = UserId("alice", "server"),
+                                deviceId = "AAAAAA",
+                                algorithms = setOf(),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey1", "key1"), Ed25519Key("AAKey2", "key2")
+                                )
+                            ), mapOf()
+                        ), KeySignatureTrustLevel.Valid(true)
+                    ), "AAAAAA_OTHER" to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                userId = UserId("alice", "server"),
+                                deviceId = "AAAAAA_OTHER",
+                                algorithms = setOf(),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey1_Other", "key1_other"), Ed25519Key("AAKey2_Other", "key2_other")
+                                )
+                            ), mapOf()
+                        ), KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateCrossSigningKeys(UserId("alice", "server")) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            userId = UserId("alice", "server"),
-                            usage = setOf(CrossSigningKeysUsage.MasterKey),
-                            keys = keysOf(
-                                Ed25519Key("AAKey3", "key3")
-                            )
-                        ), mapOf()
-                    ), KeySignatureTrustLevel.Valid(false)
-                ), StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            userId = UserId("alice", "server"),
-                            usage = setOf(CrossSigningKeysUsage.SelfSigningKey),
-                            keys = keysOf(
-                                Ed25519Key("AAKey3_other", "key3_other")
-                            )
-                        ), mapOf()
-                    ), KeySignatureTrustLevel.Valid(false)
+            }
+            keyStore.updateCrossSigningKeys(UserId("alice", "server")) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                userId = UserId("alice", "server"),
+                                usage = setOf(CrossSigningKeysUsage.MasterKey),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey3", "key3")
+                                )
+                            ), mapOf()
+                        ), KeySignatureTrustLevel.Valid(false)
+                    ), StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                userId = UserId("alice", "server"),
+                                usage = setOf(CrossSigningKeysUsage.SelfSigningKey),
+                                keys = keysOf(
+                                    Ed25519Key("AAKey3_other", "key3_other")
+                                )
+                            ), mapOf()
+                        ), KeySignatureTrustLevel.Valid(false)
+                    )
                 )
-            )
+            }
         }
         var step: VerificationStep? = null
         val cut = ComparisonByUser(

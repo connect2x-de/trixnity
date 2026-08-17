@@ -1,7 +1,14 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.MigrationRepository
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 
 @Entity(tableName = "Migration")
 data class RoomMigration(
@@ -30,8 +37,15 @@ internal class RoomMigrationRepository(
 
     private val dao = db.migration()
 
-    override suspend fun get(key: String): String? = withRoomRead { dao.get(key)?.metadata }
-    override suspend fun save(key: String, value: String) = withRoomWrite { dao.insert(RoomMigration(key, value)) }
-    override suspend fun delete(key: String) = withRoomWrite { dao.delete(key) }
-    override suspend fun deleteAll() = withRoomWrite { dao.deleteAll() }
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: String): String? = dao.get(key)?.metadata
+
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: String, value: String) = dao.insert(RoomMigration(key, value))
+
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: String) = dao.delete(key)
+
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() = dao.deleteAll()
 }

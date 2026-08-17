@@ -22,11 +22,6 @@ import web.idb.IDBTransaction
 import web.idb.IDBValidKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.JsAny
-import kotlin.js.toJsArray
-import kotlin.js.toJsString
-import kotlin.js.unsafeCast
 
 value class WrappedTransaction(val tx: IDBTransaction) {
 
@@ -87,7 +82,6 @@ value class WrappedTransaction(val tx: IDBTransaction) {
     suspend fun <T : JsAny> WrappedObjectStore.put(value: T, key: IDBValidKey? = null): Unit =
         suspendCancellableCoroutine { continuation ->
             val request = key?.let { store.put(value, it) } ?: store.put(value)
-
             request.onsuccess = EventHandler {
                 continuation.resume(Unit)
             }

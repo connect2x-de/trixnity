@@ -81,6 +81,9 @@ public final class de/connect2x/trixnity/utils/RandomNextStringKt {
 	public static synthetic fun nextString$default (Lkotlin/random/Random;ILjava/util/List;ILjava/lang/Object;)Ljava/lang/String;
 }
 
+public abstract interface class de/connect2x/trixnity/utils/ReadTransaction {
+}
+
 public final class de/connect2x/trixnity/utils/ReentrantMutexContextElement : kotlin/coroutines/CoroutineContext$Element {
 	public fun <init> (Lde/connect2x/trixnity/utils/ReentrantMutexContextKey;)V
 	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
@@ -147,6 +150,11 @@ public final class de/connect2x/trixnity/utils/StreamExtensionsKt {
 	public static synthetic fun writeTo$default (Lkotlinx/coroutines/flow/Flow;Ljava/io/OutputStream;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
+public abstract interface class de/connect2x/trixnity/utils/TransactionManager {
+	public abstract fun readTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun writeTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public abstract interface annotation class de/connect2x/trixnity/utils/TrixnityDsl : java/lang/annotation/Annotation {
 }
 
@@ -162,5 +170,8 @@ public final class de/connect2x/trixnity/utils/UnpaddedBase64Kt {
 
 public final class de/connect2x/trixnity/utils/WithReentrantLockKt {
 	public static final fun withReentrantLock (Lkotlinx/coroutines/sync/Mutex;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/utils/WriteTransaction : de/connect2x/trixnity/utils/ReadTransaction {
 }
 

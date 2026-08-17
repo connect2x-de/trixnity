@@ -5,9 +5,18 @@ import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.SignServiceMock
-import de.connect2x.trixnity.client.store.*
-import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.*
+import de.connect2x.trixnity.client.store.KeyChainLink
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Blocked
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.CrossSigned
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Invalid
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.NotCrossSigned
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
+import de.connect2x.trixnity.client.store.KeyVerificationState
 import de.connect2x.trixnity.client.store.KeyVerificationState.Verified
+import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
+import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.key.AddSignatures
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
@@ -16,9 +25,18 @@ import de.connect2x.trixnity.core.model.events.m.crosssigning.MasterKeyEventCont
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import de.connect2x.trixnity.core.model.keys.*
-import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.MasterKey
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.SelfSigningKey
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.UserSigningKey
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.SignedCrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.core.createAesHmacSha2MacFromKey
@@ -45,7 +63,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 
 class KeyTrustServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     private val alice = UserId("alice", "server")
@@ -65,12 +83,13 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     private val api = mockMatrixClientServerApiClient(apiConfig, json)
 
     private val cut = KeyTrustServiceImpl(
-        UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        keyStore,
-        globalAccountDataStore,
-        signServiceMock,
-        api,
-        driver
+        userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+        keyStore = keyStore,
+        globalAccountDataStore = globalAccountDataStore,
+        tm = tm,
+        signService = signServiceMock,
+        api = api,
+        driver = driver
     )
 
     private val recoveryKey = Random.nextBytes(32)
@@ -104,20 +123,22 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `checkOwnAdvertisedMasterKeyAndVerifySelf » fail when master key does not match`() = runTest {
-        globalAccountDataStore.save(GlobalAccountDataEvent(encryptedMasterSigningKey))
-        val publicKey = Random.nextBytes(32).encodeUnpaddedBase64()
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    SignedCrossSigningKeys(
-                        CrossSigningKeys(
-                            alice, setOf(UserSigningKey), keysOf(
-                                Ed25519Key(publicKey, publicKey)
-                            )
-                        ), mapOf()
-                    ), CrossSigned(true)
+        tm.writeTransaction {
+            globalAccountDataStore.save(GlobalAccountDataEvent(encryptedMasterSigningKey))
+            val publicKey = Random.nextBytes(32).encodeUnpaddedBase64()
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        SignedCrossSigningKeys(
+                            CrossSigningKeys(
+                                alice, setOf(UserSigningKey), keysOf(
+                                    Ed25519Key(publicKey, publicKey)
+                                )
+                            ), mapOf()
+                        ), CrossSigned(true)
+                    )
                 )
-            )
+            }
         }
 
         cut.checkOwnAdvertisedMasterKeyAndVerifySelf(recoveryKey, keyId, keyInfo).isFailure shouldBe true
@@ -133,34 +154,36 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
                 AddSignatures.Response(mapOf())
             }
         }
-
-        globalAccountDataStore.save(GlobalAccountDataEvent(encryptedMasterSigningKey))
         val aliceMasterKey = CrossSigningKeys(
             alice, setOf(MasterKey), keysOf(
                 Ed25519Key(masterSigningPublicKey, masterSigningPublicKey)
             )
         )
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    SignedCrossSigningKeys(
-                        aliceMasterKey, mapOf()
-                    ), Valid(false)
+        tm.writeTransaction {
+            globalAccountDataStore.save(GlobalAccountDataEvent(encryptedMasterSigningKey))
+
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        SignedCrossSigningKeys(
+                            aliceMasterKey, mapOf()
+                        ), Valid(false)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    SignedDeviceKeys(
-                        DeviceKeys(
-                            alice, aliceDevice, setOf(),
-                            keysOf(Ed25519Key(aliceDevice, "dev"))
-                        ), mapOf()
-                    ),
-                    Valid(false)
+            }
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        SignedDeviceKeys(
+                            DeviceKeys(
+                                alice, aliceDevice, setOf(),
+                                keysOf(Ed25519Key(aliceDevice, "dev"))
+                            ), mapOf()
+                        ),
+                        Valid(false)
+                    )
                 )
-            )
+            }
         }
 
         cut.checkOwnAdvertisedMasterKeyAndVerifySelf(recoveryKey, keyId, keyInfo).getOrThrow()
@@ -177,30 +200,32 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     private suspend fun TestScope.updateTrustLevelOfKeyChainSignedBySetup() {
         clearOutdatedKeys { keyStore }
         // this is a keychain with loop -> it should not loop
-        keyStore.saveKeyChainLink(
-            KeyChainLink(
-                signingUserId = alice,
-                signingKey = aliceSigningKey1,
-                signedUserId = alice,
-                signedKey = aliceSigningKey2
+        tm.writeTransaction {
+            keyStore.saveKeyChainLink(
+                KeyChainLink(
+                    signingUserId = alice,
+                    signingKey = aliceSigningKey1,
+                    signedUserId = alice,
+                    signedKey = aliceSigningKey2
+                )
             )
-        )
-        keyStore.saveKeyChainLink(
-            KeyChainLink(
-                signingUserId = alice,
-                signingKey = aliceSigningKey2,
-                signedUserId = bob,
-                signedKey = bobSignedKey
+            keyStore.saveKeyChainLink(
+                KeyChainLink(
+                    signingUserId = alice,
+                    signingKey = aliceSigningKey2,
+                    signedUserId = bob,
+                    signedKey = bobSignedKey
+                )
             )
-        )
-        keyStore.saveKeyChainLink(
-            KeyChainLink(
-                signingUserId = bob,
-                signingKey = bobSignedKey,
-                signedUserId = alice,
-                signedKey = aliceSigningKey1
+            keyStore.saveKeyChainLink(
+                KeyChainLink(
+                    signingUserId = bob,
+                    signingKey = bobSignedKey,
+                    signedUserId = alice,
+                    signedKey = aliceSigningKey1
+                )
             )
-        )
+        }
     }
 
 
@@ -216,7 +241,9 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
                 mapOf()
             ), Invalid("why not")
         )
-        keyStore.updateDeviceKeys(bob) { mapOf(bobDevice to bobKey) }
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(bob) { mapOf(bobDevice to bobKey) }
+        }
         cut.updateTrustLevelOfKeyChainSignedBy(alice, aliceSigningKey1)
         keyStore.getDeviceKey(bob, bobDevice).first() shouldBe bobKey.copy(trustLevel = Valid(false))
     }
@@ -232,7 +259,9 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
                 ),
                 Invalid("why not")
             )
-            keyStore.updateCrossSigningKeys(bob) { setOf(key) }
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(bob) { setOf(key) }
+            }
             cut.updateTrustLevelOfKeyChainSignedBy(alice, aliceSigningKey1)
             keyStore.getCrossSigningKeys(bob).first()?.firstOrNull() shouldBe key.copy(
                 trustLevel = CrossSigned(
@@ -265,29 +294,33 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     fun `calculateTrustLevel » without key chain » be NotCrossSigned when key is verified when master key exists`() =
         runTest {
             calculateTrustLevelSetup()
-            keyStore.updateCrossSigningKeys(alice) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(
-                            CrossSigningKeys(alice, setOf(MasterKey), keysOf(Ed25519Key("id", "value"))),
-                            mapOf()
-                        ),
-                        Valid(false)
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(alice) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(
+                                CrossSigningKeys(alice, setOf(MasterKey), keysOf(Ed25519Key("id", "value"))),
+                                mapOf()
+                            ),
+                            Valid(false)
+                        )
                     )
+                }
+                keyStore.saveKeyVerificationState(
+                    Ed25519Key("AAAAAA", "edKeyValue"), Verified("edKeyValue")
                 )
             }
-            keyStore.saveKeyVerificationState(
-                Ed25519Key("AAAAAA", "edKeyValue"), Verified("edKeyValue")
-            )
             cut.calculateDeviceKeysTrustLevel(withoutKeyChaindeviceKeys) shouldBe NotCrossSigned
         }
 
     @Test
     fun `calculateTrustLevel » without key chain » be Valid and verified when key is verified`() = runTest {
         calculateTrustLevelSetup()
-        keyStore.saveKeyVerificationState(
-            Ed25519Key("AAAAAA", "edKeyValue"), Verified("edKeyValue")
-        )
+        tm.writeTransaction {
+            keyStore.saveKeyVerificationState(
+                Ed25519Key("AAAAAA", "edKeyValue"), Verified("edKeyValue")
+            )
+        }
         cut.calculateDeviceKeysTrustLevel(withoutKeyChaindeviceKeys) shouldBe Valid(true)
     }
 
@@ -295,18 +328,22 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     fun `calculateTrustLevel » without key chain » be CrossSigned and verified when key is verified and a master key`() =
         runTest {
             calculateTrustLevelSetup()
-            keyStore.saveKeyVerificationState(
-                Ed25519Key("edKeyValue", "edKeyValue"), Verified("edKeyValue")
-            )
+            tm.writeTransaction {
+                keyStore.saveKeyVerificationState(
+                    Ed25519Key("edKeyValue", "edKeyValue"), Verified("edKeyValue")
+                )
+            }
             cut.calculateCrossSigningKeysTrustLevel(masterKey) shouldBe CrossSigned(true)
         }
 
     @Test
     fun `calculateTrustLevel » without key chain » be Blocked when key is blocked`() = runTest {
         calculateTrustLevelSetup()
-        keyStore.saveKeyVerificationState(
-            Ed25519Key("AAAAAA", "edKeyValue"), KeyVerificationState.Blocked("edKeyValue")
-        )
+        tm.writeTransaction {
+            keyStore.saveKeyVerificationState(
+                Ed25519Key("AAAAAA", "edKeyValue"), KeyVerificationState.Blocked("edKeyValue")
+            )
+        }
         cut.calculateDeviceKeysTrustLevel(withoutKeyChaindeviceKeys) shouldBe Blocked
     }
 
@@ -325,16 +362,18 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     @Test
     fun `calculateTrustLevel » without key chain » be NotCrossSigned when there is a master key`() = runTest {
         calculateTrustLevelSetup()
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(alice, setOf(MasterKey), keysOf(Ed25519Key("id", "value"))),
-                        mapOf()
-                    ),
-                    Valid(false)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(alice, setOf(MasterKey), keysOf(Ed25519Key("id", "value"))),
+                            mapOf()
+                        ),
+                        Valid(false)
+                    )
                 )
-            )
+            }
         }
         cut.calculateDeviceKeysTrustLevel(withoutKeyChaindeviceKeys) shouldBe NotCrossSigned
     }
@@ -354,39 +393,41 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
 
     private suspend fun TestScope.selfSigningChainSetup() {
         calculateTrustLevelSetup()
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
-                        ),
-                        mapOf()
-                    ), Valid(false)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
+                            ),
+                            mapOf()
+                        ), Valid(false)
+                    )
                 )
+            }
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    bobDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                bob,
+                                bobDevice,
+                                setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
+                                keysOf(
+                                    Ed25519Key(bobDevice, "..."),
+                                    Key.Curve25519Key(bobDevice, "...")
+                                )
+                            ),
+                            mapOf()
+                        ), Valid(true)
+                    )
+                )
+            }
+            keyStore.saveKeyVerificationState(
+                Ed25519Key(bobDevice, "..."), Verified("...")
             )
         }
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                bobDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            bob,
-                            bobDevice,
-                            setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
-                            keysOf(
-                                Ed25519Key(bobDevice, "..."),
-                                Key.Curve25519Key(bobDevice, "...")
-                            )
-                        ),
-                        mapOf()
-                    ), Valid(true)
-                )
-            )
-        }
-        keyStore.saveKeyVerificationState(
-            Ed25519Key(bobDevice, "..."), Verified("...")
-        )
     }
 
     @Test
@@ -411,63 +452,65 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
 
     private suspend fun TestScope.withKeyChainSetup() {
         calculateTrustLevelSetup()
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            bob, setOf(SelfSigningKey), keysOf(Ed25519Key("BOB_SSK", "..."))
-                        ),
-                        mapOf(bob to keysOf(Ed25519Key("BOB_MSK", "...")))
-                    ), Valid(false)
-                ),
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
-                        ),
-                        mapOf(alice to keysOf(Ed25519Key("ALICE_USK", "...")))
-                    ), Valid(false)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                bob, setOf(SelfSigningKey), keysOf(Ed25519Key("BOB_SSK", "..."))
+                            ),
+                            mapOf(bob to keysOf(Ed25519Key("BOB_MSK", "...")))
+                        ), Valid(false)
+                    ),
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
+                            ),
+                            mapOf(alice to keysOf(Ed25519Key("ALICE_USK", "...")))
+                        ), Valid(false)
+                    )
                 )
-            )
-        }
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            alice, setOf(UserSigningKey), keysOf(Ed25519Key("ALICE_USK", "..."))
-                        ),
-                        mapOf(alice to keysOf(Ed25519Key("ALICE_MSK", "...")))
-                    ), Valid(false)
-                ),
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            alice, setOf(MasterKey), keysOf(Ed25519Key("ALICE_MSK", "..."))
-                        ),
-                        mapOf(alice to keysOf(Ed25519Key(aliceDevice, "...")))
-                    ), Valid(true)
+            }
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                alice, setOf(UserSigningKey), keysOf(Ed25519Key("ALICE_USK", "..."))
+                            ),
+                            mapOf(alice to keysOf(Ed25519Key("ALICE_MSK", "...")))
+                        ), Valid(false)
+                    ),
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                alice, setOf(MasterKey), keysOf(Ed25519Key("ALICE_MSK", "..."))
+                            ),
+                            mapOf(alice to keysOf(Ed25519Key(aliceDevice, "...")))
+                        ), Valid(true)
+                    )
                 )
-            )
-        }
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            alice,
-                            aliceDevice,
-                            setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
-                            keysOf(
-                                Ed25519Key(aliceDevice, "..."),
-                                Key.Curve25519Key(aliceDevice, "...")
-                            )
-                        ),
-                        mapOf()
-                    ), Valid(true)
+            }
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                alice,
+                                aliceDevice,
+                                setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
+                                keysOf(
+                                    Ed25519Key(aliceDevice, "..."),
+                                    Key.Curve25519Key(aliceDevice, "...")
+                                )
+                            ),
+                            mapOf()
+                        ), Valid(true)
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -490,9 +533,11 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     fun `calculateTrustLevel » with key chain BOB_DEVICE - BOB_SSK - BOB_MSK - ALICE_USK - ALICE_MSK - ALICE_DEVICE » be CrossSigned and verified when there is a verified key in key chain`() =
         runTest {
             withKeyChainSetup()
-            keyStore.saveKeyVerificationState(
-                Ed25519Key(aliceDevice, "..."), Verified("...")
-            )
+            tm.writeTransaction {
+                keyStore.saveKeyVerificationState(
+                    Ed25519Key(aliceDevice, "..."), Verified("...")
+                )
+            }
             cut.calculateDeviceKeysTrustLevel(keyChaindeviceKeys) shouldBe CrossSigned(true)
             keyStore.getKeyChainLinksBySigningKey(alice, Ed25519Key("ALICE_MSK", "...")) shouldBe setOf(
                 KeyChainLink(
@@ -508,9 +553,11 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
     fun `calculateTrustLevel » with key chain BOB_DEVICE - BOB_SSK - BOB_MSK - ALICE_USK - ALICE_MSK - ALICE_DEVICE » be Blocked when there is a blocked key in key chain`() =
         runTest {
             withKeyChainSetup()
-            keyStore.saveKeyVerificationState(
-                Ed25519Key(bobDevice, "..."), KeyVerificationState.Blocked("...")
-            )
+            tm.writeTransaction {
+                keyStore.saveKeyVerificationState(
+                    Ed25519Key(bobDevice, "..."), KeyVerificationState.Blocked("...")
+                )
+            }
             cut.calculateDeviceKeysTrustLevel(keyChaindeviceKeys) shouldBe Blocked
         }
 
@@ -530,47 +577,49 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
 
     private suspend fun TestScope.simpleKeyChainSetup() {
         calculateTrustLevelSetup()
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            bob, setOf(SelfSigningKey), keysOf(Ed25519Key("BOB_SSK", "..."))
-                        ),
-                        mapOf(bob to keysOf(Ed25519Key("BOB_MSK", "...")))
-                    ), Valid(false)
-                ),
-                StoredCrossSigningKeys(
-                    Signed(
-                        CrossSigningKeys(
-                            bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
-                        ),
-                        mapOf()
-                    ), Valid(false)
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                bob, setOf(SelfSigningKey), keysOf(Ed25519Key("BOB_SSK", "..."))
+                            ),
+                            mapOf(bob to keysOf(Ed25519Key("BOB_MSK", "...")))
+                        ), Valid(false)
+                    ),
+                    StoredCrossSigningKeys(
+                        Signed(
+                            CrossSigningKeys(
+                                bob, setOf(MasterKey), keysOf(Ed25519Key("BOB_MSK", "..."))
+                            ),
+                            mapOf()
+                        ), Valid(false)
+                    )
                 )
+            }
+            keyStore.updateDeviceKeys(bob) {
+                mapOf(
+                    bobDevice to StoredDeviceKeys(
+                        Signed(
+                            DeviceKeys(
+                                bob,
+                                bobDevice,
+                                setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
+                                keysOf(
+                                    Ed25519Key(bobDevice, "..."),
+                                    Key.Curve25519Key(bobDevice, "...")
+                                )
+                            ),
+                            mapOf()
+                        ), Valid(true)
+                    )
+                )
+            }
+            keyStore.saveKeyVerificationState(
+                Ed25519Key(bobDevice, "..."), Verified("...")
             )
         }
-        keyStore.updateDeviceKeys(bob) {
-            mapOf(
-                bobDevice to StoredDeviceKeys(
-                    Signed(
-                        DeviceKeys(
-                            bob,
-                            bobDevice,
-                            setOf(EncryptionAlgorithm.Megolm, EncryptionAlgorithm.Olm),
-                            keysOf(
-                                Ed25519Key(bobDevice, "..."),
-                                Key.Curve25519Key(bobDevice, "...")
-                            )
-                        ),
-                        mapOf()
-                    ), Valid(true)
-                )
-            )
-        }
-        keyStore.saveKeyVerificationState(
-            Ed25519Key(bobDevice, "..."), Verified("...")
-        )
     }
 
     @Test
@@ -610,29 +659,31 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
             usage = setOf(SelfSigningKey),
             keys = keysOf(Ed25519Key("A-SSK", "A-SSK-value"))
         )
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                    GlobalAccountDataEvent(
-                        SelfSigningKeyEventContent(mapOf())
-                    ), ""
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
+                        GlobalAccountDataEvent(
+                            SelfSigningKeyEventContent(mapOf())
+                        ), ""
+                    )
                 )
+            }
+            val otherCrossSigningKey = CrossSigningKeys(
+                userId = alice,
+                usage = setOf(UserSigningKey),
+                keys = keysOf(otherCrossSigningEdKey)
             )
-        }
-        val otherCrossSigningKey = CrossSigningKeys(
-            userId = alice,
-            usage = setOf(UserSigningKey),
-            keys = keysOf(otherCrossSigningEdKey)
-        )
-        keyStore.updateDeviceKeys(alice) {
-            mapOf("AAAAAA" to StoredDeviceKeys(Signed(ownAccountsDeviceKey, mapOf()), Valid(false)))
-        }
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(Signed(ownMasterKey, mapOf()), Valid(false)),
-                StoredCrossSigningKeys(Signed(selfSigningKey, mapOf()), Valid(false)),
-                StoredCrossSigningKeys(Signed(otherCrossSigningKey, mapOf()), Valid(false))
-            )
+            keyStore.updateDeviceKeys(alice) {
+                mapOf("AAAAAA" to StoredDeviceKeys(Signed(ownAccountsDeviceKey, mapOf()), Valid(false)))
+            }
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(Signed(ownMasterKey, mapOf()), Valid(false)),
+                    StoredCrossSigningKeys(Signed(selfSigningKey, mapOf()), Valid(false)),
+                    StoredCrossSigningKeys(Signed(otherCrossSigningKey, mapOf()), Valid(false))
+                )
+            }
         }
 
         cut.trustAndSignKeys(
@@ -686,25 +737,27 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
             keys = keysOf(Ed25519Key("A-USK", "A-USK-value"))
         )
 
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(Signed(userSigningKey, mapOf()), Valid(false)),
-            )
-        }
-        keyStore.updateDeviceKeys(bob) {
-            mapOf("BBBBBB" to StoredDeviceKeys(Signed(othersDeviceKey, mapOf()), Valid(false)))
-        }
-        keyStore.updateCrossSigningKeys(bob) {
-            setOf(StoredCrossSigningKeys(Signed(othersMasterKey, mapOf()), Valid(false)))
-        }
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                    GlobalAccountDataEvent(
-                        UserSigningKeyEventContent(mapOf())
-                    ), ""
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(Signed(userSigningKey, mapOf()), Valid(false)),
                 )
-            )
+            }
+            keyStore.updateDeviceKeys(bob) {
+                mapOf("BBBBBB" to StoredDeviceKeys(Signed(othersDeviceKey, mapOf()), Valid(false)))
+            }
+            keyStore.updateCrossSigningKeys(bob) {
+                setOf(StoredCrossSigningKeys(Signed(othersMasterKey, mapOf()), Valid(false)))
+            }
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
+                        GlobalAccountDataEvent(
+                            UserSigningKeyEventContent(mapOf())
+                        ), ""
+                    )
+                )
+            }
         }
 
         cut.trustAndSignKeys(
@@ -741,27 +794,29 @@ class KeyTrustServiceTest : TrixnityBaseTest() {
             algorithms = setOf(),
             keys = keysOf(ownAccountsDeviceEdKey)
         )
-        keyStore.updateDeviceKeys(alice) {
-            mapOf("AAAAAA" to StoredDeviceKeys(Signed(ownAccountsDeviceKey, mapOf()), Valid(false)))
-        }
-        val selfSigningKey = CrossSigningKeys(
-            userId = alice,
-            usage = setOf(SelfSigningKey),
-            keys = keysOf(Ed25519Key("A-SSK", "A-SSK-value"))
-        )
-        keyStore.updateCrossSigningKeys(alice) {
-            setOf(
-                StoredCrossSigningKeys(Signed(selfSigningKey, mapOf()), Valid(false)),
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf("AAAAAA" to StoredDeviceKeys(Signed(ownAccountsDeviceKey, mapOf()), Valid(false)))
+            }
+            val selfSigningKey = CrossSigningKeys(
+                userId = alice,
+                usage = setOf(SelfSigningKey),
+                keys = keysOf(Ed25519Key("A-SSK", "A-SSK-value"))
             )
-        }
-        keyStore.updateSecrets {
-            mapOf(
-                SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                    GlobalAccountDataEvent(
-                        SelfSigningKeyEventContent(mapOf())
-                    ), ""
+            keyStore.updateCrossSigningKeys(alice) {
+                setOf(
+                    StoredCrossSigningKeys(Signed(selfSigningKey, mapOf()), Valid(false)),
                 )
-            )
+            }
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
+                        GlobalAccountDataEvent(
+                            SelfSigningKeyEventContent(mapOf())
+                        ), ""
+                    )
+                )
+            }
         }
 
         shouldThrow<UploadSignaturesException> {

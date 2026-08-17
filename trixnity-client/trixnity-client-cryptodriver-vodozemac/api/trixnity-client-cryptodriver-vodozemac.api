@@ -3,16 +3,16 @@ public final class de/connect2x/trixnity/client/cryptodriver/vodozemac/Vodozemac
 }
 
 public final class de/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration : de/connect2x/trixnity/client/store/repository/RepositoryMigration {
-	public fun <init> (Lde/connect2x/trixnity/client/store/repository/RepositoryTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;)V
-	public final fun component1 ()Lde/connect2x/trixnity/client/store/repository/RepositoryTransactionManager;
+	public fun <init> (Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;)V
+	public final fun component1 ()Lde/connect2x/trixnity/client/store/StoreTransactionManager;
 	public final fun component2 ()Lde/connect2x/trixnity/client/store/repository/MigrationRepository;
 	public final fun component3 ()Lde/connect2x/trixnity/client/store/repository/AccountRepository;
 	public final fun component4 ()Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;
 	public final fun component5 ()Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;
 	public final fun component6 ()Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;
 	public final fun component7 ()Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;
-	public final fun copy (Lde/connect2x/trixnity/client/store/repository/RepositoryTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;)Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;Lde/connect2x/trixnity/client/store/repository/RepositoryTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;ILjava/lang/Object;)Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;
+	public final fun copy (Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;)Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/store/repository/MigrationRepository;Lde/connect2x/trixnity/client/store/repository/AccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;ILjava/lang/Object;)Lde/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigration;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccountRepository ()Lde/connect2x/trixnity/client/store/repository/AccountRepository;
 	public final fun getInboundMegolmSessionRepository ()Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;
@@ -20,13 +20,13 @@ public final class de/connect2x/trixnity/client/cryptodriver/vodozemac/Vodozemac
 	public final fun getOlmAccountRepository ()Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;
 	public final fun getOlmSessionRepository ()Lde/connect2x/trixnity/client/store/repository/OlmSessionRepository;
 	public final fun getOutboundMegolmSessionRepository ()Lde/connect2x/trixnity/client/store/repository/OutboundMegolmSessionRepository;
-	public final fun getTransactionManager ()Lde/connect2x/trixnity/client/store/repository/RepositoryTransactionManager;
+	public final fun getTm ()Lde/connect2x/trixnity/client/store/StoreTransactionManager;
 	public fun hashCode ()I
 	public fun run (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/client/cryptodriver/vodozemac/VodozemacRepositoryMigrationKt {
-	public static final fun updatePickle (Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun updatePickle (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lde/connect2x/trixnity/client/store/repository/OlmAccountRepository;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

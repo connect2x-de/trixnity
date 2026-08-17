@@ -29,12 +29,12 @@ kotlin {
                 api(libs.exposed.core)
 
                 implementation(libs.exposed.dao)
-                implementation(libs.exposed.jdbc)
+                api(libs.exposed.r2dbc)
             }
         }
         jvmTest {
             dependencies {
-                implementation(libs.h2)
+                implementation(libs.r2dbc.h2)
             }
         }
     }

@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.client.media
 
-import de.connect2x.trixnity.client.store.Store
 import de.connect2x.trixnity.utils.ByteArrayFlow
+import kotlinx.coroutines.CoroutineScope
 
-interface MediaStore : Store {
+interface MediaStore {
+    suspend fun init(coroutineScope: CoroutineScope) {}
     suspend fun addMedia(url: String, content: ByteArrayFlow)
 
     suspend fun getMedia(url: String): PlatformMedia?
@@ -11,6 +12,7 @@ interface MediaStore : Store {
     suspend fun deleteMedia(url: String)
 
     suspend fun changeMediaUrl(oldUrl: String, newUrl: String)
+    suspend fun deleteAll()
 
     /**
      * Retrieves the available storage space for the device

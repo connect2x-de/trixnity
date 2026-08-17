@@ -5,9 +5,9 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomTimelineStore
 import de.connect2x.trixnity.client.store.StickyEventStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
-import de.connect2x.trixnity.client.store.TransactionManager
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.getNext
 import de.connect2x.trixnity.client.store.getPrevious
@@ -20,10 +20,8 @@ import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.m.RelationType
@@ -32,9 +30,8 @@ import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMap
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.utils.KeyedMutex
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.room.TimelineEventHandler")
@@ -59,7 +56,7 @@ class TimelineEventHandlerImpl(
     private val json: Json,
     private val mappings: EventContentSerializerMappings,
     private val config: MatrixClientConfiguration,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
 ) : EventHandler, TimelineEventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
         api.sync.subscribe(Priority.STORE_TIMELINE_EVENTS, ::handleSyncResponse).unsubscribeOnCompletion(scope)
@@ -110,14 +107,14 @@ class TimelineEventHandlerImpl(
         hasGapBefore: Boolean,
     ) {
         timelineMutex.withLock(roomId) {
-            tm.writeTransaction {
-                val events =
-                    roomTimelineStore.filterDuplicateEvents(newEvents)
-                        ?.handleRedactions()
-                if (!events.isNullOrEmpty()) {
-                    log.debug { "add events to timeline at end of $roomId" }
-                    val lastEventId = roomStore.get(roomId).first()?.lastEventId
-                    roomTimelineStore.addEventsToTimeline(
+            val events =
+                newEvents?.filterDuplicateEvents()
+                    ?.handleRedactions()
+            if (!events.isNullOrEmpty()) {
+                log.debug { "add events to timeline at end of $roomId" }
+                val lastEventId = roomStore.get(roomId).first()?.lastEventId
+                val updatedAndNewTimelineEvents =
+                    getUpdatedAndNewTimelineEvents(
                         startEvent = TimelineEvent(
                             event = events.first(),
                             previousEventId = null,
@@ -134,9 +131,12 @@ class TimelineEventHandlerImpl(
                         nextEvent = null,
                         nextEventChunk = events.drop(1),
                     )
-                    events.alsoAddRelationFromTimelineEvents()
+                val timelineEventRelations = events.getTimelineEventRelations()
+                tm.writeTransaction {
+                    updatedAndNewTimelineEvents.forEach { roomTimelineStore.add(it) }
+                    timelineEventRelations.forEach { roomTimelineStore.addRelation(it) }
+                    roomStore.update(roomId) { it?.copy(lastEventId = events.last().id) }
                 }
-                events?.lastOrNull()?.also { event -> setLastEventId(event) }
             }
         }
     }
@@ -180,8 +180,8 @@ class TimelineEventHandlerImpl(
                 ).getOrThrow()
                 previousToken = response.end?.takeIf { it != response.start } // detects start of timeline
                 previousEvent = possiblyPreviousEvent?.eventId
-                previousEventChunk = roomTimelineStore
-                    .filterDuplicateEvents(response.chunk)
+                previousEventChunk = response.chunk
+                    ?.filterDuplicateEvents()
                     ?.handleRedactions()
                 previousHasGap = response.end != null &&
                         response.end != destinationBatch &&
@@ -208,8 +208,8 @@ class TimelineEventHandlerImpl(
                 ).getOrThrow()
                 nextToken = response.end
                 nextEvent = possiblyNextEvent?.eventId
-                nextEventChunk = roomTimelineStore
-                    .filterDuplicateEvents(response.chunk)
+                nextEventChunk = response.chunk
+                    ?.filterDuplicateEvents()
                     ?.handleRedactions()
                 nextHasGap = response.end != null &&
                         response.end != destinationBatch &&
@@ -221,38 +221,32 @@ class TimelineEventHandlerImpl(
                 nextHasGap = isLastEventId
             }
 
-            if (insertNewEvents)
+            if (insertNewEvents) {
+                val updatedAndNewTimelineEvents = getUpdatedAndNewTimelineEvents(
+                    startEvent = startEvent,
+                    roomId = roomId,
+                    previousToken = previousToken,
+                    previousHasGap = previousHasGap,
+                    previousEvent = previousEvent,
+                    previousEventChunk = previousEventChunk,
+                    nextToken = nextToken,
+                    nextHasGap = nextHasGap,
+                    nextEvent = nextEvent,
+                    nextEventChunk = nextEventChunk,
+                )
+                val timelineEventRelations = previousEventChunk?.getTimelineEventRelations().orEmpty() +
+                        nextEventChunk?.getTimelineEventRelations().orEmpty()
                 tm.writeTransaction {
-                    roomTimelineStore.addEventsToTimeline(
-                        startEvent = startEvent,
-                        roomId = roomId,
-                        previousToken = previousToken,
-                        previousHasGap = previousHasGap,
-                        previousEvent = previousEvent,
-                        previousEventChunk = previousEventChunk,
-                        nextToken = nextToken,
-                        nextHasGap = nextHasGap,
-                        nextEvent = nextEvent,
-                        nextEventChunk = nextEventChunk,
-                    )
-                    previousEventChunk?.alsoAddRelationFromTimelineEvents()
-                    nextEventChunk?.alsoAddRelationFromTimelineEvents()
+                    updatedAndNewTimelineEvents.forEach { roomTimelineStore.add(it) }
+                    timelineEventRelations.forEach { roomTimelineStore.addRelation(it) }
                 }
-        }
-    }
-
-    internal suspend fun setLastEventId(event: ClientEvent<*>) {
-        if (event is RoomEvent) {
-            roomStore.update(event.roomId) { oldRoom ->
-                oldRoom?.copy(lastEventId = event.id)
             }
         }
     }
 
-    private suspend fun RoomEvent<*>.redact(because: MessageEvent<RedactionEventContent>): RoomEvent<RedactedEventContent> =
+    private fun RoomEvent<*>.redact(because: MessageEvent<RedactionEventContent>): RoomEvent<RedactedEventContent> =
         when (this) {
             is MessageEvent -> {
-                redactRelation(this)
                 val redactedContent = content as? RedactedEventContent
                     ?: RedactedEventContent(
                         api.eventContentSerializerMappings.message
@@ -303,79 +297,75 @@ class TimelineEventHandlerImpl(
                 .associateBy { it.content.redacts }
                 .toMutableMap()
 
-        redactionEvents.values.forEach { redactionEvent ->
-            stickyEventStore.deleteByEventId(redactionEvent.roomId, redactionEvent.content.redacts)
-        }
+        if (redactionEvents.isEmpty()) return this
+
+        val redactedRelations = mutableSetOf<TimelineEventRelation>()
+
         val eventsWithRedactedEvents = map { event ->
-            val redactedBecause = redactionEvents[event.id]
-            if (redactedBecause != null && redactedBecause != event) {
-                log.debug { "redact new event with id ${redactedBecause.content.redacts} in room ${redactedBecause.roomId}" }
-                redactionEvents.remove(event.id)
-                event.redact(redactedBecause)
+            val redactionEvent = redactionEvents[event.id]
+            if (redactionEvent != null && redactionEvent != event) {
+                log.debug { "redact event with id ${redactionEvent.content.redacts} in room ${redactionEvent.roomId}" }
+                redactionEvents.remove(event.id) //  seeing the redacted event here means, there is no TimelineEvent yet that needs to be redacted
+                event.getTimelineEventRelation()?.let { redactedRelations.add(it) }
+                event.redact(redactionEvent)
             } else event
         }
-        redactionEvents
-            .forEach { (_, redactionEvent) ->
+
+        // redactionEvents and redactedRelations have been modified, so the order is important!
+        
+        redactedRelations.addAll(
+            redactionEvents.values.mapNotNull { redactionEvent ->
+                roomTimelineStore.get(redactionEvent.content.redacts, redactionEvent.roomId).firstOrNull()?.event
+            }.getTimelineEventRelations()
+        )
+
+        tm.writeTransaction {
+            redactedRelations.forEach {
+                roomTimelineStore.deleteRelation(it)
+            }
+            redactionEvents.values.forEach { redactionEvent ->
+                val redactedEventId = redactionEvent.content.redacts
                 val roomId = redactionEvent.roomId
-                roomTimelineStore.update(redactionEvent.content.redacts, roomId) { oldTimelineEvent ->
+                roomTimelineStore.deleteRelations(redactedEventId, roomId, RelationType.Replace)
+                stickyEventStore.deleteByEventId(roomId, redactedEventId)
+                roomTimelineStore.update(redactedEventId, roomId) { oldTimelineEvent ->
                     if (oldTimelineEvent != null) {
-                        log.debug { "redact existing event with id ${redactionEvent.content.redacts} in room $roomId" }
+                        log.debug { "redact existing event with id $redactedEventId in room $roomId" }
+
                         val newEvent = oldTimelineEvent.event.redact(redactionEvent)
                         oldTimelineEvent.copy(
                             event = newEvent,
                             content = Result.success(newEvent.content),
                         )
                     } else {
-                        log.trace { "redact nothing because event with id ${redactionEvent.content.redacts} in room $roomId does not exist locally" }
+                        log.trace { "redact nothing because event with id $redactedEventId in room $roomId does not exist locally" }
                         null
                     }
                 }
             }
-
+        }
         return eventsWithRedactedEvents
     }
 
-    private suspend fun List<RoomEvent<*>>.alsoAddRelationFromTimelineEvents() =
-        asFlow().filterIsInstance<MessageEvent<MessageEventContent>>().collect(::addRelation)
-
-    internal suspend fun addRelation(event: MessageEvent<MessageEventContent>) {
-        val relatesTo = event.content.relatesTo
-        if (relatesTo != null) {
-            log.debug { "add relation to ${relatesTo.eventId}" }
-            roomTimelineStore.addRelation(
-                TimelineEventRelation(
-                    roomId = event.roomId,
-                    eventId = event.id,
-                    relationType = relatesTo.relationType,
-                    relatedEventId = relatesTo.eventId,
-                )
-            )
-        }
+    private fun RoomEvent<*>.getTimelineEventRelation(): TimelineEventRelation? {
+        if (this !is MessageEvent<*>) return null
+        val relatesTo = content.relatesTo ?: return null
+        return TimelineEventRelation(
+            roomId = roomId,
+            eventId = id,
+            relationType = relatesTo.relationType,
+            relatedEventId = relatesTo.eventId,
+        )
     }
 
-    internal suspend fun redactRelation(redactedEvent: MessageEvent<*>) {
-        val relatesTo = redactedEvent.content.relatesTo
-        if (relatesTo != null) {
-            log.debug { "delete relation from ${redactedEvent.id}" }
-            roomTimelineStore.deleteRelation(
-                TimelineEventRelation(
-                    roomId = redactedEvent.roomId,
-                    eventId = redactedEvent.id,
-                    relationType = relatesTo.relationType,
-                    relatedEventId = relatesTo.eventId,
-                )
-            )
-        }
-        roomTimelineStore.deleteRelations(redactedEvent.id, redactedEvent.roomId, RelationType.Replace)
-    }
+    private fun Collection<RoomEvent<*>>.getTimelineEventRelations(): List<TimelineEventRelation> =
+        mapNotNull { it.getTimelineEventRelation() }
 
-    private suspend fun RoomTimelineStore.filterDuplicateEvents(
-        events: List<RoomEvent<*>>?,
-    ) =
-        events?.distinctBy { it.id }
-            ?.filter { get(it.id, it.roomId).first() == null }
+    private suspend fun List<RoomEvent<*>>.filterDuplicateEvents() =
+        distinctBy { it.id }
+            .filter { roomTimelineStore.get(it.id, it.roomId).first() == null }
 
-    internal suspend fun RoomTimelineStore.addEventsToTimeline(
+    internal suspend fun getUpdatedAndNewTimelineEvents(
         startEvent: TimelineEvent,
         roomId: RoomId,
         previousToken: String?,
@@ -386,7 +376,7 @@ class TimelineEventHandlerImpl(
         nextHasGap: Boolean,
         nextEvent: EventId?,
         nextEventChunk: List<RoomEvent<*>>?,
-    ) {
+    ): List<TimelineEvent> {
         log.trace {
             "addEventsToTimeline with parameters:\n" +
                     "startEvent=${startEvent.eventId.full}\n" +
@@ -396,7 +386,7 @@ class TimelineEventHandlerImpl(
 
         val updatedPreviousEvent =
             if (previousEvent != null)
-                get(previousEvent, roomId).first()?.let { oldPreviousEvent ->
+                roomTimelineStore.get(previousEvent, roomId).first()?.let { oldPreviousEvent ->
                     val oldGap = oldPreviousEvent.gap
                     oldPreviousEvent.copy(
                         nextEventId = previousEventChunk?.lastOrNull()?.id ?: startEvent.eventId,
@@ -407,7 +397,7 @@ class TimelineEventHandlerImpl(
 
         val updatedNextEvent =
             if (nextEvent != null)
-                get(nextEvent, roomId).first()?.let { oldNextEvent ->
+                roomTimelineStore.get(nextEvent, roomId).first()?.let { oldNextEvent ->
                     val oldGap = oldNextEvent.gap
                     oldNextEvent.copy(
                         previousEventId = nextEventChunk?.lastOrNull()?.id ?: startEvent.eventId,
@@ -417,7 +407,7 @@ class TimelineEventHandlerImpl(
             else null
 
         val updatedStartEvent =
-            get(startEvent.eventId, roomId).first().let { oldStartEvent ->
+            roomTimelineStore.get(startEvent.eventId, roomId).first().let { oldStartEvent ->
                 val hasGapBefore = previousEventChunk.isNullOrEmpty() && previousHasGap
                 val hasGapAfter = nextEventChunk.isNullOrEmpty() && nextHasGap
                 (oldStartEvent ?: startEvent).copy(
@@ -506,12 +496,10 @@ class TimelineEventHandlerImpl(
                 }
             } else emptyList()
 
-        addAll(
-            listOfNotNull(
-                updatedPreviousEvent,
-                updatedNextEvent,
-                updatedStartEvent,
-            ) + newPreviousEvents + newNextEvents
-        )
+        return listOfNotNull(
+            updatedPreviousEvent,
+            updatedNextEvent,
+            updatedStartEvent,
+        ) + newPreviousEvents + newNextEvents
     }
 }

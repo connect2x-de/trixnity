@@ -1,8 +1,15 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.MediaCacheMapping
 import de.connect2x.trixnity.client.store.repository.MediaCacheMappingRepository
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 
 @Entity(tableName = "MediaCacheMapping")
 data class RoomMediaCacheMapping(
@@ -32,7 +39,8 @@ internal class RoomMediaCacheMappingRepository(
 ) : MediaCacheMappingRepository {
     private val dao = db.mediaCacheMapping()
 
-    override suspend fun get(key: String): MediaCacheMapping? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: String): MediaCacheMapping? =
         dao.get(key)?.let { entity ->
             MediaCacheMapping(
                 cacheUri = entity.cacheUri,
@@ -41,9 +49,9 @@ internal class RoomMediaCacheMappingRepository(
                 contentType = entity.contentType,
             )
         }
-    }
 
-    override suspend fun save(key: String, value: MediaCacheMapping) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: String, value: MediaCacheMapping) =
         dao.insert(
             RoomMediaCacheMapping(
                 cacheUri = value.cacheUri,
@@ -52,13 +60,12 @@ internal class RoomMediaCacheMappingRepository(
                 contentType = value.contentType,
             )
         )
-    }
 
-    override suspend fun delete(key: String) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: String) =
         dao.delete(cacheUri = key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

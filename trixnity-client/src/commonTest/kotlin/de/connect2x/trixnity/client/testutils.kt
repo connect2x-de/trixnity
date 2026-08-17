@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.client
 
-import de.connect2x.trixnity.client.mocks.RepositoryTransactionManagerMock
 import de.connect2x.trixnity.client.store.Account
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
@@ -51,7 +50,7 @@ import de.connect2x.trixnity.client.store.repository.InMemoryStickyEventReposito
 import de.connect2x.trixnity.client.store.repository.InMemoryTimelineEventRelationRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryTimelineEventRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryUserPresenceRepository
-import de.connect2x.trixnity.client.store.repository.NoOpRepositoryTransactionManager
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProvider
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderDataStore
@@ -122,25 +121,27 @@ fun TrixnityBaseTest.mockMatrixClientServerApiClient(
 
 fun TrixnityBaseTest.getInMemoryAccountStore(setup: suspend AccountStore.() -> Unit = {}) = AccountStore(
     InMemoryAccountRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
     testScope.testClock,
 ).apply {
     scheduleSetup {
         init(backgroundScope)
-        updateAccount {
-            Account(
-                olmPickleKey = null,
-                baseUrl = "",
-                userId = UserId("user", "server"),
-                deviceId = "",
-                accessToken = null,
-                refreshToken = null,
-                syncBatchToken = null,
-                filter = null,
-                profile = null,
-            )
+        NoOpStoreTransactionManager.writeTransaction {
+            updateAccount {
+                Account(
+                    olmPickleKey = null,
+                    baseUrl = "",
+                    userId = UserId("user", "server"),
+                    deviceId = "",
+                    accessToken = null,
+                    refreshToken = null,
+                    syncBatchToken = null,
+                    filter = null,
+                    profile = null,
+                )
+            }
         }
         setup()
     }
@@ -149,13 +150,15 @@ fun TrixnityBaseTest.getInMemoryAccountStore(setup: suspend AccountStore.() -> U
 fun TrixnityBaseTest.getInMemoryServerDataStore(setup: suspend ServerDataStore.() -> Unit = {}) = ServerDataStore(
     InMemoryServerDataRepository().apply {
         scheduleSetup {
-            save(
-                1,
-                ServerData(GetVersions.Response(listOf("v1.11"), mapOf()), GetMediaConfig.Response(10_000), null)
-            )
+            NoOpStoreTransactionManager.writeTransaction {
+                save(
+                    1,
+                    ServerData(GetVersions.Response(listOf("v1.11"), mapOf()), GetMediaConfig.Response(10_000), null)
+                )
+            }
         }
     },
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
     testScope.testClock,
@@ -169,7 +172,7 @@ fun TrixnityBaseTest.getInMemoryServerDataStore(setup: suspend ServerDataStore.(
 fun TrixnityBaseTest.getInMemoryRoomAccountDataStore(setup: suspend RoomAccountDataStore.() -> Unit = {}) =
     RoomAccountDataStore(
         InMemoryRoomAccountDataRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         EventContentSerializerMappings.default,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
@@ -185,7 +188,7 @@ fun TrixnityBaseTest.getInMemoryRoomAccountDataStore(setup: suspend RoomAccountD
 fun TrixnityBaseTest.getInMemoryGlobalAccountDataStore(setup: suspend GlobalAccountDataStore.() -> Unit = {}) =
     GlobalAccountDataStore(
         InMemoryGlobalAccountDataRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         EventContentSerializerMappings.default,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
@@ -201,7 +204,7 @@ fun TrixnityBaseTest.getInMemoryGlobalAccountDataStore(setup: suspend GlobalAcco
 fun TrixnityBaseTest.getInMemoryUserPresenceStore(setup: suspend UserPresenceStore.() -> Unit = {}) =
     UserPresenceStore(
         InMemoryUserPresenceRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         ObservableCacheStatisticCollector(),
         MatrixClientConfiguration(),
         testScope.backgroundScope,
@@ -220,7 +223,7 @@ fun TrixnityBaseTest.getInMemoryOlmStore(setup: suspend OlmCryptoStore.() -> Uni
     InMemoryInboundMegolmSessionRepository(),
     InMemoryInboundMegolmMessageIndexRepository(),
     InMemoryOutboundMegolmSessionRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
@@ -241,7 +244,7 @@ fun TrixnityBaseTest.getInMemoryKeyStore(setup: suspend KeyStore.() -> Unit = {}
     InMemorySecretsRepository(),
     InMemorySecretKeyRequestRepository(),
     InMemoryRoomKeyRequestRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
@@ -255,7 +258,7 @@ fun TrixnityBaseTest.getInMemoryKeyStore(setup: suspend KeyStore.() -> Unit = {}
 
 fun TrixnityBaseTest.getInMemoryRoomStore(setup: suspend RoomStore.() -> Unit = {}) = RoomStore(
     InMemoryRoomRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
@@ -270,7 +273,7 @@ fun TrixnityBaseTest.getInMemoryRoomStore(setup: suspend RoomStore.() -> Unit = 
 fun TrixnityBaseTest.getInMemoryRoomTimelineStore(setup: suspend RoomTimelineStore.() -> Unit = {}) = RoomTimelineStore(
     InMemoryTimelineEventRepository(),
     InMemoryTimelineEventRelationRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
@@ -286,7 +289,7 @@ fun TrixnityBaseTest.getInMemoryRoomTimelineStore(setup: suspend RoomTimelineSto
 fun TrixnityBaseTest.getInMemoryStickyEventStore(setup: suspend StickyEventStore.() -> Unit = {}) =
     StickyEventStore(
         InMemoryStickyEventRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         EventContentSerializerMappings.default,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
@@ -301,7 +304,7 @@ fun TrixnityBaseTest.getInMemoryStickyEventStore(setup: suspend StickyEventStore
 
 fun TrixnityBaseTest.getInMemoryRoomStateStore(setup: suspend RoomStateStore.() -> Unit = {}) = RoomStateStore(
     InMemoryRoomStateRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     EventContentSerializerMappings.default,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
@@ -317,7 +320,7 @@ fun TrixnityBaseTest.getInMemoryRoomStateStore(setup: suspend RoomStateStore.() 
 fun TrixnityBaseTest.getInMemoryRoomUserStore(setup: suspend RoomUserStore.() -> Unit = {}) = RoomUserStore(
     InMemoryRoomUserRepository(),
     InMemoryRoomUserReceiptsRepository(),
-    RepositoryTransactionManagerMock(),
+    NoOpStoreTransactionManager,
     MatrixClientConfiguration(),
     ObservableCacheStatisticCollector(),
     testScope.backgroundScope,
@@ -332,7 +335,7 @@ fun TrixnityBaseTest.getInMemoryRoomUserStore(setup: suspend RoomUserStore.() ->
 fun TrixnityBaseTest.getInMemoryMediaCacheMapping(setup: suspend MediaCacheMappingStore.() -> Unit = {}) =
     MediaCacheMappingStore(
         InMemoryMediaCacheMappingRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
         testScope.backgroundScope,
@@ -347,7 +350,7 @@ fun TrixnityBaseTest.getInMemoryMediaCacheMapping(setup: suspend MediaCacheMappi
 fun TrixnityBaseTest.getInMemoryRoomOutboxMessageStore(setup: suspend RoomOutboxMessageStore.() -> Unit = {}) =
     RoomOutboxMessageStore(
         InMemoryRoomOutboxMessageRepository(),
-        RepositoryTransactionManagerMock(),
+        NoOpStoreTransactionManager,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
         testScope.backgroundScope,
@@ -364,7 +367,7 @@ fun TrixnityBaseTest.getInMemoryNotificationStore(setup: suspend NotificationSto
         InMemoryNotificationRepository(),
         InMemoryNotificationUpdateRepository(),
         InMemoryNotificationStateRepository(),
-        NoOpRepositoryTransactionManager,
+        NoOpStoreTransactionManager,
         MatrixClientConfiguration(),
         ObservableCacheStatisticCollector(),
         testScope.backgroundScope,
@@ -380,7 +383,9 @@ fun TestScope.clearOutdatedKeys(keyStoreBuilder: () -> KeyStore) {
     val keyStore = keyStoreBuilder()
     backgroundScope.launch {
         keyStore.getOutdatedKeysFlow().filter { it.isNotEmpty() }.collect {
-            keyStore.updateOutdatedKeys { setOf() }
+            NoOpStoreTransactionManager.writeTransaction {
+                keyStore.updateOutdatedKeys { setOf() }
+            }
         }
     }
 }
@@ -389,7 +394,9 @@ fun TrixnityBaseTest.clearOutdatedKeys(keyStoreBuilder: () -> KeyStore) {
     val keyStore = keyStoreBuilder()
     testScope.backgroundScope.launch {
         keyStore.getOutdatedKeysFlow().filter { it.isNotEmpty() }.collect {
-            keyStore.updateOutdatedKeys { setOf() }
+            NoOpStoreTransactionManager.writeTransaction {
+                keyStore.updateOutdatedKeys { setOf() }
+            }
         }
     }
 }

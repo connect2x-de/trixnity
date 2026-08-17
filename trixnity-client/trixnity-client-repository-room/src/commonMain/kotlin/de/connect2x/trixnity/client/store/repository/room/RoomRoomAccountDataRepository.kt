@@ -1,12 +1,18 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "RoomAccountData",
@@ -57,29 +63,30 @@ internal class RoomRoomAccountDataRepository(
 
     private val dao = db.roomAccountData()
 
+    context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomAccountDataRepositoryKey): Map<String, RoomAccountDataEvent<*>> =
-        withRoomRead {
-            dao.getByTwoKeys(firstKey.roomId, firstKey.type)
-                .associate { entity -> entity.key to json.decodeFromString(serializer, entity.event) }
-        }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withRoomWrite {
+        dao.getByTwoKeys(firstKey.roomId, firstKey.type)
+            .associate { entity -> entity.key to json.decodeFromString(serializer, entity.event) }
+
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) =
         dao.delete(roomId)
-    }
 
+    context(transaction: ReadTransaction)
     override suspend fun get(
         firstKey: RoomAccountDataRepositoryKey,
         secondKey: String,
-    ): RoomAccountDataEvent<*>? = withRoomRead {
+    ): RoomAccountDataEvent<*>? =
         dao.getByAllKeys(firstKey.roomId, firstKey.type, secondKey)
             ?.let { entity -> json.decodeFromString(serializer, entity.event) }
-    }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(
         firstKey: RoomAccountDataRepositoryKey,
         secondKey: String,
         value: RoomAccountDataEvent<*>,
-    ) = withRoomWrite {
+    ) =
         dao.insert(
             RoomRoomAccountData(
                 roomId = firstKey.roomId,
@@ -88,16 +95,15 @@ internal class RoomRoomAccountDataRepository(
                 event = json.encodeToString(serializer, value),
             )
         )
-    }
 
+    context(transaction: WriteTransaction)
     override suspend fun delete(
         firstKey: RoomAccountDataRepositoryKey,
         secondKey: String
-    ) = withRoomWrite {
+    ) =
         dao.delete(firstKey.roomId, firstKey.type, secondKey)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

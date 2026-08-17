@@ -1,5 +1,15 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
+import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.idb.utils.KeyPath
+import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
@@ -9,15 +19,11 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
-import de.connect2x.trixnity.client.store.RoomOutboxMessage
-import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
-import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.idb.utils.KeyPath
-import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import web.idb.IDBDatabase
 
 @Serializable
@@ -77,34 +83,39 @@ internal class IndexedDBRoomOutboxMessageRepository(
                 objectStoreName
             ) { store ->
                 store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
-                }
+            }
         }
     }
 
-
+    context(transaction: ReadTransaction)
     override suspend fun get(key: RoomOutboxMessageRepositoryKey): RoomOutboxMessage<*>? =
         internalRepository.get(key)?.value
 
-    override suspend fun getAll(): List<RoomOutboxMessage<*>> = withIndexedDBRead { store ->
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<RoomOutboxMessage<*>> = withRead { store ->
         store.openCursor()
             .mapNotNull { json.decodeFromDynamicNullable(serializer, it.value) }
             .map { it.value }
             .toList()
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun save(key: RoomOutboxMessageRepositoryKey, value: RoomOutboxMessage<*>) {
         val contentType = mappings.message.find { it.kClass.isInstance(value.content) }?.type
         checkNotNull(contentType)
         internalRepository.save(key, IndexedDBRoomOutboxMessage(key.roomId, value, contentType))
     }
 
+    context(transaction: WriteTransaction)
     override suspend fun delete(key: RoomOutboxMessageRepositoryKey) =
         internalRepository.delete(key)
 
+    context(transaction: WriteTransaction)
     override suspend fun deleteAll() =
         internalRepository.deleteAll()
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withIndexedDBWrite { store ->
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
         store.index("roomId").openCursor(keyOf(roomId.full))
             .collect {
                 store.delete(it.primaryKey)

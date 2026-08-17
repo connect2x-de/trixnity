@@ -1,15 +1,27 @@
 package de.connect2x.trixnity.client.key
 
-import de.connect2x.trixnity.client.*
+import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.continually
+import de.connect2x.trixnity.client.getInMemoryAccountStore
+import de.connect2x.trixnity.client.getInMemoryKeyStore
+import de.connect2x.trixnity.client.getInMemoryOlmStore
+import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.SyncState.RUNNING
-import de.connect2x.trixnity.clientserverapi.model.key.*
-import de.connect2x.trixnity.clientserverapi.model.user.SetGlobalAccountData
+import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeyBackupData
+import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeyBackupVersion
+import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
+import de.connect2x.trixnity.clientserverapi.model.key.SetRoomKeyBackupVersion
+import de.connect2x.trixnity.clientserverapi.model.key.SetRoomKeyBackupVersionByVersion
+import de.connect2x.trixnity.clientserverapi.model.key.SetRoomKeyBackupVersionRequest
+import de.connect2x.trixnity.clientserverapi.model.key.SetRoomKeysResponse
+import de.connect2x.trixnity.clientserverapi.model.key.SetRoomsKeyBackup
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.UserInfo
@@ -17,13 +29,23 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
 import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
+import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAlgorithm
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAuthData.RoomKeyBackupV1AuthData
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupData
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData.RoomKeyBackupV1SessionData
+import de.connect2x.trixnity.core.model.keys.SignedCrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.SecretType.M_MEGOLM_BACKUP_V1
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
@@ -39,7 +61,6 @@ import de.connect2x.trixnity.test.utils.suspendLazy
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -54,21 +75,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class KeyBackupServiceTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val driver: CryptoDriver = VodozemacCryptoDriver
 
     private val ownUserId = UserId("alice", "server")
     private val ownDeviceId = "DEV"
 
     private val accountStore =
-        getInMemoryAccountStore { updateAccount { it?.copy(syncBatchToken = "batch") } }
+        getInMemoryAccountStore {
+            tm.writeTransaction {
+                updateAccount { it?.copy(syncBatchToken = "batch") }
+            }
+        }
     private val olmCryptoStore = getInMemoryOlmStore()
     private val keyStore = getInMemoryKeyStore()
 
@@ -84,15 +108,16 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
 
     private val cut = KeyBackupServiceImpl(
-        UserInfo(ownUserId, ownDeviceId, Ed25519Key(null, ""), Curve25519Key(null, "")),
-        accountStore,
-        olmCryptoStore,
-        keyStore,
-        api,
-        olmSignMock,
-        CurrentSyncState(currentSyncState),
-        testScope.backgroundScope,
-        driver,
+        userInfo = UserInfo(ownUserId, ownDeviceId, Ed25519Key(null, ""), Curve25519Key(null, "")),
+        accountStore = accountStore,
+        olmCryptoStore = olmCryptoStore,
+        keyStore = keyStore,
+        tm = tm,
+        api = api,
+        signService = olmSignMock,
+        currentSyncState = CurrentSyncState(currentSyncState),
+        scope = testScope.backgroundScope,
+        driver = driver,
     ).apply {
         startInCoroutineScope(testScope.backgroundScope)
     }
@@ -129,24 +154,28 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         }
         olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
         cut.version.value shouldBe null
-        keyStore.updateSecrets {
-            mapOf(
-                M_MEGOLM_BACKUP_V1 to StoredSecret(
-                    GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                    validKeyBackup.base64
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    M_MEGOLM_BACKUP_V1 to StoredSecret(
+                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                        validKeyBackup.base64
+                    )
                 )
-            )
+            }
         }
         delay(1.seconds)
         cut.version.value shouldBe keyVersion
 
-        keyStore.updateSecrets {
-            mapOf(
-                M_MEGOLM_BACKUP_V1 to StoredSecret(
-                    GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf("" to JsonPrimitive("something")))),
-                    validKeyBackup.base64
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    M_MEGOLM_BACKUP_V1 to StoredSecret(
+                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf("" to JsonPrimitive("something")))),
+                        validKeyBackup.base64
+                    )
                 )
-            )
+            }
         }
         delay(1.seconds)
         cut.version.value shouldBe null
@@ -163,15 +192,17 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 }
             }
             olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
-            keyStore.updateSecrets {
-                mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(
-                            MegolmBackupV1EventContent(mapOf())
-                        ),
-                        validKeyBackup.base64
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to StoredSecret(
+                            GlobalAccountDataEvent(
+                                MegolmBackupV1EventContent(mapOf())
+                            ),
+                            validKeyBackup.base64
+                        )
                     )
-                )
+                }
             }
             delay(1.seconds)
             cut.version.value shouldBe keyVersion
@@ -202,15 +233,17 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 }
             }
             olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s24"))))
-            keyStore.updateSecrets {
-                mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(
-                            MegolmBackupV1EventContent(mapOf())
-                        ),
-                        validKeyBackup.base64
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to StoredSecret(
+                            GlobalAccountDataEvent(
+                                MegolmBackupV1EventContent(mapOf())
+                            ),
+                            validKeyBackup.base64
+                        )
                     )
-                )
+                }
             }
             delay(1.seconds)
             cut.version.value shouldBe keyVersion
@@ -241,27 +274,31 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 }
             }
             olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
-            keyStore.updateSecrets {
-                mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(
-                            MegolmBackupV1EventContent(mapOf())
-                        ),
-                        validKeyBackup.base64
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to StoredSecret(
+                            GlobalAccountDataEvent(
+                                MegolmBackupV1EventContent(mapOf())
+                            ),
+                            validKeyBackup.base64
+                        )
                     )
-                )
+                }
             }
             delay(1.seconds)
             cut.version.value shouldBe keyVersion
 
-            keyStore.updateSecrets {
-                mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(
-                            MegolmBackupV1EventContent(mapOf())
-                        ), "invalidPri"
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to StoredSecret(
+                            GlobalAccountDataEvent(
+                                MegolmBackupV1EventContent(mapOf())
+                            ), "invalidPri"
+                        )
                     )
-                )
+                }
             }
             delay(1.seconds)
             cut.version.value shouldBe null
@@ -374,7 +411,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 forwardingCurve25519KeyChain = listOf(),
                 pickled = "pickle"
             )
-            olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
+            }
 
             cut.loadMegolmSession(roomId, sessionId)
             delay(1.seconds)
@@ -409,7 +448,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 forwardingCurve25519KeyChain = listOf(),
                 pickled = "pickle"
             )
-            olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
+            }
 
             cut.loadMegolmSession(roomId, sessionId)
             continually(1.seconds) {
@@ -451,60 +492,6 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             this.pickled shouldNot beEmpty()
         }
         getRoomKeyBackupDataCalled shouldBe true
-    }
-
-    @Test
-    fun `bootstrapRoomKeyBackup » upload new room key version and add secret to account data`() = runTest {
-        val (masterSigningPrivateKey, masterSigningPublicKey) = driver.key.ed25519SecretKey().use {
-            it.base64 to it.publicKey
-        }
-        var setRoomKeyBackupVersionCalled = false
-        var setGlobalAccountDataCalled = false
-        apiConfig.endpoints {
-            matrixJsonEndpoint(SetRoomKeyBackupVersion) {
-                setRoomKeyBackupVersionCalled = true
-                it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
-                it.authData.publicKey.value shouldNot beEmpty()
-                it.authData.signatures[ownUserId]?.keys shouldBe setOf(
-                    Ed25519Key(ownDeviceId, "s1"),
-                    Key.of(masterSigningPublicKey)
-                )
-                it.version shouldBe null
-                SetRoomKeyBackupVersion.Response("1")
-            }
-            matrixJsonEndpoint(GetRoomKeyBackupVersionByVersion("1")) {
-                GetRoomKeysBackupVersionResponse.V1(
-                    authData = RoomKeyBackupV1AuthData(
-                        publicKey = Curve25519KeyValue("keyBackupPublicKey"),
-                    ),
-                    count = 1,
-                    etag = "etag",
-                    version = "1"
-                )
-            }
-            matrixJsonEndpoint(SetGlobalAccountData(ownUserId, "m.megolm_backup.v1")) {
-                setGlobalAccountDataCalled = true
-            }
-        }
-        olmSignMock.returnSignatures = listOf(
-            mapOf(
-                ownUserId to keysOf(Ed25519Key(ownDeviceId, "s1"))
-            ),
-            mapOf(
-                ownUserId to keysOf(Key.of(masterSigningPublicKey))
-            )
-        )
-
-        cut.bootstrapRoomKeyBackup(
-            Random.nextBytes(32),
-            "defaultKeyId",
-            masterSigningPrivateKey,
-            masterSigningPublicKey.base64,
-        ).getOrThrow()
-
-        setRoomKeyBackupVersionCalled shouldBe true
-        setGlobalAccountDataCalled shouldBe true
-        keyStore.getSecrets().keys shouldContain M_MEGOLM_BACKUP_V1
     }
 
     private val room1 = RoomId("!room1:server")
@@ -549,8 +536,10 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
 
     private suspend fun uploadRoomKeyBackupSetup() {
         currentSyncState.value = RUNNING
-        session1.run { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this } }
-        session2.run { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this } }
+        tm.writeTransaction {
+            session1.run { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this } }
+            session2.run { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this } }
+        }
     }
 
     @Test
@@ -578,11 +567,13 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     @Test
     fun `uploadRoomKeyBackup » do nothing when not backed up is empty`() = runTest {
         uploadRoomKeyBackupSetup()
-        session1.run {
-            olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this.copy(hasBeenBackedUp = true) }
-        }
-        session2.run {
-            olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this.copy(hasBeenBackedUp = true) }
+        tm.writeTransaction {
+            session1.run {
+                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this.copy(hasBeenBackedUp = true) }
+            }
+            session2.run {
+                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { this.copy(hasBeenBackedUp = true) }
+            }
         }
         var setRoomKeyBackupVersionCalled = false
         apiConfig.endpoints {
@@ -752,31 +743,35 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     )
 
     private suspend fun deviceKeyTrustLevel(level: KeySignatureTrustLevel) {
-        keyStore.updateDeviceKeys(ownUserId) {
-            mapOf(
-                "DEVICE" to StoredDeviceKeys(
-                    SignedDeviceKeys(
-                        DeviceKeys(ownUserId, ownDeviceId, setOf(), keysOf()),
-                        null
-                    ), level
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(ownUserId) {
+                mapOf(
+                    "DEVICE" to StoredDeviceKeys(
+                        SignedDeviceKeys(
+                            DeviceKeys(ownUserId, ownDeviceId, setOf(), keysOf()),
+                            null
+                        ), level
+                    )
                 )
-            )
+            }
         }
     }
 
     private suspend fun masterKeyTrustLevel(level: KeySignatureTrustLevel) {
-        keyStore.updateCrossSigningKeys(ownUserId) {
-            setOf(
-                StoredCrossSigningKeys(
-                    SignedCrossSigningKeys(
-                        CrossSigningKeys(
-                            ownUserId, setOf(), keysOf(Ed25519Key("MSK", "msk_pub"))
+        tm.writeTransaction {
+            keyStore.updateCrossSigningKeys(ownUserId) {
+                setOf(
+                    StoredCrossSigningKeys(
+                        SignedCrossSigningKeys(
+                            CrossSigningKeys(
+                                ownUserId, setOf(), keysOf(Ed25519Key("MSK", "msk_pub"))
+                            ),
+                            mapOf()
                         ),
-                        mapOf()
-                    ),
-                    level
+                        level
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -800,13 +795,15 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 modifyVersion(defaultVersion)
             }
         }
-        keyStore.updateSecrets {
-            mapOf(
-                M_MEGOLM_BACKUP_V1 to StoredSecret(
-                    GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                    keyBackupPrivateKey.base64
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    M_MEGOLM_BACKUP_V1 to StoredSecret(
+                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                        keyBackupPrivateKey.base64
+                    )
                 )
-            )
+            }
         }
         delay(1.seconds)
         cut.version.value shouldBe defaultVersion

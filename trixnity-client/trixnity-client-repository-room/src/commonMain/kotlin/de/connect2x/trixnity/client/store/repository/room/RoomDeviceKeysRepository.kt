@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.repository.DeviceKeysRepository
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(tableName = "DeviceKeys")
 data class RoomDeviceKeys(
@@ -34,25 +40,25 @@ internal class RoomDeviceKeysRepository(
 ) : DeviceKeysRepository {
     private val dao = db.deviceKeys()
 
-    override suspend fun get(key: UserId): Map<String, StoredDeviceKeys>? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: UserId): Map<String, StoredDeviceKeys>? =
         dao.get(key)
             ?.let { entity -> json.decodeFromString<Map<String, StoredDeviceKeys>>(entity.value) }
-    }
 
-    override suspend fun save(key: UserId, value: Map<String, StoredDeviceKeys>) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: UserId, value: Map<String, StoredDeviceKeys>) =
         dao.insert(
             RoomDeviceKeys(
                 userId = key,
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: UserId) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: UserId) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

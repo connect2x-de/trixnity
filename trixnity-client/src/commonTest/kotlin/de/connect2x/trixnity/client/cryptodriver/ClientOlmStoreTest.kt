@@ -6,6 +6,7 @@ import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.Key
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 
 class ClientOlmStoreTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
 
     private val alice = UserId("alice", "server")
     private val aliceDevice = "ALICEDEVICE"
@@ -30,6 +32,7 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
         olmCryptoStore = getInMemoryOlmStore(),
         keyStore = keyStore,
         roomStateStore = getInMemoryRoomStateStore(),
+        tm = tm,
         loadMembersService = { _, _ -> },
     )
 
@@ -38,13 +41,15 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
         val deviceKeys =
             SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
 
-        keyStore.updateDeviceKeys(alice) {
-            mapOf(
-                aliceDevice to StoredDeviceKeys(
-                    deviceKeys,
-                    KeySignatureTrustLevel.Valid(true)
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(
+                    aliceDevice to StoredDeviceKeys(
+                        deviceKeys,
+                        KeySignatureTrustLevel.Valid(true)
+                    )
                 )
-            )
+            }
         }
         cut.getDeviceKeys(alice)?.get(aliceDevice) shouldBe deviceKeys
     }
@@ -57,15 +62,17 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
 
             val result = async { cut.getDeviceKeys(alice) }
             keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-            keyStore.updateDeviceKeys(alice) {
-                mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        deviceKeys,
-                        KeySignatureTrustLevel.Valid(true)
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(
+                        aliceDevice to StoredDeviceKeys(
+                            deviceKeys,
+                            KeySignatureTrustLevel.Valid(true)
+                        )
                     )
-                )
+                }
+                keyStore.updateOutdatedKeys { setOf() }
             }
-            keyStore.updateOutdatedKeys { setOf() }
             result.await()?.get(aliceDevice) shouldBe deviceKeys
         }
 
@@ -74,7 +81,9 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
         runTest {
             val result = async { cut.getDeviceKeys(alice) }
             keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-            keyStore.updateOutdatedKeys { setOf() }
+            tm.writeTransaction {
+                keyStore.updateOutdatedKeys { setOf() }
+            }
             result.await() shouldBe null
         }
 }

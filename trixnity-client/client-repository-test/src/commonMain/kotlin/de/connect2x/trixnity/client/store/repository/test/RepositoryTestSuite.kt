@@ -13,6 +13,7 @@ import de.connect2x.trixnity.client.store.MediaCacheMapping
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.RoomUserReceipts
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
@@ -43,7 +44,6 @@ import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRe
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
@@ -109,6 +109,8 @@ import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.maps.shouldHaveSize
@@ -120,7 +122,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -135,15 +136,13 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 abstract class RepositoryTestSuite(
-    private val customRepositoryTransactionManager: suspend () -> RepositoryTransactionManager? = { null },
     private val repositoriesModule: RepositoriesModule
 ) : TrixnityBaseTest() {
     lateinit var di: Koin
-    lateinit var rtm: RepositoryTransactionManager
+    lateinit var rtm: StoreTransactionManager
     lateinit var coroutineScope: CoroutineScope
 
     @AfterTest
@@ -172,6 +171,7 @@ abstract class RepositoryTestSuite(
         testBody()
     }
 
+    context(transaction: WriteTransaction)
     private suspend fun rtmTestWrite(key: Int) {
         val cut = di.get<AccountRepository>()
         cut.save(
@@ -189,31 +189,14 @@ abstract class RepositoryTestSuite(
         )
     }
 
+    context(transaction: ReadTransaction)
     private suspend fun rtmTestRead(key: Int): Account? {
         val cut = di.get<AccountRepository>()
         return cut.get(key.toLong())
     }
 
     @Test
-    fun `RepositoryTransactionManager - write does not lock`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        rtm.writeTransaction {
-            rtmTestWrite(0)
-            rtmTestRead(0)
-            rtm.writeTransaction {
-                rtmTestWrite(1)
-                rtmTestRead(1)
-                rtm.writeTransaction {
-                    rtmTestWrite(2)
-                    rtmTestRead(2)
-                }
-            }
-        }
-    }
-
-    @Test
     fun `RepositoryTransactionManager - write allows simultaneous transactions`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
         val calls = 10
         val callCount = MutableStateFlow(0)
         repeat(calls) { i ->
@@ -228,16 +211,36 @@ abstract class RepositoryTestSuite(
     }
 
     @Test
-    fun `RepositoryTransactionManager - write allows simultaneous writes`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        val calls = 10
-        val callCount = MutableStateFlow(0)
+    fun `RepositoryTransactionManager - allow read in write transaction`() = runTestWithSetup {
         rtm.writeTransaction {
-            coroutineScope {
-                repeat(calls) { i ->
-                    launch {
-                        callCount.update { it + 1 }
-                        callCount.first { it == calls }
+            rtmTestRead(0)
+        }
+    }
+
+    @Test
+    fun `RepositoryTransactionManager - read allows simultaneous reads and writes`() = runTestWithSetup {
+        coroutineScope {
+            repeat(10) { i ->
+                launch {
+                    rtm.writeTransaction {
+                        rtmTestWrite(i)
+                    }
+                }
+                launch {
+                    rtm.readTransaction {
+                        rtmTestRead(i)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `RepositoryTransactionManager - read allows simultaneous writes`() = runTestWithSetup {
+        coroutineScope {
+            repeat(10) { i ->
+                launch {
+                    rtm.writeTransaction {
                         rtmTestWrite(i)
                     }
                 }
@@ -246,94 +249,25 @@ abstract class RepositoryTestSuite(
     }
 
     @Test
-    fun `RepositoryTransactionManager - write allows simultaneous reads`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        val calls = 10
-        val callCount = MutableStateFlow(0)
-        rtm.writeTransaction {
-            coroutineScope {
-                repeat(calls) { i ->
-                    launch {
-                        callCount.update { it + 1 }
-                        callCount.first { it == calls }
-                        rtmTestRead(i)
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `RepositoryTransactionManager - read does not lock`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        rtm.readTransaction {
-            rtmTestRead(0)
-            rtm.readTransaction {
-                rtmTestRead(0)
-                rtm.readTransaction {
-                    rtmTestRead(0)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `RepositoryTransactionManager - allow read in write transaction`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        rtm.writeTransaction {
-            rtmTestRead(0)
-        }
-    }
-
-    @Test
-    fun `RepositoryTransactionManager - allow read in parallel to write transaction`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        val startWrite = MutableStateFlow(false)
-        val finishedRead = MutableStateFlow(false)
-        launch {
-            rtm.writeTransaction {
-                startWrite.value = true
-                finishedRead.first { it }
-                rtmTestWrite(0)
-            }
-        }
-        startWrite.first { it }
-        rtm.readTransaction {
-            rtmTestRead(0)
-        }
-        finishedRead.value = true
-    }
-
-    @Test
     fun `RepositoryTransactionManager - read allows simultaneous reads`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        val calls = 10
-        val callCount = MutableStateFlow(0)
-        rtm.readTransaction {
-            coroutineScope {
-                repeat(calls) { i ->
-                    launch {
-                        callCount.update { it + 1 }
-                        callCount.first { it == calls }
-                        rtmTestRead(i)
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
-    fun `RepositoryTransactionManager - allow work within write transaction`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
-        val dummy = MutableStateFlow(listOf<Int>())
-        suspend fun work() = coroutineScope {
+        coroutineScope {
             repeat(10) { i ->
                 launch {
-                    delay(10.milliseconds)
-                    dummy.update { it + i }
+                    rtm.readTransaction {
+                        rtmTestRead(i)
+                    }
                 }
             }
         }
+    }
+
+    @Test
+    fun `RepositoryTransactionManager - allow non suspending work within write transaction`() = runTestWithSetup {
+        val dummy = MutableStateFlow(listOf<Int>())
+        fun work() =
+            repeat(10) { i ->
+                dummy.update { it + i }
+            }
         rtm.writeTransaction {
             rtmTestWrite(0)
             work()
@@ -346,17 +280,12 @@ abstract class RepositoryTestSuite(
     }
 
     @Test
-    fun `RepositoryTransactionManager - allow work within read transaction`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
+    fun `RepositoryTransactionManager - allow non suspending work within read transaction`() = runTestWithSetup {
         val dummy = MutableStateFlow(listOf<Int>())
-        suspend fun work() = coroutineScope {
+        fun work() =
             repeat(10) { i ->
-                launch {
-                    delay(10.milliseconds)
-                    dummy.update { it + i }
-                }
+                dummy.update { it + i }
             }
-        }
         rtm.writeTransaction {
             rtmTestWrite(0)
         }
@@ -373,7 +302,6 @@ abstract class RepositoryTestSuite(
 
     @Test
     fun `RepositoryTransactionManager - rollback on exception`() = runTestWithSetup {
-        rtm = customRepositoryTransactionManager() ?: di.get()
         val thrownException = CancellationException("dino")
         var caughtException: Exception? = null
         try {

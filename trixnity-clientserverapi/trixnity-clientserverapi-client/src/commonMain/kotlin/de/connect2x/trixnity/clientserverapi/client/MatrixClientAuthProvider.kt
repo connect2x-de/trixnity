@@ -60,15 +60,15 @@ interface MatrixClientAuthProviderData {
     companion object
 }
 
-suspend fun <T> MatrixClientAuthProviderData.useApi(
+inline fun <T> MatrixClientAuthProviderData.useApi(
     eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.default,
     json: Json = createMatrixEventJson(eventContentSerializerMappings),
     syncBatchTokenStore: SyncBatchTokenStore = SyncBatchTokenStore.inMemory(),
     syncErrorDelayConfig: RetryFlowDelayConfig = RetryFlowDelayConfig.sync,
     coroutineContext: CoroutineContext = Dispatchers.Default,
     httpClientEngine: HttpClientEngine? = null,
-    httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-    block: suspend (MatrixClientServerApiClient) -> T
+    noinline httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+    block: (MatrixClientServerApiClient) -> T
 ): T = MatrixClientServerApiClientImpl(
     authProvider = createAuthProvider(
         store = MatrixClientAuthProviderDataStore.inMemory(this),

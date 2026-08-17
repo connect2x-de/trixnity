@@ -3,7 +3,7 @@ package de.connect2x.trixnity.client.user
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.RoomUserStore
-import de.connect2x.trixnity.client.store.TransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.store.originalName
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -35,7 +35,7 @@ private val log = Logger("de.connect2x.trixnity.client.user.UserMemberEventHandl
 class UserMemberEventHandler(
     private val api: MatrixClientServerApiClient,
     private val roomUserStore: RoomUserStore,
-    private val tm: TransactionManager,
+    private val tm: StoreTransactionManager,
 ) : EventHandler, LazyMemberEventHandler {
 
     override fun startInCoroutineScope(scope: CoroutineScope) {

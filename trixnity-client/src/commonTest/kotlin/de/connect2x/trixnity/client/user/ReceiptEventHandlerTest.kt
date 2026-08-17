@@ -1,12 +1,9 @@
 package de.connect2x.trixnity.client.user
 
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeSameInstanceAs
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.getInMemoryRoomUserStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.store.RoomUserReceipts
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.RoomMap.Companion.roomMapOf
@@ -20,10 +17,13 @@ import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 
 class ReceiptEventHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val room = RoomId("!room:localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -32,9 +32,9 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
 
     private val roomUserStore = getInMemoryRoomUserStore()
     private val cut = ReceiptEventHandler(
-        mockMatrixClientServerApiClient(json = json),
-        roomUserStore,
-        TransactionManagerMock(),
+        api = mockMatrixClientServerApiClient(json = json),
+        roomUserStore = roomUserStore,
+        tm = tm,
     )
 
 
@@ -51,7 +51,9 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `setReadReceipts » do nothing when the user in the receipt could not be found`() = runTest {
         val existingRoomUser = roomUserReceipts(room, alice)
-        roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+        tm.writeTransaction {
+            roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+        }
         val event = EphemeralEvent(
             ReceiptEventContent(
                 events = mapOf(
@@ -73,7 +75,9 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
     fun `setReadReceipts » do store receipts from unknown users`() = runTest {
         val existingRoomUser = roomUserReceipts(room, alice)
         val unknownUserId = UserId("unknownUser", "localhost")
-        roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+        tm.writeTransaction {
+            roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+        }
         val event = EphemeralEvent(
             ReceiptEventContent(
                 events = mapOf(
@@ -99,9 +103,11 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
             val eventId2 = EventId("eventId2")
             val aliceRoomUser = roomUserReceipts(room, alice)
             val bobRoomUser = roomUserReceipts(room, alice)
-            roomUserStore.apply {
-                updateReceipts(alice, room) { aliceRoomUser }
-                updateReceipts(bob, room) { bobRoomUser }
+            tm.writeTransaction {
+                roomUserStore.apply {
+                    updateReceipts(alice, room) { aliceRoomUser }
+                    updateReceipts(bob, room) { bobRoomUser }
+                }
             }
             val event = EphemeralEvent(
                 ReceiptEventContent(
@@ -144,7 +150,9 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
                     )
                 )
             )
-            roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+            tm.writeTransaction {
+                roomUserStore.updateReceipts(alice, room) { existingRoomUser }
+            }
             val eventId = EventId("eventId")
             val event = EphemeralEvent(
                 ReceiptEventContent(
@@ -177,10 +185,12 @@ class ReceiptEventHandlerTest : TrixnityBaseTest() {
                 )
             )
         )
-        roomUserStore.updateReceipts(alice, roomId1) { roomUserReceipt(roomId1) }
-        roomUserStore.updateReceipts(alice, roomId2) { roomUserReceipt(roomId2) }
-        roomUserStore.updateReceipts(alice, roomId3) { roomUserReceipt(roomId3) }
-        roomUserStore.updateReceipts(alice, roomId4) { roomUserReceipt(roomId4) }
+        tm.writeTransaction {
+            roomUserStore.updateReceipts(alice, roomId1) { roomUserReceipt(roomId1) }
+            roomUserStore.updateReceipts(alice, roomId2) { roomUserReceipt(roomId2) }
+            roomUserStore.updateReceipts(alice, roomId3) { roomUserReceipt(roomId3) }
+            roomUserStore.updateReceipts(alice, roomId4) { roomUserReceipt(roomId4) }
+        }
 
         cut.deleteReadReceiptsOnNonJoin(
             SyncEvents(

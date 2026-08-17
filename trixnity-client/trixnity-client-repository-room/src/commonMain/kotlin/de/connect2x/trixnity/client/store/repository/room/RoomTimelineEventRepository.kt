@@ -1,13 +1,18 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.repository.TimelineEventKey
 import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "TimelineEvent",
@@ -43,16 +48,18 @@ internal class RoomTimelineEventRepository(
 ) : TimelineEventRepository {
 
     private val dao = db.timelineEvent()
-    override suspend fun deleteByRoomId(roomId: RoomId) {
-        dao.delete(roomId)
-    }
 
-    override suspend fun get(key: TimelineEventKey): TimelineEvent? = withRoomRead {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) =
+        dao.delete(roomId)
+
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: TimelineEventKey): TimelineEvent? =
         dao.get(key.roomId, key.eventId)
             ?.let { entity -> json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun save(key: TimelineEventKey, value: TimelineEvent) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: TimelineEventKey, value: TimelineEvent) =
         dao.insert(
             RoomTimelineEvent(
                 roomId = key.roomId,
@@ -60,13 +67,12 @@ internal class RoomTimelineEventRepository(
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun delete(key: TimelineEventKey) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: TimelineEventKey) =
         dao.delete(key.roomId, key.eventId)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

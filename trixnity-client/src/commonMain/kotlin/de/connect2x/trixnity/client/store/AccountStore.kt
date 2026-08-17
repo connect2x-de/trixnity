@@ -1,17 +1,16 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.AccountRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 import kotlin.time.Duration
 
 class AccountStore(
     repository: AccountRepository,
-    tm: RepositoryTransactionManager,
+    tm: StoreTransactionManager,
     statisticCollector: ObservableCacheStatisticCollector,
     storeScope: CoroutineScope,
     clock: Clock,
@@ -20,13 +19,19 @@ class AccountStore(
         .also(statisticCollector::addCache)
 
     suspend fun getAccount() = accountCache.get(1).first()
+
     fun getAccountAsFlow() = accountCache.get(1)
-    suspend fun updateAccount(updater: suspend (Account?) -> Account?) = accountCache.update(1) { account ->
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun updateAccount(updater: (Account?) -> Account?) = accountCache.update(1) { account ->
         updater(account)
     }
 
-    override suspend fun clearCache() {}
+    context(transaction: StoreWriteTransaction)
+    override suspend fun clearCache() {
+    }
 
+    context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
         accountCache.deleteAll()
     }

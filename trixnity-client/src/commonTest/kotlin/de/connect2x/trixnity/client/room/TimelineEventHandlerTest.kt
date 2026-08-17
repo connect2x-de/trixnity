@@ -7,7 +7,6 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomTimelineStore
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.StoredStickyEvent
@@ -15,6 +14,7 @@ import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
 import de.connect2x.trixnity.client.store.TimelineEventRelation
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
@@ -63,7 +63,7 @@ import kotlin.time.Instant
 
 @OptIn(MSC4354::class)
 class TimelineEventHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val alice = UserId("alice", "server")
     private val room = RoomId("!room:server")
     private val event1 = plainEvent(1)
@@ -98,7 +98,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
         json = json,
         mappings = mappings,
         config = config,
-        tm = TransactionManagerMock(),
+        tm = tm,
     )
 
 
@@ -144,7 +144,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
         val event1 = textEvent(1)
         val event2 = textEvent(2)
         val event3 = textEvent(3)
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 TimelineEvent(
                     event = event1,
@@ -167,8 +167,8 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     nextEventId = null,
                     gap = null
                 )
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
         val redactionEvent = MessageEvent(
             content = RedactionEventContent(reason = "Spamming", redacts = event2.id),
             id = EventId("\$redact"),
@@ -203,8 +203,8 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @OptIn(MSC4143::class)
     fun `handleRedactions » redact sticky event`() = runTest {
         val event1 = stickyEvent(1)
-        roomTimelineStore.addAll(
-            listOf(
+        tm.writeTransaction {
+            roomTimelineStore.add(
                 TimelineEvent(
                     event = event1,
                     content = null,
@@ -213,14 +213,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     gap = null
                 ),
             )
-        )
-        roomStickyEventStore.save(
-            StoredStickyEvent(
-                event = event1,
-                startTime = Instant.fromEpochMilliseconds(24),
-                endTime = Instant.fromEpochMilliseconds(24)
+            roomStickyEventStore.save(
+                StoredStickyEvent(
+                    event = event1,
+                    startTime = Instant.fromEpochMilliseconds(24),
+                    endTime = Instant.fromEpochMilliseconds(24)
+                )
             )
-        )
+        }
         val redactionEvent = MessageEvent(
             content = RedactionEventContent(reason = "Spamming", redacts = event1.id),
             id = EventId("\$redact"),
@@ -241,75 +241,11 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `handleRedactions » with existent event » not redact room event twice`() = runTest {
-        val messageEventId = EventId("\$message")
-        val redactionEventId = EventId("\$redact")
-
-        val redactionEvent = MessageEvent(
-            content = RedactionEventContent(redacts = messageEventId),
-            id = redactionEventId,
-            sender = alice,
-            roomId = room,
-            originTimestamp = 2
-        )
-
-        val messageEvent = MessageEvent(
-            content = RedactedEventContent("m.room.message"),
-            id = messageEventId,
-            sender = alice,
-            roomId = room,
-            originTimestamp = 1,
-            UnsignedRoomEventData.UnsignedMessageEventData(
-                redactedBecause = redactionEvent
-            )
-        )
-
-        with(cut) {
-            val events = listOf(
-                messageEvent,
-                redactionEvent
-            ).handleRedactions()
-            roomTimelineStore.addEventsToTimeline(
-                startEvent = TimelineEvent(
-                    event = events.first(),
-                    previousEventId = null,
-                    nextEventId = null,
-                    gap = null
-                ),
-                roomId = room,
-                previousToken = null,
-                previousHasGap = true,
-                previousEvent = null,
-                previousEventChunk = null,
-                nextToken = "token",
-                nextHasGap = true,
-                nextEvent = null,
-                nextEventChunk = events.drop(1),
-            )
-        }
-        assertSoftly(roomTimelineStore.get(messageEvent.id, room).first().shouldNotBeNull()) {
-            event shouldBe MessageEvent(
-                content = RedactedEventContent("m.room.message"),
-                id = EventId("\$message"),
-                sender = alice,
-                roomId = room,
-                originTimestamp = 1,
-                UnsignedRoomEventData.UnsignedMessageEventData(
-                    redactedBecause = redactionEvent
-                )
-            )
-            content shouldBe Result.success(RedactedEventContent("m.room.message"))
-            roomId shouldBe room
-            eventId shouldBe messageEvent.id
-        }
-    }
-
-    @Test
     fun `handleRedactions » with existent event » redact state event`() = runTest {
         val event1 = nameEvent(1)
         val event2 = nameEvent(2)
         val event3 = nameEvent(3)
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 TimelineEvent(
                     event = event1,
@@ -332,8 +268,8 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     nextEventId = null,
                     gap = null
                 )
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
         val redactionEvent = MessageEvent(
             content = RedactionEventContent(reason = "Spamming", redacts = event2.id),
             id = EventId("\$redact"),
@@ -382,12 +318,12 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
             nextEventId = null,
             gap = null
         )
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
             listOf(
                 timelineEvent1,
                 timelineEvent2,
-            )
-        )
+            ).forEach { roomTimelineStore.add(it) }
+        }
 
         val redactionEvent = MessageEvent(
             content = RedactionEventContent(reason = "Spamming", redacts = EventId("\$incorrectlyEvent")),
@@ -406,7 +342,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » initial sync » add elements to timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event1, event2, event3), null, "next", false)
         storeTimeline(event1, event2, event3) shouldContainExactly timeline {
             fragment {
@@ -420,7 +358,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » initial sync » add elements to timeline with gap`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event1, event2, event3), "prev", "next", true)
         storeTimeline(event1, event2, event3) shouldContainExactly timeline {
             fragment {
@@ -435,7 +375,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » initial sync » add one element to timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event1), null, "next", false)
         storeTimeline(event1) shouldContainExactly timeline {
             fragment {
@@ -446,16 +388,47 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `addEventsToTimelineAtEnd » add relations to timeline`() = runTest {
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        }
+        cut.addEventsToTimelineAtEnd(
+            room,
+            listOf(
+                event1,
+                event2,
+                event3.copy(content = event3.content.copy(relatesTo = RelatesTo.Reference(event1.id)))
+            ),
+            null,
+            "next",
+            false
+        )
+        roomTimelineStore.getRelations(event1.id, RoomId("!room:server"), RelationType.Reference)
+            .flatten().first() shouldBe
+                mapOf(
+                    event3.id to
+                            TimelineEventRelation(
+                                RoomId("!room:server"),
+                                event3.id,
+                                RelationType.Reference,
+                                event1.id
+                            )
+                )
+    }
+
+    @Test
     fun `addEventsToTimelineAtEnd » without gap » add elements to timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
+        }
+        tm.writeTransaction {
             timeline {
                 fragment {
                     +event1
                     gap("oldPrevious")
                 }
-            }
-        )
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event2, event3), "previous", "next", false)
         storeTimeline(event1, event2, event3) shouldContainExactly timeline {
             fragment {
@@ -469,16 +442,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » without gap » add elements to gappy timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
             timeline {
                 fragment {
                     gap("before")
                     +event1
                     gap("oldPrevious")
                 }
-            }
-        )
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event2, event3), "previous", "next", false)
         storeTimeline(event1, event2, event3) shouldContainExactly timeline {
             fragment {
@@ -493,15 +466,15 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » without gap » add one element to timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
             timeline {
                 fragment {
                     +event1
                     gap("oldPrevious")
                 }
-            }
-        )
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event3), "previous", "next", false)
         storeTimeline(event1, event3) shouldContainExactly timeline {
             fragment {
@@ -515,8 +488,8 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » without gap » add one element to timeline that already exists`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
                 timeline {
                     fragment {
                         +event1
@@ -524,8 +497,8 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                         +event3
                         gap("oldPrevious")
                     }
-                }
-            )
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event2), "previous", "next", false)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -539,7 +512,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » without gap » filter duplicate events`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event1, event1), "previous", "next", false)
         storeTimeline(event1) shouldContainExactly timeline {
             fragment {
@@ -552,7 +527,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » with gap » without previous events » add elements to timeline`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event1, event2, event3), "previous", "next", true)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -568,7 +545,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » with gap » without previous events » add one element to timeline`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = null) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event1), "previous", "next", true)
             storeTimeline(event1) shouldContainExactly timeline {
                 fragment {
@@ -582,16 +561,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » with gap » with previous events » add elements to gappy timeline`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
                 timeline {
                     fragment {
                         gap("oldPrevious-1")
                         +event1
                         gap("oldPrevious")
                     }
-                }
-            )
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event2, event3), "previous", "next", true)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -608,15 +587,15 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `addEventsToTimelineAtEnd » with gap » with previous events » add elements to timeline`() = runTest {
-        roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
             timeline {
                 fragment {
                     +event1
                     gap("oldPrevious")
                 }
-            }
-        )
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.addEventsToTimelineAtEnd(room, listOf(event2, event3), "previous", "next", true)
         storeTimeline(event1, event2, event3) shouldContainExactly timeline {
             fragment {
@@ -633,16 +612,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » with gap » with previous events » add elements to timeline with existing gap`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
                 timeline {
                     fragment {
                         gap("before")
                         +event1
                         gap("oldPrevious")
                     }
-                }
-            )
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event2, event3), "previous", "next", true)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -660,15 +639,15 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `addEventsToTimelineAtEnd » with gap » with previous events » add one element to timeline`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-            roomTimelineStore.addAll(
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
                 timeline {
                     fragment {
                         +event1
                         gap("oldPrevious")
                     }
-                }
-            )
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.addEventsToTimelineAtEnd(room, listOf(event3), "previous", "next", true)
             storeTimeline(event1, event3) shouldContainExactly timeline {
                 fragment {
@@ -697,15 +676,15 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
             RoomId("!room:server"),
             4
         )
-        roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
-        roomTimelineStore.addAll(
+        tm.writeTransaction {
+            roomStore.update(room) { Room(roomId = room, lastEventId = event1.id) }
             timeline {
                 fragment {
                     +event1
                     gap("oldPrevious")
                 }
-            }
-        )
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.addEventsToTimelineAtEnd(
             room,
             listOf(event2, redactionEvent1, redactionEvent2),
@@ -728,7 +707,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `handleSyncResponse » lastEventId » set lastEventId from room event`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(roomId = room) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(roomId = room) }
+        }
         cut.handleSyncResponse(
             SyncEvents(
                 Sync.Response(
@@ -749,7 +730,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
     @Test
     fun `handleSyncResponse » lastEventId » set lastEventId from state event`() = runTest {
-        roomStore.update(room) { simpleRoom.copy(roomId = room) }
+        tm.writeTransaction {
+            roomStore.update(room) { simpleRoom.copy(roomId = room) }
+        }
         cut.handleSyncResponse(
             SyncEvents(
                 Sync.Response(
@@ -800,12 +783,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -838,12 +823,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -875,14 +862,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start")
-                    +event3
-                    +event4
-                    gap("after")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start")
+                        +event3
+                        +event4
+                        gap("after")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event3, event4) shouldContainExactly timeline {
                 fragment {
@@ -914,14 +903,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start")
-                    +event3
-                    +event4
-                    gap("after")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start")
+                        +event3
+                        +event4
+                        gap("after")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event3, event4) shouldContainExactly timeline {
                 fragment {
@@ -954,15 +945,17 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start-1")
-                    +event1
-                    gap("end-1")
-                    gap("start-3")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start-1")
+                        +event1
+                        gap("end-1")
+                        gap("start-3")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -996,15 +989,17 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start-1")
-                    +event1
-                    gap("end-1")
-                    gap("start-3")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start-1")
+                        +event1
+                        gap("end-1")
+                        gap("start-3")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -1038,15 +1033,17 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start-1")
-                    +event1
-                    gap("end-1")
-                    gap("start-3")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start-1")
+                        +event1
+                        gap("end-1")
+                        gap("start-3")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -1080,15 +1077,17 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("gap")
-                    +event1
-                    +event2
-                    +event3
-                    gap("gap")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("gap")
+                        +event1
+                        +event2
+                        +event3
+                        gap("gap")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event1.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -1122,15 +1121,17 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start-1")
-                    +event1
-                    gap("end-1")
-                    gap("start-3")
-                    +event3
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start-1")
+                        +event1
+                        gap("end-1")
+                        gap("start-3")
+                        +event3
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -1165,12 +1166,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    +event3
-                    gap("start")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        +event3
+                        gap("start")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event3, event4) shouldContainExactly timeline {
                 fragment {
@@ -1203,16 +1206,18 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("gap-before")
-                    +event1
-                    +event2
-                    gap("start")
-                    gap("end")
-                    +event5
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("gap-before")
+                        +event1
+                        +event2
+                        gap("start")
+                        gap("end")
+                        +event5
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event2.id, room)
             storeTimeline(event1, event2, event3, event4, event5) shouldContainExactly timeline {
                 fragment {
@@ -1248,16 +1253,18 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("gap-before")
-                    +event1
-                    +event2
-                    gap("start")
-                    gap("end")
-                    +event5
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("gap-before")
+                        +event1
+                        +event2
+                        gap("start")
+                        gap("end")
+                        +event5
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event2.id, room)
             storeTimeline(event1, event2, event3, event4, event5) shouldContainExactly timeline {
                 fragment {
@@ -1293,17 +1300,19 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("gap-before")
-                    +event1
-                    +event2
-                    +event3
-                    gap("start")
-                    gap("end")
-                    +event5
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("gap-before")
+                        +event1
+                        +event2
+                        +event3
+                        gap("start")
+                        gap("end")
+                        +event5
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3, event4, event5) shouldContainExactly timeline {
                 fragment {
@@ -1339,17 +1348,19 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("gap-before")
-                    +event2
-                    +event3
-                    gap("start")
-                    gap("next")
-                    +event5
-                    gap("next-1")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("gap-before")
+                        +event2
+                        +event3
+                        gap("start")
+                        gap("next")
+                        +event5
+                        gap("next-1")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event2, event3, event4, event5) shouldContainExactly timeline {
                 fragment {
@@ -1368,7 +1379,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `unsafeFillTimelineGaps » start event does exist in store » only fetch event before when last event of room`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id, membership = Membership.JOIN) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, lastEventId = event3.id, membership = Membership.JOIN) }
+            }
             apiConfig.endpoints {
                 matrixJsonEndpoint(
                     GetEvents(
@@ -1387,13 +1400,15 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("start")
-                    +event3
-                    gap("next")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("start")
+                        +event3
+                        gap("next")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event1, event2, event3) shouldContainExactly timeline {
                 fragment {
@@ -1409,7 +1424,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `unsafeFillTimelineGaps » start event does exist in store » should detect loop due to event found in chunk`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            }
             apiConfig.endpoints {
                 matrixJsonEndpoint(
                     GetEvents(
@@ -1429,21 +1446,23 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("before-1")
-                    +event1
-                    gap("after-1")
-                    gap("before-2")
-                    +event2
-                    +event3
-                    +event4
-                    gap("after-4")
-                    gap("before-5")
-                    +event5
-                    gap("after-5")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("before-1")
+                        +event1
+                        gap("after-1")
+                        gap("before-2")
+                        +event2
+                        +event3
+                        +event4
+                        gap("after-4")
+                        gap("before-5")
+                        +event5
+                        gap("after-5")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event2.id, room)
             storeTimeline(event1, event2, event3, event4, event5) shouldContainExactly timeline {
                 fragment {
@@ -1463,7 +1482,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `unsafeFillTimelineGaps » start event does exist in store » should handle gap filling without new events`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            }
             apiConfig.endpoints {
                 matrixJsonEndpoint(
                     GetEvents(
@@ -1500,19 +1521,21 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("before-2")
-                    +event2
-                    gap("after-2")
-                    gap("before-3")
-                    +event3
-                    gap("after-3")
-                    gap("before-4")
-                    +event4
-                    gap("after-4")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("before-2")
+                        +event2
+                        gap("after-2")
+                        gap("before-3")
+                        +event3
+                        gap("after-3")
+                        gap("before-4")
+                        +event4
+                        gap("after-4")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event2, event3, event4) shouldContainExactly timeline {
                 fragment {
@@ -1528,7 +1551,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `unsafeFillTimelineGaps » start event does exist in store » should handle gap filling without new events and same tokens`() =
         runTest {
-            roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            tm.writeTransaction {
+                roomStore.update(room) { Room(roomId = room, membership = Membership.JOIN) }
+            }
             apiConfig.endpoints {
                 matrixJsonEndpoint(
                     GetEvents(
@@ -1565,17 +1590,19 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     )
                 }
             }
-            roomTimelineStore.addAll(timeline {
-                fragment {
-                    gap("before-2")
-                    +event2
-                    gap("after-2")
-                    +event3
-                    gap("before-4")
-                    +event4
-                    gap("after-4")
-                }
-            })
+            tm.writeTransaction {
+                timeline {
+                    fragment {
+                        gap("before-2")
+                        +event2
+                        gap("after-2")
+                        +event3
+                        gap("before-4")
+                        +event4
+                        gap("after-4")
+                    }
+                }.forEach { roomTimelineStore.add(it) }
+            }
             cut.unsafeFillTimelineGaps(event3.id, room)
             storeTimeline(event2, event3, event4) shouldContainExactly timeline {
                 fragment {
@@ -1622,14 +1649,16 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        roomTimelineStore.addAll(timeline {
-            fragment {
-                +event1
-                gap("end")
-                gap("start")
-                +event5
-            }
-        })
+        tm.writeTransaction {
+            timeline {
+                fragment {
+                    +event1
+                    gap("end")
+                    gap("start")
+                    +event5
+                }
+            }.forEach { roomTimelineStore.add(it) }
+        }
         cut.unsafeFillTimelineGaps(event5.id, room)
         storeTimeline(
             event1,
@@ -1688,12 +1717,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                 )
             }
         }
-        roomTimelineStore.addAll(timeline {
-            fragment {
-                gap("before-3")
-                +event3
-            }
-        })
+        tm.writeTransaction {
+            timeline {
+                fragment {
+                    gap("before-3")
+                    +event3
+                }
+            }.forEach { roomTimelineStore.add(it) }
+        }
         launch {
             cut.unsafeFillTimelineGaps(event3.id, room)
         }
@@ -1715,85 +1746,84 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `addRelation » add relation`() = runTest {
-        cut.addRelation(
-            MessageEvent(
-                RoomMessageEventContent.TextBased.Text(
-                    "hi",
-                    relatesTo = RelatesTo.Reference(EventId("$1other"))
-                ),
-                EventId("$1event"),
-                UserId("sender", "server"),
-                RoomId("!room:server"),
-                1234,
-            )
-        )
-        roomTimelineStore.getRelations(EventId("$1other"), RoomId("!room:server"), RelationType.Reference)
-            .flatten().first() shouldBe
-                mapOf(
-                    EventId("$1event") to
-                            TimelineEventRelation(
-                                RoomId("!room:server"),
-                                EventId("$1event"),
-                                RelationType.Reference,
-                                EventId("$1other")
-                            )
-                )
-    }
-
-    @Test
     fun `redactRelation » delete relation`() = runTest {
-        roomTimelineStore.addRelation(
-            TimelineEventRelation(
-                room,
-                EventId("$1event"),
-                RelationType.Reference,
-                EventId("$1other")
+        tm.writeTransaction {
+            roomTimelineStore.addRelation(
+                TimelineEventRelation(
+                    room,
+                    EventId("$1event"),
+                    RelationType.Reference,
+                    EventId("$1other")
+                )
             )
-        )
-        cut.redactRelation(
-            MessageEvent(
-                RoomMessageEventContent.TextBased.Text(
-                    "hi",
-                    relatesTo = RelatesTo.Reference(EventId("$1other"))
+        }
+        with(cut) {
+            listOf(
+                MessageEvent(
+                    RoomMessageEventContent.TextBased.Text(
+                        "hi",
+                        relatesTo = RelatesTo.Reference(EventId("$1other"))
+                    ),
+                    EventId("$1event"),
+                    UserId("sender", "server"),
+                    room,
+                    1234,
                 ),
-                EventId("$1event"),
-                UserId("sender", "server"),
-                room,
-                1234,
-            )
-        )
+                MessageEvent(
+                    RedactionEventContent(
+                        EventId("$1event"),
+                    ),
+                    EventId("$2event"),
+                    UserId("sender", "server"),
+                    room,
+                    1234,
+                ),
+            ).handleRedactions()
+        }
         roomTimelineStore.getRelations(EventId("$1other"), room, RelationType.Reference).flattenNotNull().first()
             .shouldNotBeNull().shouldBeEmpty()
     }
 
     @Test
     fun `redactRelation » delete replace relations`() = runTest {
-        roomTimelineStore.addRelation(
-            TimelineEventRelation(
-                room,
-                EventId("$1other1"),
-                RelationType.Replace,
-                EventId("$1event")
+        tm.writeTransaction {
+            roomTimelineStore.addRelation(
+                TimelineEventRelation(
+                    room,
+                    EventId("$1other1"),
+                    RelationType.Replace,
+                    EventId("$1event")
+                )
             )
-        )
-        roomTimelineStore.addRelation(
-            TimelineEventRelation(
-                room,
-                EventId("$1other2"),
-                RelationType.Replace,
-                EventId("$1event")
+            roomTimelineStore.addRelation(
+                TimelineEventRelation(
+                    room,
+                    EventId("$1other2"),
+                    RelationType.Replace,
+                    EventId("$1event")
+                )
             )
-        )
-        cut.redactRelation(
-            MessageEvent(
-                RoomMessageEventContent.TextBased.Text("hi"),
-                EventId("$1event"),
-                UserId("sender", "server"),
-                room,
-                1234,
-            )
-        )
+        }
+        with(cut) {
+            listOf(
+                MessageEvent(
+                    RoomMessageEventContent.TextBased.Text("hi"),
+                    EventId("$3event"),
+                    UserId("sender", "server"),
+                    room,
+                    1234,
+                ),
+                MessageEvent(
+                    RedactionEventContent(
+                        EventId("$1event"),
+                    ),
+                    EventId("$4event"),
+                    UserId("sender", "server"),
+                    room,
+                    1234,
+                ),
+            ).handleRedactions()
+        }
         roomTimelineStore.getRelations(EventId("$1event"), room, RelationType.Replace).flattenNotNull().first()
             .shouldNotBeNull().shouldBeEmpty()
     }

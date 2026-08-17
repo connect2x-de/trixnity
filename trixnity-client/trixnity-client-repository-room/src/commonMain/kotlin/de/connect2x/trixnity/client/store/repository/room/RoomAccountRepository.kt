@@ -1,9 +1,16 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.Account
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.json.Json
 
 @Entity(tableName = "Account")
@@ -43,7 +50,8 @@ internal class RoomAccountRepository(
 
     private val dao = db.account()
 
-    override suspend fun get(key: Long): Account? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(key: Long): Account? =
         dao.get(key)?.let { entity ->
             Account(
                 olmPickleKey = entity.olmPickleKey,
@@ -57,9 +65,9 @@ internal class RoomAccountRepository(
                 profile = entity.profile?.let { json.decodeFromString(it) },
             )
         }
-    }
 
-    override suspend fun save(key: Long, value: Account) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(key: Long, value: Account) =
         dao.insert(
             @Suppress("DEPRECATION")
             RoomAccount(
@@ -75,13 +83,12 @@ internal class RoomAccountRepository(
                 profile = value.profile?.let { json.encodeToString(it) },
             )
         )
-    }
 
-    override suspend fun delete(key: Long) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(key: Long) =
         dao.delete(key)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

@@ -785,33 +785,8 @@ public final class de/connect2x/trixnity/client/store/repository/room/RoomOutdat
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/RoomReadTransaction : kotlin/coroutines/CoroutineContext$Element {
-	public static final field Key Lde/connect2x/trixnity/client/store/repository/room/RoomReadTransaction$Key;
-	public fun <init> (Lkotlinx/coroutines/sync/Mutex;)V
-	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
-	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
-	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
-	public final fun getMutex ()Lkotlinx/coroutines/sync/Mutex;
-	public fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
-	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomReadTransaction$Key : kotlin/coroutines/CoroutineContext$Key {
-}
-
 public final class de/connect2x/trixnity/client/store/repository/room/RoomRepositoriesModuleKt {
 	public static final fun room (Lde/connect2x/trixnity/client/RepositoriesModule$Companion;Landroidx/room/RoomDatabase$Builder;)Lde/connect2x/trixnity/client/RepositoriesModule;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomRepositoryTransactionManager : de/connect2x/trixnity/client/store/repository/RepositoryTransactionManager {
-	public fun <init> (Lde/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase;)V
-	public fun readTransaction (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun writeTransaction (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomRepositoryTransactionManagerKt {
-	public static final fun withRoomRead (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun withRoomWrite (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomRoom {
@@ -1035,6 +1010,16 @@ public final class de/connect2x/trixnity/client/store/repository/room/RoomSticky
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class de/connect2x/trixnity/client/store/repository/room/RoomStoreTransactionManager : de/connect2x/trixnity/client/store/StoreTransactionManager {
+	public fun <init> (Lde/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase;)V
+}
+
+public final class de/connect2x/trixnity/client/store/repository/room/RoomStoreWriteTransaction : de/connect2x/trixnity/client/store/StoreWriteTransaction, de/connect2x/trixnity/client/store/cache/CacheTransaction {
+	public fun <init> (Lde/connect2x/trixnity/client/store/cache/CacheTransaction;)V
+	public fun getOnCommitActions ()Lde/connect2x/trixnity/utils/Concurrent;
+	public fun getOnRollbackActions ()Lde/connect2x/trixnity/utils/Concurrent;
+}
+
 public final class de/connect2x/trixnity/client/store/repository/room/RoomTimelineEvent {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
@@ -1130,20 +1115,6 @@ public final class de/connect2x/trixnity/client/store/repository/room/RoomUserRe
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao_Impl$Companion {
 	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomWriteTransaction : kotlin/coroutines/CoroutineContext$Element {
-	public static final field Key Lde/connect2x/trixnity/client/store/repository/room/RoomWriteTransaction$Key;
-	public fun <init> (Lkotlinx/coroutines/sync/Mutex;)V
-	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
-	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
-	public fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
-	public final fun getMutex ()Lkotlinx/coroutines/sync/Mutex;
-	public fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
-	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomWriteTransaction$Key : kotlin/coroutines/CoroutineContext$Key {
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao {

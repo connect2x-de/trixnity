@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.store.repository.exposed
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
 import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
@@ -21,7 +22,6 @@ import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRe
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
@@ -37,10 +37,9 @@ import de.connect2x.trixnity.client.store.repository.TimelineEventRelationReposi
 import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.client.store.repository.UserPresenceRepository
 import de.connect2x.trixnity.core.MSC4354
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
+import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -48,9 +47,9 @@ import org.koin.dsl.module
 private val log =
     Logger("de.connect2x.trixnity.client.store.repository.exposed.ExposedRepositoriesModule")
 
-fun RepositoriesModule.Companion.exposed(database: Database): RepositoriesModule = RepositoriesModule {
+fun RepositoriesModule.Companion.exposed(database: R2dbcDatabase): RepositoriesModule = RepositoriesModule {
     log.debug { "create missing tables and columns" }
-    newSuspendedTransaction(Dispatchers.IO, database) {
+    suspendTransaction(database) {
         val allTables = arrayOf(
             ExposedAccount,
             ExposedAuthentication,
@@ -93,7 +92,7 @@ fun RepositoriesModule.Companion.exposed(database: Database): RepositoriesModule
     log.debug { "finished create missing tables and columns" }
     module {
         single { database }
-        singleOf(::ExposedRepositoryTransactionManager) { bind<RepositoryTransactionManager>() }
+        singleOf(::ExposedStoreTransactionManager) { bind<StoreTransactionManager>() }
         singleOf(::ExposedAccountRepository) { bind<AccountRepository>() }
         singleOf(::ExposedAuthenticationRepository) { bind<AuthenticationRepository>() }
         singleOf(::ExposedServerDataRepository) { bind<ServerDataRepository>() }

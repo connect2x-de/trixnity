@@ -10,13 +10,13 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomUserStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationState.SyncWithTimeline.IsRead
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlin.test.Test
 
 class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val userId = UserId("user1", "localhost")
     private val roomId1 = RoomId("!room1:localhost")
     private val roomId2 = RoomId("!room2:localhost")
@@ -57,11 +58,11 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
             returnGetTimelineEvents = flowOf()
         }
     }
-    private val roomStore = getInMemoryRoomStore { deleteAll() }
-    private val roomStateStore = getInMemoryRoomStateStore { deleteAll() }
-    private val roomUserStore = getInMemoryRoomUserStore { deleteAll() }
-    private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { deleteAll() }
-    private val notificationStore = getInMemoryNotificationStore { deleteAll() }
+    private val roomStore = getInMemoryRoomStore { tm.writeTransaction { deleteAll() } }
+    private val roomStateStore = getInMemoryRoomStateStore { tm.writeTransaction { deleteAll() } }
+    private val roomUserStore = getInMemoryRoomUserStore { tm.writeTransaction { deleteAll() } }
+    private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { tm.writeTransaction { deleteAll() } }
+    private val notificationStore = getInMemoryNotificationStore { tm.writeTransaction { deleteAll() } }
 
     private class EventsToNotificationUpdatesMock() : EventsToNotificationUpdates {
         var notificationUpdates = listOf<StoredNotificationUpdate>()
@@ -90,7 +91,7 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
         keyStore = getInMemoryKeyStore(),
         eventsToNotificationUpdates = eventsToNotificationUpdates,
         currentSyncState = CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
-        transactionManager = TransactionManagerMock(),
+        tm = tm,
         eventContentSerializerMappings = EventContentSerializerMappings.default,
         config = MatrixClientConfiguration(),
         coroutineScope = testScope.backgroundScope,
@@ -117,22 +118,25 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
         pushRuleChange: Boolean = true,
         pushRuleOverride: (List<PushRule.Override>) -> List<PushRule.Override> = { it },
     ) {
-        notifications.forEach { notification -> notificationStore.save(notification) }
-        notificationStates.forEach { notificationState -> notificationStore.updateState(notificationState.roomId) { notificationState } }
-        receipts.forEach { (roomId, receiptEventId) ->
-            roomUserStore.updateReceipts(userId, roomId) {
-                RoomUserReceipts(
-                    roomId1, userId, mapOf(
-                        ReceiptType.Read to RoomUserReceipts.Receipt(
-                            receiptEventId,
-                            ReceiptEventContent.Receipt(1234)
+        val pushRulesEvent = pushRulesEvent(pushRuleOverride)
+
+        tm.writeTransaction {
+            notifications.forEach { notification -> notificationStore.save(notification) }
+            notificationStates.forEach { notificationState -> notificationStore.updateState(notificationState.roomId) { notificationState } }
+            receipts.forEach { (roomId, receiptEventId) ->
+                roomUserStore.updateReceipts(userId, roomId) {
+                    RoomUserReceipts(
+                        roomId1, userId, mapOf(
+                            ReceiptType.Read to RoomUserReceipts.Receipt(
+                                receiptEventId,
+                                ReceiptEventContent.Receipt(1234)
+                            )
                         )
                     )
-                )
+                }
             }
+            globalAccountDataStore.save(pushRulesEvent)
         }
-        val pushRulesEvent = pushRulesEvent(pushRuleOverride)
-        globalAccountDataStore.save(pushRulesEvent)
         cut.processSync(
             SyncEvents(
                 Sync.Response(
@@ -240,7 +244,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `push rules disabled for room without change - schedule remove`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             pushRuleChange = false,
@@ -264,7 +270,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `no receipts for room - no timeline - set state`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        }
         processSyncWith(updatedRooms = setOf(roomId1), receipts = mapOf())
 
         notificationStore.getAll().first().values.mapNotNull { it.first() } shouldBe listOf(
@@ -279,7 +287,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `room is read`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e1")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e1")) }
+        }
         processSyncWith(updatedRooms = setOf(roomId1))
 
         notificationStore.getAll().first().values.mapNotNull { it.first() } shouldBe listOf(
@@ -294,7 +304,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `room is upgraded`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, nextRoomId = RoomId("!newRoomId:example.org")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    nextRoomId = RoomId("!newRoomId:example.org")
+                )
+            }
+        }
         processSyncWith(updatedRooms = setOf(roomId1))
 
         notificationStore.getAll().first().values.mapNotNull { it.first() } shouldBe listOf(
@@ -309,7 +326,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - existing state - receipts changed`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(
@@ -348,7 +367,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - existing state - receipts not changed - keep process`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(
@@ -387,7 +408,15 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - encrypted - ignore notification count`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24"), encrypted = true) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    encrypted = true
+                )
+            }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(
@@ -421,12 +450,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - isRead - lastRelevant receipt - true`() = runTest {
-        roomStore.update(roomId1) {
-            simpleRoom.copy(
-                roomId = roomId1,
-                lastEventId = EventId("e24"),
-                lastRelevantEventId = EventId("e1")
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    lastRelevantEventId = EventId("e1")
+                )
+            }
         }
         processSyncWith(
             updatedRooms = setOf(roomId1),
@@ -461,12 +492,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - isRead - TRUE and relevant not changed - TRUE`() = runTest {
-        roomStore.update(roomId1) {
-            simpleRoom.copy(
-                roomId = roomId1,
-                lastEventId = EventId("e24"),
-                lastRelevantEventId = EventId("e1")
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    lastRelevantEventId = EventId("e1")
+                )
+            }
         }
         processSyncWith(
             updatedRooms = setOf(roomId1),
@@ -501,12 +534,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - isRead - FALSE and receipts not changed - FALSE`() = runTest {
-        roomStore.update(roomId1) {
-            simpleRoom.copy(
-                roomId = roomId1,
-                lastEventId = EventId("e24"),
-                lastRelevantEventId = EventId("e0")
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    lastRelevantEventId = EventId("e0")
+                )
+            }
         }
         processSyncWith(
             updatedRooms = setOf(roomId1),
@@ -541,12 +576,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - isRead - TRUE and lastRelevant changed - TRUE_BUT_CHECK`() = runTest {
-        roomStore.update(roomId1) {
-            simpleRoom.copy(
-                roomId = roomId1,
-                lastEventId = EventId("e24"),
-                lastRelevantEventId = EventId("e12")
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    lastRelevantEventId = EventId("e12")
+                )
+            }
         }
         processSyncWith(
             updatedRooms = setOf(roomId1),
@@ -581,12 +618,14 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - isRead - FALSE and receipts changed - FALSE_BUT_CHECK`() = runTest {
-        roomStore.update(roomId1) {
-            simpleRoom.copy(
-                roomId = roomId1,
-                lastEventId = EventId("e24"),
-                lastRelevantEventId = EventId("e12")
-            )
+        tm.writeTransaction {
+            roomStore.update(roomId1) {
+                simpleRoom.copy(
+                    roomId = roomId1,
+                    lastEventId = EventId("e24"),
+                    lastRelevantEventId = EventId("e12")
+                )
+            }
         }
         processSyncWith(
             updatedRooms = setOf(roomId1),
@@ -622,7 +661,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - existing state - prefer server count`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(
@@ -662,7 +703,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `with timeline - new state`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = EventId("e24")) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(),
@@ -690,7 +733,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `no timeline - add to state`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        }
         processSyncWith(
             updatedRooms = setOf(roomId1),
             notificationStates = listOf(),
@@ -707,7 +752,9 @@ class NotificationEventHandlerProcessSyncTest : TrixnityBaseTest() {
 
     @Test
     fun `push - remove`() = runTest {
-        roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        tm.writeTransaction {
+            roomStore.update(roomId1) { simpleRoom.copy(roomId = roomId1, lastEventId = null) }
+        }
         processSyncWith(
             updatedRooms = setOf(),
             notificationStates = listOf(

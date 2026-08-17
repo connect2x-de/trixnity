@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.*
-import kotlinx.serialization.json.Json
+import androidx.room.Dao
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.repository.RoomUserReceiptsRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ReadTransaction
+import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "RoomUserReceipts",
@@ -47,17 +53,18 @@ internal class RoomRoomUserReceiptsRepository(
 ) : RoomUserReceiptsRepository {
     private val dao = db.roomUserReceipts()
 
-    override suspend fun get(firstKey: RoomId): Map<UserId, RoomUserReceipts> = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(firstKey: RoomId): Map<UserId, RoomUserReceipts> =
         dao.get(firstKey)
             .associate { entity -> entity.userId to json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun get(firstKey: RoomId, secondKey: UserId): RoomUserReceipts? = withRoomRead {
+    context(transaction: ReadTransaction)
+    override suspend fun get(firstKey: RoomId, secondKey: UserId): RoomUserReceipts? =
         dao.get(secondKey, firstKey)
             ?.let { entity -> json.decodeFromString(entity.value) }
-    }
 
-    override suspend fun save(firstKey: RoomId, secondKey: UserId, value: RoomUserReceipts) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun save(firstKey: RoomId, secondKey: UserId, value: RoomUserReceipts) =
         dao.insert(
             RoomRoomUserReceipts(
                 userId = secondKey,
@@ -65,17 +72,16 @@ internal class RoomRoomUserReceiptsRepository(
                 value = json.encodeToString(value),
             )
         )
-    }
 
-    override suspend fun deleteByRoomId(roomId: RoomId) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteByRoomId(roomId: RoomId) =
         dao.delete(roomId)
-    }
 
-    override suspend fun delete(firstKey: RoomId, secondKey: UserId) = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun delete(firstKey: RoomId, secondKey: UserId) =
         dao.delete(firstKey, secondKey)
-    }
 
-    override suspend fun deleteAll() = withRoomWrite {
+    context(transaction: WriteTransaction)
+    override suspend fun deleteAll() =
         dao.deleteAll()
-    }
 }

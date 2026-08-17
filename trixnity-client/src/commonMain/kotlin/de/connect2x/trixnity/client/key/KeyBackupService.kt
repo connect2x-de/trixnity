@@ -3,27 +3,28 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.trace
 import de.connect2x.lognity.api.logger.warn
-import io.ktor.http.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.flatMap
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
-import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
 import de.connect2x.trixnity.clientserverapi.model.key.SetRoomKeyBackupVersionRequest
-import de.connect2x.trixnity.core.*
-import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
-import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
-import de.connect2x.trixnity.core.model.keys.*
+import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackup
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData.RoomKeyBackupV1SessionData
+import de.connect2x.trixnity.core.model.keys.RoomsKeyBackup
 import de.connect2x.trixnity.crypto.SecretType
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.keys.Curve25519PublicKey
@@ -31,13 +32,32 @@ import de.connect2x.trixnity.crypto.driver.keys.Curve25519SecretKey
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.invoke
-import de.connect2x.trixnity.crypto.key.encryptSecret
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.sign.SignService
-import de.connect2x.trixnity.crypto.sign.SignWith
 import de.connect2x.trixnity.crypto.sign.signatures
 import de.connect2x.trixnity.utils.retry
+import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
@@ -56,13 +76,6 @@ interface KeyBackupService {
     )
 
     suspend fun keyBackupCanBeTrusted(keyBackupVersion: GetRoomKeysBackupVersionResponse, privateKey: String): Boolean
-
-    suspend fun bootstrapRoomKeyBackup(
-        key: ByteArray,
-        keyId: String,
-        masterSigningPrivateKey: String,
-        masterSigningPublicKey: String
-    ): Result<Unit>
 }
 
 class KeyBackupServiceImpl(
@@ -70,6 +83,7 @@ class KeyBackupServiceImpl(
     private val accountStore: AccountStore,
     private val olmCryptoStore: OlmCryptoStore,
     private val keyStore: KeyStore,
+    private val tm: StoreTransactionManager,
     private val api: MatrixClientServerApiClient,
     private val signService: SignService,
     private val currentSyncState: CurrentSyncState,
@@ -143,7 +157,9 @@ class KeyBackupServiceImpl(
                                 version = currentVersion.version
                             )
                         ).getOrThrow()
-                    keyStore.updateSecrets { it - SecretType.M_MEGOLM_BACKUP_V1 }
+                    tm.writeTransaction {
+                        keyStore.updateSecrets { it - SecretType.M_MEGOLM_BACKUP_V1 }
+                    }
                     null
                 }
             } else {
@@ -201,19 +217,21 @@ class KeyBackupServiceImpl(
                     val senderSigningKey =
                         data.senderClaimedKeys.filterIsInstance<Key.Ed25519Key>().firstOrNull()
                             ?: throw IllegalArgumentException("sender claimed key should not be empty")
-                    olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) {
-                        if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                        else StoredInboundMegolmSession(
-                            senderKey = data.senderKey,
-                            sessionId = sessionId,
-                            roomId = roomId,
-                            firstKnownIndex = firstKnownIndex.toLong(),
-                            isTrusted = false, // because it comes from backup
-                            hasBeenBackedUp = true, // because it comes from backup
-                            senderSigningKey = senderSigningKey.value,
-                            forwardingCurve25519KeyChain = data.forwardingKeyChain,
-                            pickled = pickledSession
-                        )
+                    tm.writeTransaction {
+                        olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) {
+                            if (it != null && it.firstKnownIndex <= firstKnownIndex) it
+                            else StoredInboundMegolmSession(
+                                senderKey = data.senderKey,
+                                sessionId = sessionId,
+                                roomId = roomId,
+                                firstKnownIndex = firstKnownIndex.toLong(),
+                                isTrusted = false, // because it comes from backup
+                                hasBeenBackedUp = true, // because it comes from backup
+                                senderSigningKey = senderSigningKey.value,
+                                forwardingCurve25519KeyChain = data.forwardingKeyChain,
+                                pickled = pickledSession
+                            )
+                        }
                     }
                 }
                 log.debug { "found key backup for roomId=$roomId, sessionId=$sessionId" }
@@ -298,55 +316,18 @@ class KeyBackupServiceImpl(
                                 }
                             }
                         }.getOrThrow()
-                        notBackedUpInboundMegolmSessions.values.forEach {
-                            olmCryptoStore.updateInboundMegolmSession(it.sessionId, it.roomId) { session ->
-                                session?.copy(hasBeenBackedUp = true)
+                        val notBackedUpInboundMegolmSessionsValues = notBackedUpInboundMegolmSessions.values
+                        if (notBackedUpInboundMegolmSessionsValues.isNotEmpty()) {
+                            tm.writeTransaction {
+                                notBackedUpInboundMegolmSessionsValues.forEach {
+                                    olmCryptoStore.updateInboundMegolmSession(it.sessionId, it.roomId) { session ->
+                                        session?.copy(hasBeenBackedUp = true)
+                                    }
+                                }
                             }
                         }
                     }
                 }.collect()
-        }
-    }
-
-    override suspend fun bootstrapRoomKeyBackup(
-        key: ByteArray,
-        keyId: String,
-        masterSigningPrivateKey: String,
-        masterSigningPublicKey: String,
-    ): Result<Unit> {
-        val (keyBackupPrivateKey, keyBackupPublicKey) = driver.key.curve25519SecretKey().use {
-            it.base64 to it.publicKey.use(KeyValue::of)
-        }
-        return api.key.setRoomKeysVersion(
-            SetRoomKeyBackupVersionRequest.V1(
-                authData = with(
-                    RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(keyBackupPublicKey)
-                ) {
-                    val ownDeviceSignature = signService.signatures(this)[ownUserId]
-                        ?.firstOrNull()
-                    val ownUsersSignature =
-                        signService.signatures(
-                            this, SignWith.KeyPair(masterSigningPrivateKey, masterSigningPublicKey)
-                        )[ownUserId]
-                            ?.firstOrNull()
-                    requireNotNull(ownUsersSignature)
-                    requireNotNull(ownDeviceSignature)
-                    copy(signatures = signatures + (ownUserId to keysOf(ownDeviceSignature, ownUsersSignature)))
-                },
-                version = null // create new version
-            )
-        ).flatMap {
-            val encryptedBackupKey = MegolmBackupV1EventContent(
-                encryptSecret(key, keyId, SecretType.M_MEGOLM_BACKUP_V1.id, keyBackupPrivateKey, api.json)
-            )
-            api.user.setAccountData(encryptedBackupKey, ownUserId).also {
-                keyStore.updateSecrets {
-                    it + (SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(encryptedBackupKey),
-                        keyBackupPrivateKey
-                    ))
-                }
-            }
         }
     }
 }

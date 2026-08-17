@@ -1,32 +1,63 @@
 package de.connect2x.trixnity.client.store.cache
 
+import de.connect2x.trixnity.client.store.StoreReadTransaction
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreWriteTransaction
+import de.connect2x.trixnity.client.store.repository.InMemoryMinimalRepository
+import de.connect2x.trixnity.client.store.repository.NoOpStoreReadTransaction
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.client.store.repository.NoOpStoreWriteTransaction
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.scheduleSetup
+import de.connect2x.trixnity.test.utils.testClock
+import de.connect2x.trixnity.utils.ReadTransaction
 import io.kotest.matchers.collections.shouldBeOneOf
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.store.repository.InMemoryMinimalRepository
-import de.connect2x.trixnity.client.store.repository.RepositoryTransactionManager
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.testClock
+import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class MinimalRepositoryObservableCacheTest : TrixnityBaseTest() {
+    private val noOpTm = NoOpStoreTransactionManager
+    val readTransactionWasCalled = MutableStateFlow(false)
+    val writeTransactionWasCalled = MutableStateFlow(false)
 
-    private val repository = object : InMemoryMinimalRepository<String, String>() {
+    private class TestInMemoryMapRepository : InMemoryMinimalRepository<String, String>() {
+        val continueGetFirstKey = MutableStateFlow(true)
         override fun serializeKey(key: String): String = key
+
+        context(transaction: ReadTransaction)
+        override suspend fun get(key: String): String? {
+            val result = super.get(key)
+            continueGetFirstKey.first { it }
+            return result
+        }
     }
-    private val tm = object : RepositoryTransactionManager {
-        override suspend fun <T> readTransaction(block: suspend () -> T): T {
-            return block().also { readTransactionWasCalled.value = true }
+
+    private val repository = TestInMemoryMapRepository()
+        .also { scheduleSetup { noOpTm.writeTransaction { it.deleteAll() } } }
+    private val tm = object : StoreTransactionManager() {
+        override suspend fun <T> repositoryReadTransaction(block: suspend StoreReadTransaction.() -> T): T {
+            return block(NoOpStoreReadTransaction).also { readTransactionWasCalled.value = true }
         }
 
-        override suspend fun writeTransaction(block: suspend () -> Unit) {
-            block()
-            writeTransactionWasCalled.value = true
+        override suspend fun <T> repositoryWriteTransaction(
+            cacheTransaction: CacheTransaction,
+            block: suspend StoreWriteTransaction.() -> T
+        ): T {
+            return block(NoOpStoreWriteTransaction(cacheTransaction)).also { writeTransactionWasCalled.value = true }
         }
+    }
+
+    @BeforeTest
+    fun setup() {
+        readTransactionWasCalled.value = false
+        writeTransactionWasCalled.value = false
     }
 
     private val cut = MinimalRepositoryObservableCache(
@@ -36,111 +67,163 @@ class MinimalRepositoryObservableCacheTest : TrixnityBaseTest() {
         testScope.testClock,
     )
 
-    val readTransactionWasCalled = MutableStateFlow(false)
-    val writeTransactionWasCalled = MutableStateFlow(false)
-
     @Test
     fun `get » read from database`() = runTest {
-        repository.save("key", "value")
+        tm.writeTransaction {
+            repository.save("key", "value")
+        }
         cut.get("key").first() shouldBe "value"
         readTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `get » prefer cache`() = runTest {
-        repository.save("key", "value")
+        tm.writeTransaction {
+            repository.save("key", "value")
+        }
         cut.get("key").first() shouldBe "value"
-        repository.save("key", "value2")
+        tm.writeTransaction {
+            repository.save("key", "value2")
+        }
         cut.get("key").first() shouldBe "value"
         readTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `save » save into database without reading old null value`() = runTest {
-        cut.set("key", "value1")
-        cut.set("key", "value2")
+        tm.writeTransaction {
+            cut.set("key", "value1")
+            cut.set("key", "value2")
+        }
         readTransactionWasCalled.value shouldBe false
         writeTransactionWasCalled.value shouldBe true
-        repository.get("key") shouldBe "value2"
+        noOpTm.readTransaction {
+            repository.get("key") shouldBe "value2"
+        }
     }
 
     @Test
     fun `save » save into database without reading old value`() = runTest {
-        repository.save("key", "value1")
-        cut.set("key", "value2")
-        cut.set("key", "value3")
+        noOpTm.writeTransaction {
+            repository.save("key", "value1")
+        }
+        tm.writeTransaction {
+            cut.set("key", "value2")
+            cut.set("key", "value3")
+        }
         readTransactionWasCalled.value shouldBe false
         writeTransactionWasCalled.value shouldBe true
-        repository.get("key") shouldBe "value3"
+        noOpTm.readTransaction {
+            repository.get("key") shouldBe "value3"
+        }
     }
 
     @Test
     fun `update » read from database`() = runTest {
-        repository.save("key", "old")
-        cut.update("key") {
-            it shouldBe "old"
-            "value"
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
         }
-        readTransactionWasCalled.value shouldBe true
+        tm.writeTransaction {
+            cut.update("key") {
+                it shouldBe "old"
+                "value"
+            }
+        }
+        readTransactionWasCalled.value shouldBe false
         writeTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `update » prefer cache`() = runTest {
-        repository.save("key", "old")
-        cut.update("key") {
-            it shouldBe "old"
-            "value"
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
         }
-        repository.save("key", "dino")
-        cut.update("key") {
-            it shouldBe "value"
-            "new value"
+        tm.writeTransaction {
+            cut.update("key") {
+                it shouldBe "old"
+                "value"
+            }
+        }
+        noOpTm.writeTransaction {
+            repository.save("key", "dino")
+        }
+        tm.writeTransaction {
+            cut.update("key") {
+                it shouldBe "value"
+                "new value"
+            }
         }
         writeTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `update » save to database`() = runTest {
-        repository.save("key", "old")
-        cut.update("key") { "value" }
-        repository.get("key") shouldBe "value"
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
+        }
+        tm.writeTransaction {
+            cut.update("key") { "value" }
+        }
+        noOpTm.readTransaction {
+            repository.get("key") shouldBe "value"
+        }
         writeTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `update » allow multiple writes`() = runTest {
-        repository.save("key", "old")
+        repository.continueGetFirstKey.value = false
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
+        }
         val job1 = launch {
-            cut.update("key") {
-                delay(200) // this ensures, that all updates are in here
-                "value1"
+            tm.writeTransaction {
+                cut.update("key") {
+                    "value1"
+                }
             }
         }
         val job2 = launch {
-            cut.update("key") {
-                delay(200) // this ensures, that all updates are in here
-                "value2"
+            tm.writeTransaction {
+                cut.update("key") {
+                    "value2"
+                }
             }
         }
+        delay(100.milliseconds)
+        repository.continueGetFirstKey.value = true
         job1.join()
         job2.join()
-        repository.get("key") shouldBeOneOf listOf("value1", "value2")
+        noOpTm.readTransaction {
+            repository.get("key") shouldBeOneOf listOf("value1", "value2")
+        }
         writeTransactionWasCalled.value shouldBe true
     }
 
     @Test
     fun `update » remove from database`() = runTest {
-        repository.save("key", "old")
-        cut.update("key") { null }
-        repository.get("key") shouldBe null
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
+        }
+        tm.writeTransaction {
+            cut.update("key") { null }
+        }
+        noOpTm.readTransaction {
+            repository.get("key") shouldBe null
+        }
         writeTransactionWasCalled.value shouldBe true
     }
 
     @Test
-    fun `update » not save to repository when flag is set`() = runTest {
-        repository.save("key", "old")
-        cut.update("key", persistEnabled = false) { "value" }
-        repository.get("key") shouldBe "old"
+    fun `update » not save to repository when cache only`() = runTest {
+        noOpTm.writeTransaction {
+            repository.save("key", "old")
+        }
+        withCacheTransaction {
+            cut.updateCacheOnly("key") { "value" }
+        }
+        noOpTm.readTransaction {
+            repository.get("key") shouldBe "old"
+        }
     }
 }

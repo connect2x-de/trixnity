@@ -10,13 +10,13 @@ import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.getInMemoryRoomUserStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
-import de.connect2x.trixnity.client.mocks.TransactionManagerMock
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationState.SyncWithTimeline.IsRead
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate.Content
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
 import de.connect2x.trixnity.core.UserInfo
@@ -55,6 +55,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() {
+    private val tm = NoOpStoreTransactionManager
     private val userId = UserId("user1", "localhost")
     private val roomId1 = RoomId("!room1:localhost")
     private val roomId2 = RoomId("!room2:localhost")
@@ -68,11 +69,11 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
             getTimelineEventConfig = null
         }
     }
-    private val roomStore = getInMemoryRoomStore { deleteAll() }
-    private val roomStateStore = getInMemoryRoomStateStore { deleteAll() }
-    private val roomUserStore = getInMemoryRoomUserStore { deleteAll() }
-    private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { deleteAll() }
-    private val notificationStore = getInMemoryNotificationStore { deleteAll() }
+    private val roomStore = getInMemoryRoomStore { tm.writeTransaction { deleteAll() } }
+    private val roomStateStore = getInMemoryRoomStateStore { tm.writeTransaction { deleteAll() } }
+    private val roomUserStore = getInMemoryRoomUserStore { tm.writeTransaction { deleteAll() } }
+    private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { tm.writeTransaction { deleteAll() } }
+    private val notificationStore = getInMemoryNotificationStore { tm.writeTransaction { deleteAll() } }
     private val config = MatrixClientConfiguration().apply {
         scheduleSetup {
             enableExternalNotifications = false
@@ -116,7 +117,7 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
         keyStore = getInMemoryKeyStore(),
         eventsToNotificationUpdates = eventsToNotificationUpdates,
         currentSyncState = CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
-        transactionManager = TransactionManagerMock(),
+        tm = tm,
         eventContentSerializerMappings = EventContentSerializerMappings.default,
         config = config,
         coroutineScope = testScope.backgroundScope,
@@ -159,8 +160,10 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
         ),
         futureTimeline: Flow<Flow<TimelineEvent>> = MutableSharedFlow(),
     ) {
-        notifications.forEach { notificationStore.save(it) }
-        notificationStore.updateState(roomId1) { notificationState }
+        tm.writeTransaction {
+            notifications.forEach { notificationStore.save(it) }
+            notificationStore.updateState(roomId1) { notificationState }
+        }
         roomService.returnGetTimelineEventsCallback = { direction ->
             if (direction == GetEvents.Direction.BACKWARDS) timeline
             else futureTimeline
@@ -212,8 +215,10 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
 
     @Test
     fun `SyncWithoutTimeline - notificationsDisabled - remove state and notifications`() = runTest {
-        roomStateStore.save(someStateEvent(3))
-        roomStateStore.save(someStateEvent(2))
+        tm.writeTransaction {
+            roomStateStore.save(someStateEvent(3))
+            roomStateStore.save(someStateEvent(2))
+        }
         processNotificationStateWith(
             notificationState = StoredNotificationState.SyncWithoutTimeline(roomId = roomId1, true),
         )
@@ -225,8 +230,10 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
 
     @Test
     fun `SyncWithoutTimeline - get updates with stale and remove state`() = runTest {
-        roomStateStore.save(someStateEvent(3))
-        roomStateStore.save(someStateEvent(2))
+        tm.writeTransaction {
+            roomStateStore.save(someStateEvent(3))
+            roomStateStore.save(someStateEvent(2))
+        }
         processNotificationStateWith(
             notificationState = StoredNotificationState.SyncWithoutTimeline(roomId = roomId1, false),
         )
@@ -825,7 +832,9 @@ class NotificationEventHandlerProcessNotificationStateTest : TrixnityBaseTest() 
             )
 
         delay(1.seconds)
-        notificationStore.updateState(roomId1) { futureSyncNotificationStateUpdate }
+        tm.writeTransaction {
+            notificationStore.updateState(roomId1) { futureSyncNotificationStateUpdate }
+        }
         futureTimeline.emit(flowOf(someTimelineEvent(3)))
         futureTimeline.emit(flowOf(someTimelineEvent(4)))
         processJob.join()

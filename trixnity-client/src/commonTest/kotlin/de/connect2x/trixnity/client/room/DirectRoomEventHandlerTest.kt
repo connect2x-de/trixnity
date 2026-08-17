@@ -3,6 +3,7 @@ package de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.simpleRoom
+import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.model.user.SetGlobalAccountData
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.EventId
@@ -22,7 +23,7 @@ import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class DirectRoomEventHandlerTest : TrixnityBaseTest() {
-
+    private val tm = NoOpStoreTransactionManager
     private val bob = UserId("bob", "server")
     private val alice = UserId("alice", "server")
     private val room = simpleRoom.roomId
@@ -33,9 +34,9 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
     private val cut = DirectRoomEventHandler(
-        UserInfo(bob, "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api,
-        globalAccountDataStore,
+        userInfo = UserInfo(bob, "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+        api = api,
+        globalAccountDataStore = globalAccountDataStore,
     )
 
     private val otherRoom = RoomId("!other:server")
@@ -51,9 +52,11 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `setNewDirectEventFromMemberEvent » membership is direct » there are direct rooms with that user » add direct room`() =
         runTest {
-            globalAccountDataStore.save(
-                GlobalAccountDataEvent(DirectEventContent(mapOf(alice to setOf(otherRoom))))
-            )
+            tm.writeTransaction {
+                globalAccountDataStore.save(
+                    GlobalAccountDataEvent(DirectEventContent(mapOf(alice to setOf(otherRoom))))
+                )
+            }
             var setDirectCalled = false
             apiConfig.endpoints {
                 matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
@@ -324,25 +327,29 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
         }
 
     private suspend fun noDirectRoomsWithThatUserSetup() {
-        globalAccountDataStore.save(
-            GlobalAccountDataEvent(
-                DirectEventContent(
-                    mapOf(UserId("nobody", "server") to setOf(otherRoom))
-                )
-            )
-        )
-    }
-
-    private suspend fun ownMembershipIsLeaveOrBanSetup() {
-        globalAccountDataStore.save(
-            GlobalAccountDataEvent(
-                DirectEventContent(
-                    mapOf(
-                        UserId("1", "server") to setOf(room),
-                        UserId("2", "server") to setOf(room, otherRoom)
+        tm.writeTransaction {
+            globalAccountDataStore.save(
+                GlobalAccountDataEvent(
+                    DirectEventContent(
+                        mapOf(UserId("nobody", "server") to setOf(otherRoom))
                     )
                 )
             )
-        )
+        }
+    }
+
+    private suspend fun ownMembershipIsLeaveOrBanSetup() {
+        tm.writeTransaction {
+            globalAccountDataStore.save(
+                GlobalAccountDataEvent(
+                    DirectEventContent(
+                        mapOf(
+                            UserId("1", "server") to setOf(room),
+                            UserId("2", "server") to setOf(room, otherRoom)
+                        )
+                    )
+                )
+            )
+        }
     }
 }
