@@ -67,7 +67,7 @@ check:vulnerable-dependencies:
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "c2x","shell","small" ]
+  tags: [ "c2x","linux","shell","small" ]
   variables:
     WITH_LOCK: true
   rules:
