@@ -32,7 +32,7 @@ kotlin {
                 implementation(projects.trixnityTestUtils)
                 implementation(projects.trixnityClient.clientRepositoryTest)
 
-                implementation(sharedLibs.androidx.sqliteBundled)
+                implementation(libs.sqlitenity.encryptedDriver)
 
                 implementation(sharedLibs.kotest.assertions.core)
             }
