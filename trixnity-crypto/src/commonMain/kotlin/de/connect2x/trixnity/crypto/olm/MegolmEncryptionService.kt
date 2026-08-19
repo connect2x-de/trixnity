@@ -47,7 +47,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
-private val log = Logger("de.connect2x.trixnity.crypto.olm.OlmEncryptionService")
+private val log = Logger("de.connect2x.trixnity.crypto.olm.MegolmEncryptionService")
 
 interface MegolmEncryptionService {
     sealed interface EncryptMegolmError {
