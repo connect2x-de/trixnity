@@ -229,7 +229,7 @@ class MegolmEncryptionServiceImpl(
             )
 
             val eventsToSend =
-                olmEncryptionService.encryptOlm(roomKeyEventContent, newDevices)
+                olmEncryptionService.encryptOlm(roomKeyEventContent, newDevicesWithoutUs)
                     .mapNotNull { (recipient, encryptOlmResult) ->
                         encryptOlmResult
                             .onFailure {
