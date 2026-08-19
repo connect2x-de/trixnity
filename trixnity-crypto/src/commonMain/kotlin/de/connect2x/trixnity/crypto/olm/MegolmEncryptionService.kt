@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.crypto.olm
 
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.core.UserInfo
@@ -241,16 +240,16 @@ class MegolmEncryptionServiceImpl(
                                     is EncryptOlmError.NetworkError -> throw EncryptMegolmError.NetworkError(e.error)
 
                                     is EncryptOlmError.DehydratedDeviceNotCrossSigned -> {
-                                        log.debug(it) { "will not send megolm session to $recipient, because dehydrated device not cross signed" }
+                                        log.info { "will not send megolm session to $recipient, because dehydrated device not cross signed" }
                                     }
 
                                     is EncryptOlmError.NoOlmSupported -> {
-                                        log.debug(it) { "will not send megolm session to $recipient, because olm not supported" }
+                                        log.info { "will not send megolm session to $recipient, because olm not supported" }
                                     }
 
                                     is EncryptOlmError.RemoteHomeserverNotReachable -> {
                                         // TODO happens rarely, but we need a recovery mechanism (e.g. request room keys)!
-                                        log.debug(it) { "will not send megolm session to $recipient, because new olm session could not be created" }
+                                        log.warn { "will not send megolm session to $recipient, because remote homeserver not reachable and therefore new olm session could not be created" }
                                     }
 
                                     null -> {

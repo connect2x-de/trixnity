@@ -594,7 +594,7 @@ class OlmEncryptionServiceImpl(
         return if (!hasCreatedTooManyOlmOutboundSessions(storedSessions) && deviceId != null) {
             OlmEncryptionService.OlmRecovery(senderUserId, deviceId, clock.now())
         } else {
-            log.warn { "already created a recovery session recently and therefore skip creating a new one" }
+            log.debug { "already created a recovery session recently and therefore skip creating a new one" }
             null
         }
     }
