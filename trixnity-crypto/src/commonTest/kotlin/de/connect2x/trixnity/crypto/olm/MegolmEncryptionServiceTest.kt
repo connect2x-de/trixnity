@@ -37,8 +37,6 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.nulls.shouldBeNull
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -122,6 +120,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         mockSignService.returnVerify = VerifyResult.Valid
         mockSignService.selfSignedDeviceKeys = aliceDeviceKeys
         olmEncryptionService.encryptOlm.clear()
+        olmEncryptionService.encryptOlmRecipients = emptySet()
     }
 
     private val cut = MegolmEncryptionServiceImpl(
@@ -186,8 +185,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `encryptMegolm - not send keys to own dehydrated device`() = runTest {
-        val aliceDeviceIdDehydrated = aliceDeviceId + "dehydrated"
+    fun `encryptMegolm - not send keys to own device`() = runTest {
         olmStoreMock.devices[alice] = mapOf(
             aliceDeviceId to Signed(
                 DeviceKeys(
@@ -197,19 +195,9 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                     keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
                 )
             ),
-            aliceDeviceIdDehydrated to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = aliceDeviceIdDehydrated,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
-                    dehydrated = true
-                )
-            )
         )
         shouldEncryptMessage(EncryptionEventContent(), 1)
-        megolmEncryptionServiceRequestHandlerMock.sendToDeviceParams.firstOrNull().shouldNotBeNull()[alice]
-            .shouldBeNull()
+        olmEncryptionService.encryptOlmRecipients shouldBe setOf(bob to bobDeviceId)
     }
 
     @Test

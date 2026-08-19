@@ -17,10 +17,14 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
     ): Result<OlmEncryptedToDeviceEventContent> =
         checkNotNull(encryptOlm[recipientUserId to recipientDeviceId])
 
+    var encryptOlmRecipients: Set<Pair<UserId, String>> = emptySet()
     override suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>
-    ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> = encryptOlm
+    ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> {
+        encryptOlmRecipients = recipients
+        return encryptOlm
+    }
 
     var recoverOlm: Result<OlmEncryptedToDeviceEventContent?>? = null
     override suspend fun recoverOlm(olmRecovery: OlmEncryptionService.OlmRecovery): Result<OlmEncryptedToDeviceEventContent?> =
