@@ -92,9 +92,6 @@ check:changelog:
   interruptible: true
   timeout: 5m
   tags: [ "c2x","shell","small" ]
-  image:
-    name: alpine/git:latest
-    entrypoint: [ "" ] # tell gitlab to use `sh` instead of `git sh`
   rules:
     - *if-merge-request
   script:
