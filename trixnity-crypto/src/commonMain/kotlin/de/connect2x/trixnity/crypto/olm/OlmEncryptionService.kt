@@ -32,6 +32,7 @@ import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.DecryptOlmError
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptOlmError
+import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.crypto.sign.VerifyResult
 import de.connect2x.trixnity.crypto.sign.verify
@@ -48,6 +49,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -70,7 +74,9 @@ interface OlmEncryptionService {
             val error: Throwable,
         ) : EncryptOlmError, IllegalStateException("network error", error)
 
-        class RemoteHomeserverNotReachable : EncryptOlmError,
+        class RemoteHomeserverNotReachable(
+            val reason: String,
+        ) : EncryptOlmError,
             IllegalStateException("remote server error while claiming keys")
 
         class DehydratedDeviceNotCrossSigned : EncryptOlmError,
@@ -608,7 +614,12 @@ class OlmEncryptionServiceImpl(
             onSuccess = { it }
         )
 
-        if (response.failures.containsKey(recipientUserId.domain)) throw EncryptOlmError.RemoteHomeserverNotReachable()
+        when (val failures = response.failures[recipientUserId.domain]) {
+            is JsonArray if failures.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())
+            is JsonObject if failures.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())
+            is JsonPrimitive if failures.content.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())
+            else -> {}
+        }
         return response.oneTimeKeys[recipientUserId]?.get(recipientDeviceId)?.keys?.firstOrNull() as? SignedCurve25519Key
             ?: throw EncryptOlmError.NoOlmSupported("one time key not found")
     }

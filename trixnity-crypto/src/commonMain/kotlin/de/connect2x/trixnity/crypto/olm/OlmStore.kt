@@ -65,6 +65,6 @@ internal suspend fun OlmStore.findDeviceKeys(userId: UserId, senderKeyValue: Cur
 
 internal suspend fun OlmStore.getDevices(roomId: RoomId, memberships: Set<Membership>): Set<Pair<UserId, String>> =
     getMembers(roomId, memberships).mapNotNull { userId ->
-        getDeviceKeys(userId)?.let { userId to it.values.map { it.signed.deviceId } }
+        getDeviceKeys(userId)?.let { userId to it.keys }
     }.flatMap { (userId, deviceIds) -> deviceIds.map { userId to it } }
         .toSet()
