@@ -154,7 +154,7 @@ class SignServiceImpl(
         checkSignaturesOf: Map<UserId, Set<Ed25519Key>>
     ): VerifyResult {
         checkSignaturesOf.flatMap { it.value }.ifEmpty { return VerifyResult.MissingSignature("no signing keys given") }
-        val signedRaw = signedObject.raw ?: json.encodeToJsonElement(serializer, signedObject.signed).jsonObject
+        val signedRaw = signedObject.signedRaw ?: json.encodeToJsonElement(serializer, signedObject.signed).jsonObject
         val signedString = canonicalFilteredJson(signedRaw)
         val verifyResults = checkSignaturesOf.flatMap { (userId, signingKeys) ->
             signingKeys.map { signingKey ->
@@ -196,7 +196,7 @@ suspend inline fun <reified T> SignService.sign(
     signedObject: Signed<T, UserId>,
     signWith: SignWith = SignWith.DeviceKey
 ): Signed<T, UserId> {
-    val raw = signedObject.raw
+    val raw = signedObject.signedRaw
     return signedObject +
             if (raw == null) signatures(signedObject.signed, serializer(), signWith)
             else signatures(raw, signWith)

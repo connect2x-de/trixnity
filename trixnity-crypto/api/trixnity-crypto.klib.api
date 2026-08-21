@@ -255,7 +255,10 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de
         }
 
         final class RemoteHomeserverNotReachable : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable.<init>|<init>(){}[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable.<init>|<init>(kotlin.String){}[0]
+
+            final val reason // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable.reason|{}reason[0]
+                final fun <get-reason>(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable.reason.<get-reason>|<get-reason>(){}[0]
         }
     }
 

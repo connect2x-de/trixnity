@@ -9220,9 +9220,9 @@ public class de/connect2x/trixnity/core/model/keys/Signed {
 	public fun <init> (Ljava/lang/Object;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;)V
 	public synthetic fun <init> (Ljava/lang/Object;Ljava/util/Map;Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getRaw ()Lkotlinx/serialization/json/JsonObject;
 	public fun getSignatures ()Ljava/util/Map;
 	public fun getSigned ()Ljava/lang/Object;
+	public fun getSignedRaw ()Lkotlinx/serialization/json/JsonObject;
 	public fun hashCode ()I
 	public final fun plus (Ljava/util/Map;)Lde/connect2x/trixnity/core/model/keys/Signed;
 	public fun toString ()Ljava/lang/String;
