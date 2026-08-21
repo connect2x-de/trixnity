@@ -406,7 +406,8 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$Encrypt
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$RemoteHomeserverNotReachable : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getReason ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmRecovery {

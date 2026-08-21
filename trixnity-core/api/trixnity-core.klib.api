@@ -10730,12 +10730,12 @@ open class <#A: kotlin/Any> de.connect2x.trixnity.core.serialization/HideFieldsS
 open class <#A: kotlin/Any?, #B: kotlin/Any?> de.connect2x.trixnity.core.model.keys/Signed { // de.connect2x.trixnity.core.model.keys/Signed|null[0]
     constructor <init>(#A, kotlin.collections/Map<#B, de.connect2x.trixnity.core.model.keys/Keys>? = ..., kotlinx.serialization.json/JsonObject? = ...) // de.connect2x.trixnity.core.model.keys/Signed.<init>|<init>(1:0;kotlin.collections.Map<1:1,de.connect2x.trixnity.core.model.keys.Keys>?;kotlinx.serialization.json.JsonObject?){}[0]
 
-    open val raw // de.connect2x.trixnity.core.model.keys/Signed.raw|{}raw[0]
-        open fun <get-raw>(): kotlinx.serialization.json/JsonObject? // de.connect2x.trixnity.core.model.keys/Signed.raw.<get-raw>|<get-raw>(){}[0]
     open val signatures // de.connect2x.trixnity.core.model.keys/Signed.signatures|{}signatures[0]
         open fun <get-signatures>(): kotlin.collections/Map<#B, de.connect2x.trixnity.core.model.keys/Keys>? // de.connect2x.trixnity.core.model.keys/Signed.signatures.<get-signatures>|<get-signatures>(){}[0]
     open val signed // de.connect2x.trixnity.core.model.keys/Signed.signed|{}signed[0]
         open fun <get-signed>(): #A // de.connect2x.trixnity.core.model.keys/Signed.signed.<get-signed>|<get-signed>(){}[0]
+    open val signedRaw // de.connect2x.trixnity.core.model.keys/Signed.signedRaw|{}signedRaw[0]
+        open fun <get-signedRaw>(): kotlinx.serialization.json/JsonObject? // de.connect2x.trixnity.core.model.keys/Signed.signedRaw.<get-signedRaw>|<get-signedRaw>(){}[0]
 
     final fun plus(kotlin.collections/Map<#B, de.connect2x.trixnity.core.model.keys/Keys>?): de.connect2x.trixnity.core.model.keys/Signed<#A, #B> // de.connect2x.trixnity.core.model.keys/Signed.plus|plus(kotlin.collections.Map<1:1,de.connect2x.trixnity.core.model.keys.Keys>?){}[0]
     open fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.keys/Signed.equals|equals(kotlin.Any?){}[0]
