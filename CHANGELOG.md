@@ -15,6 +15,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Use resource_group for publish CI jobs
 - Refactored E2EE to be more clean, testable and support clearly scoped database transactions
 - Refactored database transaction management to be more clean and safe
+- Include create-mr-discussions in CI
 
 ### Deprecated
 
