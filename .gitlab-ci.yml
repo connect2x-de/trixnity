@@ -12,6 +12,11 @@ stages:
   - test
   - publish
 
+include:
+  - component: $CI_SERVER_FQDN/connect2x/meta/create-mr-discussions@main
+    inputs:
+      token: $MR_DISCUSSIONS_TOKEN
+
 .artifact-reports: &artifact-reports
   name: reports
   when: always
