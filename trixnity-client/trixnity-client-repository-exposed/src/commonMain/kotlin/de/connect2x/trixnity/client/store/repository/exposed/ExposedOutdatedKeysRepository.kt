@@ -20,9 +20,10 @@ internal object ExposedOutdatedKeys : LongIdTable("outdated_keys") {
 internal class ExposedOutdatedKeysRepository(private val json: Json) : OutdatedKeysRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): Set<UserId>? {
-        return ExposedOutdatedKeys.selectAll().where { ExposedOutdatedKeys.id eq key }.firstOrNull()?.let {
-            it[ExposedOutdatedKeys.value].let { outdated -> json.decodeFromString<Set<UserId>>(outdated) }
-        }
+        return ExposedOutdatedKeys.selectAll()
+            .where { ExposedOutdatedKeys.id eq key }
+            .firstOrNull()
+            ?.let { it[ExposedOutdatedKeys.value].let { outdated -> json.decodeFromString<Set<UserId>>(outdated) } }
     }
 
     context(transaction: WriteTransaction)

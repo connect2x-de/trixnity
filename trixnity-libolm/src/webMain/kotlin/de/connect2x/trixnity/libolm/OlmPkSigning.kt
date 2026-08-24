@@ -1,14 +1,15 @@
 package de.connect2x.trixnity.libolm
 
-import js.typedarrays.toByteArray
-import js.typedarrays.toUint8Array
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import js.typedarrays.toByteArray
+import js.typedarrays.toUint8Array
 
-actual class OlmPkSigning private constructor(
+actual class OlmPkSigning
+private constructor(
     internal actual val ptr: OlmPkSigningPointer,
     actual val privateKey: String,
-    actual val publicKey: String
+    actual val publicKey: String,
 ) : WantsToBeFree {
     actual companion object {
         actual fun create(privateKey: String?): OlmPkSigning {

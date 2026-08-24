@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.client.room
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -8,15 +7,14 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.EphemeralEvent
 import de.connect2x.trixnity.core.model.events.m.TypingEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class TypingEventHandlerTest : TrixnityBaseTest() {
     private val room1 = RoomId("!room1:localhost")
     private val room2 = RoomId("!room2:localhost")
 
-    private val cut = TypingEventHandlerImpl(
-        mockMatrixClientServerApiClient(),
-    )
+    private val cut = TypingEventHandlerImpl(mockMatrixClientServerApiClient())
 
     @Test
     fun `setTyping » set the presence for a user whose presence is not known`() = runTest {

@@ -38,52 +38,53 @@ internal class IndexedDBRoomOutboxMessageRepository(
     private val mappings: EventContentSerializerMappings,
 ) : RoomOutboxMessageRepository, IndexedDBRepository(objectStoreName) {
 
-    private val serializer = object : KSerializer<IndexedDBRoomOutboxMessage<*>> {
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("IndexedDBRoomOutboxMessage")
+    private val serializer =
+        object : KSerializer<IndexedDBRoomOutboxMessage<*>> {
+            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("IndexedDBRoomOutboxMessage")
 
-        override fun deserialize(decoder: Decoder): IndexedDBRoomOutboxMessage<*> {
-            require(decoder is JsonDecoder)
-            val jsonObject = decoder.decodeJsonElement().jsonObject
-            val contentType = jsonObject["contentType"]?.jsonPrimitive?.content
-            val serializer = mappings.message.find { it.type == contentType }?.serializer
-            checkNotNull(serializer)
-            return json.decodeFromJsonElement(IndexedDBRoomOutboxMessage.serializer(serializer), jsonObject)
-        }
+            override fun deserialize(decoder: Decoder): IndexedDBRoomOutboxMessage<*> {
+                require(decoder is JsonDecoder)
+                val jsonObject = decoder.decodeJsonElement().jsonObject
+                val contentType = jsonObject["contentType"]?.jsonPrimitive?.content
+                val serializer = mappings.message.find { it.type == contentType }?.serializer
+                checkNotNull(serializer)
+                return json.decodeFromJsonElement(IndexedDBRoomOutboxMessage.serializer(serializer), jsonObject)
+            }
 
-        override fun serialize(encoder: Encoder, value: IndexedDBRoomOutboxMessage<*>) {
-            require(encoder is JsonEncoder)
-            val serializer = mappings.message.find { it.type == value.contentType }?.serializer
-            checkNotNull(serializer)
-            encoder.encodeJsonElement(
-                @Suppress("UNCHECKED_CAST")
-                encoder.json.encodeToJsonElement(
-                    IndexedDBRoomOutboxMessage.serializer(serializer),
-                    value as IndexedDBRoomOutboxMessage<MessageEventContent>
-                ),
-            )
+            override fun serialize(encoder: Encoder, value: IndexedDBRoomOutboxMessage<*>) {
+                require(encoder is JsonEncoder)
+                val serializer = mappings.message.find { it.type == value.contentType }?.serializer
+                checkNotNull(serializer)
+                encoder.encodeJsonElement(
+                    @Suppress("UNCHECKED_CAST")
+                    encoder.json.encodeToJsonElement(
+                        IndexedDBRoomOutboxMessage.serializer(serializer),
+                        value as IndexedDBRoomOutboxMessage<MessageEventContent>,
+                    )
+                )
+            }
         }
-    }
 
     private val internalRepository =
-        object : IndexedDBFullRepository<RoomOutboxMessageRepositoryKey, IndexedDBRoomOutboxMessage<*>>(
-            objectStoreName = objectStoreName,
-            keySerializer = { arrayOf(it.roomId.full, it.transactionId) },
-            valueSerializer = serializer,
-            json = json
-        ) {
+        object :
+            IndexedDBFullRepository<RoomOutboxMessageRepositoryKey, IndexedDBRoomOutboxMessage<*>>(
+                objectStoreName = objectStoreName,
+                keySerializer = { arrayOf(it.roomId.full, it.transactionId) },
+                valueSerializer = serializer,
+                json = json,
+            ) {
             override fun serializeKey(key: RoomOutboxMessageRepositoryKey): String =
                 this@IndexedDBRoomOutboxMessageRepository.serializeKey(key)
         }
 
     companion object {
         const val objectStoreName = "room_outbox_message_2"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
-            if (oldVersion < 6) createIndexedDBMinimalStoreRepository(
-                database,
-                objectStoreName
-            ) { store ->
-                store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
-            }
+            if (oldVersion < 6)
+                createIndexedDBMinimalStoreRepository(database, objectStoreName) { store ->
+                    store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
+                }
         }
     }
 
@@ -93,10 +94,7 @@ internal class IndexedDBRoomOutboxMessageRepository(
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): List<RoomOutboxMessage<*>> = withRead { store ->
-        store.openCursor()
-            .mapNotNull { json.decodeFromDynamicNullable(serializer, it.value) }
-            .map { it.value }
-            .toList()
+        store.openCursor().mapNotNull { json.decodeFromDynamicNullable(serializer, it.value) }.map { it.value }.toList()
     }
 
     context(transaction: WriteTransaction)
@@ -107,18 +105,13 @@ internal class IndexedDBRoomOutboxMessageRepository(
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) =
-        internalRepository.delete(key)
+    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) = internalRepository.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        internalRepository.deleteAll()
+    override suspend fun deleteAll() = internalRepository.deleteAll()
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

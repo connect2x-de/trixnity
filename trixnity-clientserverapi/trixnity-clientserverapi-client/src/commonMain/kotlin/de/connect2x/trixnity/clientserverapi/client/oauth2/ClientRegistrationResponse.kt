@@ -9,10 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 
 @Serializable(with = ClientRegistrationResponse.Serializer::class)
-internal data class ClientRegistrationResponse(
-    val clientId: String,
-    val clientMetadata: ClientMetadata,
-) {
+internal data class ClientRegistrationResponse(val clientId: String, val clientMetadata: ClientMetadata) {
     internal object Serializer : KSerializer<ClientRegistrationResponse> {
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ClientRegistrationResponse")
 
@@ -23,16 +20,20 @@ internal data class ClientRegistrationResponse(
             val clientId = requireNotNull(jsonObject["client_id"] as? JsonPrimitive).content
             return ClientRegistrationResponse(
                 clientId = clientId,
-                clientMetadata = decoder.json.decodeFromJsonElement(jsonObject)
+                clientMetadata = decoder.json.decodeFromJsonElement(jsonObject),
             )
         }
 
         override fun serialize(encoder: Encoder, value: ClientRegistrationResponse) {
             require(encoder is JsonEncoder)
-            encoder.encodeJsonElement(JsonObject(buildMap {
-                put("client_id", JsonPrimitive(value.clientId))
-                putAll(encoder.json.encodeToJsonElement(value.clientMetadata).jsonObject)
-            }))
+            encoder.encodeJsonElement(
+                JsonObject(
+                    buildMap {
+                        put("client_id", JsonPrimitive(value.clientId))
+                        putAll(encoder.json.encodeToJsonElement(value.clientMetadata).jsonObject)
+                    }
+                )
+            )
         }
     }
 }

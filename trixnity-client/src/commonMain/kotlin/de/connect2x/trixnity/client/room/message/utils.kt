@@ -9,13 +9,11 @@ import kotlin.time.Duration.Companion.seconds
 
 internal suspend fun RoomService.getTimelineEventWithContentAndTimeout(roomId: RoomId, eventId: EventId) =
     getTimelineEvent(roomId, eventId) {
-        decryptionTimeout = 5.seconds
-        allowReplaceContent = false
-    }.firstWithContent()
+            decryptionTimeout = 5.seconds
+            allowReplaceContent = false
+        }
+        .firstWithContent()
 
 operator fun Mentions.plus(other: Mentions): Mentions {
-    return Mentions(
-        users = other.users.orEmpty() + users.orEmpty(),
-        room = other.room ?: room
-    )
+    return Mentions(users = other.users.orEmpty() + users.orEmpty(), room = other.room ?: room)
 }

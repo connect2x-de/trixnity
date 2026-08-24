@@ -6,18 +6,16 @@ import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
 import de.connect2x.trixnity.clientserverapi.model.server.Search
 
 interface ServerApiHandler {
-    /**
-     * @see [GetVersions]
-     */
-    suspend fun getVersions(content: MatrixEndpointContext<GetVersions, Unit, GetVersions.Response>): GetVersions.Response
+    /** @see [GetVersions] */
+    suspend fun getVersions(
+        content: MatrixEndpointContext<GetVersions, Unit, GetVersions.Response>
+    ): GetVersions.Response
 
-    /**
-     * @see [GetCapabilities]
-     */
-    suspend fun getCapabilities(context: MatrixEndpointContext<GetCapabilities, Unit, GetCapabilities.Response>): GetCapabilities.Response
+    /** @see [GetCapabilities] */
+    suspend fun getCapabilities(
+        context: MatrixEndpointContext<GetCapabilities, Unit, GetCapabilities.Response>
+    ): GetCapabilities.Response
 
-    /**
-     * @see [Search]
-     */
+    /** @see [Search] */
     suspend fun search(context: MatrixEndpointContext<Search, Search.Request, Search.Response>): Search.Response
 }

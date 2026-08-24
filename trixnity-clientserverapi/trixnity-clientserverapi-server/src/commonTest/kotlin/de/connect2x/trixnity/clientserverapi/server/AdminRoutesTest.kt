@@ -39,16 +39,12 @@ class AdminRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                adminApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { adminApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -62,60 +58,60 @@ class AdminRoutesTest : TrixnityBaseTest() {
     fun shouldGetSuspend() = testApplication {
         initCut()
 
-        everySuspend { handlerMock.getSuspend(any()) }
-            .returns(GetSuspend.Response(suspended = true))
+        everySuspend { handlerMock.getSuspend(any()) }.returns(GetSuspend.Response(suspended = true))
 
-        val response = client.get("/_matrix/client/v1/admin/suspend/@user:matrix.host") {
-            bearerAuth("token")
-        }
+        val response = client.get("/_matrix/client/v1/admin/suspend/@user:matrix.host") { bearerAuth("token") }
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
             contentType() shouldBe ContentType.Application.Json
-            body<String>() shouldBe """
+            body<String>() shouldBe
+                """
                 {"suspended":true}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.getSuspend(assert {
-                it.endpoint.userId shouldBe UserId("@user:matrix.host")
-            })
-        }
+        verifySuspend { handlerMock.getSuspend(assert { it.endpoint.userId shouldBe UserId("@user:matrix.host") }) }
     }
 
     @Test
     fun shouldSetSuspend() = testApplication {
         initCut()
 
-        everySuspend { handlerMock.setSuspend(any()) }
-            .returns(SetSuspend.Response(suspended = true))
+        everySuspend { handlerMock.setSuspend(any()) }.returns(SetSuspend.Response(suspended = true))
 
-        val response = client.put("/_matrix/client/v1/admin/suspend/@user:matrix.host") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "suspended": true
-                }
-                """.trimIndent()
-            )
-        }
+        val response =
+            client.put("/_matrix/client/v1/admin/suspend/@user:matrix.host") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "suspended": true
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
             contentType() shouldBe ContentType.Application.Json
-            body<String>() shouldBe """
+            body<String>() shouldBe
+                """
                 {"suspended":true}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.setSuspend(assert {
-                it.endpoint.userId shouldBe UserId("@user:matrix.host")
-                it.requestBody shouldBe SetSuspend.Request(suspended = true)
-            })
+            handlerMock.setSuspend(
+                assert {
+                    it.endpoint.userId shouldBe UserId("@user:matrix.host")
+                    it.requestBody shouldBe SetSuspend.Request(suspended = true)
+                }
+            )
         }
     }
 
@@ -123,60 +119,60 @@ class AdminRoutesTest : TrixnityBaseTest() {
     fun shouldGetLock() = testApplication {
         initCut()
 
-        everySuspend { handlerMock.getLock(any()) }
-            .returns(GetLock.Response(locked = true))
+        everySuspend { handlerMock.getLock(any()) }.returns(GetLock.Response(locked = true))
 
-        val response = client.get("/_matrix/client/v1/admin/lock/@user:matrix.host") {
-            bearerAuth("token")
-        }
+        val response = client.get("/_matrix/client/v1/admin/lock/@user:matrix.host") { bearerAuth("token") }
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
             contentType() shouldBe ContentType.Application.Json
-            body<String>() shouldBe """
+            body<String>() shouldBe
+                """
                 {"locked":true}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.getLock(assert {
-                it.endpoint.userId shouldBe UserId("@user:matrix.host")
-            })
-        }
+        verifySuspend { handlerMock.getLock(assert { it.endpoint.userId shouldBe UserId("@user:matrix.host") }) }
     }
 
     @Test
     fun shouldSetLock() = testApplication {
         initCut()
 
-        everySuspend { handlerMock.setLock(any()) }
-            .returns(SetLock.Response(locked = true))
+        everySuspend { handlerMock.setLock(any()) }.returns(SetLock.Response(locked = true))
 
-        val response = client.put("/_matrix/client/v1/admin/lock/@user:matrix.host") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "locked": true
-                }
-                """.trimIndent()
-            )
-        }
+        val response =
+            client.put("/_matrix/client/v1/admin/lock/@user:matrix.host") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "locked": true
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
             contentType() shouldBe ContentType.Application.Json
-            body<String>() shouldBe """
+            body<String>() shouldBe
+                """
                 {"locked":true}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.setLock(assert {
-                it.endpoint.userId shouldBe UserId("@user:matrix.host")
-                it.requestBody shouldBe SetLock.Request(locked = true)
-            })
+            handlerMock.setLock(
+                assert {
+                    it.endpoint.userId shouldBe UserId("@user:matrix.host")
+                    it.requestBody shouldBe SetLock.Request(locked = true)
+                }
+            )
         }
     }
 
@@ -188,37 +184,39 @@ class AdminRoutesTest : TrixnityBaseTest() {
             .returns(
                 WhoIs.Response(
                     userId = UserId("@peter:rabbit.rocks"),
-                    devices = mapOf(
-                        "teapot" to WhoIs.Response.DeviceInfo(
-                            setOf(
-                                WhoIs.Response.DeviceInfo.SessionInfo(
+                    devices =
+                        mapOf(
+                            "teapot" to
+                                WhoIs.Response.DeviceInfo(
                                     setOf(
-                                        WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
-                                            ip = "127.0.0.1",
-                                            lastSeen = 1411996332123,
-                                            userAgent = "curl/7.31.0-DEV"
-                                        ),
-                                        WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
-                                            ip = "10.0.0.2",
-                                            lastSeen = 1411996332123,
-                                            userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36"
+                                        WhoIs.Response.DeviceInfo.SessionInfo(
+                                            setOf(
+                                                WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
+                                                    ip = "127.0.0.1",
+                                                    lastSeen = 1411996332123,
+                                                    userAgent = "curl/7.31.0-DEV",
+                                                ),
+                                                WhoIs.Response.DeviceInfo.SessionInfo.ConnectionInfo(
+                                                    ip = "10.0.0.2",
+                                                    lastSeen = 1411996332123,
+                                                    userAgent =
+                                                        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36",
+                                                ),
+                                            )
                                         )
                                     )
                                 )
-                            )
-                        )
-                    )
+                        ),
                 )
             )
 
-        val response = client.get("/_matrix/client/v3/admin/whois/@peter:rabbit.rocks") {
-            bearerAuth("token")
-        }
+        val response = client.get("/_matrix/client/v3/admin/whois/@peter:rabbit.rocks") { bearerAuth("token") }
 
         assertSoftly(response) {
             status shouldBe HttpStatusCode.OK
             contentType() shouldBe ContentType.Application.Json
-            body<String>() shouldBe """
+            body<String>() shouldBe
+                """
                 {
                   "user_id": "@peter:rabbit.rocks",
                   "devices": {
@@ -242,13 +240,10 @@ class AdminRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.whoIs(assert {
-                it.endpoint.userId shouldBe UserId("@peter:rabbit.rocks")
-            })
-        }
+        verifySuspend { handlerMock.whoIs(assert { it.endpoint.userId shouldBe UserId("@peter:rabbit.rocks") }) }
     }
 }

@@ -1,37 +1,34 @@
 package de.connect2x.trixnity.client.media
 
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldNotBeSameInstanceAs
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.test.TestScope
-import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.testClock
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.test.TestScope
 
 class CachedMediaStoreTest : TrixnityBaseTest() {
 
     private val url = "url1"
     private val content = "testcontent".map { it.toString().toByteArray() }.asFlow()
 
-    private val config = MatrixClientConfiguration(
-        cacheExpireDurations = MatrixClientConfiguration.CacheExpireDurations.default(1.minutes).copy(
-            media = 10.seconds
+    private val config =
+        MatrixClientConfiguration(
+            cacheExpireDurations =
+                MatrixClientConfiguration.CacheExpireDurations.default(1.minutes).copy(media = 10.seconds)
         )
-    )
 
-    private fun TestScope.cut() = InMemoryMediaStore(
-        coroutineScope = backgroundScope,
-        configuration = config,
-        clock = testClock,
-    )
+    private fun TestScope.cut() =
+        InMemoryMediaStore(coroutineScope = backgroundScope, configuration = config, clock = testClock)
 
     @Test
     fun shouldCacheMedia() = runTest {

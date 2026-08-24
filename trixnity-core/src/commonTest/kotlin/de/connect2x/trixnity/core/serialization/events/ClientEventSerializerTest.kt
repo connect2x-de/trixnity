@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import io.kotest.matchers.shouldBe
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.json.*
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
@@ -29,8 +25,12 @@ import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.trimToFlatJson
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.*
 
 class ClientEventSerializerTest : TrixnityBaseTest() {
 
@@ -38,16 +38,18 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldSerializeStateEvent() {
-        val content = StateEvent(
-            CanonicalAliasEventContent(RoomAliasId("somewhere", "example.org")),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(1234),
-            ""
-        )
-        val expectedResult = """
+        val content =
+            StateEvent(
+                CanonicalAliasEventContent(RoomAliasId("somewhere", "example.org")),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(1234),
+                "",
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "alias":"#somewhere:example.org"
@@ -60,18 +62,16 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.canonical_alias",
             "unsigned":{"age":1234}
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ), content
-        )
+    """
+                .trimToFlatJson()
+        val result = json.encodeToString(StateEventSerializer(EventContentSerializerMappings.default.state), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeStateEvent() {
-        val input = """
+        val input =
+            """
         {
             "type":"m.room.canonical_alias",
             "content":{
@@ -85,12 +85,9 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "state_key":"",
             "prev_content":null
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result = json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
         assertEquals(
             StateEvent(
                 CanonicalAliasEventContent(RoomAliasId("somewhere", "example.org")),
@@ -99,39 +96,44 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedStateEventData(1234),
-                ""
-            ), result
+                "",
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldSerializeMessageEvent() {
-        val content = MessageEvent(
-            RoomMessageEventContent.TextBased.Text(
-                "hello",
-                relatesTo = RelatesTo.Reference(EventId("$1234"))
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(
-                1234, relations =
-                    Relations(
-                        mapOf(
-                            RelationType.Unknown("org.example.possible_annotations") to
+        val content =
+            MessageEvent(
+                RoomMessageEventContent.TextBased.Text("hello", relatesTo = RelatesTo.Reference(EventId("$1234"))),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(
+                    1234,
+                    relations =
+                        Relations(
+                            mapOf(
+                                RelationType.Unknown("org.example.possible_annotations") to
                                     ServerAggregation.Unknown(
-                                        RelationType.Unknown("org.example.possible_annotations"), buildJsonArray {
-                                            add(buildJsonObject {
-                                                put("key", JsonPrimitive("👍"))
-                                                put("count", JsonPrimitive(3))
-                                            })
-                                        })
-                        )
-                    )
-            ),
-        )
-        val expectedResult = """
+                                        RelationType.Unknown("org.example.possible_annotations"),
+                                        buildJsonArray {
+                                            add(
+                                                buildJsonObject {
+                                                    put("key", JsonPrimitive("👍"))
+                                                    put("count", JsonPrimitive(3))
+                                                }
+                                            )
+                                        },
+                                    )
+                            )
+                        ),
+                ),
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "body":"hello",
@@ -158,116 +160,114 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 }
             }
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldSerializeExtensibleEvent() {
-        val content = StateEvent(
-            TopicEventContent(
-                blocks = EventContentBlocks(TopicContentBlock(TextContentBlock("topic"))),
-                legacy = TopicEventContent.Legacy("topic")
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(1234),
-            ""
-        )
-        val expectedResult = """
-        {
-            "content":{
-                "m.topic":{
-                  "m.text":[
-                    {"body":"topic"}
-                  ]
-                },
-                "topic":"topic"
-            },
-            "event_id":"$143273582443PhrSn",
-            "origin_server_ts":1432735824653,
-            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
-            "sender":"@example:example.org",
-            "state_key":"",
-            "type":"m.room.topic",
-            "unsigned":{"age":1234}
-        }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ), content
-        )
-        assertEquals(expectedResult, result)
-    }
-
-    @Test
-    fun shouldDeserializeExtensibleEvent() {
-        val input = """
-        {
-            "content":{
-                "m.topic":{
-                  "m.text":[
-                    {"body":"topic"}
-                  ]
-                },
-                "topic":"topic"
-            },
-            "event_id":"$143273582443PhrSn",
-            "origin_server_ts":1432735824653,
-            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
-            "sender":"@example:example.org",
-            "state_key":"",
-            "type":"m.room.topic",
-            "unsigned":{"age":1234}
-        }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ), input
-        )
-        assertEquals(
+        val content =
             StateEvent(
                 TopicEventContent(
                     blocks = EventContentBlocks(TopicContentBlock(TextContentBlock("topic"))),
-                    legacy = TopicEventContent.Legacy("topic")
+                    legacy = TopicEventContent.Legacy("topic"),
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedStateEventData(1234),
-                ""
-            ), result
+                "",
+            )
+        val expectedResult =
+            """
+        {
+            "content":{
+                "m.topic":{
+                  "m.text":[
+                    {"body":"topic"}
+                  ]
+                },
+                "topic":"topic"
+            },
+            "event_id":"$143273582443PhrSn",
+            "origin_server_ts":1432735824653,
+            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+            "sender":"@example:example.org",
+            "state_key":"",
+            "type":"m.room.topic",
+            "unsigned":{"age":1234}
+        }
+    """
+                .trimToFlatJson()
+        val result = json.encodeToString(StateEventSerializer(EventContentSerializerMappings.default.state), content)
+        assertEquals(expectedResult, result)
+    }
+
+    @Test
+    fun shouldDeserializeExtensibleEvent() {
+        val input =
+            """
+        {
+            "content":{
+                "m.topic":{
+                  "m.text":[
+                    {"body":"topic"}
+                  ]
+                },
+                "topic":"topic"
+            },
+            "event_id":"$143273582443PhrSn",
+            "origin_server_ts":1432735824653,
+            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+            "sender":"@example:example.org",
+            "state_key":"",
+            "type":"m.room.topic",
+            "unsigned":{"age":1234}
+        }
+    """
+                .trimToFlatJson()
+        val result = json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
+        assertEquals(
+            StateEvent(
+                TopicEventContent(
+                    blocks = EventContentBlocks(TopicContentBlock(TextContentBlock("topic"))),
+                    legacy = TopicEventContent.Legacy("topic"),
+                ),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(1234),
+                "",
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldSerializeMessageEventWithRelatesToAndCopyNewContent() {
-        val content = MessageEvent(
-            RoomMessageEventContent.TextBased.Text(
-                "hello",
-                relatesTo = RelatesTo.Replace(
-                    EventId("$1234"),
-                    newContent = RoomMessageEventContent.TextBased.Text("hello-new")
-                )
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(),
-        )
-        val expectedResult = """
+        val content =
+            MessageEvent(
+                RoomMessageEventContent.TextBased.Text(
+                    "hello",
+                    relatesTo =
+                        RelatesTo.Replace(
+                            EventId("$1234"),
+                            newContent = RoomMessageEventContent.TextBased.Text("hello-new"),
+                        ),
+                ),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(),
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "body":"hello",
@@ -288,34 +288,34 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.message",
             "unsigned":{}
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldSerializeMessageEventWithRelatesToAndDontCopyNewContentWhenEncrypted() {
-        val content = MessageEvent(
-            MegolmEncryptedMessageEventContent(
-                ciphertext = MegolmMessageValue("ciphercipher"),
-                sessionId = "sessionId",
-                relatesTo = RelatesTo.Replace(
-                    EventId("$1234"),
-                    newContent = RoomMessageEventContent.TextBased.Text("hello-new")
-                )
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(),
-        )
-        val expectedResult = """
+        val content =
+            MessageEvent(
+                MegolmEncryptedMessageEventContent(
+                    ciphertext = MegolmMessageValue("ciphercipher"),
+                    sessionId = "sessionId",
+                    relatesTo =
+                        RelatesTo.Replace(
+                            EventId("$1234"),
+                            newContent = RoomMessageEventContent.TextBased.Text("hello-new"),
+                        ),
+                ),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(),
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "algorithm":"m.megolm.v1.aes-sha2",
@@ -333,30 +333,26 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.encrypted",
             "unsigned":{}
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldSerializeMessageEventWithExternalUrl() {
-        val content = MessageEvent(
-            RoomMessageEventContent.TextBased.Text(
-                "hello",
-                externalUrl = "http://some-external-url.test"
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(),
-        )
-        val expectedResult = """
+        val content =
+            MessageEvent(
+                RoomMessageEventContent.TextBased.Text("hello", externalUrl = "http://some-external-url.test"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(),
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "body":"hello",
@@ -370,134 +366,133 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.message",
             "unsigned":{}
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeMessageEvent() {
-        val input = """
-        {
-            "content":{
-                "body":"hello",
-                "m.relates_to":{
-                    "event_id":"$1234",
-                    "rel_type":"m.reference"
+        val input =
+            """
+            {
+                "content":{
+                    "body":"hello",
+                    "m.relates_to":{
+                        "event_id":"$1234",
+                        "rel_type":"m.reference"
+                    },
+                    "msgtype":"m.text"
                 },
-                "msgtype":"m.text"
-            },
-            "event_id":"$143273582443PhrSn",
-            "origin_server_ts":1432735824653,
-            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
-            "sender":"@example:example.org",
-            "type":"m.room.message",
-            "unsigned":{
-                "age":1234,
-                "m.relations": {
-                  "org.example.possible_annotations": [
-                    {
-                      "key": "👍",
-                      "count": 3
+                "event_id":"$143273582443PhrSn",
+                "origin_server_ts":1432735824653,
+                "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+                "sender":"@example:example.org",
+                "type":"m.room.message",
+                "unsigned":{
+                    "age":1234,
+                    "m.relations": {
+                      "org.example.possible_annotations": [
+                        {
+                          "key": "👍",
+                          "count": 3
+                        }
+                      ]
                     }
-                  ]
                 }
             }
-        }
-    """.trimIndent()
+            """
+                .trimIndent()
 
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            input
-        )
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
-                RoomMessageEventContent.TextBased.Text(
-                    "hello",
-                    relatesTo = RelatesTo.Reference(EventId("$1234"))
-                ),
+                RoomMessageEventContent.TextBased.Text("hello", relatesTo = RelatesTo.Reference(EventId("$1234"))),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedMessageEventData(
-                    1234, relations =
+                    1234,
+                    relations =
                         Relations(
                             mapOf(
                                 RelationType.Unknown("org.example.possible_annotations") to
-                                        ServerAggregation.Unknown(
-                                            RelationType.Unknown("org.example.possible_annotations"), buildJsonArray {
-                                                add(buildJsonObject {
+                                    ServerAggregation.Unknown(
+                                        RelationType.Unknown("org.example.possible_annotations"),
+                                        buildJsonArray {
+                                            add(
+                                                buildJsonObject {
                                                     put("key", JsonPrimitive("👍"))
                                                     put("count", JsonPrimitive(3))
-                                                })
-                                            })
+                                                }
+                                            )
+                                        },
+                                    )
                             )
-                        )
+                        ),
                 ),
-            ), result
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeMessageEventWithRelatesToAndCopyNewContent() {
-        val input = """
-        {
-            "content":{
-                "body":"hello",
-                "m.new_content":{
-                    "body":"hello-new",
+        val input =
+            """
+            {
+                "content":{
+                    "body":"hello",
+                    "m.new_content":{
+                        "body":"hello-new",
+                        "msgtype":"m.text"
+                    },
+                    "m.relates_to":{
+                        "event_id":"$1234",
+                        "rel_type":"m.replace"
+                    },
                     "msgtype":"m.text"
                 },
-                "m.relates_to":{
-                    "event_id":"$1234",
-                    "rel_type":"m.replace"
-                },
-                "msgtype":"m.text"
-            },
-            "event_id":"$143273582443PhrSn",
-            "origin_server_ts":1432735824653,
-            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
-            "sender":"@example:example.org",
-            "type":"m.room.message",
-            "unsigned":{}
-        }
-    """.trimIndent()
+                "event_id":"$143273582443PhrSn",
+                "origin_server_ts":1432735824653,
+                "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+                "sender":"@example:example.org",
+                "type":"m.room.message",
+                "unsigned":{}
+            }
+            """
+                .trimIndent()
 
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            input
-        )
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
                 RoomMessageEventContent.TextBased.Text(
                     "hello",
-                    relatesTo = RelatesTo.Replace(
-                        EventId("$1234"),
-                        newContent = RoomMessageEventContent.TextBased.Text("hello-new")
-                    )
+                    relatesTo =
+                        RelatesTo.Replace(
+                            EventId("$1234"),
+                            newContent = RoomMessageEventContent.TextBased.Text("hello-new"),
+                        ),
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedMessageEventData(),
-            ), result
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeMessageEventWithMalformedRelatesTo() {
-        val input = """
+        val input =
+            """
         {
             "content":{
                 "msgtype":"m.text",
@@ -514,32 +509,39 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "unsigned":{"age":1234},
             "type":"m.room.message"
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
                 RoomMessageEventContent.TextBased.Text(
-                    body = "hello", relatesTo = RelatesTo.Unknown(buildJsonObject {
-                        put("event_id", JsonPrimitive(24))
-                        put("rel_type", JsonPrimitive("something"))
-                    }, EventId("24"), RelationType.Unknown("something"), null)
+                    body = "hello",
+                    relatesTo =
+                        RelatesTo.Unknown(
+                            buildJsonObject {
+                                put("event_id", JsonPrimitive(24))
+                                put("rel_type", JsonPrimitive("something"))
+                            },
+                            EventId("24"),
+                            RelationType.Unknown("something"),
+                            null,
+                        ),
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
-                UnsignedMessageEventData(1234)
-            ), result
+                UnsignedMessageEventData(1234),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeMessageEventWithExternalUrl() {
-        val input = """
+        val input =
+            """
         {
             "content":{
                 "msgtype":"m.text",
@@ -553,30 +555,27 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "unsigned":{"age":1234},
             "type":"m.room.message"
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
-                RoomMessageEventContent.TextBased.Text(
-                    body = "hello",
-                    externalUrl = "http://some-external-url.test"
-                ),
+                RoomMessageEventContent.TextBased.Text(body = "hello", externalUrl = "http://some-external-url.test"),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
-                UnsignedMessageEventData(1234)
-            ), result
+                UnsignedMessageEventData(1234),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeMalformedUnknownMessageEvent() {
-        val input = """
+        val input =
+            """
         {
             "content":{
                 "msgtype":"m.dino",
@@ -594,42 +593,46 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "unsigned":{"age":1234},
             "type":"m.room.message"
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
                 Unknown(
-                    "m.dino", "hello",
-                    raw = JsonObject(
-                        mapOf(
-                            "msgtype" to JsonPrimitive("m.dino"),
-                            "body" to JsonPrimitive("hello"),
-                            "something" to JsonPrimitive("unicorn"),
-                            "m.relates_to" to JsonObject(
-                                mapOf(
-                                    "event_id" to JsonPrimitive("$1234"),
-                                    "rel_type" to JsonPrimitive("m.reference")
-                                )
+                    "m.dino",
+                    "hello",
+                    raw =
+                        JsonObject(
+                            mapOf(
+                                "msgtype" to JsonPrimitive("m.dino"),
+                                "body" to JsonPrimitive("hello"),
+                                "something" to JsonPrimitive("unicorn"),
+                                "m.relates_to" to
+                                    JsonObject(
+                                        mapOf(
+                                            "event_id" to JsonPrimitive("$1234"),
+                                            "rel_type" to JsonPrimitive("m.reference"),
+                                        )
+                                    ),
                             )
-                        )
-                    ), relatesTo = RelatesTo.Reference(EventId("$1234"))
+                        ),
+                    relatesTo = RelatesTo.Reference(EventId("$1234")),
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
-                UnsignedMessageEventData(1234)
-            ), result
+                UnsignedMessageEventData(1234),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeUnknownMessageEvent() {
-        val input = """
+        val input =
+            """
         {
             "content":{
                 "msgtype":"m.dino",
@@ -647,12 +650,10 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "unsigned":{"age":1234},
             "type":"m.dino"
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
                 UnknownEventContent(
@@ -661,12 +662,13 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                             "msgtype" to JsonPrimitive("m.dino"),
                             "body" to JsonPrimitive("hello"),
                             "something" to JsonPrimitive("unicorn"),
-                            "m.relates_to" to JsonObject(
-                                mapOf(
-                                    "event_id" to JsonPrimitive("$1234"),
-                                    "rel_type" to JsonPrimitive("m.reference")
-                                )
-                            )
+                            "m.relates_to" to
+                                JsonObject(
+                                    mapOf(
+                                        "event_id" to JsonPrimitive("$1234"),
+                                        "rel_type" to JsonPrimitive("m.reference"),
+                                    )
+                                ),
                         )
                     ),
                     EventContentBlocks(
@@ -674,47 +676,49 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                         EventContentBlock.Unknown("body", JsonPrimitive("hello")),
                         EventContentBlock.Unknown("something", JsonPrimitive("unicorn")),
                         EventContentBlock.Unknown(
-                            "m.relates_to", JsonObject(
-                                mapOf(
-                                    "event_id" to JsonPrimitive("$1234"),
-                                    "rel_type" to JsonPrimitive("m.reference")
-                                )
-                            )
-                        )
-                    ), "m.dino"
+                            "m.relates_to",
+                            JsonObject(
+                                mapOf("event_id" to JsonPrimitive("$1234"), "rel_type" to JsonPrimitive("m.reference"))
+                            ),
+                        ),
+                    ),
+                    "m.dino",
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
-                UnsignedMessageEventData(1234)
-            ), result
+                UnsignedMessageEventData(1234),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldSerializeEventList() {
-        val content = listOf(
-            StateEvent(
-                id = EventId("$143273582443PhrSn"),
-                roomId = RoomId("!room:server"),
-                unsigned = UnsignedStateEventData(),
-                originTimestamp = 1234,
-                sender = UserId("sender", "server"),
-                content = NameEventContent("test"),
-                stateKey = ""
-            ),
-            StateEvent(
-                id = EventId("$143273584443PhrSn"),
-                roomId = RoomId("!room:server"),
-                unsigned = UnsignedStateEventData(),
-                originTimestamp = 1234,
-                sender = UserId("sender", "server"),
-                stateKey = UserId("user", "server").full,
-                content = MemberEventContent(membership = Membership.INVITE)
+        val content =
+            listOf(
+                StateEvent(
+                    id = EventId("$143273582443PhrSn"),
+                    roomId = RoomId("!room:server"),
+                    unsigned = UnsignedStateEventData(),
+                    originTimestamp = 1234,
+                    sender = UserId("sender", "server"),
+                    content = NameEventContent("test"),
+                    stateKey = "",
+                ),
+                StateEvent(
+                    id = EventId("$143273584443PhrSn"),
+                    roomId = RoomId("!room:server"),
+                    unsigned = UnsignedStateEventData(),
+                    originTimestamp = 1234,
+                    sender = UserId("sender", "server"),
+                    stateKey = UserId("user", "server").full,
+                    content = MemberEventContent(membership = Membership.INVITE),
+                ),
             )
-        )
-        val expectedResult = """
+        val expectedResult =
+            """
         [{
             "content":{
                 "name":"test"
@@ -739,30 +743,29 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.member",
             "unsigned":{}
         }]
-    """.trimToFlatJson()
+    """
+                .trimToFlatJson()
         val result =
             json.encodeToString(
-                ListSerializer(
-                    StateEventSerializer(
-                        EventContentSerializerMappings.default.state,
-                    )
-                ),
-                content
+                ListSerializer(StateEventSerializer(EventContentSerializerMappings.default.state)),
+                content,
             )
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldSerializeRedactsEvent() {
-        val content = MessageEvent(
-            RedactionEventContent(EventId("$123"), "spam"),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(1234)
-        )
-        val expectedResult = """
+        val content =
+            MessageEvent(
+                RedactionEventContent(EventId("$123"), "spam"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(1234),
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "reason":"spam",
@@ -778,19 +781,17 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 "age":1234
             }
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeRedactedMessageEvent() {
-        val input = """
+        val input =
+            """
         {
             "content":{},
             "event_id":"$143273582443PhrSn",
@@ -816,12 +817,10 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 },
             "type":"m.room.encrypted"
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
         assertEquals(
             MessageEvent(
                 RedactedEventContent("m.room.encrypted"),
@@ -830,22 +829,26 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedMessageEventData(
-                    1234, redactedBecause = MessageEvent(
-                        RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
-                        EventId("$143273582443PhrSn"),
-                        UserId("example", "example.org"),
-                        RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-                        1432735824653,
-                        UnsignedMessageEventData(1234)
-                    )
-                )
-            ), result
+                    1234,
+                    redactedBecause =
+                        MessageEvent(
+                            RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
+                            EventId("$143273582443PhrSn"),
+                            UserId("example", "example.org"),
+                            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                            1432735824653,
+                            UnsignedMessageEventData(1234),
+                        ),
+                ),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldDeserializeStateEventWithEmptyContent() {
-        val input = """
+        val input =
+            """
         {
             "content":{},
             "event_id":"$143273582443PhrSn",
@@ -855,12 +858,9 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.avatar",
             "state_key":""
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ), input
-        )
+    """
+                .trimToFlatJson()
+        val result = json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
         assertEquals(
             StateEvent(
                 AvatarEventContent(),
@@ -869,30 +869,35 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 stateKey = "",
-            ), result
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldSerializeRedactedMessageEvent() {
-        val content = MessageEvent(
-            RedactedEventContent("m.room.encrypted"),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedMessageEventData(
-                1234, redactedBecause = MessageEvent(
-                    RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
-                    EventId("$143273582443PhrSn"),
-                    UserId("example", "example.org"),
-                    RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-                    1432735824653,
-                    UnsignedMessageEventData(1234)
-                )
+        val content =
+            MessageEvent(
+                RedactedEventContent("m.room.encrypted"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(
+                    1234,
+                    redactedBecause =
+                        MessageEvent(
+                            RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
+                            EventId("$143273582443PhrSn"),
+                            UserId("example", "example.org"),
+                            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                            1432735824653,
+                            UnsignedMessageEventData(1234),
+                        ),
+                ),
             )
-        )
-        val expectedResult = """
+        val expectedResult =
+            """
         {
             "content":{},
             "event_id":"$143273582443PhrSn",
@@ -919,19 +924,17 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                     }
                 }
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            MessageEventSerializer(
-                EventContentSerializerMappings.default.message,
-            ),
-            content
-        )
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeRedactedUnsignedDataInStateEvent() {
-        val input = """
+        val input =
+            """
         {
             "content": {
                 "name": "name"
@@ -946,40 +949,35 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 "prev_content": {}
             }
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ),
-            input
-        )
-        result shouldBe StateEvent(
-            NameEventContent("name"),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(
-                previousContent = RedactedEventContent("m.room.name")
-            ),
-            "",
-        )
+    """
+                .trimToFlatJson()
+        val result = json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
+        result shouldBe
+            StateEvent(
+                NameEventContent("name"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(previousContent = RedactedEventContent("m.room.name")),
+                "",
+            )
     }
 
     @Test
     fun shouldSerializeRedactedUnsignedDataInStateEvent() {
-        val input = StateEvent(
-            NameEventContent("name"),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(
-                previousContent = RedactedEventContent("m.room.name")
-            ),
-            "",
-        )
-        val output = """
+        val input =
+            StateEvent(
+                NameEventContent("name"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(previousContent = RedactedEventContent("m.room.name")),
+                "",
+            )
+        val output =
+            """
         {
             "content": {
                 "name": "name"
@@ -994,19 +992,16 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 "prev_content": {}
             }
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ),
-            input
-        )
+    """
+                .trimToFlatJson()
+        val result = json.encodeToString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
         result shouldBe output
     }
 
     @Test
     fun shouldDeserializeRedactedStateEvent() {
-        val input = """
+        val input =
+            """
         {
             "content": {},
             "event_id": "${'$'}143273582443PhrSn",
@@ -1021,41 +1016,35 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 }
             }
         }
-    """.trimToFlatJson()
-        val result = json.decodeFromString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ),
-            input
-        )
+    """
+                .trimToFlatJson()
+        val result = json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
         result shouldBe
-                StateEvent(
-                    RedactedEventContent("m.room.name"),
-                    EventId("$143273582443PhrSn"),
-                    UserId("example", "example.org"),
-                    RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-                    1432735824653,
-                    UnsignedStateEventData(
-                        previousContent = NameEventContent("prev")
-                    ),
-                    "",
-                )
+            StateEvent(
+                RedactedEventContent("m.room.name"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(previousContent = NameEventContent("prev")),
+                "",
+            )
     }
 
     @Test
     fun shouldSerializeRedactedStateEvent() {
-        val input = StateEvent(
-            RedactedEventContent("m.room.name"),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(
-                previousContent = NameEventContent("prev")
-            ),
-            "",
-        )
-        val output = """
+        val input =
+            StateEvent(
+                RedactedEventContent("m.room.name"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(previousContent = NameEventContent("prev")),
+                "",
+            )
+        val output =
+            """
         {
             "content": {},
             "event_id": "${'$'}143273582443PhrSn",
@@ -1070,20 +1059,17 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 }
             }
         }
-    """.trimToFlatJson()
-        val result = json.encodeToString(
-            StateEventSerializer(
-                EventContentSerializerMappings.default.state,
-            ),
-            input
-        )
+    """
+                .trimToFlatJson()
+        val result = json.encodeToString(StateEventSerializer(EventContentSerializerMappings.default.state), input)
         result shouldBe output
     }
 
     @Test
     @ExperimentalSerializationApi
     fun shouldDeserializeUnknownAccountDataEvent() {
-        val input = """
+        val input =
+            """
             {
                 "type": "org.example.mynamespace.custom",
                 "room_id": "!jEsUZKDJdhlrceRyVU:example.org",
@@ -1091,44 +1077,38 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                     "ancestor_of_chicken": "dinos"
                 }
             }
-            """.trimIndent()
+            """
+                .trimIndent()
         val serializer = json.serializersModule.getContextual(RoomAccountDataEvent::class)
         requireNotNull(serializer)
         val result = json.decodeFromString(serializer, input)
         assertEquals(
             RoomAccountDataEvent(
                 UnknownEventContent(
-                    JsonObject(
-                        mapOf(
-                            "ancestor_of_chicken" to JsonPrimitive("dinos")
-                        )
-                    ),
-                    EventContentBlocks(
-                        EventContentBlock.Unknown("ancestor_of_chicken", JsonPrimitive("dinos"))
-                    ),
-                    "org.example.mynamespace.custom"
+                    JsonObject(mapOf("ancestor_of_chicken" to JsonPrimitive("dinos"))),
+                    EventContentBlocks(EventContentBlock.Unknown("ancestor_of_chicken", JsonPrimitive("dinos"))),
+                    "org.example.mynamespace.custom",
                 ),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            ), result
+            ),
+            result,
         )
     }
 
     @ExperimentalSerializationApi
     @Test
     fun shouldSerializeUnknownAccountDataEvent() {
-        val event = RoomAccountDataEvent(
-            UnknownEventContent(
-                JsonObject(
-                    mapOf(
-                        "ancestor_of_chicken" to JsonPrimitive("dinos")
-                    )
+        val event =
+            RoomAccountDataEvent(
+                UnknownEventContent(
+                    JsonObject(mapOf("ancestor_of_chicken" to JsonPrimitive("dinos"))),
+                    EventContentBlocks(),
+                    "org.example.mynamespace.custom",
                 ),
-                EventContentBlocks(),
-                "org.example.mynamespace.custom"
-            ),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-        )
-        val expected = """
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+            )
+        val expected =
+            """
             {
                 "content":{
                     "ancestor_of_chicken":"dinos"
@@ -1136,7 +1116,8 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                 "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
                 "type":"org.example.mynamespace.custom"
             }
-            """.trimToFlatJson()
+            """
+                .trimToFlatJson()
         val serializer = json.serializersModule.getContextual(RoomAccountDataEvent::class)
         requireNotNull(serializer)
         val result = json.encodeToString(serializer, event)
@@ -1146,71 +1127,67 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
     @Test
     @ExperimentalSerializationApi
     fun shouldDeserializeMalformedEvent() {
-        val input = """
-        {
-            "type":"m.room.member",
-            "content":{
-                "membership":"dino",
-                "unicorns":[]
-            },
-            "event_id":"$143273582443PhrSn",
-            "sender":"@example:example.org",
-            "origin_server_ts":1432735824653,
-            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
-            "unsigned":{"age":1234,"redactedBecause":null,"transaction_id":null},
-            "state_key":"",
-            "prev_content":null
-        }
-    """.trimIndent()
+        val input =
+            """
+            {
+                "type":"m.room.member",
+                "content":{
+                    "membership":"dino",
+                    "unicorns":[]
+                },
+                "event_id":"$143273582443PhrSn",
+                "sender":"@example:example.org",
+                "origin_server_ts":1432735824653,
+                "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+                "unsigned":{"age":1234,"redactedBecause":null,"transaction_id":null},
+                "state_key":"",
+                "prev_content":null
+            }
+            """
+                .trimIndent()
         val serializer = json.serializersModule.getContextual(RoomEvent::class)
         requireNotNull(serializer)
         val result = json.decodeFromString(serializer, input)
         assertEquals(
             StateEvent(
                 UnknownEventContent(
-                    JsonObject(
-                        mapOf(
-                            "membership" to JsonPrimitive("dino"),
-                            "unicorns" to JsonArray(listOf())
-                        )
-                    ), EventContentBlocks(
+                    JsonObject(mapOf("membership" to JsonPrimitive("dino"), "unicorns" to JsonArray(listOf()))),
+                    EventContentBlocks(
                         EventContentBlock.Unknown("membership", JsonPrimitive("dino")),
-                        EventContentBlock.Unknown("unicorns", JsonArray(listOf()))
+                        EventContentBlock.Unknown("unicorns", JsonArray(listOf())),
                     ),
-                    "m.room.member"
+                    "m.room.member",
                 ),
                 EventId("$143273582443PhrSn"),
                 UserId("example", "example.org"),
                 RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
                 1432735824653,
                 UnsignedStateEventData(1234),
-                ""
-            ), result
+                "",
+            ),
+            result,
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun shouldSerializeMalformedEvent() {
-        val content = StateEvent(
-            UnknownEventContent(
-                JsonObject(
-                    mapOf(
-                        "alias" to JsonPrimitive("dino"),
-                        "unicorns" to JsonArray(listOf())
-                    )
+        val content =
+            StateEvent(
+                UnknownEventContent(
+                    JsonObject(mapOf("alias" to JsonPrimitive("dino"), "unicorns" to JsonArray(listOf()))),
+                    EventContentBlocks(),
+                    "m.room.canonical_alias",
                 ),
-                EventContentBlocks(),
-                "m.room.canonical_alias"
-            ),
-            EventId("$143273582443PhrSn"),
-            UserId("example", "example.org"),
-            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
-            1432735824653,
-            UnsignedStateEventData(1234),
-            ""
-        )
-        val expectedResult = """
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedStateEventData(1234),
+                "",
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "alias":"dino",
@@ -1224,7 +1201,8 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "type":"m.room.canonical_alias",
             "unsigned":{"age":1234}
         }
-    """.trimToFlatJson()
+    """
+                .trimToFlatJson()
         val serializer = json.serializersModule.getContextual(RoomEvent::class)
         requireNotNull(serializer)
         val result = json.encodeToString(serializer, content)
@@ -1234,20 +1212,22 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun shouldSerializeEncryptedEventWithRelatesTo() {
-        val input = MessageEvent(
-            MegolmEncryptedMessageEventContent(
-                ciphertext = MegolmMessageValue("jdlskjfldjsvjJIODJKLfjdlfkjdfioj/sdfjijfDSHDUH"),
-                senderKey = Curve25519KeyValue("YWO+ZYV1tFTAFPu3A3609oHUF4VYRPDMjizgV48O2jg"),
-                deviceId = "GNAHNGTKNL",
-                sessionId = "8798dSJJ878789dfjJKDSF",
-                relatesTo = RelatesTo.Reply(RelatesTo.ReplyTo(EventId("$7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY")))
-            ),
-            id = EventId("\$dGD9Qv39oKujC6MIbJUWSVrecLzdh0I1i00o2j6r24A"),
-            roomId = RoomId("!aNgXnqwYApWloKSPKD:imbitbu.de"),
-            sender = UserId("@user:localhost"),
-            originTimestamp = 1643815115835,
-            unsigned = UnsignedMessageEventData(age = 241)
-        )
+        val input =
+            MessageEvent(
+                MegolmEncryptedMessageEventContent(
+                    ciphertext = MegolmMessageValue("jdlskjfldjsvjJIODJKLfjdlfkjdfioj/sdfjijfDSHDUH"),
+                    senderKey = Curve25519KeyValue("YWO+ZYV1tFTAFPu3A3609oHUF4VYRPDMjizgV48O2jg"),
+                    deviceId = "GNAHNGTKNL",
+                    sessionId = "8798dSJJ878789dfjJKDSF",
+                    relatesTo =
+                        RelatesTo.Reply(RelatesTo.ReplyTo(EventId("$7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY"))),
+                ),
+                id = EventId("\$dGD9Qv39oKujC6MIbJUWSVrecLzdh0I1i00o2j6r24A"),
+                roomId = RoomId("!aNgXnqwYApWloKSPKD:imbitbu.de"),
+                sender = UserId("@user:localhost"),
+                originTimestamp = 1643815115835,
+                unsigned = UnsignedMessageEventData(age = 241),
+            )
         val serializer = json.serializersModule.getContextual(RoomEvent::class)
         requireNotNull(serializer)
         val result = json.encodeToString(serializer, input)
@@ -1275,37 +1255,41 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
              "age": 241
            }
         }
-        """.trimToFlatJson(), result
+        """
+                .trimToFlatJson(),
+            result,
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun shouldDeserializeEncryptedEventWithRelatesTo() {
-        val input = """
-        {
-           "type": "m.room.encrypted",
-           "sender": "@user:localhost",
-           "content": {
-             "algorithm": "m.megolm.v1.aes-sha2",
-             "sender_key": "YWO+ZYV1tFTAFPu3A3609oHUF4VYRPDMjizgV48O2jg",
-             "ciphertext": "jdlskjfldjsvjJIODJKLfjdlfkjdfioj/sdfjijfDSHDUH",
-             "session_id": "8798dSJJ878789dfjJKDSF",
-             "device_id": "GNAHNGTKNL",
-             "m.relates_to": {
-               "m.in_reply_to": {
-                 "event_id": "${'$'}7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY"
-               }
-             }
-           },
-           "origin_server_ts": 1643815115835,
-           "unsigned": {
-             "age": 241
-           },
-           "event_id": "${'$'}dGD9Qv39oKujC6MIbJUWSVrecLzdh0I1i00o2j6r24A",
-           "room_id": "!aNgXnqwYApWloKSPKD:imbitbu.de"
-        }
-        """.trimIndent()
+        val input =
+            """
+            {
+               "type": "m.room.encrypted",
+               "sender": "@user:localhost",
+               "content": {
+                 "algorithm": "m.megolm.v1.aes-sha2",
+                 "sender_key": "YWO+ZYV1tFTAFPu3A3609oHUF4VYRPDMjizgV48O2jg",
+                 "ciphertext": "jdlskjfldjsvjJIODJKLfjdlfkjdfioj/sdfjijfDSHDUH",
+                 "session_id": "8798dSJJ878789dfjJKDSF",
+                 "device_id": "GNAHNGTKNL",
+                 "m.relates_to": {
+                   "m.in_reply_to": {
+                     "event_id": "${'$'}7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY"
+                   }
+                 }
+               },
+               "origin_server_ts": 1643815115835,
+               "unsigned": {
+                 "age": 241
+               },
+               "event_id": "${'$'}dGD9Qv39oKujC6MIbJUWSVrecLzdh0I1i00o2j6r24A",
+               "room_id": "!aNgXnqwYApWloKSPKD:imbitbu.de"
+            }
+            """
+                .trimIndent()
         val serializer = json.serializersModule.getContextual(RoomEvent::class)
         requireNotNull(serializer)
         val result = json.decodeFromString(serializer, input)
@@ -1316,89 +1300,100 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                     senderKey = Curve25519KeyValue("YWO+ZYV1tFTAFPu3A3609oHUF4VYRPDMjizgV48O2jg"),
                     deviceId = "GNAHNGTKNL",
                     sessionId = "8798dSJJ878789dfjJKDSF",
-                    relatesTo = RelatesTo.Reply(RelatesTo.ReplyTo(EventId("$7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY")))
+                    relatesTo =
+                        RelatesTo.Reply(RelatesTo.ReplyTo(EventId("$7sxeT7hzXMlQ7cF2xKJAThT0h4jUvy0-RRgsmF7IZEY"))),
                 ),
                 id = EventId("\$dGD9Qv39oKujC6MIbJUWSVrecLzdh0I1i00o2j6r24A"),
                 roomId = RoomId("!aNgXnqwYApWloKSPKD:imbitbu.de"),
                 sender = UserId("@user:localhost"),
                 originTimestamp = 1643815115835,
-                unsigned = UnsignedMessageEventData(age = 241)
-            ), result
+                unsigned = UnsignedMessageEventData(age = 241),
+            ),
+            result,
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun shouldDeserializeReceipt() {
-        val input = """
-        {
-            "type": "m.receipt",
-            "content": {
-                "${'$'}wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s": {
-                    "m.read": {
-                        "@user1:localhost": {
-                            "ts":1644259179796,"hidden":false
-                        },
-                        "@user2:localhost": {
-                            "ts":1644258600722,"hidden":false
-                        }
-                   }
-                },
-                "${'$'}zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE": {
-                    "m.read": {
-                        "@user3:localhost": {
-                            "ts":1644267366690,"hidden":false
+        val input =
+            """
+            {
+                "type": "m.receipt",
+                "content": {
+                    "${'$'}wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s": {
+                        "m.read": {
+                            "@user1:localhost": {
+                                "ts":1644259179796,"hidden":false
+                            },
+                            "@user2:localhost": {
+                                "ts":1644258600722,"hidden":false
+                            }
+                       }
+                    },
+                    "${'$'}zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE": {
+                        "m.read": {
+                            "@user3:localhost": {
+                                "ts":1644267366690,"hidden":false
+                            }
                         }
                     }
                 }
             }
-        }
-        """.trimIndent()
+            """
+                .trimIndent()
         val serializer = json.serializersModule.getContextual(EphemeralEvent::class)
         requireNotNull(serializer)
         val result = json.decodeFromString(serializer, input)
         assertEquals(
             EphemeralEvent(
                 ReceiptEventContent(
-                    events = mapOf(
-                        EventId("\$wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s") to mapOf(
-                            ReceiptType.Read to mapOf(
-                                UserId("user1", "localhost") to Receipt(1644259179796L),
-                                UserId("user2", "localhost") to Receipt(1644258600722L),
-                            )
-                        ),
-                        EventId("\$zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE") to mapOf(
-                            ReceiptType.Read to mapOf(
-                                UserId("user3", "localhost") to Receipt(1644267366690L)
-                            )
+                    events =
+                        mapOf(
+                            EventId("\$wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s") to
+                                mapOf(
+                                    ReceiptType.Read to
+                                        mapOf(
+                                            UserId("user1", "localhost") to Receipt(1644259179796L),
+                                            UserId("user2", "localhost") to Receipt(1644258600722L),
+                                        )
+                                ),
+                            EventId("\$zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE") to
+                                mapOf(
+                                    ReceiptType.Read to mapOf(UserId("user3", "localhost") to Receipt(1644267366690L))
+                                ),
                         )
-                    ),
-                ),
-            ), result
+                )
+            ),
+            result,
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     @Test
     fun shouldSerializeReceipt() {
-        val receipt = EphemeralEvent(
-            ReceiptEventContent(
-                events = mapOf(
-                    EventId("\$wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s") to mapOf(
-                        ReceiptType.Read to mapOf(
-                            UserId("user1", "localhost") to Receipt(1644259179796L),
-                            UserId("user2", "localhost") to Receipt(1644258600722L),
+        val receipt =
+            EphemeralEvent(
+                ReceiptEventContent(
+                    events =
+                        mapOf(
+                            EventId("\$wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s") to
+                                mapOf(
+                                    ReceiptType.Read to
+                                        mapOf(
+                                            UserId("user1", "localhost") to Receipt(1644259179796L),
+                                            UserId("user2", "localhost") to Receipt(1644258600722L),
+                                        )
+                                ),
+                            EventId("\$zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE") to
+                                mapOf(
+                                    ReceiptType.Read to mapOf(UserId("user3", "localhost") to Receipt(1644267366690L))
+                                ),
                         )
-                    ),
-                    EventId("\$zu9ULQ-V3AGcshRNfByIb3sVZ62cTUpeZcdIJ3fBNXE") to mapOf(
-                        ReceiptType.Read to mapOf(
-                            UserId("user3", "localhost") to Receipt(1644267366690L)
-                        )
-                    )
-                ),
-            ),
-        )
-        val expectedResult = """
+                )
+            )
+        val expectedResult =
+            """
         {
             "content":{
                 "${'$'}wUeWup1q4tsPBG-zHFicJTHpY30cmxjgV-LW0ZAOB9s":{
@@ -1421,7 +1416,8 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             },
             "type":"m.receipt"
         }
-        """.trimToFlatJson()
+        """
+                .trimToFlatJson()
         val serializer = json.serializersModule.getContextual(EphemeralEvent::class)
         requireNotNull(serializer)
         val result = json.encodeToString(serializer, receipt)

@@ -8,11 +8,10 @@ import de.connect2x.trixnity.libolm.OlmAccount
 
 object LibOlmAccountFactory : AccountFactory {
     override val dehydratedDevicesSupported = false
+
     override fun invoke(): LibOlmAccount = LibOlmAccount(OlmAccount.create())
 
-    override fun fromPickle(
-        pickle: String, pickleKey: PickleKey?
-    ): LibOlmAccount {
+    override fun fromPickle(pickle: String, pickleKey: PickleKey?): LibOlmAccount {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
         return LibOlmAccount(OlmAccount.unpickle(pickleKey?.inner, pickle))

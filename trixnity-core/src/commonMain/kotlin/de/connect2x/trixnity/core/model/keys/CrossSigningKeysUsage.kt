@@ -24,9 +24,7 @@ sealed interface CrossSigningKeysUsage {
         override val name = "user_signing"
     }
 
-    data class UnknownCrossSigningKeyUsage(
-        override val name: String
-    ) : CrossSigningKeysUsage
+    data class UnknownCrossSigningKeyUsage(override val name: String) : CrossSigningKeysUsage
 
     object Serializer : KSerializer<CrossSigningKeysUsage> {
         override val descriptor: SerialDescriptor =

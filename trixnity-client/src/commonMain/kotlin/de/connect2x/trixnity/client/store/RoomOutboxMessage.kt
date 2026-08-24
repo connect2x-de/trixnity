@@ -6,14 +6,14 @@ import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonClassDiscriminator
-import kotlin.time.Duration
-import kotlin.time.Instant
 
 @Serializable
 data class RoomOutboxMessage<T : MessageEventContent>(
@@ -26,56 +26,33 @@ data class RoomOutboxMessage<T : MessageEventContent>(
     val sendError: SendError? = null,
     val keepMediaInCache: Boolean = true,
     val isDraft: Boolean = false,
-    @MSC4354
-    val stickyDuration: Duration? = null,
+    @MSC4354 val stickyDuration: Duration? = null,
 ) {
-    @Transient
-    val mediaUploadProgress: MutableStateFlow<FileTransferProgress?> = MutableStateFlow(null)
+    @Transient val mediaUploadProgress: MutableStateFlow<FileTransferProgress?> = MutableStateFlow(null)
 
     @OptIn(ExperimentalSerializationApi::class)
     @Serializable
     @JsonClassDiscriminator("type")
     sealed interface SendError {
-        /**
-         * The user has no permission to send this event in this room.
-         */
-        @Serializable
-        @SerialName("no_event_permission")
-        data object NoEventPermission : SendError
+        /** The user has no permission to send this event in this room. */
+        @Serializable @SerialName("no_event_permission") data object NoEventPermission : SendError
 
-        /**
-         * The user has no permission to send this media (for example file type not allowed or quota reached).
-         */
-        @Serializable
-        @SerialName("no_media_permission")
-        data object NoMediaPermission : SendError
+        /** The user has no permission to send this media (for example file type not allowed or quota reached). */
+        @Serializable @SerialName("no_media_permission") data object NoMediaPermission : SendError
 
-        /**
-         * The media tried to upload is too large.
-         */
-        @SerialName("media_too_large")
-        @Serializable
-        data object MediaTooLarge : SendError
+        /** The media tried to upload is too large. */
+        @SerialName("media_too_large") @Serializable data object MediaTooLarge : SendError
 
-        /**
-         * The event tried to send is invalid.
-         */
+        /** The event tried to send is invalid. */
         @Serializable
         @SerialName("bad_request")
-        data class BadRequest(
-            val errorResponse: @Serializable(with = ErrorResponse.Serializer::class) ErrorResponse
-        ) : SendError
+        data class BadRequest(val errorResponse: @Serializable(with = ErrorResponse.Serializer::class) ErrorResponse) :
+            SendError
 
-        /**
-         * There was a failure in encrypting the event.
-         */
-        @Serializable
-        @SerialName("encryption_error")
-        data class EncryptionError(val reason: String? = null) : SendError
+        /** There was a failure in encrypting the event. */
+        @Serializable @SerialName("encryption_error") data class EncryptionError(val reason: String? = null) : SendError
 
-        /**
-         * The encryption algorithm is not supported.
-         */
+        /** The encryption algorithm is not supported. */
         @Serializable
         @SerialName("encryption_algorithm_not_supported")
         data object EncryptionAlgorithmNotSupported : SendError

@@ -3,8 +3,8 @@ package de.connect2x.trixnity.libolm
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmSASTest {
     @Test
@@ -26,9 +26,7 @@ class OlmSASTest {
             aliceShortCode.size shouldBe codeLength
             bobShortCode.size shouldBe codeLength
 
-            aliceShortCode.forEachIndexed { index, aliceByte ->
-                aliceByte shouldBe bobShortCode[index]
-            }
+            aliceShortCode.forEachIndexed { index, aliceByte -> aliceByte shouldBe bobShortCode[index] }
 
             val aliceMac = aliceSAS.calculateMac("Hello world!", "SAS")
             val bobMac = bobSAS.calculateMac("Hello world!", "SAS")
@@ -56,9 +54,7 @@ class OlmSASTest {
             aliceShortCode.size shouldBe codeLength
             bobShortCode.size shouldBe codeLength
 
-            aliceShortCode.forEachIndexed { index, aliceByte ->
-                aliceByte shouldBe bobShortCode[index]
-            }
+            aliceShortCode.forEachIndexed { index, aliceByte -> aliceByte shouldBe bobShortCode[index] }
 
             val aliceMac = aliceSAS.calculateMacFixedBase64("Hello world!", "SAS")
             val bobMac = bobSAS.calculateMacFixedBase64("Hello world!", "SAS")

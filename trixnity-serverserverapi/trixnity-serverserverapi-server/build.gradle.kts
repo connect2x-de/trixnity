@@ -9,9 +9,7 @@ kotlin {
     linuxX64()
     applyDefaultHierarchyTemplate()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-        }
+        all { languageSettings.optIn("kotlin.RequiresOptIn") }
         commonMain {
             dependencies {
                 api(projects.trixnityApiServer)
@@ -30,7 +28,6 @@ kotlin {
                 implementation(sharedLibs.ktor.server.resources)
                 implementation(sharedLibs.ktor.server.contentNegotiation)
                 implementation(sharedLibs.ktor.serialization.kotlinx.json)
-
             }
         }
     }

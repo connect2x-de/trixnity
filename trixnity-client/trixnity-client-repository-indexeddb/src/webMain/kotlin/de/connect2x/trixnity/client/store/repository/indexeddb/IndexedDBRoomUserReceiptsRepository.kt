@@ -12,15 +12,10 @@ import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 
 @Serializable
-internal class IndexedDBRoomUserReceipts(
-    val roomId: String,
-    val userId: String,
-    val value: RoomUserReceipts,
-)
+internal class IndexedDBRoomUserReceipts(val roomId: String, val userId: String, val value: RoomUserReceipts)
 
-internal class IndexedDBRoomUserReceiptsRepository(
-    json: Json
-) : RoomUserReceiptsRepository,
+internal class IndexedDBRoomUserReceiptsRepository(json: Json) :
+    RoomUserReceiptsRepository,
     IndexedDBMapRepository<RoomId, UserId, RoomUserReceipts, IndexedDBRoomUserReceipts>(
         objectStoreName = objectStoreName,
         firstKeyIndexName = "roomId",
@@ -34,6 +29,7 @@ internal class IndexedDBRoomUserReceiptsRepository(
     ) {
     companion object {
         const val objectStoreName = "room_user_receipts"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 2)
                 createIndexedDBTwoDimensionsStoreRepository(
@@ -48,9 +44,6 @@ internal class IndexedDBRoomUserReceiptsRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId): Unit = withWrite { store ->
-        store.index(firstKeyIndexName).openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
+        store.index(firstKeyIndexName).openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

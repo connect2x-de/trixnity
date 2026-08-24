@@ -14,26 +14,19 @@ interface SasBytes : AutoCloseable {
         val emojiIndex6: UByte,
         val emojiIndex7: UByte,
     ) {
-        val asList: List<Int> = listOf(
-            emojiIndex1.toInt(),
-            emojiIndex2.toInt(),
-            emojiIndex3.toInt(),
-            emojiIndex4.toInt(),
-            emojiIndex5.toInt(),
-            emojiIndex6.toInt(),
-            emojiIndex7.toInt(),
-        )
+        val asList: List<Int> =
+            listOf(
+                emojiIndex1.toInt(),
+                emojiIndex2.toInt(),
+                emojiIndex3.toInt(),
+                emojiIndex4.toInt(),
+                emojiIndex5.toInt(),
+                emojiIndex6.toInt(),
+                emojiIndex7.toInt(),
+            )
     }
 
-    data class Decimals(
-        val first: UShort,
-        val second: UShort,
-        val third: UShort,
-    ) {
-        val asList: List<Int> = listOf(
-            first.toInt(),
-            second.toInt(),
-            third.toInt(),
-        )
+    data class Decimals(val first: UShort, val second: UShort, val third: UShort) {
+        val asList: List<Int> = listOf(first.toInt(), second.toInt(), third.toInt())
     }
 }

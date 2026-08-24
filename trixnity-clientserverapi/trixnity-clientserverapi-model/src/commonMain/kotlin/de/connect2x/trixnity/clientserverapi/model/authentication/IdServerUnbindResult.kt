@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class IdServerUnbindResult {
-    @SerialName("success")
-    SUCCESS,
-
-    @SerialName("no-support")
-    NOSUPPORT
+    @SerialName("success") SUCCESS,
+    @SerialName("no-support") NOSUPPORT,
 }

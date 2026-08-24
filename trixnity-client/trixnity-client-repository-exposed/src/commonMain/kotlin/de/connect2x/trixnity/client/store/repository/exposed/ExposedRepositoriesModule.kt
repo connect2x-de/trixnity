@@ -44,50 +44,48 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-private val log =
-    Logger("de.connect2x.trixnity.client.store.repository.exposed.ExposedRepositoriesModule")
+private val log = Logger("de.connect2x.trixnity.client.store.repository.exposed.ExposedRepositoriesModule")
 
 fun RepositoriesModule.Companion.exposed(database: R2dbcDatabase): RepositoriesModule = RepositoriesModule {
     log.debug { "create missing tables and columns" }
     suspendTransaction(database) {
-        val allTables = arrayOf(
-            ExposedAccount,
-            ExposedAuthentication,
-            ExposedServerData,
-            ExposedCrossSigningKeys,
-            ExposedDeviceKeys,
-            ExposedGlobalAccountData,
-            ExposedInboundMegolmMessageIndex,
-            ExposedInboundMegolmSession,
-            ExposedKeyChainLink,
-            ExposedKeyVerificationState,
-            ExposedSecrets,
-            ExposedSecretKeyRequest,
-            ExposedRoomKeyRequest,
-            ExposedOlmAccount,
-            ExposedOlmForgetFallbackKeyAfter,
-            ExposedOlmSession,
-            ExposedOutboundMegolmSession,
-            ExposedOutdatedKeys,
-            ExposedRoomAccountData,
-            ExposedRoomOutboxMessage,
-            ExposedRoom,
-            ExposedRoomState,
-            ExposedTimelineEvent,
-            ExposedTimelineEventRelation,
-            ExposedRoomUser,
-            ExposedRoomUserReceipts,
-            ExposedMediaCacheMapping,
-            ExposedUserPresence,
-            ExposedNotification,
-            ExposedNotificationState,
-            ExposedNotificationUpdate,
-            ExposedMigration,
-            @OptIn(MSC4354::class)
-            ExposedStickyEvent,
-        )
-        @Suppress("DEPRECATION")
-        SchemaUtils.createMissingTablesAndColumns(*allTables)
+        val allTables =
+            arrayOf(
+                ExposedAccount,
+                ExposedAuthentication,
+                ExposedServerData,
+                ExposedCrossSigningKeys,
+                ExposedDeviceKeys,
+                ExposedGlobalAccountData,
+                ExposedInboundMegolmMessageIndex,
+                ExposedInboundMegolmSession,
+                ExposedKeyChainLink,
+                ExposedKeyVerificationState,
+                ExposedSecrets,
+                ExposedSecretKeyRequest,
+                ExposedRoomKeyRequest,
+                ExposedOlmAccount,
+                ExposedOlmForgetFallbackKeyAfter,
+                ExposedOlmSession,
+                ExposedOutboundMegolmSession,
+                ExposedOutdatedKeys,
+                ExposedRoomAccountData,
+                ExposedRoomOutboxMessage,
+                ExposedRoom,
+                ExposedRoomState,
+                ExposedTimelineEvent,
+                ExposedTimelineEventRelation,
+                ExposedRoomUser,
+                ExposedRoomUserReceipts,
+                ExposedMediaCacheMapping,
+                ExposedUserPresence,
+                ExposedNotification,
+                ExposedNotificationState,
+                ExposedNotificationUpdate,
+                ExposedMigration,
+                @OptIn(MSC4354::class) ExposedStickyEvent,
+            )
+        @Suppress("DEPRECATION") SchemaUtils.createMissingTablesAndColumns(*allTables)
     }
     log.debug { "finished create missing tables and columns" }
     module {
@@ -125,7 +123,6 @@ fun RepositoriesModule.Companion.exposed(database: R2dbcDatabase): RepositoriesM
         singleOf(::ExposedNotificationStateRepository) { bind<NotificationStateRepository>() }
         singleOf(::ExposedNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
         singleOf(::ExposedMigrationRepository) { bind<MigrationRepository>() }
-        @OptIn(MSC4354::class)
-        singleOf(::ExposedStickyEventRepository) { bind<StickyEventRepository>() }
+        @OptIn(MSC4354::class) singleOf(::ExposedStickyEventRepository) { bind<StickyEventRepository>() }
     }
 }

@@ -1,13 +1,11 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
 import de.connect2x.trixnity.core.model.events.EventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.contextual
 
-fun createMatrixEventSerializersModule(
-    mappings: EventContentSerializerMappings,
-): SerializersModule {
+fun createMatrixEventSerializersModule(mappings: EventContentSerializerMappings): SerializersModule {
     val contextualMessageEventContentSerializer = ContextualMessageEventContentSerializer(mappings.message)
     val contextualStateEventContentSerializer = ContextualStateEventContentSerializer(mappings.state)
     val messageEventSerializer = MessageEventSerializer(mappings.message)
@@ -21,7 +19,8 @@ fun createMatrixEventSerializersModule(
     val decryptedOlmEventSerializer =
         DecryptedOlmEventSerializer(
             @Suppress("UNCHECKED_CAST")
-            ((mappings.message + mappings.state + mappings.ephemeral + mappings.toDevice) as Set<EventContentSerializerMapping<EventContent>>)
+            ((mappings.message + mappings.state + mappings.ephemeral + mappings.toDevice)
+                as Set<EventContentSerializerMapping<EventContent>>)
         )
     val decryptedMegolmEventSerializer = DecryptedMegolmEventSerializer(mappings.message)
     val globalAccountDataEventSerializer = GlobalAccountDataEventSerializer(mappings.globalAccountData)

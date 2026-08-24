@@ -1,20 +1,17 @@
 package de.connect2x.trixnity.clientserverapi.model.push
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.push.PushAction
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3notifications">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3notifications">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/client/v3/notifications")
 @HttpMethod(GET)
@@ -30,18 +27,12 @@ data class GetNotifications(
     ) {
         @Serializable
         data class Notification(
-            @SerialName("actions")
-            val actions: Set<PushAction>,
-            @SerialName("event")
-            val event: @Contextual RoomEvent<*>,
-            @SerialName("profile_tag")
-            val profileTag: String? = null,
-            @SerialName("read")
-            val read: Boolean,
-            @SerialName("room_id")
-            val roomId: RoomId,
-            @SerialName("ts")
-            val timestamp: Long,
+            @SerialName("actions") val actions: Set<PushAction>,
+            @SerialName("event") val event: @Contextual RoomEvent<*>,
+            @SerialName("profile_tag") val profileTag: String? = null,
+            @SerialName("read") val read: Boolean,
+            @SerialName("room_id") val roomId: RoomId,
+            @SerialName("ts") val timestamp: Long,
         )
     }
 }

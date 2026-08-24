@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 import de.connect2x.trixnity.core.model.events.*
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 class EventContentSerializerMappingsBuilder {
     val message = mutableSetOf<MessageEventContentSerializerMapping>()
@@ -29,51 +29,46 @@ class EventContentSerializerMappingsBuilder {
         }
 }
 
-operator fun EventContentSerializerMappings.Companion.invoke(builder: EventContentSerializerMappingsBuilder.() -> Unit): EventContentSerializerMappings =
-    EventContentSerializerMappingsBuilder().apply(builder).build()
+operator fun EventContentSerializerMappings.Companion.invoke(
+    builder: EventContentSerializerMappingsBuilder.() -> Unit
+): EventContentSerializerMappings = EventContentSerializerMappingsBuilder().apply(builder).build()
 
 inline fun <reified C : MessageEventContent> EventContentSerializerMappingsBuilder.messageOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     message.add(MessageEventContentSerializerMapping(type, C::class, serializer))
 }
 
-inline fun <reified C : MessageEventContent> EventContentSerializerMappingsBuilder.messageOf(
-    type: String
-) {
+inline fun <reified C : MessageEventContent> EventContentSerializerMappingsBuilder.messageOf(type: String) {
     message.add(MessageEventContentSerializerMapping(type, C::class, serializer<C>()))
 }
 
 inline fun <reified C : StateEventContent> EventContentSerializerMappingsBuilder.stateOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     state.add(StateEventContentSerializerMapping(type, C::class, serializer))
 }
 
-inline fun <reified C : StateEventContent> EventContentSerializerMappingsBuilder.stateOf(
-    type: String
-) {
+inline fun <reified C : StateEventContent> EventContentSerializerMappingsBuilder.stateOf(type: String) {
     state.add(StateEventContentSerializerMapping(type, C::class, serializer<C>()))
 }
 
 inline fun <reified C : EphemeralEventContent> EventContentSerializerMappingsBuilder.ephemeralOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     ephemeral.add(EventContentSerializerMappingImpl(type, C::class, serializer))
 }
 
-inline fun <reified C : EphemeralEventContent> EventContentSerializerMappingsBuilder.ephemeralOf(
-    type: String
-) {
+inline fun <reified C : EphemeralEventContent> EventContentSerializerMappingsBuilder.ephemeralOf(type: String) {
     ephemeral.add(EventContentSerializerMappingImpl(type, C::class, serializer<C>()))
 }
 
 inline fun <reified C : EphemeralDataUnitContent> EventContentSerializerMappingsBuilder.ephemeralDataUnitOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     ephemeralDataUnit.add(EventContentSerializerMappingImpl(type, C::class, serializer))
 }
@@ -86,20 +81,18 @@ inline fun <reified C : EphemeralDataUnitContent> EventContentSerializerMappings
 
 inline fun <reified C : ToDeviceEventContent> EventContentSerializerMappingsBuilder.toDeviceOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     toDevice.add(EventContentSerializerMappingImpl(type, C::class, serializer))
 }
 
-inline fun <reified C : ToDeviceEventContent> EventContentSerializerMappingsBuilder.toDeviceOf(
-    type: String
-) {
+inline fun <reified C : ToDeviceEventContent> EventContentSerializerMappingsBuilder.toDeviceOf(type: String) {
     toDevice.add(EventContentSerializerMappingImpl(type, C::class, serializer<C>()))
 }
 
 inline fun <reified C : GlobalAccountDataEventContent> EventContentSerializerMappingsBuilder.globalAccountDataOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     globalAccountData.add(EventContentSerializerMappingImpl(type, C::class, serializer))
 }
@@ -112,7 +105,7 @@ inline fun <reified C : GlobalAccountDataEventContent> EventContentSerializerMap
 
 inline fun <reified C : RoomAccountDataEventContent> EventContentSerializerMappingsBuilder.roomAccountDataOf(
     type: String,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     roomAccountData.add(EventContentSerializerMappingImpl(type, C::class, serializer))
 }
@@ -125,13 +118,13 @@ inline fun <reified C : RoomAccountDataEventContent> EventContentSerializerMappi
 
 inline fun <reified C : EventContentBlock> EventContentSerializerMappingsBuilder.blockOf(
     type: EventContentBlock.Type<C>,
-    serializer: KSerializer<C>
+    serializer: KSerializer<C>,
 ) {
     block.add(EventContentBlockSerializerMappingImpl(type, C::class, serializer))
 }
 
 inline fun <reified C : EventContentBlock> EventContentSerializerMappingsBuilder.blockOf(
-    type: EventContentBlock.Type<C>,
+    type: EventContentBlock.Type<C>
 ) {
     block.add(EventContentBlockSerializerMappingImpl(type, C::class, serializer<C>()))
 }

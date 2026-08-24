@@ -1,17 +1,16 @@
 package de.connect2x.trixnity.core.util
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.parametersOf
 import io.ktor.http.parseQueryString
-import io.ktor.http.parseUrl
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomAliasId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 
 private val log = Logger {}
 
@@ -19,42 +18,20 @@ private val log = Logger {}
  * Represents a mention. A mention can refer to various entities and potentially include actions associated with them.
  */
 sealed interface Reference {
-    /**
-     * Represents a mention of a user.
-     */
-    data class User(
-        val userId: UserId,
-        val parameters: Parameters = parametersOf()
-    ) : Reference
+    /** Represents a mention of a user. */
+    data class User(val userId: UserId, val parameters: Parameters = parametersOf()) : Reference
 
-    /**
-     * Represents a mention of a room.
-     */
-    data class Room(
-        val roomId: RoomId,
-        val parameters: Parameters = parametersOf()
-    ) : Reference
+    /** Represents a mention of a room. */
+    data class Room(val roomId: RoomId, val parameters: Parameters = parametersOf()) : Reference
 
-    /**
-     * Represents a mention of a room alias
-     */
-    data class RoomAlias(
-        val roomAliasId: RoomAliasId,
-        val parameters: Parameters = parametersOf()
-    ) : Reference
+    /** Represents a mention of a room alias */
+    data class RoomAlias(val roomAliasId: RoomAliasId, val parameters: Parameters = parametersOf()) : Reference
 
-    /**
-     * Represents a mention of a generic event.
-     */
-    data class Event(
-        val roomId: RoomId? = null,
-        val eventId: EventId,
-        val parameters: Parameters = parametersOf()
-    ) : Reference
+    /** Represents a mention of a generic event. */
+    data class Event(val roomId: RoomId? = null, val eventId: EventId, val parameters: Parameters = parametersOf()) :
+        Reference
 
-    data class Link(
-        val url: String
-    ) : Reference
+    data class Link(val url: String) : Reference
 
     companion object {
         fun findReferences(message: String): Map<IntRange, Reference> {
@@ -73,9 +50,10 @@ sealed interface Reference {
         }
 
         private fun findIdReferences(content: String): Map<IntRange, Reference> {
-            return MatrixIdRegex.autolinkId.findAll(content).mapNotNull {
-                Pair(it.range, parseMatrixId(it.value) ?: return@mapNotNull null)
-            }.toMap()
+            return MatrixIdRegex.autolinkId
+                .findAll(content)
+                .mapNotNull { Pair(it.range, parseMatrixId(it.value) ?: return@mapNotNull null) }
+                .toMap()
         }
 
         private fun findLinkReferences(content: String): Map<IntRange, Reference> {
@@ -83,7 +61,7 @@ sealed interface Reference {
                 val trimmedContent = it.value.trimLink()
                 Pair(
                     it.range.first.until(it.range.first + trimmedContent.length),
-                    parseLink(trimmedContent) ?: Link(trimmedContent)
+                    parseLink(trimmedContent) ?: Link(trimmedContent),
                 )
             }
         }
@@ -100,11 +78,12 @@ sealed interface Reference {
             }
         }
 
-        private fun parseUri(href: String): Url? = try {
-            Url(href)
-        } catch (_: URLParserException) {
-            null
-        }
+        private fun parseUri(href: String): Url? =
+            try {
+                Url(href)
+            } catch (_: URLParserException) {
+                null
+            }
 
         fun parseLink(href: String): Reference? {
             val url = parseUri(href) ?: return null
@@ -139,7 +118,9 @@ sealed interface Reference {
                     id.startsWith(UserId.sigilCharacter) -> UserId(id)
                     id.startsWith(EventId.sigilCharacter) -> EventId(id)
                     else -> {
-                        log.trace { "malformed matrix link: invalid id type: ${id.firstOrNull()} (known types: #, !, @, $)" }
+                        log.trace {
+                            "malformed matrix link: invalid id type: ${id.firstOrNull()} (known types: #, !, @, $)"
+                        }
                         null
                     }
                 }
@@ -160,22 +141,23 @@ sealed interface Reference {
         }
 
         private fun parseMatrixProtocolLink(path: List<String>, parameters: Parameters): Reference? {
-            val parts = path.windowed(2, 2).map { (type, id) ->
-                when {
-                    id.length > 255 -> {
-                        log.trace { "malformed matrix link: id too long: ${id.length} (max length: 255)" }
-                        return null
-                    }
-                    type == "roomid" -> RoomId("!$id")
-                    type == "r" -> RoomAliasId("#$id")
-                    type == "u" -> UserId("@$id")
-                    type == "e" -> EventId("$$id")
-                    else -> {
-                        log.trace { "malformed matrix link: invalid id type: $type (known types: roomid, r, u, e)" }
-                        null
+            val parts =
+                path.windowed(2, 2).map { (type, id) ->
+                    when {
+                        id.length > 255 -> {
+                            log.trace { "malformed matrix link: id too long: ${id.length} (max length: 255)" }
+                            return null
+                        }
+                        type == "roomid" -> RoomId("!$id")
+                        type == "r" -> RoomAliasId("#$id")
+                        type == "u" -> UserId("@$id")
+                        type == "e" -> EventId("$$id")
+                        else -> {
+                            log.trace { "malformed matrix link: invalid id type: $type (known types: roomid, r, u, e)" }
+                            null
+                        }
                     }
                 }
-            }
             val first = parts.getOrNull(0)
             val second = parts.getOrNull(1)
             return when {
@@ -202,8 +184,7 @@ sealed interface Reference {
                 take(trimmed.length + desiredParens)
             } else this
 
-        private fun String.trimLink(): String =
-            trimEnd(',', '.', '!', '?', ':').trimParens()
+        private fun String.trimLink(): String = trimEnd(',', '.', '!', '?', ':').trimParens()
 
         private fun IntRange.overlaps(other: IntRange): Boolean {
             return this.first <= other.last && other.first <= this.last

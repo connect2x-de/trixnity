@@ -9,7 +9,6 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-
 @Serializable(with = TokenEndpointAuthMethod.Serializer::class)
 internal sealed interface TokenEndpointAuthMethod {
     val value: String

@@ -1,14 +1,11 @@
 package de.connect2x.trixnity.libolm
 
 actual class OlmPkEncryption private constructor() : WantsToBeFree {
-    internal actual val ptr: OlmPkEncryptionPointer =
-        rethrow { PkEncryption() }
+    internal actual val ptr: OlmPkEncryptionPointer = rethrow { PkEncryption() }
 
     actual companion object {
         actual fun create(recipientKey: String): OlmPkEncryption {
-            return OlmPkEncryption().apply {
-                rethrow { ptr.set_recipient_key(recipientKey) }
-            }
+            return OlmPkEncryption().apply { rethrow { ptr.set_recipient_key(recipientKey) } }
         }
     }
 
@@ -18,5 +15,4 @@ actual class OlmPkEncryption private constructor() : WantsToBeFree {
         val message = rethrow { ptr.encrypt(plainText) }
         return OlmPkMessage(message.ciphertext, message.mac, message.ephemeral)
     }
-
 }

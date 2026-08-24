@@ -12,10 +12,8 @@ sealed interface SelfVerificationMethod {
     data class CrossSignedDeviceVerification(
         private val ownUserId: UserId,
         private val sendToDevices: Set<String>,
-        private val createDeviceVerificationRequest: suspend (
-            theirUserId: UserId,
-            theirDeviceIds: Set<String>
-        ) -> Result<ActiveDeviceVerification>
+        private val createDeviceVerificationRequest:
+            suspend (theirUserId: UserId, theirDeviceIds: Set<String>) -> Result<ActiveDeviceVerification>,
     ) : SelfVerificationMethod {
         suspend fun createDeviceVerification(): Result<ActiveDeviceVerification> {
             return createDeviceVerificationRequest(ownUserId, sendToDevices)
@@ -26,7 +24,7 @@ sealed interface SelfVerificationMethod {
         private val keySecretService: KeySecretService,
         private val keyTrustService: KeyTrustService,
         private val keyId: String,
-        private val info: SecretKeyEventContent.AesHmacSha2Key
+        private val info: SecretKeyEventContent.AesHmacSha2Key,
     ) : SelfVerificationMethod {
         suspend fun verify(recoverKey: String): Result<Unit> = runCatching {
             val recoveryKey = decodeRecoveryKey(recoverKey)
@@ -34,7 +32,8 @@ sealed interface SelfVerificationMethod {
                 .onSuccess {
                     keySecretService.decryptOrCreateMissingSecrets(recoveryKey, keyId, info)
                     keyTrustService.checkOwnAdvertisedMasterKeyAndVerifySelf(recoveryKey, keyId, info)
-                }.getOrThrow()
+                }
+                .getOrThrow()
         }
     }
 
@@ -45,14 +44,14 @@ sealed interface SelfVerificationMethod {
         private val info: SecretKeyEventContent.AesHmacSha2Key,
     ) : SelfVerificationMethod {
         suspend fun verify(passphrase: String): Result<Unit> = kotlin.runCatching {
-            val passphraseInfo = info.passphrase
-                ?: throw IllegalArgumentException("missing passphrase")
+            val passphraseInfo = info.passphrase ?: throw IllegalArgumentException("missing passphrase")
             val recoveryKey = recoveryKeyFromPassphrase(passphrase, passphraseInfo)
             checkRecoveryKey(recoveryKey, info)
                 .onSuccess {
                     keySecretService.decryptOrCreateMissingSecrets(recoveryKey, keyId, info)
                     keyTrustService.checkOwnAdvertisedMasterKeyAndVerifySelf(recoveryKey, keyId, info)
-                }.getOrThrow()
+                }
+                .getOrThrow()
         }
     }
 }

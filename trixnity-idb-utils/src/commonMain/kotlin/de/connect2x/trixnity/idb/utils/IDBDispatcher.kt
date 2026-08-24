@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.idb.utils
 
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Delay
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Runnable
 import web.scheduling.queueMicrotask
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalCoroutinesApi::class)
 internal class IDBDispatcher : CoroutineDispatcher(), Delay {
@@ -14,9 +14,7 @@ internal class IDBDispatcher : CoroutineDispatcher(), Delay {
         queueMicrotask { block.run() }
     }
 
-    override fun scheduleResumeAfterDelay(
-        timeMillis: Long, continuation: CancellableContinuation<Unit>
-    ) {
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
         error("delay is not supported inside a IDB transaction")
     }
 }

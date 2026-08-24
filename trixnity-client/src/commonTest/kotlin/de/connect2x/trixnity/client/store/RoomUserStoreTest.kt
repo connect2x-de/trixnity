@@ -17,51 +17,56 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.flow.first
 import kotlin.test.Test
+import kotlinx.coroutines.flow.first
 
 class RoomUserStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val roomUserRepository = InMemoryRoomUserRepository() as RoomUserRepository
-    private val cut = RoomUserStore(
-        roomUserRepository = roomUserRepository,
-        roomUserReceiptsRepository = InMemoryRoomUserReceiptsRepository(),
-        tm = tm,
-        config = MatrixClientConfiguration(),
-        statisticCollector = ObservableCacheStatisticCollector(),
-        storeScope = testScope.backgroundScope,
-        clock = testScope.testClock,
-    )
+    private val cut =
+        RoomUserStore(
+            roomUserRepository = roomUserRepository,
+            roomUserReceiptsRepository = InMemoryRoomUserReceiptsRepository(),
+            tm = tm,
+            config = MatrixClientConfiguration(),
+            statisticCollector = ObservableCacheStatisticCollector(),
+            storeScope = testScope.backgroundScope,
+            clock = testScope.testClock,
+        )
 
     private val roomId = RoomId("!room:server")
     private val aliceId = UserId("alice", "server")
     private val bobId = UserId("bob", "server")
-    private val aliceUser = RoomUser(
-        roomId = roomId,
-        userId = aliceId,
-        name = "A",
-        event = StateEvent(
-            content = MemberEventContent(displayName = "A", membership = JOIN),
-            id = EventId("event1"),
-            sender = aliceId,
+    private val aliceUser =
+        RoomUser(
             roomId = roomId,
-            originTimestamp = 1,
-            stateKey = aliceId.full
+            userId = aliceId,
+            name = "A",
+            event =
+                StateEvent(
+                    content = MemberEventContent(displayName = "A", membership = JOIN),
+                    id = EventId("event1"),
+                    sender = aliceId,
+                    roomId = roomId,
+                    originTimestamp = 1,
+                    stateKey = aliceId.full,
+                ),
         )
-    )
-    private val bobUser = RoomUser(
-        roomId = roomId,
-        userId = bobId,
-        name = "A",
-        event = StateEvent(
-            content = MemberEventContent(displayName = "A", membership = JOIN),
-            id = EventId("event2"),
-            sender = bobId,
+    private val bobUser =
+        RoomUser(
             roomId = roomId,
-            originTimestamp = 1,
-            stateKey = bobId.full
+            userId = bobId,
+            name = "A",
+            event =
+                StateEvent(
+                    content = MemberEventContent(displayName = "A", membership = JOIN),
+                    id = EventId("event2"),
+                    sender = bobId,
+                    roomId = roomId,
+                    originTimestamp = 1,
+                    stateKey = bobId.full,
+                ),
         )
-    )
 
     @Test
     fun `getAll » get all users of a room`() = runTest {

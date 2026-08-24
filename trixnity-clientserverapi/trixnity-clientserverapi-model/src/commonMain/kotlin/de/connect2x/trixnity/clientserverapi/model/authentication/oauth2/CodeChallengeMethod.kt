@@ -9,10 +9,10 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-
 @Serializable(with = CodeChallengeMethod.Serializer::class)
 sealed class CodeChallengeMethod(val value: String) {
     object S256 : CodeChallengeMethod("S256")
+
     class Unknown(value: String) : CodeChallengeMethod(value)
 
     object Serializer : KSerializer<CodeChallengeMethod> {

@@ -1,24 +1,24 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 
-internal class IndexedDBOlmSessionRepository(
-    json: Json
-) : OlmSessionRepository,
+internal class IndexedDBOlmSessionRepository(json: Json) :
+    OlmSessionRepository,
     IndexedDBFullRepository<Curve25519KeyValue, Set<StoredOlmSession>>(
         objectStoreName = objectStoreName,
         keySerializer = { arrayOf(it.value) },
         valueSerializer = serializer(),
-        json = json
+        json = json,
     ) {
     companion object {
         const val objectStoreName = "olm_session"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) createIndexedDBMinimalStoreRepository(database, objectStoreName)
         }

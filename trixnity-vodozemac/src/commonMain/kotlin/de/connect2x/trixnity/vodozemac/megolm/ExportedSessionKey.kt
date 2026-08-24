@@ -8,13 +8,11 @@ import de.connect2x.trixnity.vodozemac.utils.*
 import de.connect2x.trixnity.vodozemac.utils.interopScope
 import de.connect2x.trixnity.vodozemac.utils.withResult
 
-class ExportedSessionKey internal constructor(ptr: NativePointer) :
-    Managed(ptr, ExportedSessionKeyBindings::free) {
+class ExportedSessionKey internal constructor(ptr: NativePointer) : Managed(ptr, ExportedSessionKeyBindings::free) {
 
     val bytes: ByteArray
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { ExportedSessionKeyBindings.toBytes(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { ExportedSessionKeyBindings.toBytes(it, ptr) }
 
             ptr.toByteArray(size.intValue)
         }
@@ -29,13 +27,11 @@ class ExportedSessionKey internal constructor(ptr: NativePointer) :
                     ExportedSessionKeyBindings.fromBytes(it, bytes.toInterop(), bytes.size)
                 }
 
-            if (tag.intValue != 0)
-                throw VodozemacException(ptrOrErr.toByteArray(errSize.intValue).decodeToString())
+            if (tag.intValue != 0) throw VodozemacException(ptrOrErr.toByteArray(errSize.intValue).decodeToString())
 
             ExportedSessionKey(ptrOrErr)
         }
 
-        operator fun invoke(base64: String): ExportedSessionKey =
-            ExportedSessionKey(UnpaddedBase64.decode(base64))
+        operator fun invoke(base64: String): ExportedSessionKey = ExportedSessionKey(UnpaddedBase64.decode(base64))
     }
 }

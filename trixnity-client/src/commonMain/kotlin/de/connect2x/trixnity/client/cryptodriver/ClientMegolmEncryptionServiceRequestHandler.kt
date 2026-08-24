@@ -9,7 +9,6 @@ class ClientMegolmEncryptionServiceRequestHandler(private val api: MatrixClientS
     MegolmEncryptionServiceRequestHandler {
     override suspend fun sendToDevice(
         events: Map<UserId, Map<String, ToDeviceEventContent>>,
-        transactionId: String
-    ): Result<Unit> =
-        api.user.sendToDevice(events, transactionId)
+        transactionId: String,
+    ): Result<Unit> = api.user.sendToDevice(events, transactionId)
 }

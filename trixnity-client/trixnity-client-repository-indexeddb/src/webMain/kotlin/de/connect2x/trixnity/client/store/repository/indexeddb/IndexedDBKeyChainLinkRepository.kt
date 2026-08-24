@@ -25,36 +25,33 @@ data class IndexedDBKeyChainLink(
     val signedKeyValue: String,
 )
 
-internal class IndexedDBKeyChainLinkRepository(
-    val json: Json,
-) : KeyChainLinkRepository, IndexedDBRepository(objectStoreName) {
+internal class IndexedDBKeyChainLinkRepository(val json: Json) :
+    KeyChainLinkRepository, IndexedDBRepository(objectStoreName) {
     companion object {
         const val objectStoreName = "key_chain_link"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) {
                 createObjectStore(
-                    database,
-                    objectStoreName,
-                    KeyPath.Multiple(
-                        "signingUserId",
-                        "signingKeyId",
-                        "signingKeyValue",
-                        "signedUserId",
-                        "signedKeyId",
-                        "signedKeyValue"
+                        database,
+                        objectStoreName,
+                        KeyPath.Multiple(
+                            "signingUserId",
+                            "signingKeyId",
+                            "signingKeyValue",
+                            "signedUserId",
+                            "signedKeyId",
+                            "signedKeyValue",
+                        ),
                     )
-                ).apply {
-                    createIndex(
-                        "signing",
-                        KeyPath.Multiple("signingUserId", "signingKeyId", "signingKeyValue"),
-                        false
-                    )
-                    createIndex(
-                        "signed",
-                        KeyPath.Multiple("signedUserId", "signedKeyId", "signedKeyValue"),
-                        false
-                    )
-                }
+                    .apply {
+                        createIndex(
+                            "signing",
+                            KeyPath.Multiple("signingUserId", "signingKeyId", "signingKeyValue"),
+                            false,
+                        )
+                        createIndex("signed", KeyPath.Multiple("signedUserId", "signedKeyId", "signedKeyValue"), false)
+                    }
             }
         }
     }
@@ -78,10 +75,9 @@ internal class IndexedDBKeyChainLinkRepository(
     context(transaction: ReadTransaction)
     override suspend fun getBySigningKey(signingUserId: UserId, signingKey: Key.Ed25519Key): Set<KeyChainLink> =
         withRead { store ->
-            store.index("signing")
-                .openCursor(
-                    keyOf(signingUserId.full, signingKey.id, signingKey.value.value),
-                )
+            store
+                .index("signing")
+                .openCursor(keyOf(signingUserId.full, signingKey.id, signingKey.value.value))
                 .mapNotNull { json.decodeFromDynamicNullable<IndexedDBKeyChainLink>(it.value) }
                 .map {
                     KeyChainLink(
@@ -95,17 +91,12 @@ internal class IndexedDBKeyChainLinkRepository(
         }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key): Unit =
-        withWrite { store ->
-            store.index("signed")
-                .openKeyCursor(
-                    keyOf(signedUserId.full, signedKey.id, signedKey.value.value),
-                )
-                .collect { store.delete(it) }
+    override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key): Unit = withWrite { store ->
+        store.index("signed").openKeyCursor(keyOf(signedUserId.full, signedKey.id, signedKey.value.value)).collect {
+            store.delete(it)
         }
+    }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll(): Unit = withWrite { store ->
-        store.clear()
-    }
+    override suspend fun deleteAll(): Unit = withWrite { store -> store.clear() }
 }

@@ -1,17 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.server
 
-import dev.mokkery.*
-import dev.mokkery.answering.returns
-import dev.mokkery.matcher.any
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import io.ktor.utils.io.charsets.*
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import de.connect2x.trixnity.api.server.matrixApiServer
 import de.connect2x.trixnity.clientserverapi.model.user.*
 import de.connect2x.trixnity.core.model.RoomId
@@ -28,8 +16,20 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import dev.mokkery.*
+import dev.mokkery.answering.returns
+import dev.mokkery.matcher.any
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.shouldBe
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import io.ktor.utils.io.charsets.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class UsersRoutesTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
@@ -42,16 +42,12 @@ class UsersRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                userApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { userApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -64,8 +60,7 @@ class UsersRoutesTest : TrixnityBaseTest() {
     @Test
     fun shouldSetProfileField() = testApplication {
         initCut()
-        everySuspend { handlerMock.setProfileField(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.setProfileField(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/profile/@user:server/displayname") {
                 bearerAuth("token")
@@ -78,18 +73,19 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.setProfileField(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.requestBody shouldBe ProfileField.DisplayName("someDisplayName")
-            })
+            handlerMock.setProfileField(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.requestBody shouldBe ProfileField.DisplayName("someDisplayName")
+                }
+            )
         }
     }
 
     @Test
     fun shouldSetUnknownProfileField() = testApplication {
         initCut()
-        everySuspend { handlerMock.setProfileField(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.setProfileField(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/profile/@user:server/unknown") {
                 bearerAuth("token")
@@ -102,21 +98,20 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.setProfileField(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.requestBody shouldBe ProfileField.Unknown(
-                    "unknown",
-                    JsonObject(mapOf("dino" to JsonPrimitive(true)))
-                )
-            })
+            handlerMock.setProfileField(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.requestBody shouldBe
+                        ProfileField.Unknown("unknown", JsonObject(mapOf("dino" to JsonPrimitive(true))))
+                }
+            )
         }
     }
 
     @Test
     fun shouldGetProfileField() = testApplication {
         initCut()
-        everySuspend { handlerMock.getProfileField(any()) }
-            .returns(ProfileField.DisplayName("someDisplayName"))
+        everySuspend { handlerMock.getProfileField(any()) }.returns(ProfileField.DisplayName("someDisplayName"))
         val response = client.get("/_matrix/client/v3/profile/@user:server/displayname")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
@@ -124,10 +119,12 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe """{"displayname":"someDisplayName"}"""
         }
         verifySuspend {
-            handlerMock.getProfileField(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.endpoint.key shouldBe ProfileField.DisplayName.Key
-            })
+            handlerMock.getProfileField(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.endpoint.key shouldBe ProfileField.DisplayName.Key
+                }
+            )
         }
     }
 
@@ -143,28 +140,31 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe """{"unknown":{"dino":true}}"""
         }
         verifySuspend {
-            handlerMock.getProfileField(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.endpoint.key shouldBe ProfileField.Unknown.Key("unknown")
-            })
+            handlerMock.getProfileField(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.endpoint.key shouldBe ProfileField.Unknown.Key("unknown")
+                }
+            )
         }
     }
 
     @Test
     fun shouldDeleteProfileField() = testApplication {
         initCut()
-        everySuspend { handlerMock.deleteProfileField(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.deleteProfileField(any()) }.returns(Unit)
         val response = client.delete("/_matrix/client/v3/profile/@user:server/displayname")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
         }
         verifySuspend {
-            handlerMock.deleteProfileField(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.endpoint.key shouldBe ProfileField.DisplayName.Key
-            })
+            handlerMock.deleteProfileField(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.endpoint.key shouldBe ProfileField.DisplayName.Key
+                }
+            )
         }
     }
 
@@ -176,30 +176,23 @@ class UsersRoutesTest : TrixnityBaseTest() {
                 Profile(
                     ProfileField.DisplayName("someDisplayName"),
                     ProfileField.AvatarUrl("mxc://localhost/123456"),
-                    ProfileField.Unknown(
-                        "unknown",
-                        JsonObject(mapOf("dino" to JsonPrimitive(true)))
-                    )
+                    ProfileField.Unknown("unknown", JsonObject(mapOf("dino" to JsonPrimitive(true)))),
                 )
             )
         val response = client.get("/_matrix/client/v3/profile/@user:server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """{"displayname":"someDisplayName","avatar_url":"mxc://localhost/123456","unknown":{"dino":true}}"""
+            this.body<String>() shouldBe
+                """{"displayname":"someDisplayName","avatar_url":"mxc://localhost/123456","unknown":{"dino":true}}"""
         }
-        verifySuspend {
-            handlerMock.getProfile(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-            })
-        }
+        verifySuspend { handlerMock.getProfile(assert { it.endpoint.userId shouldBe UserId("user", "server") }) }
     }
 
     @Test
     fun shouldSetPresence() = testApplication {
         initCut()
-        everySuspend { handlerMock.setPresence(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.setPresence(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/presence/@user:server/status") {
                 bearerAuth("token")
@@ -210,7 +203,8 @@ class UsersRoutesTest : TrixnityBaseTest() {
                       "presence":"online",
                       "status_msg":"I am here."
                     }
-                """.trimIndent()
+                    """
+                        .trimIndent()
                 )
             }
         assertSoftly(response) {
@@ -219,10 +213,12 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.setPresence(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.requestBody shouldBe SetPresence.Request(ONLINE, "I am here.")
-            })
+            handlerMock.setPresence(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.requestBody shouldBe SetPresence.Request(ONLINE, "I am here.")
+                }
+            )
         }
     }
 
@@ -235,44 +231,42 @@ class UsersRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "presence": "unavailable",
                   "last_active_ago": 420845
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getPresence(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-            })
-        }
+        verifySuspend { handlerMock.getPresence(assert { it.endpoint.userId shouldBe UserId("user", "server") }) }
     }
 
     @Test
     fun shouldSendToDevice() = testApplication {
         initCut()
-        everySuspend { handlerMock.sendToDevice(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.sendToDevice(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/sendToDevice/m.room_key/txnId") {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
                 setBody(
                     """
-                   {
-                      "messages":{
-                        "@alice:example.com":{
-                          "TLLBEANAAG":{
-                            "room_id":"!Cuyf34gef24t:localhost",
-                            "session_id":"X3lUlvLELLYxeTx4yOVu6UDpasGEVO0Jbu+QFnm0cKQ",
-                            "session_key":"AgAAAADxKHa9uFxcXzwYoNueL5Xqi69IkD4sni8LlfJL7qNBEY...",
-                            "algorithm":"m.megolm.v1.aes-sha2"
-                          }
-                        }
-                      }
-                    }
-                """.trimIndent()
+                    {
+                       "messages":{
+                         "@alice:example.com":{
+                           "TLLBEANAAG":{
+                             "room_id":"!Cuyf34gef24t:localhost",
+                             "session_id":"X3lUlvLELLYxeTx4yOVu6UDpasGEVO0Jbu+QFnm0cKQ",
+                             "session_key":"AgAAAADxKHa9uFxcXzwYoNueL5Xqi69IkD4sni8LlfJL7qNBEY...",
+                             "algorithm":"m.megolm.v1.aes-sha2"
+                           }
+                         }
+                       }
+                     }
+                    """
+                        .trimIndent()
                 )
             }
         assertSoftly(response) {
@@ -281,29 +275,36 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.sendToDevice(assert {
-                it.endpoint.txnId shouldBe "txnId"
-                it.requestBody shouldBe SendToDevice.Request(
-                    mapOf(
-                        UserId("@alice:example.com") to mapOf(
-                            "TLLBEANAAG" to RoomKeyEventContent(
-                                roomId = RoomId("!Cuyf34gef24t:localhost"),
-                                sessionId = "X3lUlvLELLYxeTx4yOVu6UDpasGEVO0Jbu+QFnm0cKQ",
-                                sessionKey = SessionKeyValue("AgAAAADxKHa9uFxcXzwYoNueL5Xqi69IkD4sni8LlfJL7qNBEY..."),
-                                algorithm = EncryptionAlgorithm.Megolm
+            handlerMock.sendToDevice(
+                assert {
+                    it.endpoint.txnId shouldBe "txnId"
+                    it.requestBody shouldBe
+                        SendToDevice.Request(
+                            mapOf(
+                                UserId("@alice:example.com") to
+                                    mapOf(
+                                        "TLLBEANAAG" to
+                                            RoomKeyEventContent(
+                                                roomId = RoomId("!Cuyf34gef24t:localhost"),
+                                                sessionId = "X3lUlvLELLYxeTx4yOVu6UDpasGEVO0Jbu+QFnm0cKQ",
+                                                sessionKey =
+                                                    SessionKeyValue(
+                                                        "AgAAAADxKHa9uFxcXzwYoNueL5Xqi69IkD4sni8LlfJL7qNBEY..."
+                                                    ),
+                                                algorithm = EncryptionAlgorithm.Megolm,
+                                            )
+                                    )
                             )
                         )
-                    )
-                )
-            })
+                }
+            )
         }
     }
 
     @Test
     fun shouldSetFilter() = testApplication {
         initCut()
-        everySuspend { handlerMock.setFilter(any()) }
-            .returns(SetFilter.Response("0"))
+        everySuspend { handlerMock.setFilter(any()) }.returns(SetFilter.Response("0"))
         val response =
             client.post("/_matrix/client/v3/user/@user:server/filter") {
                 bearerAuth("token")
@@ -317,7 +318,8 @@ class UsersRoutesTest : TrixnityBaseTest() {
                             }
                         }
                     }
-                """.trimIndent()
+                    """
+                        .trimIndent()
                 )
             }
         assertSoftly(response) {
@@ -326,16 +328,16 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe """{"filter_id":"0"}"""
         }
         verifySuspend {
-            handlerMock.setFilter(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.requestBody shouldBe Filters(
-                    room = Filters.RoomFilter(
-                        state = Filters.RoomFilter.RoomEventFilter(
-                            lazyLoadMembers = true
+            handlerMock.setFilter(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.requestBody shouldBe
+                        Filters(
+                            room =
+                                Filters.RoomFilter(state = Filters.RoomFilter.RoomEventFilter(lazyLoadMembers = true))
                         )
-                    )
-                )
-            })
+                }
+            )
         }
     }
 
@@ -344,19 +346,14 @@ class UsersRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.getFilter(any()) }
             .returns(
-                Filters(
-                    room = Filters.RoomFilter(
-                        state = Filters.RoomFilter.RoomEventFilter(
-                            lazyLoadMembers = true
-                        )
-                    )
-                )
+                Filters(room = Filters.RoomFilter(state = Filters.RoomFilter.RoomEventFilter(lazyLoadMembers = true)))
             )
         val response = client.get("/_matrix/client/v3/user/@user:server/filter/0") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                     "room":{
                         "state":{
@@ -364,13 +361,16 @@ class UsersRoutesTest : TrixnityBaseTest() {
                         }
                     }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getFilter(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-                it.endpoint.filterId shouldBe "0"
-            })
+            handlerMock.getFilter(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.endpoint.filterId shouldBe "0"
+                }
+            )
         }
     }
 
@@ -378,33 +378,28 @@ class UsersRoutesTest : TrixnityBaseTest() {
     fun shouldGetAccountData() = testApplication {
         initCut()
         everySuspend { handlerMock.getAccountData(any()) }
-            .returns(
-                DirectEventContent(
-                    mapOf(UserId("bob", "server") to setOf(RoomId("!someRoom:server")))
-                )
-            )
+            .returns(DirectEventContent(mapOf(UserId("bob", "server") to setOf(RoomId("!someRoom:server")))))
         val response =
-            client.get("/_matrix/client/v3/user/@alice:example.com/account_data/m.direct") {
-                bearerAuth("token")
-            }
+            client.get("/_matrix/client/v3/user/@alice:example.com/account_data/m.direct") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"@bob:server":["!someRoom:server"]}"""
         }
         verifySuspend {
-            handlerMock.getAccountData(assert {
-                it.endpoint.type shouldBe "m.direct"
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-            })
+            handlerMock.getAccountData(
+                assert {
+                    it.endpoint.type shouldBe "m.direct"
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                }
+            )
         }
     }
 
     @Test
     fun shouldGetAccountDataWithKey() = testApplication {
         initCut()
-        everySuspend { handlerMock.getAccountData(any()) }
-            .returns(SecretKeyEventContent.AesHmacSha2Key("name"))
+        everySuspend { handlerMock.getAccountData(any()) }.returns(SecretKeyEventContent.AesHmacSha2Key("name"))
         val response =
             client.get("/_matrix/client/v3/user/@alice:example.com/account_data/m.secret_storage.key.key1") {
                 bearerAuth("token")
@@ -415,18 +410,19 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe """{"algorithm":"m.secret_storage.v1.aes-hmac-sha2","name":"name"}"""
         }
         verifySuspend {
-            handlerMock.getAccountData(assert {
-                it.endpoint.type shouldBe "m.secret_storage.key.key1"
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-            })
+            handlerMock.getAccountData(
+                assert {
+                    it.endpoint.type shouldBe "m.secret_storage.key.key1"
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                }
+            )
         }
     }
 
     @Test
     fun shouldSetAccountData() = testApplication {
         initCut()
-        everySuspend { handlerMock.setAccountData(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.setAccountData(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/user/@alice:example.com/account_data/m.direct") {
                 bearerAuth("token")
@@ -439,23 +435,21 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.setAccountData(assert {
-                it.endpoint.type shouldBe "m.direct"
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-                it.requestBody shouldBe DirectEventContent(
-                    mapOf(
-                        UserId("bob", "server") to setOf(RoomId("!someRoom:server"))
-                    )
-                )
-            })
+            handlerMock.setAccountData(
+                assert {
+                    it.endpoint.type shouldBe "m.direct"
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                    it.requestBody shouldBe
+                        DirectEventContent(mapOf(UserId("bob", "server") to setOf(RoomId("!someRoom:server"))))
+                }
+            )
         }
     }
 
     @Test
     fun shouldSetAccountDataWithKey() = testApplication {
         initCut()
-        everySuspend { handlerMock.setAccountData(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.setAccountData(any()) }.returns(Unit)
         val response =
             client.put("/_matrix/client/v3/user/@alice:example.com/account_data/m.secret_storage.key.key1") {
                 bearerAuth("token")
@@ -468,11 +462,13 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.setAccountData(assert {
-                it.endpoint.type shouldBe "m.secret_storage.key.key1"
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-                it.requestBody shouldBe SecretKeyEventContent.AesHmacSha2Key("name")
-            })
+            handlerMock.setAccountData(
+                assert {
+                    it.endpoint.type shouldBe "m.secret_storage.key.key1"
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                    it.requestBody shouldBe SecretKeyEventContent.AesHmacSha2Key("name")
+                }
+            )
         }
     }
 
@@ -483,13 +479,10 @@ class UsersRoutesTest : TrixnityBaseTest() {
             .returns(
                 SearchUsers.Response(
                     limited = true,
-                    results = listOf(
-                        SearchUsers.Response.SearchUser(
-                            "mxc://localhost/123456",
-                            "bob",
-                            UserId("@bob:localhost")
-                        )
-                    )
+                    results =
+                        listOf(
+                            SearchUsers.Response.SearchUser("mxc://localhost/123456", "bob", UserId("@bob:localhost"))
+                        ),
                 )
             )
         val response =
@@ -502,21 +495,23 @@ class UsersRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """{"limited":true,"results":[{"avatar_url":"mxc://localhost/123456","display_name":"bob","user_id":"@bob:localhost"}]}"""
+            this.body<String>() shouldBe
+                """{"limited":true,"results":[{"avatar_url":"mxc://localhost/123456","display_name":"bob","user_id":"@bob:localhost"}]}"""
         }
         verifySuspend {
-            handlerMock.searchUsers(assert {
-                it.requestBody shouldBe SearchUsers.Request("bob", 20)
-                it.call.request.headers[HttpHeaders.AcceptLanguage] shouldBe "de"
-            })
+            handlerMock.searchUsers(
+                assert {
+                    it.requestBody shouldBe SearchUsers.Request("bob", 20)
+                    it.call.request.headers[HttpHeaders.AcceptLanguage] shouldBe "de"
+                }
+            )
         }
     }
 
     @Test
     fun shouldReportUser() = testApplication {
         initCut()
-        everySuspend { handlerMock.reportUser(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.reportUser(any()) }.returns(Unit)
         val response =
             client.post("/_matrix/client/v3/users/@user:server/report") {
                 bearerAuth("token")
@@ -529,10 +524,12 @@ class UsersRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.reportUser(assert {
-                it.endpoint.userId shouldBe UserId("@user:server")
-                it.requestBody shouldBe ReportUser.Request("someReason")
-            })
+            handlerMock.reportUser(
+                assert {
+                    it.endpoint.userId shouldBe UserId("@user:server")
+                    it.requestBody shouldBe ReportUser.Request("someReason")
+                }
+            )
         }
     }
 }

@@ -1,12 +1,5 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentDataUnitV1.PersistentStateDataUnitV1
@@ -15,9 +8,17 @@ import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentData
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.serialization.AddFieldsSerializer
 import de.connect2x.trixnity.core.serialization.canonicalJson
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
 
 interface RoomVersionStore {
     fun getRoomVersion(roomId: RoomId): String
+
     fun setRoomVersion(pdu: PersistentDataUnit.PersistentStateDataUnit<*>, roomVersion: String)
 }
 
@@ -26,42 +27,36 @@ class PersistentStateDataUnitSerializer(
     private val roomVersionStore: RoomVersionStore,
 ) : KSerializer<PersistentDataUnit.PersistentStateDataUnit<*>> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("PersistentStateDataUnit")
-    private val mappingV1 = RoomEventContentToEventSerializerMappings(
-        baseMapping = stateEventContentSerializers,
-        eventDeserializer = { PersistentStateDataUnitV1.serializer(it.serializer) },
-        eventSerializer = {
-            AddFieldsSerializer(
-                PersistentStateDataUnitV1.serializer(it.serializer),
-                "type" to it.type
-            )
-        },
-        unknownEventSerializer = { PersistentStateDataUnitV1.serializer(UnknownEventContentSerializer(it)) },
-        redactedEventSerializer = { PersistentStateDataUnitV1.serializer(RedactedEventContentSerializer(it)) },
-    )
-    private val mappingV3 = RoomEventContentToEventSerializerMappings(
-        baseMapping = stateEventContentSerializers,
-        eventDeserializer = { PersistentStateDataUnitV3.serializer(it.serializer) },
-        eventSerializer = {
-            AddFieldsSerializer(
-                PersistentStateDataUnitV3.serializer(it.serializer),
-                "type" to it.type
-            )
-        },
-        unknownEventSerializer = { PersistentStateDataUnitV3.serializer(UnknownEventContentSerializer(it)) },
-        redactedEventSerializer = { PersistentStateDataUnitV3.serializer(RedactedEventContentSerializer(it)) },
-    )
-    private val mappingV12 = RoomEventContentToEventSerializerMappings(
-        baseMapping = stateEventContentSerializers,
-        eventDeserializer = { PersistentStateDataUnitV12.serializer(it.serializer) },
-        eventSerializer = {
-            AddFieldsSerializer(
-                PersistentStateDataUnitV12.serializer(it.serializer),
-                "type" to it.type
-            )
-        },
-        unknownEventSerializer = { PersistentStateDataUnitV12.serializer(UnknownEventContentSerializer(it)) },
-        redactedEventSerializer = { PersistentStateDataUnitV12.serializer(RedactedEventContentSerializer(it)) },
-    )
+    private val mappingV1 =
+        RoomEventContentToEventSerializerMappings(
+            baseMapping = stateEventContentSerializers,
+            eventDeserializer = { PersistentStateDataUnitV1.serializer(it.serializer) },
+            eventSerializer = {
+                AddFieldsSerializer(PersistentStateDataUnitV1.serializer(it.serializer), "type" to it.type)
+            },
+            unknownEventSerializer = { PersistentStateDataUnitV1.serializer(UnknownEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV1.serializer(RedactedEventContentSerializer(it)) },
+        )
+    private val mappingV3 =
+        RoomEventContentToEventSerializerMappings(
+            baseMapping = stateEventContentSerializers,
+            eventDeserializer = { PersistentStateDataUnitV3.serializer(it.serializer) },
+            eventSerializer = {
+                AddFieldsSerializer(PersistentStateDataUnitV3.serializer(it.serializer), "type" to it.type)
+            },
+            unknownEventSerializer = { PersistentStateDataUnitV3.serializer(UnknownEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV3.serializer(RedactedEventContentSerializer(it)) },
+        )
+    private val mappingV12 =
+        RoomEventContentToEventSerializerMappings(
+            baseMapping = stateEventContentSerializers,
+            eventDeserializer = { PersistentStateDataUnitV12.serializer(it.serializer) },
+            eventSerializer = {
+                AddFieldsSerializer(PersistentStateDataUnitV12.serializer(it.serializer), "type" to it.type)
+            },
+            unknownEventSerializer = { PersistentStateDataUnitV12.serializer(UnknownEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV12.serializer(RedactedEventContentSerializer(it)) },
+        )
 
     override fun deserialize(decoder: Decoder): PersistentDataUnit.PersistentStateDataUnit<*> {
         require(decoder is JsonDecoder)
@@ -79,16 +74,24 @@ class PersistentStateDataUnitSerializer(
                 roomId == null -> throw SerializationException("roomId must not be null")
                 else -> roomVersionStore.getRoomVersion(RoomId(roomId))
             }
-        val pdu = when (roomVersion) {
-            "1", "2" -> decoder.json.decodeFromJsonElement(mappingV1[type], jsonObj)
-            "3", "4", "5", "6", "7", "8", "9", "10", "11" ->
-                decoder.json.decodeFromJsonElement(mappingV3[type], jsonObj)
+        val pdu =
+            when (roomVersion) {
+                "1",
+                "2" -> decoder.json.decodeFromJsonElement(mappingV1[type], jsonObj)
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "11" -> decoder.json.decodeFromJsonElement(mappingV3[type], jsonObj)
 
-            "12" -> decoder.json.decodeFromJsonElement(mappingV12[type], jsonObj)
+                "12" -> decoder.json.decodeFromJsonElement(mappingV12[type], jsonObj)
 
-
-            else -> throw SerializationException("room version $roomVersion not supported")
-        }
+                else -> throw SerializationException("room version $roomVersion not supported")
+            }
         if (isCreateEvent) roomVersionStore.setRoomVersion(pdu, roomVersion)
         return pdu
     }
@@ -103,21 +106,21 @@ class PersistentStateDataUnitSerializer(
                     @Suppress("UNCHECKED_CAST")
                     encoder.json.encodeToJsonElement(
                         mappingV1[content].serializer as KSerializer<PersistentStateDataUnitV1<*>>,
-                        value
+                        value,
                     )
 
                 is PersistentStateDataUnitV3 ->
                     @Suppress("UNCHECKED_CAST")
                     encoder.json.encodeToJsonElement(
                         mappingV3[content].serializer as KSerializer<PersistentStateDataUnitV3<*>>,
-                        value
+                        value,
                     )
 
                 is PersistentStateDataUnitV12 ->
                     @Suppress("UNCHECKED_CAST")
                     encoder.json.encodeToJsonElement(
                         mappingV12[content].serializer as KSerializer<PersistentStateDataUnitV12<*>>,
-                        value
+                        value,
                     )
             }
         encoder.encodeJsonElement(canonicalJson(jsonElement))

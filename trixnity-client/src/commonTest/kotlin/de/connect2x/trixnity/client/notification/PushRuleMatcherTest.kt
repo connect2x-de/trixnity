@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.client.notification
 
-import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.JsonObject
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -14,45 +12,49 @@ import de.connect2x.trixnity.core.model.push.PushRule
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlinx.serialization.json.JsonObject
 
 class PushRuleMatcherTest : TrixnityBaseTest() {
 
     private val roomId = RoomId("!room:localhost")
     private val userId = UserId("user1", "localhost")
 
-    private val someEvent = ClientEvent.RoomEvent.MessageEvent(
-        content = Text("hi!"),
-        id = EventId("event"),
-        roomId = roomId,
-        sender = userId,
-        originTimestamp = 1234,
-        unsigned = null,
-    )
+    private val someEvent =
+        ClientEvent.RoomEvent.MessageEvent(
+            content = Text("hi!"),
+            id = EventId("event"),
+            roomId = roomId,
+            sender = userId,
+            originTimestamp = 1234,
+            unsigned = null,
+        )
     private val someEventJson = lazy { JsonObject(emptyMap()) }
 
-    private val someStateEvent = ClientEvent.RoomEvent.StateEvent(
-        content = MemberEventContent(membership = Membership.JOIN),
-        id = EventId("bla"),
-        roomId = roomId,
-        sender = userId,
-        originTimestamp = 1234,
-        stateKey = userId.full,
-        unsigned = null,
-    )
+    private val someStateEvent =
+        ClientEvent.RoomEvent.StateEvent(
+            content = MemberEventContent(membership = Membership.JOIN),
+            id = EventId("bla"),
+            roomId = roomId,
+            sender = userId,
+            originTimestamp = 1234,
+            stateKey = userId.full,
+            unsigned = null,
+        )
 
     private class TestPushRuleConditionMatcher : PushRuleConditionMatcher {
         var doesMatch = mutableListOf<Boolean>()
+
         override suspend fun match(
             condition: PushCondition,
             event: ClientEvent<*>,
-            eventJson: Lazy<JsonObject?>
+            eventJson: Lazy<JsonObject?>,
         ): Boolean = doesMatch.removeFirst()
     }
 
-    private val conditionMatcher = TestPushRuleConditionMatcher().apply {
-        scheduleSetup { doesMatch = mutableListOf() }
-    }
+    private val conditionMatcher =
+        TestPushRuleConditionMatcher().apply { scheduleSetup { doesMatch = mutableListOf() } }
 
     @Test
     fun `Override - disabled - no match`() = runTest {
@@ -63,7 +65,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = false,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName)
+                conditions = setOf(PushCondition.ContainsDisplayName),
             ),
             someEvent,
             someEventJson,
@@ -75,13 +77,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     fun `Override - null conditions - match`() = runTest {
         conditionMatcher.doesMatch.add(true)
         PushRuleMatcherImpl.match(
-            PushRule.Override(
-                ruleId = "rule",
-                default = false,
-                enabled = true,
-                actions = setOf(),
-                conditions = null
-            ),
+            PushRule.Override(ruleId = "rule", default = false, enabled = true, actions = setOf(), conditions = null),
             someEvent,
             someEventJson,
             conditionMatcher,
@@ -97,7 +93,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf()
+                conditions = setOf(),
             ),
             someEvent,
             someEventJson,
@@ -114,7 +110,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,
@@ -131,7 +127,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,
@@ -148,7 +144,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,
@@ -159,13 +155,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Content - disabled - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Content(
-                ruleId = "rule",
-                default = false,
-                enabled = false,
-                actions = setOf(),
-                pattern = "*!",
-            ),
+            PushRule.Content(ruleId = "rule", default = false, enabled = false, actions = setOf(), pattern = "*!"),
             someEvent,
         ) shouldBe false
     }
@@ -173,13 +163,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Content - no RoomMessageEventContent - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Content(
-                ruleId = "rule",
-                default = false,
-                enabled = true,
-                actions = setOf(),
-                pattern = "*!",
-            ),
+            PushRule.Content(ruleId = "rule", default = false, enabled = true, actions = setOf(), pattern = "*!"),
             someStateEvent,
         ) shouldBe false
     }
@@ -187,13 +171,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Content - message - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Content(
-                ruleId = "rule",
-                default = false,
-                enabled = true,
-                actions = setOf(),
-                pattern = "dino",
-            ),
+            PushRule.Content(ruleId = "rule", default = false, enabled = true, actions = setOf(), pattern = "dino"),
             someEvent,
         ) shouldBe false
     }
@@ -201,13 +179,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Content - message - match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Content(
-                ruleId = "rule",
-                default = false,
-                enabled = true,
-                actions = setOf(),
-                pattern = "*!",
-            ),
+            PushRule.Content(ruleId = "rule", default = false, enabled = true, actions = setOf(), pattern = "*!"),
             someEvent,
         ) shouldBe true
     }
@@ -215,12 +187,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Room - disabled - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Room(
-                roomId = roomId,
-                default = false,
-                enabled = false,
-                actions = setOf(),
-            ),
+            PushRule.Room(roomId = roomId, default = false, enabled = false, actions = setOf()),
             someEvent,
         ) shouldBe false
     }
@@ -228,12 +195,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Room - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Room(
-                roomId = RoomId("!other"),
-                default = false,
-                enabled = true,
-                actions = setOf(),
-            ),
+            PushRule.Room(roomId = RoomId("!other"), default = false, enabled = true, actions = setOf()),
             someEvent,
         ) shouldBe false
     }
@@ -241,12 +203,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Room - match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Room(
-                roomId = roomId,
-                default = false,
-                enabled = true,
-                actions = setOf(),
-            ),
+            PushRule.Room(roomId = roomId, default = false, enabled = true, actions = setOf()),
             someEvent,
         ) shouldBe true
     }
@@ -254,12 +211,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Sender - disabled - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Sender(
-                userId = userId,
-                default = false,
-                enabled = false,
-                actions = setOf(),
-            ),
+            PushRule.Sender(userId = userId, default = false, enabled = false, actions = setOf()),
             someEvent,
         ) shouldBe false
     }
@@ -267,12 +219,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Sender - no match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Sender(
-                userId = UserId("@other:localhost"),
-                default = false,
-                enabled = true,
-                actions = setOf(),
-            ),
+            PushRule.Sender(userId = UserId("@other:localhost"), default = false, enabled = true, actions = setOf()),
             someEvent,
         ) shouldBe false
     }
@@ -280,12 +227,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     @Test
     fun `Sender - match`() = runTest {
         PushRuleMatcherImpl.match(
-            PushRule.Sender(
-                userId = userId,
-                default = false,
-                enabled = true,
-                actions = setOf(),
-            ),
+            PushRule.Sender(userId = userId, default = false, enabled = true, actions = setOf()),
             someEvent,
         ) shouldBe true
     }
@@ -299,7 +241,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = false,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName)
+                conditions = setOf(PushCondition.ContainsDisplayName),
             ),
             someEvent,
             someEventJson,
@@ -311,13 +253,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
     fun `Underride - null conditions - match`() = runTest {
         conditionMatcher.doesMatch.add(true)
         PushRuleMatcherImpl.match(
-            PushRule.Underride(
-                ruleId = "rule",
-                default = false,
-                enabled = true,
-                actions = setOf(),
-                conditions = null
-            ),
+            PushRule.Underride(ruleId = "rule", default = false, enabled = true, actions = setOf(), conditions = null),
             someEvent,
             someEventJson,
             conditionMatcher,
@@ -333,7 +269,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf()
+                conditions = setOf(),
             ),
             someEvent,
             someEventJson,
@@ -350,7 +286,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,
@@ -367,7 +303,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,
@@ -384,7 +320,7 @@ class PushRuleMatcherTest : TrixnityBaseTest() {
                 default = false,
                 enabled = true,
                 actions = setOf(),
-                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1"))
+                conditions = setOf(PushCondition.ContainsDisplayName, PushCondition.RoomMemberCount("1")),
             ),
             someEvent,
             someEventJson,

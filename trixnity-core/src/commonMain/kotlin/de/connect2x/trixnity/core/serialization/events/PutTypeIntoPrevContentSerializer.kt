@@ -15,16 +15,28 @@ internal class PutTypeIntoPrevContentSerializer<T : Any>(baseSerializer: KSerial
         val unsigned = event["unsigned"] as? JsonObject
         val prevContent = unsigned?.get("prev_content") as? JsonObject
         return if (prevContent != null) {
-            JsonObject(buildMap {
-                putAll(event)
-                put("unsigned", JsonObject(buildMap {
-                    putAll(unsigned)
-                    put("prev_content", JsonObject(buildMap {
-                        putAll(prevContent)
-                        put("type", type)
-                    }))
-                }))
-            })
+            JsonObject(
+                buildMap {
+                    putAll(event)
+                    put(
+                        "unsigned",
+                        JsonObject(
+                            buildMap {
+                                putAll(unsigned)
+                                put(
+                                    "prev_content",
+                                    JsonObject(
+                                        buildMap {
+                                            putAll(prevContent)
+                                            put("type", type)
+                                        }
+                                    ),
+                                )
+                            }
+                        ),
+                    )
+                }
+            )
         } else element
     }
 }

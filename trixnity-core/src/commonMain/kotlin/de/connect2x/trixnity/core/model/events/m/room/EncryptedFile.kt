@@ -9,7 +9,7 @@ data class EncryptedFile(
     @SerialName("key") val key: JWK,
     @SerialName("iv") val initialisationVector: String,
     @SerialName("hashes") val hashes: Map<String, String>,
-    @SerialName("v") val version: String = "v2"
+    @SerialName("v") val version: String = "v2",
 ) {
     @Serializable
     data class JWK(
@@ -17,6 +17,6 @@ data class EncryptedFile(
         @SerialName("kty") val keyType: String = "oct",
         @SerialName("key_ops") val keyOperations: Set<String> = setOf("encrypt", "decrypt"),
         @SerialName("alg") val algorithm: String = "A256CTR",
-        @SerialName("ext") val extractable: Boolean = true
+        @SerialName("ext") val extractable: Boolean = true,
     )
 }

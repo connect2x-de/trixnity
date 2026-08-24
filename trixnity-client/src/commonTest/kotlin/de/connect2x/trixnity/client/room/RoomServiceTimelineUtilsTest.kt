@@ -46,6 +46,9 @@ import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -56,9 +59,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(MSC4354::class)
 class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
@@ -78,10 +78,7 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     private val syncBatchTokenStore = SyncBatchTokenStore.inMemory()
 
     private val apiConfig = PortableMockEngineConfig()
-    private val api = mockMatrixClientServerApiClient(
-        config = apiConfig,
-        syncBatchTokenStore = syncBatchTokenStore,
-    )
+    private val api = mockMatrixClientServerApiClient(config = apiConfig, syncBatchTokenStore = syncBatchTokenStore)
 
     private val cut =
         RoomServiceImpl(
@@ -103,7 +100,7 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             typingEventHandler = TypingEventHandlerImpl(api),
             currentSyncState = CurrentSyncState(currentSyncState),
             scope = testScope.backgroundScope,
-            eventContentMediaMappings = EventContentMediaMappings.default
+            eventContentMediaMappings = EventContentMediaMappings.default,
         )
 
     private fun encryptedEvent(i: Long = 24): MessageEvent<MegolmEncryptedMessageEventContent> {
@@ -112,23 +109,16 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
                 ciphertext = MegolmMessageValue("cipher $i"),
                 deviceId = "deviceId",
                 sessionId = "senderId",
-                senderKey = KeyValue.Curve25519KeyValue("key")
+                senderKey = KeyValue.Curve25519KeyValue("key"),
             ),
             EventId("\$event$i"),
             sender,
             room,
-            i
+            i,
         )
     }
 
-    private val createEvent = StateEvent(
-        CreateEventContent(),
-        EventId("\$event1"),
-        sender,
-        room,
-        1,
-        stateKey = ""
-    )
+    private val createEvent = StateEvent(CreateEventContent(), EventId("\$event1"), sender, room, 1, stateKey = "")
 
     private val event0 = encryptedEvent(0)
     private val event1 = encryptedEvent(1)
@@ -136,153 +126,107 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
     private val event3 = encryptedEvent(3)
     private val event4 = encryptedEvent(4)
 
-    private val timelineEvent0 = TimelineEvent(
-        event = event0,
-        previousEventId = event1.id,
-        nextEventId = event2.id,
-        gap = null
-    )
-    private val timelineEvent1 = TimelineEvent(
-        event = event1,
-        previousEventId = null,
-        nextEventId = event2.id,
-        gap = TimelineEvent.Gap.GapBefore("1")
-    )
-    private val timelineEvent2 = TimelineEvent(
-        event = event2,
-        previousEventId = event1.id,
-        nextEventId = event3.id,
-        gap = null
-    )
-    private val timelineEvent3 = TimelineEvent(
-        event = event3,
-        previousEventId = event2.id,
-        nextEventId = null,
-        gap = TimelineEvent.Gap.GapAfter("3")
-    )
+    private val timelineEvent0 =
+        TimelineEvent(event = event0, previousEventId = event1.id, nextEventId = event2.id, gap = null)
+    private val timelineEvent1 =
+        TimelineEvent(
+            event = event1,
+            previousEventId = null,
+            nextEventId = event2.id,
+            gap = TimelineEvent.Gap.GapBefore("1"),
+        )
+    private val timelineEvent2 =
+        TimelineEvent(event = event2, previousEventId = event1.id, nextEventId = event3.id, gap = null)
+    private val timelineEvent3 =
+        TimelineEvent(
+            event = event3,
+            previousEventId = event2.id,
+            nextEventId = null,
+            gap = TimelineEvent.Gap.GapAfter("3"),
+        )
 
-    private val tombstoneEvent = StateEvent(
-        TombstoneEventContent("upgrade", newRoom),
-        EventId("\$tombstone"),
-        sender,
-        room,
-        2000,
-        stateKey = "",
-    )
-    private val createEvent1 = StateEvent(
-        CreateEventContent(),
-        EventId("\$event1"),
-        sender,
-        room,
-        2000,
-        stateKey = "",
-    )
-    private val createEvent2 = StateEvent(
-        CreateEventContent(predecessor = CreateEventContent.PreviousRoom(room, EventId("\$tombstone"))),
-        EventId("\$create"),
-        sender,
-        newRoom,
-        2000,
-        stateKey = "",
-    )
-    private val tombstoneTimelineEvent = TimelineEvent(
-        event = tombstoneEvent,
-        previousEventId = event2.id,
-        nextEventId = null,
-        gap = TimelineEvent.Gap.GapAfter("3")
-    )
-    private val createTimelineEvent1 = TimelineEvent(
-        event = createEvent1,
-        previousEventId = null,
-        nextEventId = event2.id,
-        gap = null
-    )
-    private val createTimelineEvent2 = TimelineEvent(
-        event = createEvent2,
-        previousEventId = null,
-        nextEventId = event3.id,
-        gap = null
-    )
+    private val tombstoneEvent =
+        StateEvent(TombstoneEventContent("upgrade", newRoom), EventId("\$tombstone"), sender, room, 2000, stateKey = "")
+    private val createEvent1 = StateEvent(CreateEventContent(), EventId("\$event1"), sender, room, 2000, stateKey = "")
+    private val createEvent2 =
+        StateEvent(
+            CreateEventContent(predecessor = CreateEventContent.PreviousRoom(room, EventId("\$tombstone"))),
+            EventId("\$create"),
+            sender,
+            newRoom,
+            2000,
+            stateKey = "",
+        )
+    private val tombstoneTimelineEvent =
+        TimelineEvent(
+            event = tombstoneEvent,
+            previousEventId = event2.id,
+            nextEventId = null,
+            gap = TimelineEvent.Gap.GapAfter("3"),
+        )
+    private val createTimelineEvent1 =
+        TimelineEvent(event = createEvent1, previousEventId = null, nextEventId = event2.id, gap = null)
+    private val createTimelineEvent2 =
+        TimelineEvent(event = createEvent2, previousEventId = null, nextEventId = event3.id, gap = null)
 
-    private val timeline = listOf(
-        createTimelineEvent1,
-        timelineEvent2.copy(nextEventId = tombstoneTimelineEvent.eventId),
-        tombstoneTimelineEvent,
-        // new room
-        createTimelineEvent2,
-        timelineEvent3.copy(
-            event = event3.copy(roomId = newRoom),
-            previousEventId = createTimelineEvent2.eventId
-        ),
-    )
+    private val timeline =
+        listOf(
+            createTimelineEvent1,
+            timelineEvent2.copy(nextEventId = tombstoneTimelineEvent.eventId),
+            tombstoneTimelineEvent,
+            // new room
+            createTimelineEvent2,
+            timelineEvent3.copy(event = event3.copy(roomId = newRoom), previousEventId = createTimelineEvent2.eventId),
+        )
 
     private val newTimelineEvent1 = timelineEvent1.copy(gap = null)
-    private val newTimelineEvent3 = TimelineEvent(
-        event = event3,
-        previousEventId = event2.id,
-        nextEventId = event4.id,
-        gap = null
-    )
-    private val timelineEvent4 = TimelineEvent(
-        event = event4,
-        previousEventId = event3.id,
-        nextEventId = null,
-        gap = null
-    )
+    private val newTimelineEvent3 =
+        TimelineEvent(event = event3, previousEventId = event2.id, nextEventId = event4.id, gap = null)
+    private val timelineEvent4 =
+        TimelineEvent(event = event4, previousEventId = event3.id, nextEventId = null, gap = null)
 
     @Test
     fun `getTimelineEvents » all requested events in store » get timeline events backwards`() = runTest {
         allRequestedEventsInStoreSetup()
-        cut.getTimelineEvents(room, event3.id)
-            .take(3).toList().map { it.first() } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2,
-            timelineEvent1
-        )
+        cut.getTimelineEvents(room, event3.id).take(3).toList().map { it.first() } shouldBe
+            listOf(timelineEvent3, timelineEvent2, timelineEvent1)
     }
 
     @Test
     fun `getTimelineEvents » all requested events in store » get timeline events forwards`() = runTest {
         allRequestedEventsInStoreSetup()
-        cut.getTimelineEvents(room, event1.id, FORWARDS)
-            .take(3).toList().map { it.first() } shouldBe listOf(
-            timelineEvent1,
-            timelineEvent2,
-            timelineEvent3
-        )
+        cut.getTimelineEvents(room, event1.id, FORWARDS).take(3).toList().map { it.first() } shouldBe
+            listOf(timelineEvent1, timelineEvent2, timelineEvent3)
     }
 
     @Test
     fun `getTimelineEvents » all requested events in store » get timeline events with maxSize`() = runTest {
         allRequestedEventsInStoreSetup()
-        cut.getTimelineEvents(room, event1.id, FORWARDS) { maxSize = 2 }
-            .toList().map { it.first() } shouldBe listOf(
-            timelineEvent1,
-            timelineEvent2,
-        )
+        cut.getTimelineEvents(room, event1.id, FORWARDS) { maxSize = 2 }.toList().map { it.first() } shouldBe
+            listOf(timelineEvent1, timelineEvent2)
     }
 
     @Test
     fun `getTimelineEvents » not all events in store » fetch missing events by filling gaps`() = runTest {
         notAllRequestedEventsInStoreSetup()
-        val result = async {
-            cut.getTimelineEvents(room, event3.id).take(4).toList().map { it.first() }
-        }
+        val result = async { cut.getTimelineEvents(room, event3.id).take(4).toList().map { it.first() } }
         timelineEventHandlerMock.unsafeFillTimelineGaps.first { it }
         tm.writeTransaction {
+            listOf(
+                    timelineEvent3,
+                    timelineEvent2.copy(gap = null, previousEventId = event0.id),
+                    timelineEvent0,
+                    timelineEvent1.copy(gap = null, nextEventId = event0.id),
+                )
+                .forEach { roomTimelineStore.add(it) }
+        }
+        result.await() shouldBe
             listOf(
                 timelineEvent3,
                 timelineEvent2.copy(gap = null, previousEventId = event0.id),
                 timelineEvent0,
-                timelineEvent1.copy(gap = null, nextEventId = event0.id)
-            ).forEach { roomTimelineStore.add(it) }
-        }
-        result.await() shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2.copy(gap = null, previousEventId = event0.id),
-            timelineEvent0,
-            timelineEvent1.copy(gap = null, nextEventId = event0.id)
-        )
+                timelineEvent1.copy(gap = null, nextEventId = event0.id),
+            )
     }
 
     @Test
@@ -291,68 +235,73 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             notAllRequestedEventsInStoreSetup()
             val result = async {
                 cut.getTimelineEvents(room, event3.id) {
-                    minSize = 3
-                    maxSize = 4
-                }.toList().map { it.first() }
+                        minSize = 3
+                        maxSize = 4
+                    }
+                    .toList()
+                    .map { it.first() }
             }
             timelineEventHandlerMock.unsafeFillTimelineGaps.first { it }
             tm.writeTransaction {
                 listOf(
+                        timelineEvent3,
+                        timelineEvent2.copy(gap = null, previousEventId = event0.id),
+                        timelineEvent0,
+                        timelineEvent1.copy(gap = null, nextEventId = event0.id),
+                    )
+                    .forEach { roomTimelineStore.add(it) }
+            }
+            result.await() shouldBe
+                listOf(
                     timelineEvent3,
                     timelineEvent2.copy(gap = null, previousEventId = event0.id),
                     timelineEvent0,
-                    timelineEvent1.copy(gap = null, nextEventId = event0.id)
-                ).forEach { roomTimelineStore.add(it) }
-            }
-            result.await() shouldBe listOf(
-                timelineEvent3,
-                timelineEvent2.copy(gap = null, previousEventId = event0.id),
-                timelineEvent0,
-                timelineEvent1.copy(gap = null, nextEventId = event0.id)
-            )
+                    timelineEvent1.copy(gap = null, nextEventId = event0.id),
+                )
         }
 
     @Test
     fun `getTimelineEvents » not all events in store » not fetch when minSize reached`() = runTest {
         notAllRequestedEventsInStoreSetup()
-        cut.getTimelineEvents(room, event3.id) { minSize = 2 }.toList().map { it.first() } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2.copy(gap = TimelineEvent.Gap.GapBefore("before-2")),
-        )
+        cut.getTimelineEvents(room, event3.id) { minSize = 2 }.toList().map { it.first() } shouldBe
+            listOf(timelineEvent3, timelineEvent2.copy(gap = TimelineEvent.Gap.GapBefore("before-2")))
         timelineEventHandlerMock.unsafeFillTimelineGaps.value shouldBe false
     }
 
     @Test
-    fun `getTimelineEvents » complete timeline in store » flow should be finished when all collected`() =
-        runTest {
-            tm.writeTransaction {
-                listOf(
+    fun `getTimelineEvents » complete timeline in store » flow should be finished when all collected`() = runTest {
+        tm.writeTransaction {
+            listOf(
                     timelineEvent1.copy(gap = null, previousEventId = null, event = createEvent),
                     timelineEvent2,
-                    timelineEvent3
-                ).forEach { roomTimelineStore.add(it) }
-            }
-            cut.getTimelineEvents(room, event3.id)
-                .toList().map { it.first() } shouldBe listOf(
+                    timelineEvent3,
+                )
+                .forEach { roomTimelineStore.add(it) }
+        }
+        cut.getTimelineEvents(room, event3.id).toList().map { it.first() } shouldBe
+            listOf(
                 timelineEvent3,
                 timelineEvent2,
-                timelineEvent1.copy(gap = null, previousEventId = null, event = createEvent)
+                timelineEvent1.copy(gap = null, previousEventId = null, event = createEvent),
             )
-        }
-
+    }
 
     @Test
     fun `getTimelineEvents » room upgrades » follow room upgrade from old to new room`() = runTest {
         roomUpgradesSetup()
         cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }
-            .take(5).toList().map { it.first() } shouldBe timeline
+            .take(5)
+            .toList()
+            .map { it.first() } shouldBe timeline
     }
 
     @Test
     fun `getTimelineEvents » room upgrades » follow room upgrade from new to old room`() = runTest {
         roomUpgradesSetup()
         cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }
-            .take(5).toList().map { it.first() } shouldBe timeline.reversed()
+            .take(5)
+            .toList()
+            .map { it.first() } shouldBe timeline.reversed()
     }
 
     @Test
@@ -363,20 +312,13 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
         val size = MutableStateFlow(2)
         val resultList = MutableStateFlow<List<TimelineEvent>?>(null)
         backgroundScope.launch {
-            cut.getTimelineEvents(room, event3.id)
-                .toFlowList(size)
-                .collectLatest { it1 -> resultList.value = it1.map { it.first() } }
+            cut.getTimelineEvents(room, event3.id).toFlowList(size).collectLatest { it1 ->
+                resultList.value = it1.map { it.first() }
+            }
         }
-        resultList.first { it?.size == 2 } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2
-        )
+        resultList.first { it?.size == 2 } shouldBe listOf(timelineEvent3, timelineEvent2)
         size.value = 3
-        resultList.first { it?.size == 3 } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2,
-            timelineEvent1
-        )
+        resultList.first { it?.size == 3 } shouldBe listOf(timelineEvent3, timelineEvent2, timelineEvent1)
     }
 
     @Test
@@ -387,35 +329,18 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             val maxSizeAfter = MutableStateFlow(1)
             val result = MutableStateFlow<List<TimelineEvent>?>(null)
             backgroundScope.launch {
-                cut.getTimelineEventsAround(
-                    room,
-                    event2.id,
-                    maxSizeBefore = maxSizeBefore,
-                    maxSizeAfter = maxSizeAfter
-                )
+                cut.getTimelineEventsAround(room, event2.id, maxSizeBefore = maxSizeBefore, maxSizeAfter = maxSizeAfter)
                     .collect { events -> result.value = events.map { it.first() } }
             }
 
-            result.first { it?.size == 3 } shouldBe listOf(
-                newTimelineEvent1,
-                timelineEvent2,
-                newTimelineEvent3,
-            )
+            result.first { it?.size == 3 } shouldBe listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3)
 
             maxSizeBefore.value = 2
-            result.first { it?.size == 3 } shouldBe listOf(
-                newTimelineEvent1,
-                timelineEvent2,
-                newTimelineEvent3,
-            )
+            result.first { it?.size == 3 } shouldBe listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3)
 
             maxSizeAfter.value = 2
-            result.first { it?.size == 4 } shouldBe listOf(
-                newTimelineEvent1,
-                timelineEvent2,
-                newTimelineEvent3,
-                timelineEvent4,
-            )
+            result.first { it?.size == 4 } shouldBe
+                listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3, timelineEvent4)
         }
 
     @Test
@@ -424,88 +349,43 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
             getTimelineEventsAroundSetup()
 
             with(cut) {
-                getTimelineEventsAround(
-                    room,
-                    event2.id,
-                    configBefore = { maxSize = 2 },
-                    configAfter = { maxSize = 2 })
-                    .map { it.first() } shouldBe listOf(
-                    newTimelineEvent1,
-                    timelineEvent2,
-                    newTimelineEvent3,
-                )
+                getTimelineEventsAround(room, event2.id, configBefore = { maxSize = 2 }, configAfter = { maxSize = 2 })
+                    .map { it.first() } shouldBe listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3)
 
-                getTimelineEventsAround(
-                    room,
-                    event2.id,
-                    configBefore = { maxSize = 3 },
-                    configAfter = { maxSize = 2 })
-                    .map { it.first() } shouldBe listOf(
-                    newTimelineEvent1,
-                    timelineEvent2,
-                    newTimelineEvent3,
-                )
+                getTimelineEventsAround(room, event2.id, configBefore = { maxSize = 3 }, configAfter = { maxSize = 2 })
+                    .map { it.first() } shouldBe listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3)
 
-                getTimelineEventsAround(
-                    room,
-                    event2.id,
-                    configBefore = { maxSize = 3 },
-                    configAfter = { maxSize = 3 })
-                    .map { it.first() } shouldBe listOf(
-                    newTimelineEvent1,
-                    timelineEvent2,
-                    newTimelineEvent3,
-                    timelineEvent4,
-                )
+                getTimelineEventsAround(room, event2.id, configBefore = { maxSize = 3 }, configAfter = { maxSize = 3 })
+                    .map { it.first() } shouldBe
+                    listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3, timelineEvent4)
             }
         }
-
 
     @Test
     fun `getLastTimelineEvents » get timeline events`() = runTest {
         getLastTimelineEventsSetup()
-        tm.writeTransaction {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
-        }
-        cut.getLastTimelineEvents(room)
-            .first()
-            .shouldNotBeNull()
-            .take(3).toList().map { it.first() } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2,
-            timelineEvent1
-        )
+        tm.writeTransaction { roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) } }
+        cut.getLastTimelineEvents(room).first().shouldNotBeNull().take(3).toList().map { it.first() } shouldBe
+            listOf(timelineEvent3, timelineEvent2, timelineEvent1)
     }
 
     @Test
     fun `getLastTimelineEvents » cancel old timeline event flow`() = runTest {
         getLastTimelineEventsSetup()
-        tm.writeTransaction {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
-        }
+        tm.writeTransaction { roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) } }
         val collectedEvents = MutableStateFlow<List<TimelineEvent?>?>(null)
         backgroundScope.launch {
-            cut.getLastTimelineEvents(room)
-                .filterNotNull()
-                .collectLatest { timelineEventFlow ->
-                    collectedEvents.value = timelineEventFlow.take(2).toList().map { it.first() }
-                }
+            cut.getLastTimelineEvents(room).filterNotNull().collectLatest { timelineEventFlow ->
+                collectedEvents.value = timelineEventFlow.take(2).toList().map { it.first() }
+            }
         }
 
         collectedEvents.first { it?.size == 2 }
-        collectedEvents.value shouldBe listOf(
-            timelineEvent2,
-            timelineEvent1,
-        )
+        collectedEvents.value shouldBe listOf(timelineEvent2, timelineEvent1)
 
-        tm.writeTransaction {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
-        }
+        tm.writeTransaction { roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) } }
         collectedEvents.first { it?.first()?.eventId == event3.id }
-        collectedEvents.value shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2,
-        )
+        collectedEvents.value shouldBe listOf(timelineEvent3, timelineEvent2)
     }
 
     @Test
@@ -514,86 +394,75 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
         val size = MutableStateFlow(2)
         val resultList = MutableStateFlow<List<TimelineEvent>?>(null)
 
-        tm.writeTransaction {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) }
-        }
+        tm.writeTransaction { roomStore.update(room) { Room(roomId = room, lastEventId = event2.id) } }
         backgroundScope.launch {
-            cut.getLastTimelineEvents(room)
-                .toFlowList(size)
-                .collectLatest { it1 -> resultList.value = it1.map { it.first() } }
+            cut.getLastTimelineEvents(room).toFlowList(size).collectLatest { it1 ->
+                resultList.value = it1.map { it.first() }
+            }
         }
 
-        resultList.first { it?.size == 2 } shouldBe listOf(
-            timelineEvent2,
-            timelineEvent1,
-        )
+        resultList.first { it?.size == 2 } shouldBe listOf(timelineEvent2, timelineEvent1)
 
-        tm.writeTransaction {
-            roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) }
-        }
+        tm.writeTransaction { roomStore.update(room) { Room(roomId = room, lastEventId = event3.id) } }
         size.value = 1
-        resultList.first { it?.size == 1 && it.first().eventId == event3.id } shouldBe listOf(
-            timelineEvent3
-        )
+        resultList.first { it?.size == 1 && it.first().eventId == event3.id } shouldBe listOf(timelineEvent3)
 
         size.value = 3
-        resultList.first { it?.size == 3 } shouldBe listOf(
-            timelineEvent3,
-            timelineEvent2,
-            timelineEvent1
-        )
+        resultList.first { it?.size == 3 } shouldBe listOf(timelineEvent3, timelineEvent2, timelineEvent1)
     }
 
     @Test
     fun `getTimelineEventsFromNowOn » get timeline events from now on`() = runTest {
-        val event10 = MessageEvent(
-            RoomMessageEventContent.TextBased.Text("hi"),
-            EventId("\$event10"),
-            sender,
-            room,
-            10
-        )
+        val event10 = MessageEvent(RoomMessageEventContent.TextBased.Text("hi"), EventId("\$event10"), sender, room, 10)
         syncBatchTokenStore.setSyncBatchToken("token1")
         tm.writeTransaction {
             listOf(
-                timelineEvent1.copy(content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout)),
-                timelineEvent1.copy(
-                    content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout),
-                    event = event1.copy(id = event10.id, roomId = RoomId("!other:server"))
+                    timelineEvent1.copy(
+                        content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout)
+                    ),
+                    timelineEvent1.copy(
+                        content = Result.failure(TimelineEvent.TimelineEventContentError.DecryptionTimeout),
+                        event = event1.copy(id = event10.id, roomId = RoomId("!other:server")),
+                    ),
                 )
-            ).forEach { roomTimelineStore.add(it) }
+                .forEach { roomTimelineStore.add(it) }
         }
         apiConfig.endpoints {
             matrixJsonEndpoint(Sync(timeout = 0, since = "token1")) {
                 Sync.Response(
-                    nextBatch = "nextBatch1", room = Sync.Response.Rooms(
-                        join = roomMapOf(
-                            room to Sync.Response.Rooms.JoinedRoom(
-                                timeline = Sync.Response.Rooms.Timeline(
-                                    events = listOf(event1)
+                    nextBatch = "nextBatch1",
+                    room =
+                        Sync.Response.Rooms(
+                            join =
+                                roomMapOf(
+                                    room to
+                                        Sync.Response.Rooms.JoinedRoom(
+                                            timeline = Sync.Response.Rooms.Timeline(events = listOf(event1))
+                                        )
                                 )
-                            )
-                        )
-                    )
+                        ),
                 )
             }
             matrixJsonEndpoint(Sync(timeout = 0, since = "nextBatch1")) {
                 Sync.Response(
-                    nextBatch = "nextBatch2", room = Sync.Response.Rooms(
-                        join = roomMapOf(
-                            RoomId("!other:server") to Sync.Response.Rooms.JoinedRoom(
-                                timeline = Sync.Response.Rooms.Timeline(
-                                    events = listOf(event10)
+                    nextBatch = "nextBatch2",
+                    room =
+                        Sync.Response.Rooms(
+                            join =
+                                roomMapOf(
+                                    RoomId("!other:server") to
+                                        Sync.Response.Rooms.JoinedRoom(
+                                            timeline = Sync.Response.Rooms.Timeline(events = listOf(event10))
+                                        )
                                 )
-                            )
-                        )
-                    )
+                        ),
                 )
             }
         }
-        val result = async(start = CoroutineStart.UNDISPATCHED) {
-            cut.getTimelineEventsFromNowOn(decryptionTimeout = 0.seconds).take(2).toList()
-        }
+        val result =
+            async(start = CoroutineStart.UNDISPATCHED) {
+                cut.getTimelineEventsFromNowOn(decryptionTimeout = 0.seconds).take(2).toList()
+            }
         delay(100.milliseconds)
         api.sync.startOnce().getOrThrow()
         api.sync.startOnce().getOrThrow()
@@ -611,10 +480,11 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
 
         tm.writeTransaction {
             listOf(
-                timelineEvent1.copy(gap = TimelineEvent.Gap.GapAfter("after-1")),
-                timelineEvent2.copy(gap = TimelineEvent.Gap.GapBefore("before-2")),
-                timelineEvent3
-            ).forEach { roomTimelineStore.add(it) }
+                    timelineEvent1.copy(gap = TimelineEvent.Gap.GapAfter("after-1")),
+                    timelineEvent2.copy(gap = TimelineEvent.Gap.GapBefore("before-2")),
+                    timelineEvent3,
+                )
+                .forEach { roomTimelineStore.add(it) }
         }
     }
 
@@ -631,20 +501,15 @@ class RoomServiceTimelineUtilsTest : TrixnityBaseTest() {
 
     private suspend fun getTimelineEventsAroundSetup() {
         tm.writeTransaction {
-            listOf(
-                newTimelineEvent1,
-                timelineEvent2,
-                newTimelineEvent3,
-                timelineEvent4
-            ).forEach { roomTimelineStore.add(it) }
+            listOf(newTimelineEvent1, timelineEvent2, newTimelineEvent3, timelineEvent4).forEach {
+                roomTimelineStore.add(it)
+            }
         }
     }
 
-
     private suspend fun getLastTimelineEventsSetup() {
         tm.writeTransaction {
-            listOf(timelineEvent1, timelineEvent2, timelineEvent3)
-                .forEach { roomTimelineStore.add(it) }
+            listOf(timelineEvent1, timelineEvent2, timelineEvent3).forEach { roomTimelineStore.add(it) }
         }
     }
 }

@@ -38,10 +38,13 @@ internal object ExposedInboundMegolmSession : Table("inbound_megolm_session") {
 internal class ExposedInboundMegolmSessionRepository(private val json: Json) : InboundMegolmSessionRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: InboundMegolmSessionRepositoryKey): StoredInboundMegolmSession? {
-        return ExposedInboundMegolmSession.selectAll().where {
-            ExposedInboundMegolmSession.sessionId.eq(key.sessionId) and
+        return ExposedInboundMegolmSession.selectAll()
+            .where {
+                ExposedInboundMegolmSession.sessionId.eq(key.sessionId) and
                     ExposedInboundMegolmSession.roomId.eq(key.roomId.full)
-        }.firstOrNull()?.mapToStoredInboundMegolmSession()
+            }
+            .firstOrNull()
+            ?.mapToStoredInboundMegolmSession()
     }
 
     context(transaction: ReadTransaction)
@@ -51,22 +54,25 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
 
     context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> {
-        return ExposedInboundMegolmSession.selectAll().where { ExposedInboundMegolmSession.hasBeenBackedUp.eq(false) }
+        return ExposedInboundMegolmSession.selectAll()
+            .where { ExposedInboundMegolmSession.hasBeenBackedUp.eq(false) }
             .map { it.mapToStoredInboundMegolmSession() }
             .toSet()
     }
 
-    private fun ResultRow.mapToStoredInboundMegolmSession() = StoredInboundMegolmSession(
-        senderKey = Curve25519KeyValue(this[ExposedInboundMegolmSession.senderKey]),
-        sessionId = this[ExposedInboundMegolmSession.sessionId],
-        roomId = RoomId(this[ExposedInboundMegolmSession.roomId]),
-        firstKnownIndex = this[ExposedInboundMegolmSession.firstKnownIndex],
-        hasBeenBackedUp = this[ExposedInboundMegolmSession.hasBeenBackedUp],
-        isTrusted = this[ExposedInboundMegolmSession.isTrusted],
-        senderSigningKey = Ed25519KeyValue(this[ExposedInboundMegolmSession.senderSigningKey]),
-        forwardingCurve25519KeyChain = json.decodeFromString(this[ExposedInboundMegolmSession.forwardingCurve25519KeyChain]),
-        pickled = this[ExposedInboundMegolmSession.pickled]
-    )
+    private fun ResultRow.mapToStoredInboundMegolmSession() =
+        StoredInboundMegolmSession(
+            senderKey = Curve25519KeyValue(this[ExposedInboundMegolmSession.senderKey]),
+            sessionId = this[ExposedInboundMegolmSession.sessionId],
+            roomId = RoomId(this[ExposedInboundMegolmSession.roomId]),
+            firstKnownIndex = this[ExposedInboundMegolmSession.firstKnownIndex],
+            hasBeenBackedUp = this[ExposedInboundMegolmSession.hasBeenBackedUp],
+            isTrusted = this[ExposedInboundMegolmSession.isTrusted],
+            senderSigningKey = Ed25519KeyValue(this[ExposedInboundMegolmSession.senderSigningKey]),
+            forwardingCurve25519KeyChain =
+                json.decodeFromString(this[ExposedInboundMegolmSession.forwardingCurve25519KeyChain]),
+            pickled = this[ExposedInboundMegolmSession.pickled],
+        )
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: InboundMegolmSessionRepositoryKey, value: StoredInboundMegolmSession) {
@@ -85,10 +91,7 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
 
     context(transaction: WriteTransaction)
     override suspend fun delete(key: InboundMegolmSessionRepositoryKey) {
-        ExposedInboundMegolmSession.deleteWhere {
-            sessionId.eq(key.sessionId) and
-                    roomId.eq(key.roomId.full)
-        }
+        ExposedInboundMegolmSession.deleteWhere { sessionId.eq(key.sessionId) and roomId.eq(key.roomId.full) }
     }
 
     context(transaction: WriteTransaction)

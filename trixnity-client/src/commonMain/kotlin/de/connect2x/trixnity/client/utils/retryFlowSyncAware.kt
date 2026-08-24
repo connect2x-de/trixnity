@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.client.utils
 
-import kotlinx.coroutines.flow.*
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.utils.RetryFlowDelayConfig
 import de.connect2x.trixnity.utils.retryFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.*
 
 fun <T> StateFlow<SyncState>.retryFlow(
     delayConfigWhenSyncRunning: RetryFlowDelayConfig = RetryFlowDelayConfig().copy(scheduleLimit = 10.seconds),
@@ -14,19 +14,20 @@ fun <T> StateFlow<SyncState>.retryFlow(
     block: suspend FlowCollector<T>.() -> Unit,
 ): Flow<T> =
     retryFlow(
-        delayConfig = map { syncState ->
-            when (syncState) {
-                SyncState.INITIAL_SYNC,
-                SyncState.STARTED,
-                SyncState.RUNNING -> delayConfigWhenSyncRunning
+        delayConfig =
+            map { syncState ->
+                when (syncState) {
+                    SyncState.INITIAL_SYNC,
+                    SyncState.STARTED,
+                    SyncState.RUNNING -> delayConfigWhenSyncRunning
 
-                SyncState.ERROR,
-                SyncState.TIMEOUT,
-                SyncState.STOPPED -> delayConfigWhenSyncNotRunning
-            }
-        },
+                    SyncState.ERROR,
+                    SyncState.TIMEOUT,
+                    SyncState.STOPPED -> delayConfigWhenSyncNotRunning
+                }
+            },
         onError = onError,
-        block = block
+        block = block,
     )
 
 suspend fun StateFlow<SyncState>.retryLoop(
@@ -34,21 +35,25 @@ suspend fun StateFlow<SyncState>.retryLoop(
     delayConfigWhenSyncNotRunning: RetryFlowDelayConfig = RetryFlowDelayConfig(),
     onError: suspend (error: Throwable, delay: Duration) -> Unit = { _, _ -> },
     block: suspend () -> Unit,
-) = retryFlow<Unit>(
-    delayConfigWhenSyncRunning = delayConfigWhenSyncRunning,
-    delayConfigWhenSyncNotRunning = delayConfigWhenSyncNotRunning,
-    onError = onError,
-    block = { block() }
-).collect()
+) =
+    retryFlow<Unit>(
+            delayConfigWhenSyncRunning = delayConfigWhenSyncRunning,
+            delayConfigWhenSyncNotRunning = delayConfigWhenSyncNotRunning,
+            onError = onError,
+            block = { block() },
+        )
+        .collect()
 
 suspend fun <T> StateFlow<SyncState>.retry(
     delayConfigWhenSyncRunning: RetryFlowDelayConfig = RetryFlowDelayConfig().copy(scheduleLimit = 10.seconds),
     delayConfigWhenSyncNotRunning: RetryFlowDelayConfig = RetryFlowDelayConfig(),
     onError: suspend (error: Throwable, delay: Duration) -> Unit = { _, _ -> },
     block: suspend () -> T,
-): T = retryFlow(
-    delayConfigWhenSyncRunning = delayConfigWhenSyncRunning,
-    delayConfigWhenSyncNotRunning = delayConfigWhenSyncNotRunning,
-    onError = onError,
-    block = { emit(block()) },
-).first()
+): T =
+    retryFlow(
+            delayConfigWhenSyncRunning = delayConfigWhenSyncRunning,
+            delayConfigWhenSyncNotRunning = delayConfigWhenSyncNotRunning,
+            onError = onError,
+            block = { emit(block()) },
+        )
+        .first()

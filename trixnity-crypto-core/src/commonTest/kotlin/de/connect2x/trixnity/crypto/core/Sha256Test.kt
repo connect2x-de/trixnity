@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.crypto.core
 
-import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.shouldBe
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.flow.collect
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.shouldBe
+import io.ktor.utils.io.core.*
 import kotlin.test.Test
+import kotlinx.coroutines.flow.collect
 
 class Sha256Test : TrixnityBaseTest() {
 
@@ -86,9 +86,7 @@ class Sha256Test : TrixnityBaseTest() {
         val sha256 = Sha256()
         sha256.close()
 
-        shouldThrow<IllegalStateException> {
-            sha256.update(FOO.toByteArray())
-        }.message shouldBe "SHA-256 is closed"
+        shouldThrow<IllegalStateException> { sha256.update(FOO.toByteArray()) }.message shouldBe "SHA-256 is closed"
     }
 
     @Test
@@ -96,9 +94,7 @@ class Sha256Test : TrixnityBaseTest() {
         val sha256 = Sha256()
         sha256.close()
 
-        shouldThrow<IllegalStateException> {
-            sha256.digest()
-        }.message shouldBe "SHA-256 is closed"
+        shouldThrow<IllegalStateException> { sha256.digest() }.message shouldBe "SHA-256 is closed"
     }
 
     @Test

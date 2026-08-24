@@ -10,11 +10,11 @@ import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import io.ktor.util.reflect.*
+import kotlin.reflect.KClass
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.reflect.KClass
-import kotlin.time.Clock
 
 class GlobalAccountDataStore(
     globalAccountDataRepository: GlobalAccountDataRepository,
@@ -27,12 +27,13 @@ class GlobalAccountDataStore(
 ) : Store {
     private val globalAccountDataCache =
         MapRepositoryObservableCache(
-            globalAccountDataRepository,
-            tm,
-            storeScope,
-            clock,
-            config.cacheExpireDurations.globalAccountDate
-        ).also(statisticCollector::addCache)
+                globalAccountDataRepository,
+                tm,
+                storeScope,
+                clock,
+                config.cacheExpireDurations.globalAccountDate,
+            )
+            .also(statisticCollector::addCache)
 
     context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
@@ -44,11 +45,14 @@ class GlobalAccountDataStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun save(event: GlobalAccountDataEvent<out GlobalAccountDataEventContent>) {
-        val eventType = when (val content = event.content) {
-            is UnknownEventContent -> content.eventType
-            else -> contentMappings.globalAccountData.find { it.kClass.isInstance(event.content) }?.type
-        }
-            ?: throw IllegalArgumentException("Cannot save account data event $event, because it is not supported. You need to register it first.")
+        val eventType =
+            when (val content = event.content) {
+                is UnknownEventContent -> content.eventType
+                else -> contentMappings.globalAccountData.find { it.kClass.isInstance(event.content) }?.type
+            }
+                ?: throw IllegalArgumentException(
+                    "Cannot save account data event $event, because it is not supported. You need to register it first."
+                )
         globalAccountDataCache.set(MapRepositoryCoroutinesCacheKey(eventType, event.key), event)
     }
 
@@ -56,11 +60,14 @@ class GlobalAccountDataStore(
         eventContentClass: KClass<C>,
         key: String = "",
     ): Flow<GlobalAccountDataEvent<C>?> {
-        val eventType = contentMappings.globalAccountData.find { it.kClass == eventContentClass }?.type
-            ?: throw IllegalArgumentException("Cannot find account data event $eventContentClass, because it is not supported. You need to register it first.")
+        val eventType =
+            contentMappings.globalAccountData.find { it.kClass == eventContentClass }?.type
+                ?: throw IllegalArgumentException(
+                    "Cannot find account data event $eventContentClass, because it is not supported. You need to register it first."
+                )
         @Suppress("UNCHECKED_CAST")
-        return globalAccountDataCache.get(MapRepositoryCoroutinesCacheKey(eventType, key))
-            .map { if (it?.content?.instanceOf(eventContentClass) == true) it else null }
-                as Flow<GlobalAccountDataEvent<C>?>
+        return globalAccountDataCache.get(MapRepositoryCoroutinesCacheKey(eventType, key)).map {
+            if (it?.content?.instanceOf(eventContentClass) == true) it else null
+        } as Flow<GlobalAccountDataEvent<C>?>
     }
 }

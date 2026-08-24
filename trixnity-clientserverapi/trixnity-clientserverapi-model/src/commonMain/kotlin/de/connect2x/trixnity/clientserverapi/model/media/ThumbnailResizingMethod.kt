@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ThumbnailResizingMethod {
-    @SerialName("crop")
-    CROP,
-
-    @SerialName("scale")
-    SCALE
+    @SerialName("crop") CROP,
+    @SerialName("scale") SCALE,
 }

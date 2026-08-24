@@ -14,33 +14,25 @@ class CapabilityTest : TrixnityBaseTest() {
 
     @Test
     fun `Capability - isChangeAllowed - allowed is set - does not contains key - false`() {
-        Capability.ProfileFields(
-            enabled = true,
-            allowed = setOf(),
-        ).isChangeAllowed(ProfileField.DisplayName) shouldBe false
+        Capability.ProfileFields(enabled = true, allowed = setOf()).isChangeAllowed(ProfileField.DisplayName) shouldBe
+            false
     }
 
     @Test
     fun `Capability - isChangeAllowed - allowed is set - contains key - true`() {
-        Capability.ProfileFields(
-            enabled = true,
-            allowed = setOf(ProfileField.DisplayName),
-        ).isChangeAllowed(ProfileField.DisplayName) shouldBe true
+        Capability.ProfileFields(enabled = true, allowed = setOf(ProfileField.DisplayName))
+            .isChangeAllowed(ProfileField.DisplayName) shouldBe true
     }
 
     @Test
     fun `Capability - isChangeAllowed - disallowed is set - does not contains key - true`() {
-        Capability.ProfileFields(
-            enabled = true,
-            disallowed = setOf(),
-        ).isChangeAllowed(ProfileField.DisplayName) shouldBe true
+        Capability.ProfileFields(enabled = true, disallowed = setOf())
+            .isChangeAllowed(ProfileField.DisplayName) shouldBe true
     }
 
     @Test
     fun `Capability - isChangeAllowed - disallowed is set - contains key - false`() {
-        Capability.ProfileFields(
-            enabled = true,
-            disallowed = setOf(ProfileField.DisplayName),
-        ).isChangeAllowed(ProfileField.DisplayName) shouldBe false
+        Capability.ProfileFields(enabled = true, disallowed = setOf(ProfileField.DisplayName))
+            .isChangeAllowed(ProfileField.DisplayName) shouldBe false
     }
 }

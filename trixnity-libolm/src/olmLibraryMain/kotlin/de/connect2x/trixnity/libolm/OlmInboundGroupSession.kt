@@ -49,7 +49,7 @@ actual class OlmInboundGroupSession private constructor() : WantsToBeFree {
                         unpickle_inbound_group_session(
                             ptr,
                             key?.encodeToByteArray() ?: ByteArray(0),
-                            pickle.encodeToByteArray()
+                            pickle.encodeToByteArray(),
                         )
                     checkError(ptr, result, ::inbound_group_session_last_error)
                 } catch (e: Exception) {
@@ -66,7 +66,8 @@ actual class OlmInboundGroupSession private constructor() : WantsToBeFree {
             return sessionId.decodeToString(endIndex = size.toInt())
         }
 
-    actual val firstKnownIndex: Long get() = inbound_group_session_first_known_index(ptr).toLong()
+    actual val firstKnownIndex: Long
+        get() = inbound_group_session_first_known_index(ptr).toLong()
 
     actual override fun free() {
         clear_inbound_group_session(ptr)
@@ -79,27 +80,25 @@ actual class OlmInboundGroupSession private constructor() : WantsToBeFree {
         return export.decodeToString(endIndex = size.toInt())
     }
 
-    actual fun pickle(key: String?): String = pickle(
-        ptr,
-        key ?: "",
-        ::pickle_inbound_group_session_length,
-        ::pickle_inbound_group_session,
-        ::inbound_group_session_last_error
-    )
+    actual fun pickle(key: String?): String =
+        pickle(
+            ptr,
+            key ?: "",
+            ::pickle_inbound_group_session_length,
+            ::pickle_inbound_group_session,
+            ::inbound_group_session_last_error,
+        )
 
     actual fun decrypt(encryptedText: String): OlmInboundGroupMessage {
-        val maxPlainTextLength =
-            checkResult { group_decrypt_max_plaintext_length(ptr, encryptedText.encodeToByteArray()) }
+        val maxPlainTextLength = checkResult {
+            group_decrypt_max_plaintext_length(ptr, encryptedText.encodeToByteArray())
+        }
         val plainText = ByteArray(maxPlainTextLength.toInt())
         val messageIndex = MutableWrapper(0u)
         val size = checkResult { group_decrypt(ptr, encryptedText.encodeToByteArray(), plainText, messageIndex) }
 
-        return OlmInboundGroupMessage(
-            plainText.decodeToString(endIndex = size.toInt()),
-            messageIndex.value.toLong()
-        )
+        return OlmInboundGroupMessage(plainText.decodeToString(endIndex = size.toInt()), messageIndex.value.toLong())
     }
 
-    private fun checkResult(block: () -> ULong): ULong =
-        checkError(ptr, block(), ::inbound_group_session_last_error)
+    private fun checkResult(block: () -> ULong): ULong = checkError(ptr, block(), ::inbound_group_session_last_error)
 }

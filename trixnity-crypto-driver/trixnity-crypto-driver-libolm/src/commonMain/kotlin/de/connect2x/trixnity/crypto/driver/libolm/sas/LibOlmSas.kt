@@ -19,9 +19,7 @@ class LibOlmSas(private val inner: OlmSAS) : Sas {
         require(theirPublicKey is LibOlmCurve25519PublicKey)
         require(!used.exchange(true))
 
-        return LibOlmEstablishedSas(
-            inner, theirPublicKey
-        )
+        return LibOlmEstablishedSas(inner, theirPublicKey)
     }
 
     override fun close() {

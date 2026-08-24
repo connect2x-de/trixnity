@@ -25,9 +25,8 @@ internal object EstablishedSasBindings {
         input: InteropPointer,
         input_size: Int,
         info: InteropPointer,
-        info_size: Int
-    ): NativePointer =
-        vodozemac_sas_established_sas_calculate_mac(sas, input, input_size, info, info_size)
+        info_size: Int,
+    ): NativePointer = vodozemac_sas_established_sas_calculate_mac(sas, input, input_size, info, info_size)
 
     fun calculateMacInvalidBase64(
         result: InteropPointer,
@@ -35,10 +34,8 @@ internal object EstablishedSasBindings {
         input: InteropPointer,
         input_size: Int,
         info: InteropPointer,
-        info_size: Int
-    ) =
-        vodozemac_sas_established_sas_calculate_mac_invalid_base64(
-            result, sas, input, input_size, info, info_size)
+        info_size: Int,
+    ) = vodozemac_sas_established_sas_calculate_mac_invalid_base64(result, sas, input, input_size, info, info_size)
 
     fun verifyMac(
         sas: NativePointer,
@@ -46,15 +43,12 @@ internal object EstablishedSasBindings {
         input_size: Int,
         info: InteropPointer,
         info_size: Int,
-        tag: NativePointer
-    ): Boolean =
-        vodozemac_sas_established_sas_verify_mac(sas, input, input_size, info, info_size, tag) == 1
+        tag: NativePointer,
+    ): Boolean = vodozemac_sas_established_sas_verify_mac(sas, input, input_size, info, info_size, tag) == 1
 
-    fun ourPublicKey(sas: NativePointer): NativePointer =
-        vodozemac_sas_established_sas_our_public_key(sas)
+    fun ourPublicKey(sas: NativePointer): NativePointer = vodozemac_sas_established_sas_our_public_key(sas)
 
-    fun theirPublicKey(sas: NativePointer): NativePointer =
-        vodozemac_sas_established_sas_their_public_key(sas)
+    fun theirPublicKey(sas: NativePointer): NativePointer = vodozemac_sas_established_sas_their_public_key(sas)
 }
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_free")
@@ -66,7 +60,7 @@ private external fun vodozemac_sas_established_sas_free(sas: NativePointer)
 private external fun vodozemac_sas_established_sas_bytes(
     sas: NativePointer,
     info: InteropPointer,
-    info_size: Int
+    info_size: Int,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_calculate_mac")
@@ -76,7 +70,7 @@ private external fun vodozemac_sas_established_sas_calculate_mac(
     input: InteropPointer,
     input_size: Int,
     info: InteropPointer,
-    info_size: Int
+    info_size: Int,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_calculate_mac_invalid_base64")
@@ -87,7 +81,7 @@ private external fun vodozemac_sas_established_sas_calculate_mac_invalid_base64(
     input: InteropPointer,
     input_size: Int,
     info: InteropPointer,
-    info_size: Int
+    info_size: Int,
 )
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_verify_mac")
@@ -98,7 +92,7 @@ private external fun vodozemac_sas_established_sas_verify_mac(
     input_size: Int,
     info: InteropPointer,
     info_size: Int,
-    tag: NativePointer
+    tag: NativePointer,
 ): Int
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_our_public_key")
@@ -107,6 +101,4 @@ private external fun vodozemac_sas_established_sas_our_public_key(sas: NativePoi
 
 @ModuleImport("vodozemac", "vodozemac_sas_established_sas_their_public_key")
 @ExternalSymbolName("vodozemac_sas_established_sas_their_public_key")
-private external fun vodozemac_sas_established_sas_their_public_key(
-    sas: NativePointer
-): NativePointer
+private external fun vodozemac_sas_established_sas_their_public_key(sas: NativePointer): NativePointer

@@ -15,10 +15,8 @@ import de.connect2x.trixnity.libolm.OlmLibrary.unpickle_pk_decryption
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 
-actual class OlmPkDecryption private constructor(
-    internal actual val ptr: OlmPkDecryptionPointer,
-    actual val publicKey: String
-) : WantsToBeFree {
+actual class OlmPkDecryption
+private constructor(internal actual val ptr: OlmPkDecryptionPointer, actual val publicKey: String) : WantsToBeFree {
     actual companion object {
         actual fun create(privateKey: String?): OlmPkDecryption {
             val privateKeyLength = pk_private_key_length()
@@ -46,12 +44,13 @@ actual class OlmPkDecryption private constructor(
         actual fun unpickle(key: String?, pickle: String): OlmPkDecryption {
             val ptr = pk_decryption()
             val publicKey = ByteArray(pk_key_length().toInt())
-            val result = unpickle_pk_decryption(
-                ptr,
-                key?.encodeToByteArray() ?: ByteArray(0),
-                pickle.encodeToByteArray(),
-                publicKey
-            )
+            val result =
+                unpickle_pk_decryption(
+                    ptr,
+                    key?.encodeToByteArray() ?: ByteArray(0),
+                    pickle.encodeToByteArray(),
+                    publicKey,
+                )
             checkError(ptr, result, ::pk_decryption_last_error)
             return OlmPkDecryption(ptr, publicKey.decodeToString())
         }
@@ -69,13 +68,8 @@ actual class OlmPkDecryption private constructor(
         ptr.free()
     }
 
-    actual fun pickle(key: String?): String = pickle(
-        ptr,
-        key ?: "",
-        ::pickle_pk_decryption_length,
-        ::pickle_pk_decryption,
-        ::pk_decryption_last_error
-    )
+    actual fun pickle(key: String?): String =
+        pickle(ptr, key ?: "", ::pickle_pk_decryption_length, ::pickle_pk_decryption, ::pk_decryption_last_error)
 
     actual fun decrypt(message: OlmPkMessage): String {
         val cipherTextBytes = message.cipherText.encodeToByteArray()
@@ -88,7 +82,7 @@ actual class OlmPkDecryption private constructor(
                 message.ephemeralKey.encodeToByteArray(),
                 message.mac.encodeToByteArray(),
                 cipherTextBytes,
-                plainText
+                plainText,
             )
         }
 

@@ -10,9 +10,9 @@ import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.core.model.events.senderOrNull
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
-import kotlinx.coroutines.CoroutineScope
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
 
 class UserPresenceEventHandler(
     private val userPresenceStore: UserPresenceStore,
@@ -30,15 +30,16 @@ class UserPresenceEventHandler(
             val now = clock.now()
             val newUserPresences = presenceEvents.mapNotNull { presenceEvent ->
                 presenceEvent.senderOrNull?.let { sender ->
-                    sender to with(presenceEvent.content) {
-                        UserPresence(
-                            presence = presence,
-                            lastUpdate = now,
-                            lastActive = lastActiveAgo?.let { now - it.milliseconds },
-                            isCurrentlyActive = isCurrentlyActive,
-                            statusMessage = statusMessage
-                        )
-                    }
+                    sender to
+                        with(presenceEvent.content) {
+                            UserPresence(
+                                presence = presence,
+                                lastUpdate = now,
+                                lastActive = lastActiveAgo?.let { now - it.milliseconds },
+                                isCurrentlyActive = isCurrentlyActive,
+                                statusMessage = statusMessage,
+                            )
+                        }
                 }
             }
             if (newUserPresences.isNotEmpty())

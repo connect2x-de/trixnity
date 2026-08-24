@@ -69,16 +69,16 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 class KeyBackupServiceTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -87,12 +87,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     private val ownUserId = UserId("alice", "server")
     private val ownDeviceId = "DEV"
 
-    private val accountStore =
-        getInMemoryAccountStore {
-            tm.writeTransaction {
-                updateAccount { it?.copy(syncBatchToken = "batch") }
-            }
-        }
+    private val accountStore = getInMemoryAccountStore {
+        tm.writeTransaction { updateAccount { it?.copy(syncBatchToken = "batch") } }
+    }
     private val olmCryptoStore = getInMemoryOlmStore()
     private val keyStore = getInMemoryKeyStore()
 
@@ -107,33 +104,33 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
 
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
 
-    private val cut = KeyBackupServiceImpl(
-        userInfo = UserInfo(ownUserId, ownDeviceId, Ed25519Key(null, ""), Curve25519Key(null, "")),
-        accountStore = accountStore,
-        olmCryptoStore = olmCryptoStore,
-        keyStore = keyStore,
-        tm = tm,
-        api = api,
-        signService = olmSignMock,
-        currentSyncState = CurrentSyncState(currentSyncState),
-        scope = testScope.backgroundScope,
-        driver = driver,
-    ).apply {
-        startInCoroutineScope(testScope.backgroundScope)
-    }
+    private val cut =
+        KeyBackupServiceImpl(
+                userInfo = UserInfo(ownUserId, ownDeviceId, Ed25519Key(null, ""), Curve25519Key(null, "")),
+                accountStore = accountStore,
+                olmCryptoStore = olmCryptoStore,
+                keyStore = keyStore,
+                tm = tm,
+                api = api,
+                signService = olmSignMock,
+                currentSyncState = CurrentSyncState(currentSyncState),
+                scope = testScope.backgroundScope,
+                driver = driver,
+            )
+            .apply { startInCoroutineScope(testScope.backgroundScope) }
 
     private val keyVersion = run {
         GetRoomKeysBackupVersionResponse.V1(
-            authData = RoomKeyBackupV1AuthData(
-                publicKey = KeyValue.of(validKeyBackup.publicKey),
-                signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2")))
-            ),
+            authData =
+                RoomKeyBackupV1AuthData(
+                    publicKey = KeyValue.of(validKeyBackup.publicKey),
+                    signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2"))),
+                ),
             count = 1,
             etag = "etag",
-            version = "1"
+            version = "1",
         )
     }
-
 
     @Test
     fun `setAndSignNewKeyBackupVersion » set version to null when algorithm not supported`() = runTest {
@@ -145,10 +142,11 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 call++
                 when (call) {
                     1 -> keyVersion
-                    else -> GetRoomKeysBackupVersionResponse.Unknown(
-                        JsonObject(mapOf()),
-                        RoomKeyBackupAlgorithm.Unknown("")
-                    )
+                    else ->
+                        GetRoomKeysBackupVersionResponse.Unknown(
+                            JsonObject(mapOf()),
+                            RoomKeyBackupAlgorithm.Unknown(""),
+                        )
                 }
             }
         }
@@ -157,10 +155,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        validKeyBackup.base64
-                    )
+                    M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), validKeyBackup.base64)
                 )
             }
         }
@@ -170,43 +166,34 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf("" to JsonPrimitive("something")))),
-                        validKeyBackup.base64
-                    )
+                    M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(
+                            GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf("" to JsonPrimitive("something")))),
+                            validKeyBackup.base64,
+                        )
                 )
             }
         }
         delay(1.seconds)
         cut.version.value shouldBe null
-
     }
 
     @Test
-    fun `setAndSignNewKeyBackupVersion » key backup can be trusted » just set version when already signed`() =
-        runTest {
-            currentSyncState.value = RUNNING
-            apiConfig.endpoints {
-                matrixJsonEndpoint(GetRoomKeyBackupVersion) {
-                    keyVersion
-                }
+    fun `setAndSignNewKeyBackupVersion » key backup can be trusted » just set version when already signed`() = runTest {
+        currentSyncState.value = RUNNING
+        apiConfig.endpoints { matrixJsonEndpoint(GetRoomKeyBackupVersion) { keyVersion } }
+        olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), validKeyBackup.base64)
+                )
             }
-            olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
-            tm.writeTransaction {
-                keyStore.updateSecrets {
-                    mapOf(
-                        M_MEGOLM_BACKUP_V1 to StoredSecret(
-                            GlobalAccountDataEvent(
-                                MegolmBackupV1EventContent(mapOf())
-                            ),
-                            validKeyBackup.base64
-                        )
-                    )
-                }
-            }
-            delay(1.seconds)
-            cut.version.value shouldBe keyVersion
         }
+        delay(1.seconds)
+        cut.version.value shouldBe keyVersion
+    }
 
     @Test
     fun `setAndSignNewKeyBackupVersion » key backup can be trusted » set version and sign when not signed by own device`() =
@@ -215,20 +202,14 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             var setRoomKeyBackupVersionCalled = false
 
             apiConfig.endpoints {
-                matrixJsonEndpoint(GetRoomKeyBackupVersion) {
-                    keyVersion
-                }
+                matrixJsonEndpoint(GetRoomKeyBackupVersion) { keyVersion }
                 matrixJsonEndpoint(SetRoomKeyBackupVersionByVersion("1")) {
                     setRoomKeyBackupVersionCalled = true
                     it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
                     it.version shouldBe "1"
                     it.authData.publicKey shouldBe KeyValue.of(validKeyBackup.publicKey)
-                    it.authData.signatures shouldBe mapOf(
-                        ownUserId to keysOf(
-                            Ed25519Key("DEV", "s24"),
-                            Ed25519Key("MSK", "s2")
-                        )
-                    )
+                    it.authData.signatures shouldBe
+                        mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s24"), Ed25519Key("MSK", "s2")))
                     SetRoomKeyBackupVersion.Response("1")
                 }
             }
@@ -236,12 +217,11 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateSecrets {
                     mapOf(
-                        M_MEGOLM_BACKUP_V1 to StoredSecret(
-                            GlobalAccountDataEvent(
-                                MegolmBackupV1EventContent(mapOf())
-                            ),
-                            validKeyBackup.base64
-                        )
+                        M_MEGOLM_BACKUP_V1 to
+                            StoredSecret(
+                                GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                                validKeyBackup.base64,
+                            )
                     )
                 }
             }
@@ -257,19 +237,13 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             currentSyncState.value = RUNNING
             var setRoomKeyBackupVersionCalled = false
             apiConfig.endpoints {
-                matrixJsonEndpoint(GetRoomKeyBackupVersion) {
-                    keyVersion
-                }
+                matrixJsonEndpoint(GetRoomKeyBackupVersion) { keyVersion }
                 matrixJsonEndpoint(SetRoomKeyBackupVersionByVersion("1")) {
                     setRoomKeyBackupVersionCalled = true
                     it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
                     it.version shouldBe "1"
                     it.authData.publicKey shouldBe KeyValue.of(validKeyBackup.publicKey)
-                    it.authData.signatures shouldBe mapOf(
-                        ownUserId to keysOf(
-                            Ed25519Key("MSK", "s2")
-                        )
-                    )
+                    it.authData.signatures shouldBe mapOf(ownUserId to keysOf(Ed25519Key("MSK", "s2")))
                     SetRoomKeyBackupVersion.Response("1")
                 }
             }
@@ -277,12 +251,11 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateSecrets {
                     mapOf(
-                        M_MEGOLM_BACKUP_V1 to StoredSecret(
-                            GlobalAccountDataEvent(
-                                MegolmBackupV1EventContent(mapOf())
-                            ),
-                            validKeyBackup.base64
-                        )
+                        M_MEGOLM_BACKUP_V1 to
+                            StoredSecret(
+                                GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                                validKeyBackup.base64,
+                            )
                     )
                 }
             }
@@ -292,11 +265,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateSecrets {
                     mapOf(
-                        M_MEGOLM_BACKUP_V1 to StoredSecret(
-                            GlobalAccountDataEvent(
-                                MegolmBackupV1EventContent(mapOf())
-                            ), "invalidPri"
-                        )
+                        M_MEGOLM_BACKUP_V1 to
+                            StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), "invalidPri")
                     )
                 }
             }
@@ -307,7 +277,6 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             keyStore.getSecrets().shouldBeEmpty()
         }
 
-
     private val roomId = RoomId("!room:server")
     private val sessionId = "sessionId"
     private val version = "1"
@@ -316,27 +285,21 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     @Test
     fun `loadMegolmSession » do nothing when version is null`() = runTest {
         currentSyncState.value = RUNNING
-        backgroundScope.launch {
-            cut.loadMegolmSession(roomId, sessionId)
-        }
-        continually(1.seconds) {
-            olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() shouldBe null
-        }
+        backgroundScope.launch { cut.loadMegolmSession(roomId, sessionId) }
+        continually(1.seconds) { olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() shouldBe null }
     }
 
     private val encryptedRoomKeyBackupV1SessionData = run {
         val outboundSession = driver.megolm.groupSession()
         outboundSession.encrypt("bla")
-        val inboundSession = driver.megolm.inboundGroupSession(
-            sessionKey = outboundSession.sessionKey,
-        )
+        val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
         val data =
             json.encodeToString(
                 RoomKeyBackupV1SessionData(
                     senderKey,
                     listOf(),
                     Keys(Ed25519Key(null, "edKey")),
-                    ExportedSessionKeyValue.of(checkNotNull(inboundSession.exportAt(1)))
+                    ExportedSessionKeyValue.of(checkNotNull(inboundSession.exportAt(1))),
                 )
             )
 
@@ -375,17 +338,13 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         }
     }
 
-
     private suspend fun megolmSessionOnServerWithError() {
         megolmSessionOnServerSetup()
         apiConfig.endpoints {
             matrixJsonEndpoint(GetRoomKeyBackupData(roomId, sessionId, version)) {
                 call++
                 when (call) {
-                    1 -> throw MatrixServerException(
-                        HttpStatusCode.InternalServerError,
-                        ErrorResponse.Unknown("")
-                    )
+                    1 -> throw MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
 
                     else -> {
                         getRoomKeyBackupDataCalled = true
@@ -400,28 +359,25 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     fun `loadMegolmSession » megolm session on server » without error » fetch megolm session and save when index is older than known index`() =
         runTest {
             megolmSessionOnServerWithoutErrorSetup()
-            val currentSession = StoredInboundMegolmSession(
-                senderKey = senderKey,
-                sessionId = sessionId,
-                roomId = roomId,
-                firstKnownIndex = 24,
-                hasBeenBackedUp = true,
-                isTrusted = true,
-                senderSigningKey = Ed25519KeyValue("edKey"),
-                forwardingCurve25519KeyChain = listOf(),
-                pickled = "pickle"
-            )
-            tm.writeTransaction {
-                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
-            }
+            val currentSession =
+                StoredInboundMegolmSession(
+                    senderKey = senderKey,
+                    sessionId = sessionId,
+                    roomId = roomId,
+                    firstKnownIndex = 24,
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    senderSigningKey = Ed25519KeyValue("edKey"),
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = "pickle",
+                )
+            tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession } }
 
             cut.loadMegolmSession(roomId, sessionId)
             delay(1.seconds)
-            olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()
-                .shouldNotBeNull().firstKnownIndex shouldBe 1
-            assertSoftly(
-                olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()
-            ) {
+            olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first().shouldNotBeNull().firstKnownIndex shouldBe
+                1
+            assertSoftly(olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()) {
                 assertNotNull(this)
                 this.senderKey shouldBe senderKey
                 this.sessionId shouldBe sessionId
@@ -437,20 +393,19 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     fun `loadMegolmSession » megolm session on server » without error » fetch megolm session but keep old session when index is older than known index`() =
         runTest {
             megolmSessionOnServerWithoutErrorSetup()
-            val currentSession = StoredInboundMegolmSession(
-                senderKey = senderKey,
-                sessionId = sessionId,
-                roomId = roomId,
-                firstKnownIndex = 0,
-                hasBeenBackedUp = true,
-                isTrusted = true,
-                senderSigningKey = Ed25519KeyValue("key"),
-                forwardingCurve25519KeyChain = listOf(),
-                pickled = "pickle"
-            )
-            tm.writeTransaction {
-                olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession }
-            }
+            val currentSession =
+                StoredInboundMegolmSession(
+                    senderKey = senderKey,
+                    sessionId = sessionId,
+                    roomId = roomId,
+                    firstKnownIndex = 0,
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    senderSigningKey = Ed25519KeyValue("key"),
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = "pickle",
+                )
+            tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession } }
 
             cut.loadMegolmSession(roomId, sessionId)
             continually(1.seconds) {
@@ -462,11 +417,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     fun `loadMegolmSession » megolm session on server » with delay » fetch one megolm session only once at a time`() =
         runTest {
             megolmSessionOnServerWithDelaySetup()
-            repeat(20) {
-                launch {
-                    cut.loadMegolmSession(roomId, sessionId)
-                }
-            }
+            repeat(20) { launch { cut.loadMegolmSession(roomId, sessionId) } }
             allLoadMegolmSessionsCalled.value = true
             delay(1.seconds)
             olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first().shouldNotBeNull()
@@ -479,8 +430,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         megolmSessionOnServerWithError()
         cut.loadMegolmSession(roomId, sessionId)
         delay(1.seconds)
-        val session = olmCryptoStore.getInboundMegolmSession(sessionId, roomId)
-            .first().shouldNotBeNull()
+        val session = olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first().shouldNotBeNull()
 
         assertSoftly(session) {
             assertNotNull(this)
@@ -517,7 +467,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             isTrusted = true,
             senderSigningKey = Ed25519KeyValue("ed1"),
             forwardingCurve25519KeyChain = listOf(),
-            pickled = pickle1
+            pickled = pickle1,
         )
     }
     private val session2 by suspendLazy {
@@ -530,7 +480,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             isTrusted = true,
             senderSigningKey = Ed25519KeyValue("ed2"),
             forwardingCurve25519KeyChain = listOf(Curve25519KeyValue("curve2")),
-            pickled = pickle2
+            pickled = pickle2,
         )
     }
 
@@ -555,12 +505,10 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         continually(1.seconds) {
             setRoomKeyBackupVersionCalled shouldBe false
             olmCryptoStore.notBackedUpInboundMegolmSessions.value.size shouldBe 2
-            session1.run {
-                olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()
-            }?.hasBeenBackedUp shouldBe false
-            session2.run {
-                olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()
-            }?.hasBeenBackedUp shouldBe false
+            session1.run { olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() }?.hasBeenBackedUp shouldBe
+                false
+            session2.run { olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() }?.hasBeenBackedUp shouldBe
+                false
         }
     }
 
@@ -584,9 +532,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         }
         setVersion(driver.key.curve25519SecretKey(), "1")
 
-        continually(1.seconds) {
-            setRoomKeyBackupVersionCalled shouldBe false
-        }
+        continually(1.seconds) { setRoomKeyBackupVersionCalled shouldBe false }
     }
 
     @Test
@@ -646,13 +592,14 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         setVersion(validKeyBackup, "1") {
             if (setRoomKeyBackupDataCalled1.value)
                 GetRoomKeysBackupVersionResponse.V1(
-                    authData = RoomKeyBackupV1AuthData(
-                        publicKey = KeyValue.of(validKeyBackup.publicKey),
-                        signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2")))
-                    ),
+                    authData =
+                        RoomKeyBackupV1AuthData(
+                            publicKey = KeyValue.of(validKeyBackup.publicKey),
+                            signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2"))),
+                        ),
                     count = 1,
                     etag = "etag",
-                    version = "2"
+                    version = "2",
                 )
             else it
         }
@@ -672,10 +619,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     fun `return false when key backup version not supported`() = runTest {
         deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(true))
         cut.keyBackupCanBeTrusted(
-            GetRoomKeysBackupVersionResponse.Unknown(
-                JsonObject(mapOf()),
-                RoomKeyBackupAlgorithm.Unknown("")
-            ), "dino"
+            GetRoomKeysBackupVersionResponse.Unknown(JsonObject(mapOf()), RoomKeyBackupAlgorithm.Unknown("")),
+            "dino",
         ) shouldBe false
     }
 
@@ -684,25 +629,23 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(true))
         cut.keyBackupCanBeTrusted(
             roomKeyVersion(),
-            driver.pk.decryption()
-                .use(PkDecryption::secretKey)
-                .use(Curve25519SecretKey::base64)
+            driver.pk.decryption().use(PkDecryption::secretKey).use(Curve25519SecretKey::base64),
         ) shouldBe false
     }
 
     /*
-       @Test
-       fun `return false, when there is no signature we trust`() = runTest {
-            deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
-            masterKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
-            keyBackupCanBeTrusted(
-                roomKeyVersion,
-                privateKey,
-                ownUserId,
-                store
-            ) shouldBe false
-        }
-     */
+      @Test
+      fun `return false, when there is no signature we trust`() = runTest {
+           deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
+           masterKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
+           keyBackupCanBeTrusted(
+               roomKeyVersion,
+               privateKey,
+               ownUserId,
+               store
+           ) shouldBe false
+       }
+    */
 
     @Test
     fun `return true when there is a device key is valid+verified`() = runTest {
@@ -732,26 +675,27 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         cut.keyBackupCanBeTrusted(roomKeyVersion(), validKeyBackup.base64) shouldBe true
     }
 
-    private fun roomKeyVersion() = GetRoomKeysBackupVersionResponse.V1(
-        authData = RoomKeyBackupV1AuthData(
-            publicKey = KeyValue.of(validKeyBackup.publicKey),
-            signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEVICE", "s1"), Ed25519Key("MSK", "s2")))
-        ),
-        count = 1,
-        etag = "etag",
-        version = "1"
-    )
+    private fun roomKeyVersion() =
+        GetRoomKeysBackupVersionResponse.V1(
+            authData =
+                RoomKeyBackupV1AuthData(
+                    publicKey = KeyValue.of(validKeyBackup.publicKey),
+                    signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEVICE", "s1"), Ed25519Key("MSK", "s2"))),
+                ),
+            count = 1,
+            etag = "etag",
+            version = "1",
+        )
 
     private suspend fun deviceKeyTrustLevel(level: KeySignatureTrustLevel) {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(ownUserId) {
                 mapOf(
-                    "DEVICE" to StoredDeviceKeys(
-                        SignedDeviceKeys(
-                            DeviceKeys(ownUserId, ownDeviceId, setOf(), keysOf()),
-                            null
-                        ), level
-                    )
+                    "DEVICE" to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(ownUserId, ownDeviceId, setOf(), keysOf()), null),
+                            level,
+                        )
                 )
             }
         }
@@ -763,12 +707,10 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 setOf(
                     StoredCrossSigningKeys(
                         SignedCrossSigningKeys(
-                            CrossSigningKeys(
-                                ownUserId, setOf(), keysOf(Ed25519Key("MSK", "msk_pub"))
-                            ),
-                            mapOf()
+                            CrossSigningKeys(ownUserId, setOf(), keysOf(Ed25519Key("MSK", "msk_pub"))),
+                            mapOf(),
                         ),
-                        level
+                        level,
                     )
                 )
             }
@@ -778,30 +720,29 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     private suspend fun setVersion(
         keyBackupPrivateKey: Curve25519SecretKey,
         version: String,
-        modifyVersion: suspend ((GetRoomKeysBackupVersionResponse.V1) -> GetRoomKeysBackupVersionResponse.V1) = { it }
+        modifyVersion: suspend ((GetRoomKeysBackupVersionResponse.V1) -> GetRoomKeysBackupVersionResponse.V1) = { it },
     ) {
         olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
-        val defaultVersion = GetRoomKeysBackupVersionResponse.V1(
-            authData = RoomKeyBackupV1AuthData(
-                publicKey = KeyValue.of(keyBackupPrivateKey.publicKey),
-                signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2")))
-            ),
-            count = 1,
-            etag = "etag",
-            version = version
-        )
-        apiConfig.endpoints {
-            matrixJsonEndpoint(GetRoomKeyBackupVersion) {
-                modifyVersion(defaultVersion)
-            }
-        }
+        val defaultVersion =
+            GetRoomKeysBackupVersionResponse.V1(
+                authData =
+                    RoomKeyBackupV1AuthData(
+                        publicKey = KeyValue.of(keyBackupPrivateKey.publicKey),
+                        signatures = mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"), Ed25519Key("MSK", "s2"))),
+                    ),
+                count = 1,
+                etag = "etag",
+                version = version,
+            )
+        apiConfig.endpoints { matrixJsonEndpoint(GetRoomKeyBackupVersion) { modifyVersion(defaultVersion) } }
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        keyBackupPrivateKey.base64
-                    )
+                    M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(
+                            GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                            keyBackupPrivateKey.base64,
+                        )
                 )
             }
         }

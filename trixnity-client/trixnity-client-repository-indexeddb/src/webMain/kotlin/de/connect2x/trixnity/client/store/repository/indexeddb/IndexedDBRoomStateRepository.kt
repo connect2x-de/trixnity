@@ -22,13 +22,11 @@ internal class IndexedDBRoomState(
     val roomId: String,
     @Suppress("unused") val type: String,
     val stateKey: String,
-    @Contextual
-    val event: StateBaseEvent<*>,
+    @Contextual val event: StateBaseEvent<*>,
 )
 
-internal class IndexedDBRoomStateRepository(
-    json: Json
-) : RoomStateRepository,
+internal class IndexedDBRoomStateRepository(json: Json) :
+    RoomStateRepository,
     IndexedDBMapRepository<RoomStateRepositoryKey, String, StateBaseEvent<*>, IndexedDBRoomState>(
         objectStoreName = objectStoreName,
         firstKeyIndexName = "roomId|type",
@@ -42,6 +40,7 @@ internal class IndexedDBRoomStateRepository(
     ) {
     companion object {
         const val objectStoreName = "room_state"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1)
                 createIndexedDBTwoDimensionsStoreRepository(
@@ -52,11 +51,7 @@ internal class IndexedDBRoomStateRepository(
                     firstKeyIndexKeyPath = KeyPath.Multiple("roomId", "type"),
                 ) { store ->
                     store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
-                    store.createIndex(
-                        "type|stateKey",
-                        KeyPath.Multiple("type", "stateKey"),
-                        unique = false
-                    )
+                    store.createIndex("type|stateKey", KeyPath.Multiple("type", "stateKey"), unique = false)
                 }
         }
     }
@@ -65,7 +60,9 @@ internal class IndexedDBRoomStateRepository(
     override suspend fun getByRooms(roomIds: Set<RoomId>, type: String, stateKey: String): List<StateBaseEvent<*>> =
         withRead { store ->
             val roomIdStrings = roomIds.map { it.full }
-            store.index("type|stateKey").openCursor(keyOf(arrayOf(type, stateKey)))
+            store
+                .index("type|stateKey")
+                .openCursor(keyOf(arrayOf(type, stateKey)))
                 .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
                 .filter { roomIdStrings.contains(it.roomId) }
                 .map { mapFromRepresentation(it) }
@@ -74,9 +71,6 @@ internal class IndexedDBRoomStateRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

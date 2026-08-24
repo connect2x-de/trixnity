@@ -1,36 +1,47 @@
 rootProject.name = "trixnity"
+
 include("trixnity-bom")
+
 include("trixnity-utils")
+
 include("trixnity-core")
+
 include("trixnity-crypto-core")
+
 include("trixnity-crypto")
+
 include("trixnity-libolm")
-include(
-    "trixnity-vodozemac",
-    "trixnity-vodozemac:trixnity-vodozemac-binaries"
-)
+
+include("trixnity-vodozemac", "trixnity-vodozemac:trixnity-vodozemac-binaries")
+
 include(
     "trixnity-crypto-driver",
     "trixnity-crypto-driver:driver-test",
     "trixnity-crypto-driver:trixnity-crypto-driver-libolm",
     "trixnity-crypto-driver:trixnity-crypto-driver-vodozemac",
 )
+
 include("trixnity-api-client")
+
 include("trixnity-api-server")
+
 include(
     "trixnity-clientserverapi:trixnity-clientserverapi-model",
     "trixnity-clientserverapi:trixnity-clientserverapi-client",
-    "trixnity-clientserverapi:trixnity-clientserverapi-server"
+    "trixnity-clientserverapi:trixnity-clientserverapi-server",
 )
+
 include(
     "trixnity-serverserverapi:trixnity-serverserverapi-model",
     "trixnity-serverserverapi:trixnity-serverserverapi-client",
-    "trixnity-serverserverapi:trixnity-serverserverapi-server"
+    "trixnity-serverserverapi:trixnity-serverserverapi-server",
 )
+
 include(
     "trixnity-applicationserviceapi:trixnity-applicationserviceapi-model",
-    "trixnity-applicationserviceapi:trixnity-applicationserviceapi-server"
+    "trixnity-applicationserviceapi:trixnity-applicationserviceapi-server",
 )
+
 include(
     "trixnity-client",
     "trixnity-client:integration-tests",
@@ -44,9 +55,13 @@ include(
     "trixnity-client:trixnity-client-cryptodriver-libolm",
     "trixnity-client:trixnity-client-cryptodriver-vodozemac",
 )
+
 include("trixnity-test-utils")
+
 include("trixnity-idb-utils")
+
 include("ktor-test-utils")
+
 include("idb-schemaexporter")
 
 pluginManagement {
@@ -59,8 +74,6 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("de.connect2x.conventions.c2x-settings-plugin") version "20260723.123217"
-}
+plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20260723.123217" }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

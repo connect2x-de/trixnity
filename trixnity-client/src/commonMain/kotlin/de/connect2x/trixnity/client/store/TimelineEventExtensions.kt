@@ -25,27 +25,19 @@ val TimelineEvent.unsigned: UnsignedRoomEventData?
 val TimelineEvent.isEncrypted: Boolean
     get() = event.isEncrypted
 
-/**
- * Returns true, when this is the first event of the room (not including room upgrades).
- */
+/** Returns true, when this is the first event of the room (not including room upgrades). */
 val TimelineEvent.isFirst: Boolean
     get() = previousEventId == null && gap !is TimelineEvent.Gap.GapBefore && gap !is TimelineEvent.Gap.GapBoth
 
-/**
- * Returns true, when this is the last known event of the room (not including room upgrades).
- */
+/** Returns true, when this is the last known event of the room (not including room upgrades). */
 val TimelineEvent.isLast: Boolean
     get() = nextEventId == null
 
 val TimelineEvent.isReplaced: Boolean
-    get() =
-        if (event is MessageEvent) event.unsigned?.relations?.replace != null
-        else false
+    get() = if (event is MessageEvent) event.unsigned?.relations?.replace != null else false
 
 val TimelineEvent.isReplacing: Boolean
     get() = relatesTo is RelatesTo.Replace
 
 val TimelineEvent.relatesTo: RelatesTo?
-    get() =
-        if (event is MessageEvent) event.content.relatesTo
-        else null
+    get() = if (event is MessageEvent) event.content.relatesTo else null

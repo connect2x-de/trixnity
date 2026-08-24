@@ -61,16 +61,13 @@ internal actual class InteropScopeImpl : InteropScope {
     actual override fun close() {}
 }
 
-actual abstract class Managed
-actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
+actual abstract class Managed actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
     Native(ptr), AutoCloseable {
 
     actual override fun close() {
-        if (ptrOrNull == null)
-            throw RuntimeException("Object already closed: $javaClass, _ptr=null")
+        if (ptrOrNull == null) throw RuntimeException("Object already closed: $javaClass, _ptr=null")
         else if (null == cleanable)
-            throw RuntimeException(
-                "Object is not managed in JVM, can't close(): $javaClass, _ptr=$ptrOrNull")
+            throw RuntimeException("Object is not managed in JVM, can't close(): $javaClass, _ptr=$ptrOrNull")
         else {
             cleanable!!.clean()
             cleanable = null
@@ -78,10 +75,7 @@ actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
         }
     }
 
-    class CleanerThunk(
-        private val ptr: NativePointer,
-        private val finalizer: (NativePointer) -> Unit
-    ) : Runnable {
+    class CleanerThunk(private val ptr: NativePointer, private val finalizer: (NativePointer) -> Unit) : Runnable {
         override fun run() {
             finalizer(ptr)
         }
@@ -110,8 +104,7 @@ private class CleanableImpl(managed: Managed, action: Runnable, cleaner: Cleaner
     PhantomReference<Managed>(managed, cleaner.queue), Cleanable {
 
     override var prev: Cleanable? = this
-    @Suppress("PROPERTY_HIDES_JAVA_FIELD")
-    override var next: Cleanable? = this
+    @Suppress("PROPERTY_HIDES_JAVA_FIELD") override var next: Cleanable? = this
 
     private val list: Cleanable = cleaner.list
     private var action: Runnable = action
@@ -190,5 +183,4 @@ private class Cleaner {
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
-actual fun NativePointer.format(): String = "0x" + toULong().toHexString().drop(4)
+@OptIn(ExperimentalStdlibApi::class) actual fun NativePointer.format(): String = "0x" + toULong().toHexString().drop(4)

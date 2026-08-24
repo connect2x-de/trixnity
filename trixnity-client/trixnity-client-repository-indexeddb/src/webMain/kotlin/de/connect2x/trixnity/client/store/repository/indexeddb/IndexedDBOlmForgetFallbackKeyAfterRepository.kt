@@ -1,23 +1,23 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRepository
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
-import web.idb.IDBDatabase
 import kotlin.time.Instant
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import web.idb.IDBDatabase
 
-internal class IndexedDBOlmForgetFallbackKeyAfterRepository(
-    json: Json,
-) : OlmForgetFallbackKeyAfterRepository,
+internal class IndexedDBOlmForgetFallbackKeyAfterRepository(json: Json) :
+    OlmForgetFallbackKeyAfterRepository,
     IndexedDBFullRepository<Long, Instant>(
         objectStoreName = objectStoreName,
         keySerializer = { arrayOf(it.toString()) },
         valueSerializer = serializer(),
-        json = json
+        json = json,
     ) {
     companion object {
         const val objectStoreName = "olm_forget_fallback_key_after"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) createIndexedDBMinimalStoreRepository(database, objectStoreName)
         }

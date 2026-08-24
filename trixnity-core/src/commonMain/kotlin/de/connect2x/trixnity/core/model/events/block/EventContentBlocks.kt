@@ -3,6 +3,8 @@ package de.connect2x.trixnity.core.model.events.block
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.core.serialization.events.EventContentBlockSerializerMapping
+import kotlin.jvm.JvmInline
+import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -12,16 +14,14 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
-import kotlin.jvm.JvmInline
-import kotlin.reflect.KClass
 
 private val log = Logger("de.connect2x.trixnity.core.model.events.block.EventContentBlocks")
 
 @JvmInline
-value class EventContentBlocks private constructor(
-    private val blocks: Map<EventContentBlock.Type<*>, EventContentBlock>
-) {
+value class EventContentBlocks
+private constructor(private val blocks: Map<EventContentBlock.Type<*>, EventContentBlock>) {
     constructor(blocks: Set<EventContentBlock>) : this(blocks.associateBy { it.type })
+
     constructor(vararg blocks: EventContentBlock) : this(blocks.toSet())
 
     operator fun <T : EventContentBlock> get(type: EventContentBlock.Type<T>): T? {
@@ -35,14 +35,23 @@ value class EventContentBlocks private constructor(
     }
 
     operator fun plus(other: EventContentBlock): EventContentBlocks = EventContentBlocks(blocks + (other.type to other))
+
     operator fun minus(other: EventContentBlock): EventContentBlocks = EventContentBlocks(blocks - other.type)
 
-    val size: Int get() = blocks.size
+    val size: Int
+        get() = blocks.size
+
     fun isEmpty(): Boolean = blocks.isEmpty()
+
     fun containsType(key: EventContentBlock.Type<*>): Boolean = blocks.containsKey(key)
+
     fun contains(block: EventContentBlock): Boolean = blocks.containsValue(block)
-    val types: Set<EventContentBlock.Type<*>> get() = blocks.keys
-    val values: Collection<EventContentBlock> get() = blocks.values
+
+    val types: Set<EventContentBlock.Type<*>>
+        get() = blocks.keys
+
+    val values: Collection<EventContentBlock>
+        get() = blocks.values
 
     class Serializer(private val mappings: Set<EventContentBlockSerializerMapping<*>>) :
         KSerializer<EventContentBlocks> {
@@ -51,7 +60,9 @@ value class EventContentBlocks private constructor(
         override fun deserialize(decoder: Decoder): EventContentBlocks {
             require(decoder is JsonDecoder)
             val jsonObject = decoder.decodeJsonElement()
-            check(jsonObject is JsonObject) { "EventContentBlocks should be deserialized from JsonObject, but was ${jsonObject::class}" }
+            check(jsonObject is JsonObject) {
+                "EventContentBlocks should be deserialized from JsonObject, but was ${jsonObject::class}"
+            }
             return EventContentBlocks(
                 jsonObject
                     .mapValues { (key, value) ->
@@ -66,14 +77,12 @@ value class EventContentBlocks private constructor(
                         } else {
                             EventContentBlock.Unknown(key, value)
                         }
-                    }.mapKeys { (_, value) -> value.type }
+                    }
+                    .mapKeys { (_, value) -> value.type }
             )
         }
 
-        override fun serialize(
-            encoder: Encoder,
-            value: EventContentBlocks
-        ) {
+        override fun serialize(encoder: Encoder, value: EventContentBlocks) {
             require(encoder is JsonEncoder)
             encoder.encodeJsonElement(
                 JsonObject(
@@ -81,8 +90,9 @@ value class EventContentBlocks private constructor(
                         .mapKeys { (key, _) -> key.value }
                         .mapValues { (_, value) ->
                             if (value is EventContentBlock.Unknown) return@mapValues value.raw
-                            val serializer = mappings.find { it.kClass.isInstance(value) }?.serializer
-                                ?: throw UnsupportedEventContentBlockTypeException(value::class)
+                            val serializer =
+                                mappings.find { it.kClass.isInstance(value) }?.serializer
+                                    ?: throw UnsupportedEventContentBlockTypeException(value::class)
                             @Suppress("UNCHECKED_CAST")
                             serializer as KSerializer<EventContentBlock>
                             encoder.json.encodeToJsonElement(serializer, value)
@@ -93,6 +103,7 @@ value class EventContentBlocks private constructor(
     }
 }
 
-class UnsupportedEventContentBlockTypeException(blockType: KClass<*>) : SerializationException(
-    "Event content block type $blockType is not supported. If it is a custom type, you should register it!"
-)
+class UnsupportedEventContentBlockTypeException(blockType: KClass<*>) :
+    SerializationException(
+        "Event content block type $blockType is not supported. If it is a custom type, you should register it!"
+    )

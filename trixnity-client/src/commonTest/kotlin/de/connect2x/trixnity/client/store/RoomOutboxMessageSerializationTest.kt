@@ -14,16 +14,18 @@ import kotlin.time.Instant
 class RoomOutboxMessageSerializationTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
 
-    private val roomOutboxMessage = RoomOutboxMessage(
-        transactionId = "t1",
-        roomId = RoomId("!room:server"),
-        content = RoomMessageEventContent.TextBased.Text("dino"),
-        createdAt = Instant.fromEpochMilliseconds(12),
-        sentAt = Instant.fromEpochMilliseconds(24),
-        sendError = RoomOutboxMessage.SendError.BadRequest(ErrorResponse.Forbidden("")),
-        keepMediaInCache = true,
-    )
-    private val roomOutboxMessageJson = """
+    private val roomOutboxMessage =
+        RoomOutboxMessage(
+            transactionId = "t1",
+            roomId = RoomId("!room:server"),
+            content = RoomMessageEventContent.TextBased.Text("dino"),
+            createdAt = Instant.fromEpochMilliseconds(12),
+            sentAt = Instant.fromEpochMilliseconds(24),
+            sendError = RoomOutboxMessage.SendError.BadRequest(ErrorResponse.Forbidden("")),
+            keepMediaInCache = true,
+        )
+    private val roomOutboxMessageJson =
+        """
         {
             "roomId":"!room:server",
             "transactionId":"t1",
@@ -34,7 +36,8 @@ class RoomOutboxMessageSerializationTest : TrixnityBaseTest() {
             "keepMediaInCache":true,
             "isDraft":false
         }
-        """.trimToFlatJson()
+        """
+            .trimToFlatJson()
 
     @Test
     fun `serialize RoomOutboxMessage`() = runTest {
@@ -43,8 +46,7 @@ class RoomOutboxMessageSerializationTest : TrixnityBaseTest() {
 
     @Test
     fun `deserialize RoomOutboxMessage`() = runTest {
-        json.decodeFromString<RoomOutboxMessage<RoomMessageEventContent.TextBased.Text>>(
-            roomOutboxMessageJson
-        ) shouldBe roomOutboxMessage
+        json.decodeFromString<RoomOutboxMessage<RoomMessageEventContent.TextBased.Text>>(roomOutboxMessageJson) shouldBe
+            roomOutboxMessage
     }
 }

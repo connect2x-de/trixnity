@@ -14,5 +14,4 @@ internal external fun alloc(size: Int, align: Int): NativePointer
 @ModuleImport("vodozemac", "dealloc")
 internal external fun dealloc(ptr: NativePointer, size: Int, align: Int)
 
-@ExternalSymbolName("memory")
-internal external val memory: Memory<ArrayBuffer>
+@ExternalSymbolName("memory") internal external val memory: Memory<ArrayBuffer>

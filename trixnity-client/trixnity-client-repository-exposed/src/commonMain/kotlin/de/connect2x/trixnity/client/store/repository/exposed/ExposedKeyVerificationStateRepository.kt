@@ -25,12 +25,13 @@ internal object ExposedKeyVerificationState : Table("key_verification_state") {
 internal class ExposedKeyVerificationStateRepository(private val json: Json) : KeyVerificationStateRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: KeyVerificationStateKey): KeyVerificationState? {
-        return ExposedKeyVerificationState.selectAll().where {
-            ExposedKeyVerificationState.keyId.eq(key.keyId) and
+        return ExposedKeyVerificationState.selectAll()
+            .where {
+                ExposedKeyVerificationState.keyId.eq(key.keyId) and
                     ExposedKeyVerificationState.keyAlgorithm.eq(key.keyAlgorithm.name)
-        }.firstOrNull()?.let {
-            json.decodeFromString(it[ExposedKeyVerificationState.verificationState])
-        }
+            }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedKeyVerificationState.verificationState]) }
     }
 
     context(transaction: WriteTransaction)
@@ -44,10 +45,7 @@ internal class ExposedKeyVerificationStateRepository(private val json: Json) : K
 
     context(transaction: WriteTransaction)
     override suspend fun delete(key: KeyVerificationStateKey) {
-        ExposedKeyVerificationState.deleteWhere {
-            keyId.eq(key.keyId) and
-                    keyAlgorithm.eq(key.keyAlgorithm.name)
-        }
+        ExposedKeyVerificationState.deleteWhere { keyId.eq(key.keyId) and keyAlgorithm.eq(key.keyAlgorithm.name) }
     }
 
     context(transaction: WriteTransaction)

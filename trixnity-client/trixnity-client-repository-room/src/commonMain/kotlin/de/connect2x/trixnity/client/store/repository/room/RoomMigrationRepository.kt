@@ -10,30 +10,20 @@ import de.connect2x.trixnity.client.store.repository.MigrationRepository
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 
-@Entity(tableName = "Migration")
-data class RoomMigration(
-    @PrimaryKey val name: String,
-    val metadata: String? = null,
-)
+@Entity(tableName = "Migration") data class RoomMigration(@PrimaryKey val name: String, val metadata: String? = null)
 
 @Dao
 interface MigrationDao {
-    @Query("SELECT * FROM Migration WHERE name = :name LIMIT 1")
-    suspend fun get(name: String): RoomMigration?
+    @Query("SELECT * FROM Migration WHERE name = :name LIMIT 1") suspend fun get(name: String): RoomMigration?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomMigration)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomMigration)
 
-    @Query("DELETE FROM Migration WHERE name = :name")
-    suspend fun delete(name: String)
+    @Query("DELETE FROM Migration WHERE name = :name") suspend fun delete(name: String)
 
-    @Query("DELETE FROM Migration")
-    suspend fun deleteAll()
+    @Query("DELETE FROM Migration") suspend fun deleteAll()
 }
 
-internal class RoomMigrationRepository(
-    db: TrixnityRoomDatabase,
-) : MigrationRepository {
+internal class RoomMigrationRepository(db: TrixnityRoomDatabase) : MigrationRepository {
 
     private val dao = db.migration()
 

@@ -5,6 +5,7 @@ expect class OlmOutboundGroupSession : WantsToBeFree {
 
     companion object {
         fun create(): OlmOutboundGroupSession
+
         fun unpickle(key: String?, pickle: String): OlmOutboundGroupSession
     }
 
@@ -13,6 +14,7 @@ expect class OlmOutboundGroupSession : WantsToBeFree {
     val messageIndex: Long
 
     override fun free()
+
     fun pickle(key: String?): String
 
     fun encrypt(plainText: String): String

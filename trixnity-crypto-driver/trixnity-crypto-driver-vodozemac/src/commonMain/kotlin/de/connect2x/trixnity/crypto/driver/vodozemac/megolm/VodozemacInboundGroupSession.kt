@@ -6,8 +6,8 @@ import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.driver.megolm.MegolmMessage
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
 import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class VodozemacInboundGroupSession(val inner: Inner) : InboundGroupSession {
@@ -28,10 +28,7 @@ value class VodozemacInboundGroupSession(val inner: Inner) : InboundGroupSession
 
         val result = rethrow { inner.decrypt(message.inner) }
 
-        InboundGroupSession.DecryptedMessage(
-            plaintext = result.plaintext.value,
-            messageIndex = result.messageIndex,
-        )
+        InboundGroupSession.DecryptedMessage(plaintext = result.plaintext.value, messageIndex = result.messageIndex)
     }
 
     override fun pickle(pickleKey: PickleKey?): String {

@@ -34,13 +34,13 @@ import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
@@ -60,10 +60,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
     private val keyStore = getInMemoryKeyStore()
 
     private val apiConfig = PortableMockEngineConfig()
-    private val api = mockMatrixClientServerApiClient(
-        config = apiConfig,
-        json = json
-    )
+    private val api = mockMatrixClientServerApiClient(config = apiConfig, json = json)
 
     @Test
     fun `handle verification step`() = runTest {
@@ -72,7 +69,7 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(cancelEvent, bob)))
+                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(cancelEvent, bob))),
                 )
             }
         }
@@ -87,51 +84,42 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
     fun `handle cancel verification step before theirDeviceId is known`() = runTest {
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.key.verification.cancel", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) { sendToDeviceEvents = it.messages }
         }
-        val cut = ActiveDeviceVerificationImpl(
-            request = VerificationRequestToDeviceEventContent(
-                bobDevice,
-                setOf(Sas),
-                currentTime,
-                "t"
-            ),
-            requestIsOurs = false,
-            ownUserId = alice,
-            ownDeviceId = aliceDevice,
-            theirUserId = bob,
-            theirDeviceId = null, // <-
-            theirDeviceIds = setOf("bob1", "bob2"),
-            supportedMethods = setOf(Sas),
-            api = api,
-            olmEventHandler = olmEventHandlerMock,
-            olmEncryptionService = olmEncryptionServiceMock,
-            keyTrust = KeyTrustServiceMock(),
-            keyStore = keyStore,
-            clock = testClock,
-            driver = driver,
-        )
+        val cut =
+            ActiveDeviceVerificationImpl(
+                request = VerificationRequestToDeviceEventContent(bobDevice, setOf(Sas), currentTime, "t"),
+                requestIsOurs = false,
+                ownUserId = alice,
+                ownDeviceId = aliceDevice,
+                theirUserId = bob,
+                theirDeviceId = null, // <-
+                theirDeviceIds = setOf("bob1", "bob2"),
+                supportedMethods = setOf(Sas),
+                api = api,
+                olmEventHandler = olmEventHandlerMock,
+                olmEncryptionService = olmEncryptionServiceMock,
+                keyTrust = KeyTrustServiceMock(),
+                keyStore = keyStore,
+                clock = testClock,
+                driver = driver,
+            )
         cut.startLifecycle(this)
         cut.cancel()
         val result = cut.state.first { it is ActiveVerificationState.Cancel }
-        result shouldBe ActiveVerificationState.Cancel(
-            VerificationCancelEventContent(User, "user cancelled verification", null, "t"),
-            true
-        )
-        sendToDeviceEvents shouldBe mapOf(
-            bob to mapOf(
-                "bob1" to VerificationCancelEventContent(
-                    User, "user cancelled verification", null, "t"
-                ),
-                "bob2" to VerificationCancelEventContent(
-                    User, "user cancelled verification", null, "t"
-                ),
+        result shouldBe
+            ActiveVerificationState.Cancel(
+                VerificationCancelEventContent(User, "user cancelled verification", null, "t"),
+                true,
             )
-        )
+        sendToDeviceEvents shouldBe
+            mapOf(
+                bob to
+                    mapOf(
+                        "bob1" to VerificationCancelEventContent(User, "user cancelled verification", null, "t"),
+                        "bob2" to VerificationCancelEventContent(User, "user cancelled verification", null, "t"),
+                    )
+            )
     }
 
     @Test
@@ -141,13 +129,8 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
         val cancelEvent = VerificationCancelEventContent(User, "u", null, "t")
         olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
-                ToDeviceEvent(
-                    OlmEncryptedToDeviceEventContent(
-                        mapOf(),
-                        Curve25519KeyValue("")
-                    ), bob
-                ),
-                PlaintextOlmEvent(cancelEvent, bob, keysOf(), null, alice, keysOf())
+                ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bob),
+                PlaintextOlmEvent(cancelEvent, bob, keysOf(), null, alice, keysOf()),
             )
         )
         val result = cut.state.first { it is ActiveVerificationState.Cancel }
@@ -156,19 +139,12 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
 
     @Test
     fun `send verification step and encrypt it`() = runTest {
-        val encrypted = OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = Curve25519KeyValue("key")
-        )
+        val encrypted = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("key"))
         olmEncryptionServiceMock.returnEncryptOlm = Result.success(encrypted)
 
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) { sendToDeviceEvents = it.messages }
         }
 
         val cut = createCut()
@@ -183,22 +159,18 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
     fun `send verification step and use unencrypted when encrypt failed`() = runTest {
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.key.verification.cancel", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) { sendToDeviceEvents = it.messages }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
             Result.failure(EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("hu"))))
         val cut = createCut()
         cut.startLifecycle(this)
         cut.cancel()
-        sendToDeviceEvents shouldBe mapOf(
-            bob to mapOf(
-                bobDevice to VerificationCancelEventContent(User, "user cancelled verification", null, "t")
+        sendToDeviceEvents shouldBe
+            mapOf(
+                bob to
+                    mapOf(bobDevice to VerificationCancelEventContent(User, "user cancelled verification", null, "t"))
             )
-        )
     }
 
     @Test
@@ -207,13 +179,10 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(
-                        listOf(
-                            ToDeviceEvent(
-                                VerificationCancelEventContent(User, "u", null, "t"), bob
-                            )
-                        )
-                    )
+                    toDevice =
+                        Sync.Response.ToDevice(
+                            listOf(ToDeviceEvent(VerificationCancelEventContent(User, "u", null, "t"), bob))
+                        ),
                 )
             }
         }
@@ -224,16 +193,9 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
 
     @Test
     fun `stop lifecycle when timed out`() = runTest {
-        val encrypted = OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = Curve25519KeyValue("key")
-        )
+        val encrypted = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("key"))
         olmEncryptionServiceMock.returnEncryptOlm = Result.success(encrypted)
-        apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) { }
-        }
+        apiConfig.endpoints { matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) {} }
         val cut = createCut(testClock.now() - 9.9.minutes)
         cut.startLifecycle(this)
     }
@@ -246,74 +208,54 @@ class ActiveDeviceVerificationTest() : TrixnityBaseTest() {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(readyEvent, alice)))
+                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(readyEvent, alice))),
                 )
             }
-            matrixJsonEndpoint(
-                SendToDevice("m.key.verification.cancel", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
-            matrixJsonEndpoint(
-                SendToDevice("m.key.verification.cancel", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) { sendToDeviceEvents = it.messages }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) { sendToDeviceEvents = it.messages }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
             Result.failure(EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("hu"))))
-        val cut = ActiveDeviceVerificationImpl(
-            request = VerificationRequestToDeviceEventContent(
-                aliceDevice,
-                setOf(Sas),
-                currentTime,
-                "t"
-            ),
-            requestIsOurs = false,
-            ownUserId = alice,
-            ownDeviceId = aliceDevice,
-            theirUserId = alice,
-            theirDeviceId = null,
-            theirDeviceIds = setOf("ALICE_1", "ALICE_2"),
-            supportedMethods = setOf(Sas),
-            api = api,
-            olmEventHandler = olmEventHandlerMock,
-            olmEncryptionService = olmEncryptionServiceMock,
-            keyTrust = KeyTrustServiceMock(),
-            keyStore = keyStore,
-            clock = testClock,
-            driver = driver,
-        )
+        val cut =
+            ActiveDeviceVerificationImpl(
+                request = VerificationRequestToDeviceEventContent(aliceDevice, setOf(Sas), currentTime, "t"),
+                requestIsOurs = false,
+                ownUserId = alice,
+                ownDeviceId = aliceDevice,
+                theirUserId = alice,
+                theirDeviceId = null,
+                theirDeviceIds = setOf("ALICE_1", "ALICE_2"),
+                supportedMethods = setOf(Sas),
+                api = api,
+                olmEventHandler = olmEventHandlerMock,
+                olmEncryptionService = olmEncryptionServiceMock,
+                keyTrust = KeyTrustServiceMock(),
+                keyStore = keyStore,
+                clock = testClock,
+                driver = driver,
+            )
         cut.startLifecycle(this)
         api.sync.startOnce().getOrThrow()
         cut.state.first { it is ActiveVerificationState.Ready }
 
         cut.theirDeviceId shouldBe "ALICE_1"
-        sendToDeviceEvents shouldBe mapOf(
-            alice to mapOf(
-                "ALICE_2" to VerificationCancelEventContent(
-                    Accepted, "accepted by other device", null, "t"
-                )
+        sendToDeviceEvents shouldBe
+            mapOf(
+                alice to
+                    mapOf("ALICE_2" to VerificationCancelEventContent(Accepted, "accepted by other device", null, "t"))
             )
-        )
         cut.cancel()
-        sendToDeviceEvents shouldBe mapOf(
-            alice to mapOf(
-                "ALICE_1" to VerificationCancelEventContent(
-                    User, "user cancelled verification", null, "t"
-                )
+        sendToDeviceEvents shouldBe
+            mapOf(
+                alice to
+                    mapOf("ALICE_1" to VerificationCancelEventContent(User, "user cancelled verification", null, "t"))
             )
-        )
     }
 
     private fun TestScope.createCut(timestamp: Instant = testClock.now()): ActiveDeviceVerificationImpl =
         ActiveDeviceVerificationImpl(
-            request = VerificationRequestToDeviceEventContent(
-                bobDevice,
-                setOf(Sas),
-                timestamp.toEpochMilliseconds(),
-                "t"
-            ),
+            request =
+                VerificationRequestToDeviceEventContent(bobDevice, setOf(Sas), timestamp.toEpochMilliseconds(), "t"),
             requestIsOurs = false,
             ownUserId = alice,
             ownDeviceId = aliceDevice,

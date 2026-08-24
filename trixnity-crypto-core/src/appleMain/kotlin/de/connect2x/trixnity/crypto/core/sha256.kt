@@ -14,9 +14,7 @@ private class AppleSha256 : Hasher {
         if (input.isEmpty()) return
         ensureReady()
 
-        input.usePinned {
-            CC_SHA256_Update(context.ptr, it.addressOf(0), input.size.convert())
-        }
+        input.usePinned { CC_SHA256_Update(context.ptr, it.addressOf(0), input.size.convert()) }
     }
 
     override fun digest(): ByteArray {
@@ -24,9 +22,7 @@ private class AppleSha256 : Hasher {
         ensureReady()
 
         val digest = ByteArray(CC_SHA256_DIGEST_LENGTH)
-        digest.asUByteArray().usePinned {
-            CC_SHA256_Final(it.addressOf(0), context.ptr)
-        }
+        digest.asUByteArray().usePinned { CC_SHA256_Final(it.addressOf(0), context.ptr) }
         ready = false
 
         return digest
@@ -45,7 +41,6 @@ private class AppleSha256 : Hasher {
         CC_SHA256_Init(context.ptr)
         ready = true
     }
-
 }
 
 actual fun Sha256(): Hasher = AppleSha256()

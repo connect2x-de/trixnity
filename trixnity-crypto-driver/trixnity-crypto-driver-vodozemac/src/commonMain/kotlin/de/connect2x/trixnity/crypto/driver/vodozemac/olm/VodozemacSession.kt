@@ -6,8 +6,8 @@ import de.connect2x.trixnity.crypto.driver.olm.Session
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
 import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.olm.OlmMessage
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.olm.Session as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class VodozemacSession(val inner: Inner) : Session {
@@ -28,11 +28,12 @@ value class VodozemacSession(val inner: Inner) : Session {
     override fun decrypt(message: Message): String {
         require(message is VodozemacPreKeyMessage || message is VodozemacNormalMessage)
 
-        val message = when (message) {
-            is VodozemacPreKeyMessage -> message.inner
-            is VodozemacNormalMessage -> message.inner
-            else -> error("unreachable")
-        }
+        val message =
+            when (message) {
+                is VodozemacPreKeyMessage -> message.inner
+                is VodozemacNormalMessage -> message.inner
+                else -> error("unreachable")
+            }
 
         return rethrow { inner.decrypt(message) }
     }

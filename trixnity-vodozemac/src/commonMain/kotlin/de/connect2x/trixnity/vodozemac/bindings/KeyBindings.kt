@@ -15,18 +15,16 @@ internal object Ed25519PublicKeyBindings {
         InitHook()
     }
 
-    fun fromBytes(bytes: InteropPointer): NativePointer =
-        vodozemac_ed25519_public_key_from_bytes(bytes)
+    fun fromBytes(bytes: InteropPointer): NativePointer = vodozemac_ed25519_public_key_from_bytes(bytes)
 
-    fun toBytes(key: NativePointer, out: InteropPointer) =
-        vodozemac_ed25519_public_key_to_bytes(key, out)
+    fun toBytes(key: NativePointer, out: InteropPointer) = vodozemac_ed25519_public_key_to_bytes(key, out)
 
     fun verify(
         result: InteropPointer,
         key: NativePointer,
         message: InteropPointer,
         messageSize: Int,
-        signature: NativePointer
+        signature: NativePointer,
     ) = vodozemac_ed25519_public_key_verify(result, key, message, messageSize, signature)
 
     fun free(key: NativePointer) = vodozemac_ed25519_public_key_free(key)
@@ -40,21 +38,14 @@ internal object Ed25519SecretKeyBindings {
 
     fun new(): NativePointer = vodozemac_ed25519_secret_key_new()
 
-    fun fromBytes(bytes: InteropPointer): NativePointer =
-        vodozemac_ed25519_secret_key_from_bytes(bytes)
+    fun fromBytes(bytes: InteropPointer): NativePointer = vodozemac_ed25519_secret_key_from_bytes(bytes)
 
-    fun toBytes(key: NativePointer, out: InteropPointer) =
-        vodozemac_ed25519_secret_key_to_bytes(key, out)
+    fun toBytes(key: NativePointer, out: InteropPointer) = vodozemac_ed25519_secret_key_to_bytes(key, out)
 
-    fun sign(
-        key: NativePointer,
-        message: InteropPointer,
-        messageSize: Int,
-    ): NativePointer = vodozemac_ed25519_secret_key_sign(key, message, messageSize)
+    fun sign(key: NativePointer, message: InteropPointer, messageSize: Int): NativePointer =
+        vodozemac_ed25519_secret_key_sign(key, message, messageSize)
 
-    fun publicKey(
-        key: NativePointer,
-    ): NativePointer = vodozemac_ed25519_secret_key_public_key(key)
+    fun publicKey(key: NativePointer): NativePointer = vodozemac_ed25519_secret_key_public_key(key)
 
     fun free(key: NativePointer) = vodozemac_ed25519_secret_key_free(key)
 }
@@ -65,11 +56,9 @@ internal object Curve25519PublicKeyBindings {
         InitHook()
     }
 
-    fun fromBytes(bytes: InteropPointer): NativePointer =
-        vodozemac_curve25519_public_key_from_bytes(bytes)
+    fun fromBytes(bytes: InteropPointer): NativePointer = vodozemac_curve25519_public_key_from_bytes(bytes)
 
-    fun toBytes(key: NativePointer, out: InteropPointer) =
-        vodozemac_curve25519_public_key_to_bytes(key, out)
+    fun toBytes(key: NativePointer, out: InteropPointer) = vodozemac_curve25519_public_key_to_bytes(key, out)
 
     fun free(key: NativePointer) = vodozemac_curve25519_public_key_free(key)
 }
@@ -82,20 +71,14 @@ internal object Curve25519SecretKeyBindings {
 
     fun new(): NativePointer = vodozemac_curve25519_secret_key_new()
 
-    fun fromBytes(bytes: InteropPointer): NativePointer =
-        vodozemac_curve25519_secret_key_from_bytes(bytes)
+    fun fromBytes(bytes: InteropPointer): NativePointer = vodozemac_curve25519_secret_key_from_bytes(bytes)
 
-    fun toBytes(key: NativePointer, bytes: InteropPointer) =
-        vodozemac_curve25519_secret_key_to_bytes(key, bytes)
+    fun toBytes(key: NativePointer, bytes: InteropPointer) = vodozemac_curve25519_secret_key_to_bytes(key, bytes)
 
-    fun diffieHellman(
-        key: NativePointer,
-        theirPublicKey: NativePointer,
-        secret: InteropPointer
-    ): Boolean = vodozemac_curve25519_secret_key_diffie_hellman(key, theirPublicKey, secret) == 1
+    fun diffieHellman(key: NativePointer, theirPublicKey: NativePointer, secret: InteropPointer): Boolean =
+        vodozemac_curve25519_secret_key_diffie_hellman(key, theirPublicKey, secret) == 1
 
-    fun publicKey(key: NativePointer): NativePointer =
-        vodozemac_curve25519_secret_key_public_key(key)
+    fun publicKey(key: NativePointer): NativePointer = vodozemac_curve25519_secret_key_public_key(key)
 
     fun free(key: NativePointer) = vodozemac_curve25519_secret_key_free(key)
 }
@@ -106,11 +89,9 @@ internal object Ed25519SignatureBindings {
         InitHook()
     }
 
-    fun fromBytes(bytes: InteropPointer): NativePointer =
-        vodozemac_ed25519_signature_from_bytes(bytes)
+    fun fromBytes(bytes: InteropPointer): NativePointer = vodozemac_ed25519_signature_from_bytes(bytes)
 
-    fun toBytes(signature: NativePointer, out: InteropPointer) =
-        vodozemac_ed25519_signature_to_bytes(signature, out)
+    fun toBytes(signature: NativePointer, out: InteropPointer) = vodozemac_ed25519_signature_to_bytes(signature, out)
 
     fun free(signature: NativePointer) = vodozemac_ed25519_signature_free(signature)
 }
@@ -125,7 +106,7 @@ private external fun vodozemac_ed25519_public_key_from_bytes(
 @ExternalSymbolName("vodozemac_ed25519_public_key_to_bytes")
 private external fun vodozemac_ed25519_public_key_to_bytes(
     key: NativePointer,
-    bytes: InteropPointer // must be 32 bytes
+    bytes: InteropPointer, // must be 32 bytes
 )
 
 @ModuleImport("vodozemac", "vodozemac_ed25519_public_key_verify")
@@ -135,7 +116,7 @@ private external fun vodozemac_ed25519_public_key_verify(
     key: NativePointer,
     message: InteropPointer,
     message_size: Int,
-    signature: NativePointer
+    signature: NativePointer,
 )
 
 @ModuleImport("vodozemac", "vodozemac_ed25519_public_key_free")
@@ -152,7 +133,7 @@ private external fun vodozemac_curve25519_public_key_from_bytes(
 @ExternalSymbolName("vodozemac_curve25519_public_key_to_bytes")
 private external fun vodozemac_curve25519_public_key_to_bytes(
     key: NativePointer,
-    bytes: InteropPointer // must be 32 bytes
+    bytes: InteropPointer, // must be 32 bytes
 )
 
 @ModuleImport("vodozemac", "vodozemac_curve25519_public_key_free")
@@ -176,7 +157,7 @@ private external fun vodozemac_ed25519_secret_key_to_bytes(key: NativePointer, o
 private external fun vodozemac_ed25519_secret_key_sign(
     key: NativePointer,
     message: InteropPointer,
-    messageSize: Int
+    messageSize: Int,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_ed25519_secret_key_public_key")
@@ -193,23 +174,18 @@ private external fun vodozemac_curve25519_secret_key_new(): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_curve25519_secret_key_from_bytes")
 @ExternalSymbolName("vodozemac_curve25519_secret_key_from_bytes")
-private external fun vodozemac_curve25519_secret_key_from_bytes(
-    bytes: InteropPointer
-): NativePointer
+private external fun vodozemac_curve25519_secret_key_from_bytes(bytes: InteropPointer): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_curve25519_secret_key_to_bytes")
 @ExternalSymbolName("vodozemac_curve25519_secret_key_to_bytes")
-private external fun vodozemac_curve25519_secret_key_to_bytes(
-    key: NativePointer,
-    bytes: InteropPointer
-)
+private external fun vodozemac_curve25519_secret_key_to_bytes(key: NativePointer, bytes: InteropPointer)
 
 @ModuleImport("vodozemac", "vodozemac_curve25519_secret_key_diffie_hellman")
 @ExternalSymbolName("vodozemac_curve25519_secret_key_diffie_hellman")
 private external fun vodozemac_curve25519_secret_key_diffie_hellman(
     key: NativePointer,
     their_public_key: NativePointer,
-    secret: InteropPointer
+    secret: InteropPointer,
 ): Int
 
 @ModuleImport("vodozemac", "vodozemac_curve25519_secret_key_public_key")
@@ -230,7 +206,7 @@ private external fun vodozemac_ed25519_signature_from_bytes(
 @ExternalSymbolName("vodozemac_ed25519_signature_to_bytes")
 private external fun vodozemac_ed25519_signature_to_bytes(
     signature: NativePointer,
-    bytes: InteropPointer // must be 64 bytes
+    bytes: InteropPointer, // must be 64 bytes
 )
 
 @ModuleImport("vodozemac", "vodozemac_ed25519_signature_free")

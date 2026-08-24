@@ -11,6 +11,8 @@ import de.connect2x.trixnity.utils.*
 import js.buffer.ArrayBuffer
 import js.reflect.unsafeCast
 import js.typedarrays.Uint8Array
+import kotlin.random.Random
+import kotlin.time.Clock
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.FlowCollector
 import org.koin.dsl.module
@@ -25,8 +27,6 @@ import web.navigator.navigator
 import web.storage.estimate
 import web.streams.TransformStream
 import web.window.window
-import kotlin.random.Random
-import kotlin.time.Clock
 
 internal class IndexedDBMediaStore(
     private val databaseName: String,
@@ -40,29 +40,27 @@ internal class IndexedDBMediaStore(
     }
 
     private lateinit var database: IDBDatabase
-    override suspend fun init(coroutineScope: CoroutineScope) {
-        database = IDBUtils.openDatabase(databaseName, 2) { database, oldVersion, _ ->
-            if (oldVersion < 1) {
-                database.createObjectStore(MEDIA_OBJECT_STORE_NAME)
-            }
 
-            if (oldVersion < 2) {
-                database.createObjectStore(TMP_MEDIA_OBJECT_STORE_NAME)
+    override suspend fun init(coroutineScope: CoroutineScope) {
+        database =
+            IDBUtils.openDatabase(databaseName, 2) { database, oldVersion, _ ->
+                if (oldVersion < 1) {
+                    database.createObjectStore(MEDIA_OBJECT_STORE_NAME)
+                }
+
+                if (oldVersion < 2) {
+                    database.createObjectStore(TMP_MEDIA_OBJECT_STORE_NAME)
+                }
             }
-        }
         suspend fun clearTmp() {
-            database.writeTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
-                objectStore(TMP_MEDIA_OBJECT_STORE_NAME).clear()
-            }
+            database.writeTransaction(TMP_MEDIA_OBJECT_STORE_NAME) { objectStore(TMP_MEDIA_OBJECT_STORE_NAME).clear() }
         }
         clearTmp()
         coroutineScope.coroutineContext.job.invokeOnCompletion {
-            @OptIn(DelicateCoroutinesApi::class)
-            GlobalScope.launch { clearTmp() }
+            @OptIn(DelicateCoroutinesApi::class) GlobalScope.launch { clearTmp() }
         }
         window.addEventHandler(EventType("unload")) {
-            @OptIn(DelicateCoroutinesApi::class)
-            GlobalScope.launch { clearTmp() }
+            @OptIn(DelicateCoroutinesApi::class) GlobalScope.launch { clearTmp() }
         }
     }
 
@@ -75,9 +73,7 @@ internal class IndexedDBMediaStore(
 
     override suspend fun addMedia(url: String, content: ByteArrayFlow) = coroutineScope {
         val transformStream = TransformStream<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>()
-        launch {
-            content.writeTo(transformStream.writable)
-        }
+        launch { content.writeTo(transformStream.writable) }
         val value = Response(unsafeCast(transformStream.readable)).blob()
         database.writeTransaction(MEDIA_OBJECT_STORE_NAME) {
             val store = objectStore(MEDIA_OBJECT_STORE_NAME)
@@ -86,10 +82,11 @@ internal class IndexedDBMediaStore(
     }
 
     override suspend fun getMedia(url: String): IndexeddbPlatformMedia? =
-        database.readTransaction(MEDIA_OBJECT_STORE_NAME) {
-            val store = objectStore(MEDIA_OBJECT_STORE_NAME)
-            store.get<Blob>(IDBValidKey(url))
-        }
+        database
+            .readTransaction(MEDIA_OBJECT_STORE_NAME) {
+                val store = objectStore(MEDIA_OBJECT_STORE_NAME)
+                store.get<Blob>(IDBValidKey(url))
+            }
             ?.let { BlobBasedIndexeddbPlatformMediaImpl(url, it) }
 
     override suspend fun deleteMedia(url: String): Unit =
@@ -120,10 +117,8 @@ internal class IndexedDBMediaStore(
         }
     }
 
-    private inner class BlobBasedIndexeddbPlatformMediaImpl(
-        private val url: String,
-        private val file: Blob,
-    ) : IndexeddbPlatformMedia {
+    private inner class BlobBasedIndexeddbPlatformMediaImpl(private val url: String, private val file: Blob) :
+        IndexeddbPlatformMedia {
         private val delegate = byteArrayFlowFromReadableStream { file.stream() }
 
         override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): IndexeddbPlatformMedia =
@@ -138,25 +133,21 @@ internal class IndexedDBMediaStore(
         override suspend fun toByteArray(
             coroutineScope: CoroutineScope?,
             expectedSize: Long?,
-            maxSize: Long?
+            maxSize: Long?,
         ): ByteArray? =
             toByteArray(url, delegate, coroutineScope, expectedSize, maxSize)
                 ?: if (maxSize != null) delegate.toByteArray(maxSize) else delegate.toByteArray()
     }
 
-    private inner class IndexeddbPlatformMediaImpl(
-        private val url: String,
-        private val delegate: ByteArrayFlow,
-    ) : IndexeddbPlatformMedia, ByteArrayFlow by delegate {
+    private inner class IndexeddbPlatformMediaImpl(private val url: String, private val delegate: ByteArrayFlow) :
+        IndexeddbPlatformMedia, ByteArrayFlow by delegate {
         override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): IndexeddbPlatformMedia =
             IndexeddbPlatformMediaImpl(url, delegate.let(transformer))
 
         override suspend fun getTemporaryFile(): Result<IndexeddbPlatformMedia.TemporaryFile> = runCatching {
             coroutineScope {
                 val transformStream = TransformStream<Uint8Array<ArrayBuffer>, Uint8Array<ArrayBuffer>>()
-                launch {
-                    delegate.writeTo(transformStream.writable)
-                }
+                launch { delegate.writeTo(transformStream.writable) }
                 val file = Response(unsafeCast(transformStream.readable)).blob()
                 getTemporaryFile(file)
             }
@@ -165,7 +156,7 @@ internal class IndexedDBMediaStore(
         override suspend fun toByteArray(
             coroutineScope: CoroutineScope?,
             expectedSize: Long?,
-            maxSize: Long?
+            maxSize: Long?,
         ): ByteArray? =
             toByteArray(url, delegate, coroutineScope, expectedSize, maxSize)
                 ?: if (maxSize != null) delegate.toByteArray(maxSize) else delegate.toByteArray()
@@ -173,27 +164,24 @@ internal class IndexedDBMediaStore(
 
     private suspend fun getTemporaryFile(file: Blob): IndexeddbPlatformMediaTemporaryFileImpl {
         val key = Random.nextString(12)
-        val blob = database.writeTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
-            val store = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
-            store.put(file, IDBValidKey(key))
-            checkNotNull(store.get<Blob>(IDBValidKey(key)))
-        }
+        val blob =
+            database.writeTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
+                val store = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
+                store.put(file, IDBValidKey(key))
+                checkNotNull(store.get<Blob>(IDBValidKey(key)))
+            }
         return IndexeddbPlatformMediaTemporaryFileImpl(blob, key)
     }
 
-    private inner class IndexeddbPlatformMediaTemporaryFileImpl(
-        override val file: Blob,
-        private val key: String,
-    ) : IndexeddbPlatformMedia.TemporaryFile {
+    private inner class IndexeddbPlatformMediaTemporaryFileImpl(override val file: Blob, private val key: String) :
+        IndexeddbPlatformMedia.TemporaryFile {
         override suspend fun delete() {
             try {
                 database.writeTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
                     val store = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
                     store.delete(IDBValidKey(key))
                 }
-            } catch (_: Exception) {
-
-            }
+            } catch (_: Exception) {}
         }
     }
 }
@@ -205,7 +193,7 @@ fun MediaStoreModule.Companion.indexedDB(databaseName: String = "trixnity_media"
                 databaseName = databaseName,
                 coroutineScope = get(),
                 configuration = get(),
-                clock = get()
+                clock = get(),
             )
         }
     }

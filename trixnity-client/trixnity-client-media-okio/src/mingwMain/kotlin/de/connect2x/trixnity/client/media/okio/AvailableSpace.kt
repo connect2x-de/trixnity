@@ -14,12 +14,7 @@ actual suspend fun getPlatformAvailableSpace(): Long? {
         val totalBytes = alloc<ULARGE_INTEGER>()
         val totalFreeBytes = alloc<ULARGE_INTEGER>()
 
-        val success = GetDiskFreeSpaceExW(
-            null,
-            freeBytesAvailable.ptr,
-            totalBytes.ptr,
-            totalFreeBytes.ptr
-        )
+        val success = GetDiskFreeSpaceExW(null, freeBytesAvailable.ptr, totalBytes.ptr, totalFreeBytes.ptr)
 
         if (success != 0) {
             freeBytesAvailable.QuadPart.toLong()

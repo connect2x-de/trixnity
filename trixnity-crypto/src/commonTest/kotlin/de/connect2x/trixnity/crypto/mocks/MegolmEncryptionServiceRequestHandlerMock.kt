@@ -10,7 +10,7 @@ class MegolmEncryptionServiceRequestHandlerMock : MegolmEncryptionServiceRequest
 
     override suspend fun sendToDevice(
         events: Map<UserId, Map<String, ToDeviceEventContent>>,
-        transactionId: String
+        transactionId: String,
     ): Result<Unit> {
         sendToDeviceParams.add(events)
         return sendToDevice ?: Result.success(Unit)

@@ -5,7 +5,5 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 
 interface OlmEncryptionServiceRequestHandler {
-    suspend fun claimKeys(
-        oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>,
-    ): Result<ClaimKeys.Response>
+    suspend fun claimKeys(oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>): Result<ClaimKeys.Response>
 }

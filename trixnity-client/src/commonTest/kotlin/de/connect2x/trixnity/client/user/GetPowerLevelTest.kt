@@ -1,10 +1,5 @@
 package de.connect2x.trixnity.client.user
 
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.UserId
@@ -13,7 +8,12 @@ import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class GetPowerLevelTest : TrixnityBaseTest() {
     private val userId = UserId("me", "server")
@@ -25,9 +25,10 @@ class GetPowerLevelTest : TrixnityBaseTest() {
         cut(
             userId = userId,
             createEvent = createEvent(userId, roomVersion = "12"),
-            powerLevelsEventContent = PowerLevelsEventContent( // should be ignored
-                users = mapOf(userId to 60L)
-            )
+            powerLevelsEventContent =
+                PowerLevelsEventContent( // should be ignored
+                    users = mapOf(userId to 60L)
+                ),
         ) shouldBe PowerLevel.Creator
     }
 
@@ -35,62 +36,55 @@ class GetPowerLevelTest : TrixnityBaseTest() {
     fun `getPowerLevel - is additional creator`() = runTest {
         cut(
             userId = userId,
-            createEvent = createEvent(
-                UserId("other", "server"),
-                roomVersion = "12",
-                additionalCreators = setOf(userId)
-            ),
-            powerLevelsEventContent = PowerLevelsEventContent( // should be ignored
-                users = mapOf(userId to 60L)
-            )
+            createEvent =
+                createEvent(UserId("other", "server"), roomVersion = "12", additionalCreators = setOf(userId)),
+            powerLevelsEventContent =
+                PowerLevelsEventContent( // should be ignored
+                    users = mapOf(userId to 60L)
+                ),
         ) shouldBe PowerLevel.Creator
     }
 
     @Test
-    fun `getPowerLevel - with power_level event - return entry`() =
-        runTest {
-            cut(
-                userId = userId,
-                createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
-                powerLevelsEventContent = PowerLevelsEventContent(
-                    users = mapOf(userId to 60L)
-                )
-            ) shouldBe PowerLevel.User(60)
-        }
+    fun `getPowerLevel - with power_level event - return entry`() = runTest {
+        cut(
+            userId = userId,
+            createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
+            powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(userId to 60L)),
+        ) shouldBe PowerLevel.User(60)
+    }
 
     @Test
-    fun `getPowerLevel - with power_level event - return default`() =
-        runTest {
-            cut(
-                userId = userId,
-                createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
-                powerLevelsEventContent = PowerLevelsEventContent(usersDefault = 40)
-            ) shouldBe PowerLevel.User(40)
-        }
+    fun `getPowerLevel - with power_level event - return default`() = runTest {
+        cut(
+            userId = userId,
+            createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
+            powerLevelsEventContent = PowerLevelsEventContent(usersDefault = 40),
+        ) shouldBe PowerLevel.User(40)
+    }
 
     @Test
-    fun `getPowerLevel - without power_level event - return default`() =
-        runTest {
-            cut(
-                userId = userId,
-                createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
-                powerLevelsEventContent = null
-            ) shouldBe PowerLevel.User(0)
-        }
-
+    fun `getPowerLevel - without power_level event - return default`() = runTest {
+        cut(
+            userId = userId,
+            createEvent = createEvent(UserId("other", "server"), roomVersion = "11"),
+            powerLevelsEventContent = null,
+        ) shouldBe PowerLevel.User(0)
+    }
 
     private fun createEvent(
         creator: UserId,
         roomVersion: String? = null,
-        additionalCreators: Set<UserId> = emptySet()
-    ) = StateEvent(
-        CreateEventContent(roomVersion = roomVersion, additionalCreators = additionalCreators),
-        EventId("\$event"),
-        creator,
-        roomId,
-        1234,
-        stateKey = ""
-    )
+        additionalCreators: Set<UserId> = emptySet(),
+    ) =
+        StateEvent(
+            CreateEventContent(roomVersion = roomVersion, additionalCreators = additionalCreators),
+            EventId("\$event"),
+            creator,
+            roomId,
+            1234,
+            stateKey = "",
+        )
 
     private suspend fun Flow<PowerLevel>.firstPowerLevel() =
         filterIsInstance<PowerLevel.User>().map { it.level }.first()

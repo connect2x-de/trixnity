@@ -20,19 +20,19 @@ class CombinedFileTransferProgress : Flow<FileTransferProgress?> {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun collect(collector: FlowCollector<FileTransferProgress?>) {
-        allProgress.flatMapLatest { allProgress ->
-            combine(allProgress) {
-                it.filterNotNull().reduceOrNull { acc, fileTransferProgress ->
-                    val transferred = acc.transferred + fileTransferProgress.transferred
-                    val total = if (acc.total != null || fileTransferProgress.total != null) {
-                        (acc.total ?: 0) + (fileTransferProgress.total ?: 0)
-                    } else null
-                    FileTransferProgress(
-                        transferred,
-                        total
-                    )
+        allProgress
+            .flatMapLatest { allProgress ->
+                combine(allProgress) {
+                    it.filterNotNull().reduceOrNull { acc, fileTransferProgress ->
+                        val transferred = acc.transferred + fileTransferProgress.transferred
+                        val total =
+                            if (acc.total != null || fileTransferProgress.total != null) {
+                                (acc.total ?: 0) + (fileTransferProgress.total ?: 0)
+                            } else null
+                        FileTransferProgress(transferred, total)
+                    }
                 }
             }
-        }.collect(collector)
+            .collect(collector)
     }
 }

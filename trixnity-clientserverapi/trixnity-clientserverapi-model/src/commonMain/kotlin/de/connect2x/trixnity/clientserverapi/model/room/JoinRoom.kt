@@ -14,17 +14,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Resource("/_matrix/client/v3/rooms/{roomId}/join")
 @HttpMethod(POST)
-data class JoinRoom(
-    @SerialName("roomId") val roomId: RoomId,
-) : MatrixEndpoint<JoinRoom.Request, JoinRoom.Response> {
+data class JoinRoom(@SerialName("roomId") val roomId: RoomId) : MatrixEndpoint<JoinRoom.Request, JoinRoom.Response> {
     @Serializable
     data class Request(
         @SerialName("reason") val reason: String? = null,
         @SerialName("third_party_signed") val thirdPartySigned: ThirdPartySigned? = null,
     )
 
-    @Serializable
-    data class Response(
-        @SerialName("room_id") val roomId: RoomId
-    )
+    @Serializable data class Response(@SerialName("room_id") val roomId: RoomId)
 }

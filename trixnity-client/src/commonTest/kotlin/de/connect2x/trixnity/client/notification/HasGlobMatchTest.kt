@@ -33,9 +33,7 @@ class HasGlobMatchTest : TrixnityBaseTest() {
 
     @Test
     fun `ignore other regex commands`() {
-        val dangerousChars = listOf(
-            ".", "\\", "+", "(", ")", "[", "]", "{", "}", "^", "$", "|"
-        )
+        val dangerousChars = listOf(".", "\\", "+", "(", ")", "[", "]", "{", "}", "^", "$", "|")
 
         for (char in dangerousChars) {
             withClue("char: $char") {

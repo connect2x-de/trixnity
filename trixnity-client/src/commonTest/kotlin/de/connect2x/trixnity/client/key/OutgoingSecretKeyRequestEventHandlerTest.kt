@@ -73,17 +73,17 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(MSC3814::class)
 class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
@@ -103,41 +103,40 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = OutgoingSecretKeyRequestEventHandler(
-        userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api = api,
-        olmEventHandler = OlmEventHandlerMock(),
-        keyBackupService = keyBackup,
-        keyStore = keyStore,
-        globalAccountDataStore = globalAccountDataStore,
-        tm = tm,
-        currentSyncState = CurrentSyncState(currentSyncState),
-        clock = testScope.testClock,
-        driver = driver,
-    )
+    private val cut =
+        OutgoingSecretKeyRequestEventHandler(
+            userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            api = api,
+            olmEventHandler = OlmEventHandlerMock(),
+            keyBackupService = keyBackup,
+            keyStore = keyStore,
+            globalAccountDataStore = globalAccountDataStore,
+            tm = tm,
+            currentSyncState = CurrentSyncState(currentSyncState),
+            clock = testScope.testClock,
+            driver = driver,
+        )
 
-    private val encryptedEvent = ToDeviceEvent(
-        OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = Curve25519KeyValue("")
-        ), bob
-    )
+    private val encryptedEvent =
+        ToDeviceEvent(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")), bob)
 
-    private val _crossSigningKeys = driver.key.ed25519SecretKey().use {
-        val privateKey = it.base64
-        val publicKey = it.publicKey.use(Ed25519PublicKey::base64)
+    private val _crossSigningKeys =
+        driver.key.ed25519SecretKey().use {
+            val privateKey = it.base64
+            val publicKey = it.publicKey.use(Ed25519PublicKey::base64)
 
-        publicKey to privateKey
-    }
+            publicKey to privateKey
+        }
     private val crossSigningPublicKey = _crossSigningKeys.first
     private val crossSigningPrivateKey = _crossSigningKeys.second
 
-    private val _backupKeys = driver.pk.decryption().use {
-        val privateKey = it.secretKey.use(Curve25519SecretKey::base64)
-        val publicKey = it.publicKey.use(Curve25519PublicKey::base64)
+    private val _backupKeys =
+        driver.pk.decryption().use {
+            val privateKey = it.secretKey.use(Curve25519SecretKey::base64)
+            val publicKey = it.publicKey.use(Curve25519PublicKey::base64)
 
-        publicKey to privateKey
-    }
+            publicKey to privateKey
+        }
     private val keyBackupPublicKey = _backupKeys.first
     private val keyBackupPrivateKey = _backupKeys.second
 
@@ -148,35 +147,39 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setDeviceKeys(true)
         setCrossSigningKeys(crossSigningPublicKey)
         val secretEvent = GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf()))
-        tm.writeTransaction {
-            globalAccountDataStore.save(secretEvent)
-        }
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        continually(500.milliseconds) {
-            keyStore.getSecrets() shouldBe mapOf()
-        }
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
     }
 
     @Test
     fun `handleOutgoingKeyRequestAnswer » ignore when sender device id cannot be found`() = runTest {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        continually(500.milliseconds) {
-            keyStore.getSecrets() shouldBe mapOf()
-        }
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
     }
 
     @Test
@@ -185,15 +188,18 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf("OTHER_DEVICE"))
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        continually(500.milliseconds) {
-            keyStore.getSecrets() shouldBe mapOf()
-        }
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
     }
 
     @Test
@@ -201,15 +207,18 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setDeviceKeys(false)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        continually(500.milliseconds) {
-            keyStore.getSecrets() shouldBe mapOf()
-        }
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
     }
 
     @Test
@@ -220,162 +229,161 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
             setCrossSigningKeys(crossSigningPublicKey)
             cut.handleOutgoingKeyRequestAnswer(
                 DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
+                    encryptedEvent,
+                    PlaintextOlmEvent(
                         SecretKeySendEventContent("requestId", "dino"),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
+                        alice,
+                        keysOf(aliceDevice2Key),
+                        null,
+                        alice,
+                        keysOf(),
+                    ),
                 )
             )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
+            continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
         }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when public key of key backup secret cannot be retrieved`() =
-        runTest {
-            setDeviceKeys(true)
-            setRequest(SecretType.M_MEGOLM_BACKUP_V1, setOf(aliceDevice))
-            returnRoomKeysVersion(null)
-            val secretEventContent = MegolmBackupV1EventContent(mapOf())
-            tm.writeTransaction {
-                globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", keyBackupPrivateKey),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
+    fun `handleOutgoingKeyRequestAnswer » ignore when public key of key backup secret cannot be retrieved`() = runTest {
+        setDeviceKeys(true)
+        setRequest(SecretType.M_MEGOLM_BACKUP_V1, setOf(aliceDevice))
+        returnRoomKeysVersion(null)
+        val secretEventContent = MegolmBackupV1EventContent(mapOf())
+        tm.writeTransaction { globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent)) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", keyBackupPrivateKey),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when public key of cross signing secret does not match`() =
-        runTest {
-            setDeviceKeys(true)
-            setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf(aliceDevice))
-            setCrossSigningKeys(
-                driver.key.ed25519SecretKey()
-                    .use(Ed25519SecretKey::publicKey)
-                    .use(Ed25519PublicKey::base64)
+    fun `handleOutgoingKeyRequestAnswer » ignore when public key of cross signing secret does not match`() = runTest {
+        setDeviceKeys(true)
+        setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf(aliceDevice))
+        setCrossSigningKeys(
+            driver.key.ed25519SecretKey().use(Ed25519SecretKey::publicKey).use(Ed25519PublicKey::base64)
+        )
+        val secretEventContent = UserSigningKeyEventContent(mapOf())
+        tm.writeTransaction { globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent)) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", crossSigningPrivateKey),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            val secretEventContent = UserSigningKeyEventContent(mapOf())
-            tm.writeTransaction {
-                globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
-            )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when public key of key backup secret does not match`() =
-        runTest {
-            keyBackup.returnKeyBackupCanBeTrusted = false
-            setDeviceKeys(true)
-            setRequest(SecretType.M_MEGOLM_BACKUP_V1, setOf(aliceDevice))
-            returnRoomKeysVersion(
-                driver.pk.decryption()
-                    .use(PkDecryption::publicKey)
-                    .use(Curve25519PublicKey::base64)
+    fun `handleOutgoingKeyRequestAnswer » ignore when public key of key backup secret does not match`() = runTest {
+        keyBackup.returnKeyBackupCanBeTrusted = false
+        setDeviceKeys(true)
+        setRequest(SecretType.M_MEGOLM_BACKUP_V1, setOf(aliceDevice))
+        returnRoomKeysVersion(driver.pk.decryption().use(PkDecryption::publicKey).use(Curve25519PublicKey::base64))
+        val secretEventContent = MegolmBackupV1EventContent(mapOf())
+        tm.writeTransaction { globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent)) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", keyBackupPrivateKey),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            val secretEventContent = MegolmBackupV1EventContent(mapOf())
-            tm.writeTransaction {
-                globalAccountDataStore.save(GlobalAccountDataEvent(secretEventContent))
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", keyBackupPrivateKey),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
-            )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be decrypted`() =
-        runTest {
-            val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
-            setDeviceKeys(true)
-            setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
-            returnDehydratedDevice(key)
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", "wrong key"),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
+    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be decrypted`() = runTest {
+        val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
+        setDeviceKeys(true)
+        setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
+        returnDehydratedDevice(key)
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", "wrong key"),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be unpickled`() =
-        runTest {
-            val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
-            setDeviceKeys(true)
-            setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
-            returnDehydratedDevice(key, "invalid pickle")
-            val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
-            tm.writeTransaction {
-                globalAccountDataStore.save(secretEvent)
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", key),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
+    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be unpickled`() = runTest {
+        val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
+        setDeviceKeys(true)
+        setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
+        returnDehydratedDevice(key, "invalid pickle")
+        val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", key),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be retrieved`() =
-        runTest {
-            val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
-            setDeviceKeys(true)
-            setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
-            returnDehydratedDevice(null)
-            val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
-            tm.writeTransaction {
-                globalAccountDataStore.save(secretEvent)
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", key),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
+    fun `handleOutgoingKeyRequestAnswer » ignore when dehydrated device cannot be retrieved`() = runTest {
+        val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
+        setDeviceKeys(true)
+        setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
+        returnDehydratedDevice(null)
+        val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", key),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            continually(500.milliseconds) {
-                keyStore.getSecrets() shouldBe mapOf()
-            }
-        }
+        )
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
+    }
 
     @Test
     fun `handleOutgoingKeyRequestAnswer » ignore when encrypted secret could not be found`() = runTest {
@@ -384,15 +392,18 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setCrossSigningKeys(crossSigningPublicKey)
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        continually(500.milliseconds) {
-            keyStore.getSecrets() shouldBe mapOf()
-        }
+        continually(500.milliseconds) { keyStore.getSecrets() shouldBe mapOf() }
     }
 
     @Test
@@ -401,20 +412,22 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf(aliceDevice))
         setCrossSigningKeys(crossSigningPublicKey)
         val secretEvent = GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf()))
-        tm.writeTransaction {
-            globalAccountDataStore.save(secretEvent)
-        }
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe mapOf(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(secretEvent, crossSigningPrivateKey)
-        )
+        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe
+            mapOf(SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(secretEvent, crossSigningPrivateKey))
     }
 
     @Test
@@ -424,107 +437,112 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setRequest(SecretType.M_MEGOLM_BACKUP_V1, setOf(aliceDevice))
         returnRoomKeysVersion(keyBackupPublicKey)
         val secretEvent = GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf()))
-        tm.writeTransaction {
-            globalAccountDataStore.save(secretEvent)
-        }
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", keyBackupPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe mapOf(
-            SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(secretEvent, keyBackupPrivateKey)
-        )
+        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe
+            mapOf(SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(secretEvent, keyBackupPrivateKey))
     }
 
     @Test
-    fun `handleOutgoingKeyRequestAnswer » save dehydrated device secret`() =
-        runTest {
-            val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
-            setDeviceKeys(true)
-            setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
-            returnDehydratedDevice(key)
-            val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
-            tm.writeTransaction {
-                globalAccountDataStore.save(secretEvent)
-            }
-            cut.handleOutgoingKeyRequestAnswer(
-                DecryptedOlmEventContainer(
-                    encryptedEvent, PlaintextOlmEvent(
-                        SecretKeySendEventContent("requestId", key),
-                        alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                    )
-                )
+    fun `handleOutgoingKeyRequestAnswer » save dehydrated device secret`() = runTest {
+        val key = SecureRandom.nextBytes(32).encodeUnpaddedBase64()
+        setDeviceKeys(true)
+        setRequest(SecretType.M_DEHYDRATED_DEVICE, setOf(aliceDevice))
+        returnDehydratedDevice(key)
+        val secretEvent = GlobalAccountDataEvent(DehydratedDeviceEventContent(mapOf()))
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    SecretKeySendEventContent("requestId", key),
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
-            continually(500.milliseconds) {
-                SecretType.M_DEHYDRATED_DEVICE to StoredSecret(secretEvent, keyBackupPrivateKey)
-            }
+        )
+        continually(500.milliseconds) {
+            SecretType.M_DEHYDRATED_DEVICE to StoredSecret(secretEvent, keyBackupPrivateKey)
         }
+    }
 
     @Test
     fun `handleOutgoingKeyRequestAnswer » cancel other requests`() = runTest {
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.secret.request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) { sendToDeviceEvents = it.messages }
         }
         setDeviceKeys(true)
         setRequest(SecretType.M_CROSS_SIGNING_USER_SIGNING, setOf(aliceDevice, "OTHER_DEVICE"))
         setCrossSigningKeys(crossSigningPublicKey)
         val secretEvent = GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf()))
-        tm.writeTransaction {
-            globalAccountDataStore.save(secretEvent)
-        }
+        tm.writeTransaction { globalAccountDataStore.save(secretEvent) }
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeySendEventContent("requestId", crossSigningPrivateKey),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
-        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe mapOf(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(secretEvent, crossSigningPrivateKey)
-        )
-        sendToDeviceEvents?.get(alice)?.get("OTHER_DEVICE") shouldBe SecretKeyRequestEventContent(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
-            KeyRequestAction.REQUEST_CANCELLATION,
-            "OWN_ALICE_DEVICE",
-            "requestId"
-        )
+        keyStore.getSecretsFlow().first { it.size == 1 } shouldBe
+            mapOf(SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(secretEvent, crossSigningPrivateKey))
+        sendToDeviceEvents?.get(alice)?.get("OTHER_DEVICE") shouldBe
+            SecretKeyRequestEventContent(
+                SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
+                KeyRequestAction.REQUEST_CANCELLATION,
+                "OWN_ALICE_DEVICE",
+                "requestId",
+            )
     }
 
     @Test
     fun `cancelOldOutgoingKeyRequests » only remove old requests and send cancel`() = runTest {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.secret.request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) { sendToDeviceEvents = it.messages }
         }
-        val request1 = StoredSecretKeyRequest(
-            SecretKeyRequestEventContent(
-                SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
-                KeyRequestAction.REQUEST,
-                "OWN_ALICE_DEVICE",
-                "requestId1"
-            ), setOf(), testClock.now()
-        )
-        val request2 = StoredSecretKeyRequest(
-            SecretKeyRequestEventContent(
-                SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
-                KeyRequestAction.REQUEST,
-                "OWN_ALICE_DEVICE",
-                "requestId2"
-            ), setOf(aliceDevice), (testClock.now() - 1.days - 1.seconds)
-        )
+        val request1 =
+            StoredSecretKeyRequest(
+                SecretKeyRequestEventContent(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
+                    KeyRequestAction.REQUEST,
+                    "OWN_ALICE_DEVICE",
+                    "requestId1",
+                ),
+                setOf(),
+                testClock.now(),
+            )
+        val request2 =
+            StoredSecretKeyRequest(
+                SecretKeyRequestEventContent(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
+                    KeyRequestAction.REQUEST,
+                    "OWN_ALICE_DEVICE",
+                    "requestId2",
+                ),
+                setOf(aliceDevice),
+                (testClock.now() - 1.days - 1.seconds),
+            )
         tm.writeTransaction {
             keyStore.addSecretKeyRequest(request1)
             keyStore.addSecretKeyRequest(request2)
@@ -534,24 +552,20 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.cancelOldOutgoingKeyRequests()
 
         keyStore.getAllSecretKeyRequestsFlow().first { it.size == 1 } shouldBe setOf(request1)
-        sendToDeviceEvents?.get(alice)?.get(aliceDevice) shouldBe SecretKeyRequestEventContent(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
-            KeyRequestAction.REQUEST_CANCELLATION,
-            "OWN_ALICE_DEVICE",
-            "requestId2"
-        )
+        sendToDeviceEvents?.get(alice)?.get(aliceDevice) shouldBe
+            SecretKeyRequestEventContent(
+                SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
+                KeyRequestAction.REQUEST_CANCELLATION,
+                "OWN_ALICE_DEVICE",
+                "requestId2",
+            )
     }
 
     private fun requestSecretKeysSetup() {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.secret.request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) { sendToDeviceEvents = it.messages }
         }
     }
-
 
     @Test
     fun `requestSecretKeysSetup » ignore when there are no missing secrets`() = runTest {
@@ -559,23 +573,14 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                        GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                        "key1"
-                    ),
-                    SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                        GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())),
-                        "key2"
-                    ),
-                    SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        "key3"
-                    ),
-                    @OptIn(MSC3814::class)
-                    SecretType.M_DEHYDRATED_DEVICE to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        "key4"
-                    )
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                        StoredSecret(GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())), "key1"),
+                    SecretType.M_CROSS_SIGNING_SELF_SIGNING to
+                        StoredSecret(GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key2"),
+                    SecretType.M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), "key3"),
+                    @OptIn(MSC3814::class) SecretType.M_DEHYDRATED_DEVICE to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), "key4"),
                 )
             }
         }
@@ -589,15 +594,10 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        "key3"
-                    ),
-                    @OptIn(MSC3814::class)
-                    SecretType.M_DEHYDRATED_DEVICE to StoredSecret(
-                        GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
-                        "key4"
-                    )
+                    SecretType.M_MEGOLM_BACKUP_V1 to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), "key3"),
+                    @OptIn(MSC3814::class) SecretType.M_DEHYDRATED_DEVICE to
+                        StoredSecret(GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())), "key4"),
                 )
             }
             keyStore.addSecretKeyRequest(
@@ -606,7 +606,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                         SecretType.M_CROSS_SIGNING_SELF_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId1"
+                        "requestId1",
                     ),
                     setOf("DEVICE_2"),
                     testClock.now(),
@@ -617,18 +617,24 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    "DEVICE_1" to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, "DEVICE_1", setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(false)
-                    ),
-                    "DEVICE_2" to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, "DEVICE_2", setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    ),
-                    "DEVICE_3" to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, "DEVICE_3", setOf(), keysOf(), dehydrated = true), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    )
+                    "DEVICE_1" to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, "DEVICE_1", setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(false),
+                        ),
+                    "DEVICE_2" to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, "DEVICE_2", setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
+                    "DEVICE_3" to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(
+                                DeviceKeys(alice, "DEVICE_3", setOf(), keysOf(), dehydrated = true),
+                                mapOf(),
+                            ),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
                 )
             }
         }
@@ -655,25 +661,23 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
         val sendToDeviceCalled = MutableStateFlow(false)
         apiConfig.endpoints {
-            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) {
-                sendToDeviceCalled.value = true
-            }
+            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) { sendToDeviceCalled.value = true }
         }
 
-        backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-            cut.requestSecretKeysWhenCrossSigned()
-        }
+        backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) { cut.requestSecretKeysWhenCrossSigned() }
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    ),
-                    "OTHER_ALICE" to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, "OTHER_ALICE", setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    ),
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
+                    "OTHER_ALICE" to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, "OTHER_ALICE", setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
                 )
             }
         }
@@ -684,11 +688,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
     private suspend fun TestScope.handleChangedSecretsSetup() {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.secret.request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.secret.request", "*")) { sendToDeviceEvents = it.messages }
         }
         tm.writeTransaction {
             keyStore.addSecretKeyRequest(
@@ -697,7 +697,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId1"
+                        "requestId1",
                     ),
                     setOf("DEVICE_2"),
                     testClock.now(),
@@ -710,15 +710,12 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `handleChangedSecrets » do nothing when secret is not allowed to cache`() = runTest {
         handleChangedSecretsSetup()
-        val crossSigningPrivateKeys = mapOf(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                "key"
+        val crossSigningPrivateKeys =
+            mapOf(
+                SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                    StoredSecret(GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())), "key")
             )
-        )
-        tm.writeTransaction {
-            keyStore.updateSecrets { crossSigningPrivateKeys }
-        }
+        tm.writeTransaction { keyStore.updateSecrets { crossSigningPrivateKeys } }
         cut.handleChangedSecrets(GlobalAccountDataEvent(MasterKeyEventContent(mapOf())))
         sendToDeviceEvents shouldBe null
         keyStore.getSecrets() shouldBe crossSigningPrivateKeys
@@ -728,54 +725,49 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     fun `handleChangedSecrets » do nothing when event did not change`() = runTest {
         handleChangedSecretsSetup()
         val event = GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf()))
-        val crossSigningPrivateKeys = mapOf(
-            SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                event, "bla"
-            )
-        )
-        tm.writeTransaction {
-            keyStore.updateSecrets { crossSigningPrivateKeys }
-        }
+        val crossSigningPrivateKeys = mapOf(SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(event, "bla"))
+        tm.writeTransaction { keyStore.updateSecrets { crossSigningPrivateKeys } }
         cut.handleChangedSecrets(event)
         sendToDeviceEvents shouldBe null
         keyStore.getSecrets() shouldBe crossSigningPrivateKeys
     }
 
     @Test
-    fun `handleChangedSecrets » remove cached secret and cancel ongoing requests when event did change`() =
-        runTest {
-            handleChangedSecretsSetup()
-            tm.writeTransaction {
-                keyStore.updateSecrets {
-                    mapOf(
-                        SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
+    fun `handleChangedSecrets » remove cached secret and cancel ongoing requests when event did change`() = runTest {
+        handleChangedSecretsSetup()
+        tm.writeTransaction {
+            keyStore.updateSecrets {
+                mapOf(
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                        StoredSecret(
                             GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf("oh" to JsonPrimitive("change!")))),
-                            "bla"
+                            "bla",
                         )
-                    )
-                }
+                )
             }
-            cut.handleChangedSecrets(GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())))
-
-            assertSoftly(sendToDeviceEvents?.get(alice)?.get("DEVICE_2")) {
-                assertNotNull(this)
-                this.shouldBeInstanceOf<SecretKeyRequestEventContent>()
-                this.name shouldBe SecretType.M_CROSS_SIGNING_USER_SIGNING.id
-                this.action shouldBe KeyRequestAction.REQUEST_CANCELLATION
-                this.requestingDeviceId shouldBe aliceDevice
-                this.requestId shouldBe "requestId1"
-            }
-            keyStore.getSecrets() shouldBe mapOf()
         }
+        cut.handleChangedSecrets(GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())))
+
+        assertSoftly(sendToDeviceEvents?.get(alice)?.get("DEVICE_2")) {
+            assertNotNull(this)
+            this.shouldBeInstanceOf<SecretKeyRequestEventContent>()
+            this.name shouldBe SecretType.M_CROSS_SIGNING_USER_SIGNING.id
+            this.action shouldBe KeyRequestAction.REQUEST_CANCELLATION
+            this.requestingDeviceId shouldBe aliceDevice
+            this.requestId shouldBe "requestId1"
+        }
+        keyStore.getSecrets() shouldBe mapOf()
+    }
 
     private suspend fun setDeviceKeys(trusted: Boolean) {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(trusted)
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(trusted),
+                        )
                 )
             }
         }
@@ -789,7 +781,7 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                         secretType.id,
                         KeyRequestAction.REQUEST,
                         "OWN_ALICE_DEVICE",
-                        "requestId"
+                        "requestId",
                     ),
                     receiverDeviceIds,
                     testClock.now(),
@@ -806,11 +798,13 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
                     StoredCrossSigningKeys(
                         SignedCrossSigningKeys(
                             CrossSigningKeys(
-                                alice, setOf(CrossSigningKeysUsage.UserSigningKey), keysOf(
-                                    Key.Ed25519Key(publicKey, publicKey)
-                                )
-                            ), mapOf()
-                        ), KeySignatureTrustLevel.CrossSigned(true)
+                                alice,
+                                setOf(CrossSigningKeysUsage.UserSigningKey),
+                                keysOf(Key.Ed25519Key(publicKey, publicKey)),
+                            ),
+                            mapOf(),
+                        ),
+                        KeySignatureTrustLevel.CrossSigned(true),
                     )
                 )
             }
@@ -820,15 +814,16 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private fun returnRoomKeysVersion(publicKey: String? = null) {
         apiConfig.endpoints {
             matrixJsonEndpoint(GetRoomKeyBackupVersion) {
-                if (publicKey == null) throw MatrixServerException(
-                    HttpStatusCode.InternalServerError,
-                    ErrorResponse.Unknown("")
-                )
-                else GetRoomKeysBackupVersionResponse.V1(
-                    authData = RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(
-                        publicKey = Curve25519KeyValue(publicKey)
-                    ), 1, "etag", "1"
-                )
+                if (publicKey == null)
+                    throw MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
+                else
+                    GetRoomKeysBackupVersionResponse.V1(
+                        authData =
+                            RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(publicKey = Curve25519KeyValue(publicKey)),
+                        1,
+                        "etag",
+                        "1",
+                    )
             }
         }
     }
@@ -836,27 +831,29 @@ class OutgoingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private fun returnDehydratedDevice(key: String? = null, pickle: String? = null) {
         apiConfig.endpoints {
             matrixJsonEndpoint(GetDehydratedDevice) {
-                if (key == null) throw MatrixServerException(
-                    HttpStatusCode.NotFound,
-                    ErrorResponse.NotFound("no dehydrated device present")
-                )
-                else GetDehydratedDevice.Response(
-                    deviceId = "dehydratedDeviceId",
-                    deviceData =
-                        with(
-                            encryptAesHmacSha2(
-                                (pickle ?: driver.olm.account().pickle()).encodeToByteArray(),
-                                key.decodeUnpaddedBase64Bytes(),
-                                DehydratedDeviceData.DehydrationV2Compatibility.ALGORITHM
-                            )
-                        ) {
-                            DehydratedDeviceData.DehydrationV2Compatibility(
-                                iv = iv,
-                                encryptedDevicePickle = ciphertext,
-                                mac = mac,
-                            )
-                        }
-                )
+                if (key == null)
+                    throw MatrixServerException(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse.NotFound("no dehydrated device present"),
+                    )
+                else
+                    GetDehydratedDevice.Response(
+                        deviceId = "dehydratedDeviceId",
+                        deviceData =
+                            with(
+                                encryptAesHmacSha2(
+                                    (pickle ?: driver.olm.account().pickle()).encodeToByteArray(),
+                                    key.decodeUnpaddedBase64Bytes(),
+                                    DehydratedDeviceData.DehydrationV2Compatibility.ALGORITHM,
+                                )
+                            ) {
+                                DehydratedDeviceData.DehydrationV2Compatibility(
+                                    iv = iv,
+                                    encryptedDevicePickle = ciphertext,
+                                    mac = mac,
+                                )
+                            },
+                    )
             }
         }
     }

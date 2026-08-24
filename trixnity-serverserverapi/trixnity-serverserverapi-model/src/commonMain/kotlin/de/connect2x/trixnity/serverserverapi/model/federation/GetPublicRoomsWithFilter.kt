@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.POST
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import io.ktor.resources.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#post_matrixfederationv1publicrooms">matrix spec</a>

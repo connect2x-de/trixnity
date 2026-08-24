@@ -23,7 +23,8 @@ internal object ExposedCrossSigningKeys : Table("cross_signing_keys") {
 internal class ExposedCrossSigningKeysRepository(private val json: Json) : CrossSigningKeysRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: UserId): Set<StoredCrossSigningKeys>? {
-        return ExposedCrossSigningKeys.selectAll().where { ExposedCrossSigningKeys.userId eq key.full }
+        return ExposedCrossSigningKeys.selectAll()
+            .where { ExposedCrossSigningKeys.userId eq key.full }
             .firstOrNull()
             ?.let {
                 it[ExposedCrossSigningKeys.value].let { deviceKeys ->

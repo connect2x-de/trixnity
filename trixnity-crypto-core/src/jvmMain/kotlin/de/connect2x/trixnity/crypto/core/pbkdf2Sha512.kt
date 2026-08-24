@@ -7,10 +7,8 @@ actual suspend fun generatePbkdf2Sha512(
     password: String,
     salt: ByteArray,
     iterationCount: Int,
-    keyBitLength: Int
+    keyBitLength: Int,
 ): ByteArray {
     val skf: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
-    return skf.generateSecret(
-        PBEKeySpec(password.toCharArray(), salt, iterationCount, keyBitLength)
-    ).encoded
+    return skf.generateSecret(PBEKeySpec(password.toCharArray(), salt, iterationCount, keyBitLength)).encoded
 }

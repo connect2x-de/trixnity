@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.vodozemac
 
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.bindings.*
 import de.connect2x.trixnity.vodozemac.bindings.Curve25519PublicKeyBindings
 import de.connect2x.trixnity.vodozemac.bindings.Ed25519PublicKeyBindings
@@ -9,14 +8,12 @@ import de.connect2x.trixnity.vodozemac.bindings.Ed25519SignatureBindings
 import de.connect2x.trixnity.vodozemac.utils.*
 import de.connect2x.trixnity.vodozemac.utils.interopScope
 import de.connect2x.trixnity.vodozemac.utils.managedReachableScope
+import kotlin.jvm.JvmInline
 
-class Ed25519PublicKey internal constructor(ptr: NativePointer) :
-    Managed(ptr, Ed25519PublicKeyBindings::free) {
+class Ed25519PublicKey internal constructor(ptr: NativePointer) : Managed(ptr, Ed25519PublicKeyBindings::free) {
 
     val bytes: ByteArray
-        get() = managedReachableScope {
-            withResult(ByteArray(32)) { Ed25519PublicKeyBindings.toBytes(ptr, it) }
-        }
+        get() = managedReachableScope { withResult(ByteArray(32)) { Ed25519PublicKeyBindings.toBytes(ptr, it) } }
 
     val base64: String
         get() = UnpaddedBase64.encode(bytes)
@@ -24,16 +21,14 @@ class Ed25519PublicKey internal constructor(ptr: NativePointer) :
     fun verify(message: ByteArray, signature: Ed25519Signature) = managedReachableScope {
         val result =
             withResult(NativePointerArray(3)) {
-                Ed25519PublicKeyBindings.verify(
-                    it, ptr, message.toInterop(), message.size, signature.ptr)
+                Ed25519PublicKeyBindings.verify(it, ptr, message.toInterop(), message.size, signature.ptr)
             }
 
         if (result[0].intValue != 0)
             throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
     }
 
-    fun verify(message: String, signature: Ed25519Signature) =
-        verify(message.encodeToByteArray(), signature)
+    fun verify(message: String, signature: Ed25519Signature) = verify(message.encodeToByteArray(), signature)
 
     companion object {
         operator fun invoke(bytes: ByteArray): Ed25519PublicKey = interopScope {
@@ -49,13 +44,10 @@ class Ed25519PublicKey internal constructor(ptr: NativePointer) :
     }
 }
 
-class Ed25519SecretKey internal constructor(ptr: NativePointer) :
-    Managed(ptr, Ed25519SecretKeyBindings::free) {
+class Ed25519SecretKey internal constructor(ptr: NativePointer) : Managed(ptr, Ed25519SecretKeyBindings::free) {
 
     val bytes: ByteArray
-        get() = managedReachableScope {
-            withResult(ByteArray(32)) { Ed25519SecretKeyBindings.toBytes(ptr, it) }
-        }
+        get() = managedReachableScope { withResult(ByteArray(32)) { Ed25519SecretKeyBindings.toBytes(ptr, it) } }
 
     val base64: String
         get() = UnpaddedBase64.encode(bytes)
@@ -81,8 +73,7 @@ class Ed25519SecretKey internal constructor(ptr: NativePointer) :
     }
 }
 
-class Curve25519PublicKey internal constructor(ptr: NativePointer) :
-    Managed(ptr, Curve25519PublicKeyBindings::free) {
+class Curve25519PublicKey internal constructor(ptr: NativePointer) : Managed(ptr, Curve25519PublicKeyBindings::free) {
 
     val bytes: ByteArray
         get() = managedReachableScope {
@@ -102,33 +93,26 @@ class Curve25519PublicKey internal constructor(ptr: NativePointer) :
             Curve25519PublicKey(Curve25519PublicKeyBindings.fromBytes(bytes.toInterop()))
         }
 
-        operator fun invoke(base64: String): Curve25519PublicKey =
-            this(UnpaddedBase64.decode(base64))
+        operator fun invoke(base64: String): Curve25519PublicKey = this(UnpaddedBase64.decode(base64))
     }
 }
 
-class Curve25519SecretKey internal constructor(ptr: NativePointer) :
-    Managed(ptr, Curve25519SecretKeyBindings::free) {
+class Curve25519SecretKey internal constructor(ptr: NativePointer) : Managed(ptr, Curve25519SecretKeyBindings::free) {
 
     val bytes: ByteArray
-        get() = managedReachableScope {
-            withResult(ByteArray(32)) { Curve25519SecretKeyBindings.toBytes(ptr, it) }
-        }
+        get() = managedReachableScope { withResult(ByteArray(32)) { Curve25519SecretKeyBindings.toBytes(ptr, it) } }
 
     val base64: String
         get() = UnpaddedBase64.encode(bytes)
 
     val publicKey: Curve25519PublicKey
-        get() = managedReachableScope {
-            Curve25519PublicKey(Curve25519SecretKeyBindings.publicKey(ptr))
-        }
+        get() = managedReachableScope { Curve25519PublicKey(Curve25519SecretKeyBindings.publicKey(ptr)) }
 
     fun diffieHellman(theirPublicKey: Curve25519PublicKey) = managedReachableScope {
         var wasContributory: Boolean
         val secret =
             withResult(ByteArray(32)) {
-                wasContributory =
-                    Curve25519SecretKeyBindings.diffieHellman(ptr, theirPublicKey.ptr, it)
+                wasContributory = Curve25519SecretKeyBindings.diffieHellman(ptr, theirPublicKey.ptr, it)
             }
 
         SharedSecret(secret = secret, wasContributory = wasContributory)
@@ -141,21 +125,18 @@ class Curve25519SecretKey internal constructor(ptr: NativePointer) :
     }
 
     companion object {
-        operator fun invoke(): Curve25519SecretKey =
-            Curve25519SecretKey(Curve25519SecretKeyBindings.new())
+        operator fun invoke(): Curve25519SecretKey = Curve25519SecretKey(Curve25519SecretKeyBindings.new())
 
         operator fun invoke(bytes: ByteArray): Curve25519SecretKey = interopScope {
             require(bytes.size == 32) { "invalid key size: ${bytes.size}" }
             Curve25519SecretKey(Curve25519SecretKeyBindings.fromBytes(bytes.toInterop()))
         }
 
-        operator fun invoke(base64: String): Curve25519SecretKey =
-            this(UnpaddedBase64.decode(base64))
+        operator fun invoke(base64: String): Curve25519SecretKey = this(UnpaddedBase64.decode(base64))
     }
 }
 
-class Ed25519Signature internal constructor(ptr: NativePointer) :
-    Managed(ptr, Ed25519SignatureBindings::free) {
+class Ed25519Signature internal constructor(ptr: NativePointer) : Managed(ptr, Ed25519SignatureBindings::free) {
 
     val bytes: ByteArray
         get() = managedReachableScope {

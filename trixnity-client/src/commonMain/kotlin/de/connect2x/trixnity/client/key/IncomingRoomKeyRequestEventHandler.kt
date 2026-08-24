@@ -64,8 +64,10 @@ class IncomingRoomKeyRequestEventHandler(
             val content = event.content
             when (content.action) {
                 KeyRequestAction.REQUEST -> incomingRoomKeyRequests.update { it + content }
-                KeyRequestAction.REQUEST_CANCELLATION -> incomingRoomKeyRequests
-                    .update { oldRequests -> oldRequests.filterNot { it.requestId == content.requestId }.toSet() }
+                KeyRequestAction.REQUEST_CANCELLATION ->
+                    incomingRoomKeyRequests.update { oldRequests ->
+                        oldRequests.filterNot { it.requestId == content.requestId }.toSet()
+                    }
             }
         }
     }
@@ -75,33 +77,45 @@ class IncomingRoomKeyRequestEventHandler(
             val requestingDeviceId = request.requestingDeviceId
             val senderTrustLevel = keyStore.getDeviceKey(ownUserId, requestingDeviceId).first()?.trustLevel
             val requestBody = request.body
-            log.debug { "process incoming room key request (requestId=${request.requestId}, isVerified=${senderTrustLevel?.isVerified})" }
-            if (senderTrustLevel?.isVerified == true && requestBody != null && requestBody.algorithm == EncryptionAlgorithm.Megolm) {
+            log.debug {
+                "process incoming room key request (requestId=${request.requestId}, isVerified=${senderTrustLevel?.isVerified})"
+            }
+            if (
+                senderTrustLevel?.isVerified == true &&
+                    requestBody != null &&
+                    requestBody.algorithm == EncryptionAlgorithm.Megolm
+            ) {
                 val foundInboundMegolmSession =
                     olmStore.getInboundMegolmSession(requestBody.sessionId, requestBody.roomId).first()
                 if (foundInboundMegolmSession != null) {
-                    log.info { "send incoming room key request answer (${request.requestId}) to device $requestingDeviceId" }
+                    log.info {
+                        "send incoming room key request answer (${request.requestId}) to device $requestingDeviceId"
+                    }
                     val account = checkNotNull(accountStore.getAccount()) { "No account found" }
-                    val session = driver.megolm.inboundGroupSession.fromPickle(
-                        foundInboundMegolmSession.pickled, driver.key.pickleKey(account.olmPickleKey)
-                    ).use(InboundGroupSession::exportAtFirstKnownIndex)
+                    val session =
+                        driver.megolm.inboundGroupSession
+                            .fromPickle(foundInboundMegolmSession.pickled, driver.key.pickleKey(account.olmPickleKey))
+                            .use(InboundGroupSession::exportAtFirstKnownIndex)
                     val encryptedAnswer =
-                        olmEncryptionService.encryptOlm(
-                            ForwardedRoomKeyEventContent(
-                                roomId = foundInboundMegolmSession.roomId,
-                                senderKey = foundInboundMegolmSession.senderKey,
-                                sessionId = foundInboundMegolmSession.sessionId,
-                                sessionKey = ExportedSessionKeyValue.of(session),
-                                senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
-                                forwardingKeyChain = foundInboundMegolmSession.forwardingCurve25519KeyChain,
-                                algorithm = EncryptionAlgorithm.Megolm,
-                            ),
-                            ownUserId, requestingDeviceId
-                        ).getOrNull()
+                        olmEncryptionService
+                            .encryptOlm(
+                                ForwardedRoomKeyEventContent(
+                                    roomId = foundInboundMegolmSession.roomId,
+                                    senderKey = foundInboundMegolmSession.senderKey,
+                                    sessionId = foundInboundMegolmSession.sessionId,
+                                    sessionKey = ExportedSessionKeyValue.of(session),
+                                    senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
+                                    forwardingKeyChain = foundInboundMegolmSession.forwardingCurve25519KeyChain,
+                                    algorithm = EncryptionAlgorithm.Megolm,
+                                ),
+                                ownUserId,
+                                requestingDeviceId,
+                            )
+                            .getOrNull()
                     if (encryptedAnswer != null)
-                        api.user.sendToDevice(
-                            mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer))
-                        ).getOrThrow()
+                        api.user
+                            .sendToDevice(mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer)))
+                            .getOrThrow()
                 } else log.info { "got a room key request (${request}), but did not found a matching room key" }
             }
             incomingRoomKeyRequests.update { it - request }

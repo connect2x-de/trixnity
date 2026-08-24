@@ -17,9 +17,7 @@ fun WrappedTransaction.createIndexedDBMinimalStoreRepository(
     objectStoreName: String,
     block: WrappedTransaction.(WrappedObjectStore) -> Unit = {},
 ) {
-    createObjectStore(database, objectStoreName).apply {
-        block(this)
-    }
+    createObjectStore(database, objectStoreName).apply { block(this) }
 }
 
 internal abstract class IndexedDBFullRepository<K, V : Any>(
@@ -31,10 +29,7 @@ internal abstract class IndexedDBFullRepository<K, V : Any>(
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: K): V? = withRead { store ->
-        json.decodeFromDynamicNullable(
-            valueSerializer,
-            store.get(backwardsCompatibleKeyOf(keySerializer(key))),
-        )
+        json.decodeFromDynamicNullable(valueSerializer, store.get(backwardsCompatibleKeyOf(keySerializer(key))))
     }
 
     context(transaction: WriteTransaction)
@@ -51,15 +46,11 @@ internal abstract class IndexedDBFullRepository<K, V : Any>(
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll(): Unit = withWrite { store ->
-        store.clear()
-    }
+    override suspend fun deleteAll(): Unit = withWrite { store -> store.clear() }
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): List<V> = withRead { store ->
-        store.openCursor()
-            .mapNotNull { json.decodeFromDynamicNullable(valueSerializer, it.value) }
-            .toList()
+        store.openCursor().mapNotNull { json.decodeFromDynamicNullable(valueSerializer, it.value) }.toList()
     }
 }
 

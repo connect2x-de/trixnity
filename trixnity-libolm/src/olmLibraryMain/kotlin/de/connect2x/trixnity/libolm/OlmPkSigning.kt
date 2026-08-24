@@ -11,10 +11,11 @@ import de.connect2x.trixnity.libolm.OlmLibrary.pk_signing_seed_length
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 
-actual class OlmPkSigning private constructor(
+actual class OlmPkSigning
+private constructor(
     internal actual val ptr: OlmPkSigningPointer,
     actual val privateKey: String,
-    actual val publicKey: String
+    actual val publicKey: String,
 ) : WantsToBeFree {
     actual companion object {
         actual fun create(privateKey: String?): OlmPkSigning {
@@ -39,12 +40,9 @@ actual class OlmPkSigning private constructor(
 
     actual fun sign(message: String): String {
         val signature = ByteArray(pk_signature_length().toInt())
-        val size = checkResult {
-            pk_sign(ptr, message.encodeToByteArray(), signature)
-        }
+        val size = checkResult { pk_sign(ptr, message.encodeToByteArray(), signature) }
         return signature.decodeToString(endIndex = size.toInt())
     }
 
     private fun checkResult(block: () -> ULong): ULong = checkError(ptr, block(), OlmLibrary::pk_signing_last_error)
-
 }

@@ -8,8 +8,7 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
 
     val sessionId: String
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { SessionBindings.sessionId(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { SessionBindings.sessionId(it, ptr) }
 
             ptr.toByteArray(size.intValue).decodeToString()
         }
@@ -46,15 +45,11 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
     fun encrypt(plaintext: String): OlmMessage.Text =
         encryptRaw(plaintext.encodeToByteArray(), OlmMessage.Normal::Text, OlmMessage.PreKey::Text)
 
-    private fun <I> decryptRaw(
-        message: OlmMessage,
-        plaintext: (ByteArray) -> Plaintext<I>,
-    ): Plaintext<I> =
+    private fun <I> decryptRaw(message: OlmMessage, plaintext: (ByteArray) -> Plaintext<I>): Plaintext<I> =
         managedReachableScope(message) {
             val result =
                 withResult(NativePointerArray(3)) {
-                    SessionBindings.decrypt(
-                        it, ptr, message.message.ptr, message.sessionKeys?.ptr ?: nullPtr)
+                    SessionBindings.decrypt(it, ptr, message.message.ptr, message.sessionKeys?.ptr ?: nullPtr)
                 }
 
             val bytes = result[1].toByteArray(result[2].intValue)
@@ -64,16 +59,13 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
             plaintext(bytes)
         }
 
-    fun decrypt(message: OlmMessage.Bytes): ByteArray =
-        decryptRaw(message, Plaintext.Bytes::of).value
+    fun decrypt(message: OlmMessage.Bytes): ByteArray = decryptRaw(message, Plaintext.Bytes::of).value
 
     fun decrypt(message: OlmMessage.Text): String = decryptRaw(message, Plaintext.Text::of).value
 
     fun pickle(pickleKey: PickleKey? = null): String = managedReachableScope {
         val (ptr, size) =
-            withResult(NativePointerArray(2)) {
-                SessionBindings.pickle(it, ptr, pickleKey.value.toInterop())
-            }
+            withResult(NativePointerArray(2)) { SessionBindings.pickle(it, ptr, pickleKey.value.toInterop()) }
 
         ptr.toByteArray(size.intValue).decodeToString()
     }
@@ -85,7 +77,11 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
             val result =
                 withResult(NativePointerArray(3)) {
                     SessionBindings.fromPickle(
-                        it, pickleBytes.toInterop(), pickleBytes.size, pickleKey.value.toInterop())
+                        it,
+                        pickleBytes.toInterop(),
+                        pickleBytes.size,
+                        pickleKey.value.toInterop(),
+                    )
                 }
 
             if (result[0].intValue != 0)
@@ -105,7 +101,8 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
                         pickleBytes.toInterop(),
                         pickleBytes.size,
                         pickleKeyBytes.toInterop(),
-                        pickleKeyBytes.size)
+                        pickleKeyBytes.size,
+                    )
                 }
 
             if (result[0].intValue != 0)

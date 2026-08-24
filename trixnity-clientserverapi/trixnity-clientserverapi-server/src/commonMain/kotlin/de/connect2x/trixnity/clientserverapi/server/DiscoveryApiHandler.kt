@@ -8,18 +8,14 @@ import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
 
 interface DiscoveryApiHandler {
 
-    /**
-     * @see [GetClient]
-     */
+    /** @see [GetClient] */
     suspend fun getClient(context: MatrixEndpointContext<GetClient, Unit, DiscoveryInformation>): DiscoveryInformation
 
-    /**
-     * @see [GetSupport]
-     */
+    /** @see [GetSupport] */
     suspend fun getSupport(context: MatrixEndpointContext<GetSupport, Unit, GetSupport.Response>): GetSupport.Response
 
-    /**
-     * @see [GetPolicyServer]
-     */
-    suspend fun getPolicyServer(context: MatrixEndpointContext<GetPolicyServer, Unit, GetPolicyServer.Response>): GetPolicyServer.Response
+    /** @see [GetPolicyServer] */
+    suspend fun getPolicyServer(
+        context: MatrixEndpointContext<GetPolicyServer, Unit, GetPolicyServer.Response>
+    ): GetPolicyServer.Response
 }

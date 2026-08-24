@@ -14,16 +14,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Resource("/_matrix/client/v1/admin/suspend/{userId}")
 @HttpMethod(PUT)
-data class SetSuspend(
-    @SerialName("userId") val userId: UserId,
-) : MatrixEndpoint<SetSuspend.Request, SetSuspend.Response> {
-    @Serializable
-    data class Request(
-        @SerialName("suspended") val suspended: Boolean,
-    )
+data class SetSuspend(@SerialName("userId") val userId: UserId) :
+    MatrixEndpoint<SetSuspend.Request, SetSuspend.Response> {
+    @Serializable data class Request(@SerialName("suspended") val suspended: Boolean)
 
-    @Serializable
-    data class Response(
-        @SerialName("suspended") val suspended: Boolean,
-    )
+    @Serializable data class Response(@SerialName("suspended") val suspended: Boolean)
 }

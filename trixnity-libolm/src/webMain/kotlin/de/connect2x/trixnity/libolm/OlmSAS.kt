@@ -12,7 +12,8 @@ actual class OlmSAS private constructor() : WantsToBeFree {
         }
     }
 
-    actual val publicKey: String get() = rethrow { ptr.get_pubkey() }
+    actual val publicKey: String
+        get() = rethrow { ptr.get_pubkey() }
 
     actual override fun free() = ptr.free()
 
@@ -22,6 +23,8 @@ actual class OlmSAS private constructor() : WantsToBeFree {
         rethrow { ptr.generate_bytes(info, numberOfBytes.toJsNumber()) }.toByteArray()
 
     actual fun calculateMac(input: String, info: String): String = rethrow { ptr.calculate_mac(input, info) }
-    actual fun calculateMacFixedBase64(input: String, info: String) =
-        rethrow { ptr.calculate_mac_fixed_base64(input, info) }
+
+    actual fun calculateMacFixedBase64(input: String, info: String) = rethrow {
+        ptr.calculate_mac_fixed_base64(input, info)
+    }
 }

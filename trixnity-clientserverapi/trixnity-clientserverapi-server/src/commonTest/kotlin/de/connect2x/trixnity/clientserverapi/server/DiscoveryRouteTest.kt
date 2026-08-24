@@ -39,16 +39,12 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                discoveryApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { discoveryApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -65,14 +61,15 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
             .returns(
                 DiscoveryInformation(
                     homeserver = DiscoveryInformation.HomeserverInformation("https://matrix.example.com"),
-                    identityServer = DiscoveryInformation.IdentityServerInformation("https://identity.example.com")
+                    identityServer = DiscoveryInformation.IdentityServerInformation("https://identity.example.com"),
                 )
             )
         val response = client.get("/.well-known/matrix/client")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "m.homeserver": {
                         "base_url": "https://matrix.example.com"
@@ -81,11 +78,10 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
                         "base_url": "https://identity.example.com"
                       }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getClient(any())
-        }
+        verifySuspend { handlerMock.getClient(any()) }
     }
 
     @Test
@@ -94,25 +90,27 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getSupport(any()) }
             .returns(
                 GetSupport.Response(
-                    contacts = listOf(
-                        GetSupport.Response.Contact(
-                            emailAddress = "admin@example.org",
-                            userId = UserId("@admin:example.org"),
-                            role = GetSupport.Response.Contact.Role.Admin,
+                    contacts =
+                        listOf(
+                            GetSupport.Response.Contact(
+                                emailAddress = "admin@example.org",
+                                userId = UserId("@admin:example.org"),
+                                role = GetSupport.Response.Contact.Role.Admin,
+                            ),
+                            GetSupport.Response.Contact(
+                                emailAddress = "dino@example.org",
+                                role = GetSupport.Response.Contact.Role.Unknown("m.role.dino"),
+                            ),
                         ),
-                        GetSupport.Response.Contact(
-                            emailAddress = "dino@example.org",
-                            role = GetSupport.Response.Contact.Role.Unknown("m.role.dino"),
-                        )
-                    ),
-                    supportPage = "https://example.org/support.html"
+                    supportPage = "https://example.org/support.html",
                 )
             )
         val response = client.get("/.well-known/matrix/support")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "contacts": [
                         {
@@ -127,11 +125,10 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
                       ],
                       "support_page": "https://example.org/support.html"
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getSupport(any())
-        }
+        verifySuspend { handlerMock.getSupport(any()) }
     }
 
     @Test
@@ -140,25 +137,23 @@ class DiscoveryRouteTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getPolicyServer(any()) }
             .returns(
                 GetPolicyServer.Response(
-                    publicKeys = keysOf(
-                        Key.Ed25519Key(null, "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s")
-                    )
+                    publicKeys = keysOf(Key.Ed25519Key(null, "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s"))
                 )
             )
         val response = client.get("/.well-known/matrix/policy_server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "public_keys": {
                         "ed25519": "6yhHGKhCiXTSEN2ksjV7kX_N6rBQZ3Xb-M7LlC6NS-s"
                       }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getPolicyServer(any())
-        }
+        verifySuspend { handlerMock.getPolicyServer(any()) }
     }
 }

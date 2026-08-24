@@ -22,41 +22,34 @@ internal object AccountBindings {
     fun identityKeys(result: InteropPointer, account: NativePointer) =
         vodozemac_olm_account_identity_keys(result, account)
 
-    fun ed25519Key(account: NativePointer): NativePointer =
-        vodozemac_olm_account_ed25519_key(account)
+    fun ed25519Key(account: NativePointer): NativePointer = vodozemac_olm_account_ed25519_key(account)
 
-    fun curve25519Key(account: NativePointer): NativePointer =
-        vodozemac_olm_account_curve25519_key(account)
+    fun curve25519Key(account: NativePointer): NativePointer = vodozemac_olm_account_curve25519_key(account)
 
     fun sign(account: NativePointer, message: InteropPointer, size: Int): NativePointer =
         vodozemac_olm_account_sign(account, message, size)
 
-    fun maxNumberOfOneTimeKeys(account: NativePointer): Int =
-        vodozemac_olm_account_max_number_of_one_time_keys(account)
+    fun maxNumberOfOneTimeKeys(account: NativePointer): Int = vodozemac_olm_account_max_number_of_one_time_keys(account)
 
     fun createOutboundSession(
         account: NativePointer,
         config: NativePointer,
         identityKey: NativePointer,
-        oneTimeKey: NativePointer
-    ): NativePointer =
-        vodozemac_olm_account_create_outbound_session(account, config, identityKey, oneTimeKey)
+        oneTimeKey: NativePointer,
+    ): NativePointer = vodozemac_olm_account_create_outbound_session(account, config, identityKey, oneTimeKey)
 
     fun createInboundSession(
         result: InteropPointer,
         account: NativePointer,
         identityKey: NativePointer,
         message: NativePointer,
-        sessionKeys: NativePointer
-    ) =
-        vodozemac_olm_account_create_inbound_session(
-            result, account, identityKey, message, sessionKeys)
+        sessionKeys: NativePointer,
+    ) = vodozemac_olm_account_create_inbound_session(result, account, identityKey, message, sessionKeys)
 
     fun generateOneTimeKeys(result: InteropPointer, account: NativePointer, count: Int) =
         vodozemac_olm_account_generate_one_time_keys(result, account, count)
 
-    fun storedOneTimeKeyCount(account: NativePointer): Int =
-        vodozemac_olm_account_stored_one_time_key_count(account)
+    fun storedOneTimeKeyCount(account: NativePointer): Int = vodozemac_olm_account_stored_one_time_key_count(account)
 
     fun oneTimeKeys(result: InteropPointer, account: NativePointer) =
         vodozemac_olm_account_one_time_keys(result, account)
@@ -67,11 +60,9 @@ internal object AccountBindings {
     fun fallbackKey(result: InteropPointer, account: NativePointer) =
         vodozemac_olm_account_fallback_key(result, account)
 
-    fun forgetFallbackKey(account: NativePointer): Boolean =
-        vodozemac_olm_account_forget_fallback_key(account) == 1
+    fun forgetFallbackKey(account: NativePointer): Boolean = vodozemac_olm_account_forget_fallback_key(account) == 1
 
-    fun markKeysSsPublished(account: NativePointer) =
-        vodozemac_olm_account_mark_keys_as_published(account)
+    fun markKeysSsPublished(account: NativePointer) = vodozemac_olm_account_mark_keys_as_published(account)
 
     fun pickle(result: InteropPointer, account: NativePointer, pickleKey: InteropPointer?) =
         vodozemac_olm_account_pickle(result, account, pickleKey)
@@ -80,7 +71,7 @@ internal object AccountBindings {
         result: InteropPointer,
         ciphertext: InteropPointer,
         ciphertextSize: Int,
-        pickleKey: InteropPointer?
+        pickleKey: InteropPointer?,
     ) = vodozemac_olm_account_from_pickle(result, ciphertext, ciphertextSize, pickleKey)
 
     fun toDehydratedDevice(result: InteropPointer, account: NativePointer, key: InteropPointer) =
@@ -93,9 +84,7 @@ internal object AccountBindings {
         nonce: InteropPointer,
         nonceSize: Int,
         key: InteropPointer,
-    ) =
-        vodozemac_olm_account_from_dehydrated_device(
-            result, ciphertext, ciphertextSize, nonce, nonceSize, key)
+    ) = vodozemac_olm_account_from_dehydrated_device(result, ciphertext, ciphertextSize, nonce, nonceSize, key)
 
     fun fromLibolmPickle(
         result: InteropPointer,
@@ -103,9 +92,7 @@ internal object AccountBindings {
         pickleSize: Int,
         pickleKey: InteropPointer,
         pickleKeySize: Int,
-    ) =
-        vodozemac_olm_account_from_libolm_pickle(
-            result, pickle, pickleSize, pickleKey, pickleKeySize)
+    ) = vodozemac_olm_account_from_libolm_pickle(result, pickle, pickleSize, pickleKey, pickleKeySize)
 }
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_new")
@@ -118,10 +105,7 @@ private external fun vodozemac_olm_account_free(account: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_identity_keys")
 @ExternalSymbolName("vodozemac_olm_account_identity_keys")
-private external fun vodozemac_olm_account_identity_keys(
-    result: InteropPointer,
-    account: NativePointer
-)
+private external fun vodozemac_olm_account_identity_keys(result: InteropPointer, account: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_ed25519_key")
 @ExternalSymbolName("vodozemac_olm_account_ed25519_key")
@@ -136,7 +120,7 @@ private external fun vodozemac_olm_account_curve25519_key(account: NativePointer
 private external fun vodozemac_olm_account_sign(
     account: NativePointer,
     message: InteropPointer,
-    message_size: Int
+    message_size: Int,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_max_number_of_one_time_keys")
@@ -149,7 +133,7 @@ private external fun vodozemac_olm_account_create_outbound_session(
     account: NativePointer,
     session_config: NativePointer,
     identity_key: NativePointer,
-    one_time_key: NativePointer
+    one_time_key: NativePointer,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_create_inbound_session")
@@ -159,7 +143,7 @@ private external fun vodozemac_olm_account_create_inbound_session(
     account: NativePointer,
     their_identity_key: NativePointer,
     message: NativePointer,
-    session_keys: NativePointer
+    session_keys: NativePointer,
 )
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_generate_one_time_keys")
@@ -167,7 +151,7 @@ private external fun vodozemac_olm_account_create_inbound_session(
 private external fun vodozemac_olm_account_generate_one_time_keys(
     result: InteropPointer,
     account: NativePointer,
-    count: Int
+    count: Int,
 )
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_stored_one_time_key_count")
@@ -176,23 +160,15 @@ private external fun vodozemac_olm_account_stored_one_time_key_count(account: Na
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_one_time_keys")
 @ExternalSymbolName("vodozemac_olm_account_one_time_keys")
-private external fun vodozemac_olm_account_one_time_keys(
-    result: InteropPointer,
-    account: NativePointer
-)
+private external fun vodozemac_olm_account_one_time_keys(result: InteropPointer, account: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_generate_fallback_key")
 @ExternalSymbolName("vodozemac_olm_account_generate_fallback_key")
-private external fun vodozemac_olm_account_generate_fallback_key(
-    account: NativePointer
-): NativePointer
+private external fun vodozemac_olm_account_generate_fallback_key(account: NativePointer): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_fallback_key")
 @ExternalSymbolName("vodozemac_olm_account_fallback_key")
-private external fun vodozemac_olm_account_fallback_key(
-    result: InteropPointer,
-    account: NativePointer
-)
+private external fun vodozemac_olm_account_fallback_key(result: InteropPointer, account: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_forget_fallback_key")
 @ExternalSymbolName("vodozemac_olm_account_forget_fallback_key")
@@ -207,7 +183,7 @@ private external fun vodozemac_olm_account_mark_keys_as_published(account: Nativ
 private external fun vodozemac_olm_account_pickle(
     result: InteropPointer,
     account: NativePointer,
-    pickle_key: InteropPointer? /* Must be exactly 32 bytes */
+    pickle_key: InteropPointer?, /* Must be exactly 32 bytes */
 )
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_from_pickle")

@@ -7,5 +7,5 @@ data class KeyChainLink(
     val signingUserId: UserId,
     val signingKey: Key.Ed25519Key,
     val signedUserId: UserId,
-    val signedKey: Key.Ed25519Key
+    val signedKey: Key.Ed25519Key,
 )

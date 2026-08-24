@@ -12,9 +12,9 @@ import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.flow.first
 
 class PresenceEventHandlerTest : TrixnityBaseTest() {
 
@@ -28,7 +28,7 @@ class PresenceEventHandlerTest : TrixnityBaseTest() {
             userPresenceStore,
             NoOpStoreTransactionManager,
             clock,
-            mockMatrixClientServerApiClient()
+            mockMatrixClientServerApiClient(),
         )
 
     @Test
@@ -40,17 +40,19 @@ class PresenceEventHandlerTest : TrixnityBaseTest() {
                         presence = Presence.ONLINE,
                         lastActiveAgo = 24,
                         isCurrentlyActive = false,
-                        statusMessage = "status"
-                    ), sender = alice
+                        statusMessage = "status",
+                    ),
+                    sender = alice,
                 )
             )
         )
-        userPresenceStore.getPresence(alice).first() shouldBe UserPresence(
-            presence = Presence.ONLINE,
-            lastUpdate = clock.now(),
-            lastActive = clock.now() - 24.milliseconds,
-            isCurrentlyActive = false,
-            statusMessage = "status"
-        )
+        userPresenceStore.getPresence(alice).first() shouldBe
+            UserPresence(
+                presence = Presence.ONLINE,
+                lastUpdate = clock.now(),
+                lastActive = clock.now() - 24.milliseconds,
+                isCurrentlyActive = false,
+                statusMessage = "status",
+            )
     }
 }

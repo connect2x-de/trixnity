@@ -8,13 +8,14 @@ import platform.windows.BCryptGenRandom
 
 @OptIn(ExperimentalUnsignedTypes::class)
 actual fun fillRandomBytes(array: ByteArray) {
-    val status = array.asUByteArray().usePinned { pinned ->
-        BCryptGenRandom(
-            hAlgorithm = null,
-            pbBuffer = pinned.addressOf(0),
-            cbBuffer = pinned.get().size.convert(),
-            dwFlags = BCRYPT_USE_SYSTEM_PREFERRED_RNG.convert()
-        )
-    }
+    val status =
+        array.asUByteArray().usePinned { pinned ->
+            BCryptGenRandom(
+                hAlgorithm = null,
+                pbBuffer = pinned.addressOf(0),
+                cbBuffer = pinned.get().size.convert(),
+                dwFlags = BCRYPT_USE_SYSTEM_PREFERRED_RNG.convert(),
+            )
+        }
     if (status != 0) error("BCryptGenRandom failed: $status")
 }

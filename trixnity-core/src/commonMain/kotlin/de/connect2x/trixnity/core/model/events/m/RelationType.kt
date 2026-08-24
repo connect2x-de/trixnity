@@ -29,7 +29,8 @@ sealed interface RelationType {
     }
 
     /**
-     * This is an abstraction, it does not exist on this level in the matrix spec. Therefore, don't use it in Matrix Endpoints.
+     * This is an abstraction, it does not exist on this level in the matrix spec. Therefore, don't use it in Matrix
+     * Endpoints.
      */
     data object Reply : RelationType {
         override val name: String = "m.in_reply_to"
@@ -38,19 +39,19 @@ sealed interface RelationType {
     data class Unknown(override val name: String) : RelationType
 
     companion object {
-        fun of(name: String) = when (name) {
-            Reference.name -> Reference
-            Replace.name -> Replace
-            Reply.name -> Reply
-            Thread.name -> Thread
-            Annotation.name -> Annotation
-            else -> Unknown(name)
-        }
+        fun of(name: String) =
+            when (name) {
+                Reference.name -> Reference
+                Replace.name -> Replace
+                Reply.name -> Reply
+                Thread.name -> Thread
+                Annotation.name -> Annotation
+                else -> Unknown(name)
+            }
     }
 
     object Serializer : KSerializer<RelationType> {
-        override val descriptor: SerialDescriptor =
-            PrimitiveSerialDescriptor("RelationType", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("RelationType", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): RelationType {
             return RelationType.of(decoder.decodeString())

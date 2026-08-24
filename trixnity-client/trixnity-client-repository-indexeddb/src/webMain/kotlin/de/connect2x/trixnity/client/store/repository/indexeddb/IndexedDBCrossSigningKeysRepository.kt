@@ -1,24 +1,24 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.repository.CrossSigningKeysRepository
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 
-internal class IndexedDBCrossSigningKeysRepository(
-    json: Json,
-) : CrossSigningKeysRepository,
+internal class IndexedDBCrossSigningKeysRepository(json: Json) :
+    CrossSigningKeysRepository,
     IndexedDBFullRepository<UserId, Set<StoredCrossSigningKeys>>(
         objectStoreName = objectStoreName,
         keySerializer = { arrayOf(it.full) },
         valueSerializer = serializer(),
-        json = json
+        json = json,
     ) {
     companion object {
         const val objectStoreName = "cross_signing_keys"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) createIndexedDBMinimalStoreRepository(database, objectStoreName)
         }

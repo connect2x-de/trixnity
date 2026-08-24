@@ -33,14 +33,14 @@ internal inline fun <T : PointerType> genericInit(init: (Pointer?) -> T?, size: 
     }
 }
 
-
 internal inline fun <T> ByteArray?.withNativeRead(block: (Pointer?, NativeSize) -> T): T {
     return if (this == null) {
         block(null, NativeSize(0))
-    } else withAllocation(size.toLong()) {
-        it.write(0, this, 0, size)
-        block(it, NativeSize(this.size))
-    }
+    } else
+        withAllocation(size.toLong()) {
+            it.write(0, this, 0, size)
+            block(it, NativeSize(this.size))
+        }
 }
 
 internal inline fun <T> ByteArray.withNativeWrite(block: (Pointer, NativeSize) -> T): T {

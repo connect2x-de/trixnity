@@ -25,8 +25,7 @@ sealed class MegolmMessage(ptr: NativePointer) : Managed(ptr, MessageBindings::f
 
     val ciphertext: ByteArray
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { MessageBindings.ciphertext(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { MessageBindings.ciphertext(it, ptr) }
             ptr.toByteArray(size.intValue)
         }
 
@@ -60,8 +59,7 @@ sealed class MegolmMessage(ptr: NativePointer) : Managed(ptr, MessageBindings::f
                             MessageBindings.fromBytes(it, bytes.toInterop(), bytes.size)
                         }
                     if (tag.intValue != 0)
-                        throw VodozemacException(
-                            messageOrErrPtr.toByteArray(errSize.intValue).decodeToString())
+                        throw VodozemacException(messageOrErrPtr.toByteArray(errSize.intValue).decodeToString())
 
                     constructor(messageOrErrPtr)
                 }

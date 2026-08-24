@@ -30,9 +30,10 @@ internal class ExposedRoomRepository(private val json: Json) : RoomRepository {
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: RoomId): Room? {
-        return ExposedRoom.selectAll().where { ExposedRoom.roomId eq key.full }.firstOrNull()?.let {
-            json.decodeFromString(it[ExposedRoom.value])
-        }
+        return ExposedRoom.selectAll()
+            .where { ExposedRoom.roomId eq key.full }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedRoom.value]) }
     }
 
     context(transaction: WriteTransaction)

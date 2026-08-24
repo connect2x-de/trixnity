@@ -15,9 +15,9 @@ import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlin.test.Test
 
 class TimelineTest : TrixnityBaseTest() {
     private val roomId = RoomId("!room:server")
@@ -41,8 +41,7 @@ class TimelineTest : TrixnityBaseTest() {
     @Test
     fun `init » not suspend infinite when no element before or after start`() = runTest {
         roomServiceMock.returnGetTimelineEvent = flowOf(timelineEvent("3"))
-        roomServiceMock.returnGetTimelineEvents =
-            flowOf(flowOf(timelineEvent("3")))
+        roomServiceMock.returnGetTimelineEvents = flowOf(flowOf(timelineEvent("3")))
         val expectedResult = listOf("3")
         cut.init(roomId, EventId("start")).addedElements.map { it.first().eventId.full } shouldBe expectedResult
         val state = cut.state.first()
@@ -55,18 +54,10 @@ class TimelineTest : TrixnityBaseTest() {
         roomServiceMock.returnGetTimelineEventsDisableDrop = true
         roomServiceMock.returnGetTimelineEvent = flowOf(timelineEvent("3"))
         roomServiceMock.returnGetTimelineEvents =
-            flowOf(
-                flowOf(timelineEvent("3")),
-                flowOf(timelineEvent("2")),
-                flowOf(timelineEvent("1"))
-            )
+            flowOf(flowOf(timelineEvent("3")), flowOf(timelineEvent("2")), flowOf(timelineEvent("1")))
         cut.init(roomId, EventId("start"))
         roomServiceMock.returnGetTimelineEvents =
-            flowOf(
-                flowOf(timelineEvent("3")),
-                flowOf(timelineEvent("2")),
-                flowOf(timelineEvent("0"))
-            )
+            flowOf(flowOf(timelineEvent("3")), flowOf(timelineEvent("2")), flowOf(timelineEvent("0")))
         val change = cut.init(roomId, EventId("start"))
         change.elementsBeforeChange.map { it.first().eventId.full } shouldBe listOf("1", "2", "3", "2", "1")
         change.elementsAfterChange.map { it.first().eventId.full } shouldBe listOf("0", "2", "3", "2", "0")
@@ -154,16 +145,22 @@ class TimelineTest : TrixnityBaseTest() {
 
     @Test
     fun `canLoadBefore » be true when upgraded before`() = runTest {
-        val timelineEvent = timelineEvent("3").copy(
-            event = StateEvent(
-                CreateEventContent(predecessor = CreateEventContent.PreviousRoom(RoomId("bla"), EventId("bla"))),
-                EventId("3"),
-                UserId("sender", "server"),
-                roomId,
-                1,
-                stateKey = ""
-            ), previousEventId = EventId("bla")
-        )
+        val timelineEvent =
+            timelineEvent("3")
+                .copy(
+                    event =
+                        StateEvent(
+                            CreateEventContent(
+                                predecessor = CreateEventContent.PreviousRoom(RoomId("bla"), EventId("bla"))
+                            ),
+                            EventId("3"),
+                            UserId("sender", "server"),
+                            roomId,
+                            1,
+                            stateKey = "",
+                        ),
+                    previousEventId = EventId("bla"),
+                )
         roomServiceMock.returnGetTimelineEvent = flowOf(timelineEvent)
         roomServiceMock.returnGetTimelineEvents = flowOf(flowOf(timelineEvent))
         cut.init(roomId, EventId("start")).addedElements.map { it.first().eventId.full } shouldBe listOf("3")
@@ -194,19 +191,18 @@ class TimelineTest : TrixnityBaseTest() {
     @Test
     fun `canLoadAfter » be true when upgraded after`() = runTest {
         val timelineEvent = timelineEvent("3")
-        roomServiceMock.state.value = mapOf(
-            RoomServiceMock.GetStateKey(
-                timelineEvent.roomId,
-                TombstoneEventContent::class
-            ) to StateEvent(
-                TombstoneEventContent("", RoomId("")),
-                EventId("3"),
-                UserId("sender", "server"),
-                roomId,
-                1,
-                stateKey = ""
+        roomServiceMock.state.value =
+            mapOf(
+                RoomServiceMock.GetStateKey(timelineEvent.roomId, TombstoneEventContent::class) to
+                    StateEvent(
+                        TombstoneEventContent("", RoomId("")),
+                        EventId("3"),
+                        UserId("sender", "server"),
+                        roomId,
+                        1,
+                        stateKey = "",
+                    )
             )
-        )
         roomServiceMock.returnGetTimelineEvent = flowOf(timelineEvent)
         roomServiceMock.returnGetTimelineEvents = flowOf(flowOf(timelineEvent))
         cut.init(roomId, EventId("start")).addedElements.map { it.first().eventId.full } shouldBe listOf("3")
@@ -216,13 +212,14 @@ class TimelineTest : TrixnityBaseTest() {
 
     private fun timelineEvent(id: String): TimelineEvent =
         TimelineEvent(
-            event = MessageEvent(
-                RoomMessageEventContent.TextBased.Text(id),
-                EventId(id),
-                UserId("sender", "server"),
-                roomId,
-                1234
-            ),
+            event =
+                MessageEvent(
+                    RoomMessageEventContent.TextBased.Text(id),
+                    EventId(id),
+                    UserId("sender", "server"),
+                    roomId,
+                    1234,
+                ),
             gap = null,
             nextEventId = null,
             previousEventId = null,

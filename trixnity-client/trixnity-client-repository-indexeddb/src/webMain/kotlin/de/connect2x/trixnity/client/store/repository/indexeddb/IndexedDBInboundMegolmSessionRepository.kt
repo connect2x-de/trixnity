@@ -16,46 +16,36 @@ import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 import web.idb.IDBValidKey
 
-@Serializable
-data class IndexedDBInboundMegolmSession(
-    val value: StoredInboundMegolmSession,
-    val hasBeenBackedUp: Int,
-)
+@Serializable data class IndexedDBInboundMegolmSession(val value: StoredInboundMegolmSession, val hasBeenBackedUp: Int)
 
 fun IndexedDBInboundMegolmSession.toStoredInboundMegolmSession() = value
 
 fun StoredInboundMegolmSession.toIndexedDBInboundMegolmSession() =
-    IndexedDBInboundMegolmSession(
-        value = this,
-        hasBeenBackedUp = if (hasBeenBackedUp) 1 else 0,
-    )
+    IndexedDBInboundMegolmSession(value = this, hasBeenBackedUp = if (hasBeenBackedUp) 1 else 0)
 
-internal class IndexedDBInboundMegolmSessionRepository(
-    private val json: Json,
-) : InboundMegolmSessionRepository, IndexedDBRepository(objectStoreName) {
+internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
+    InboundMegolmSessionRepository, IndexedDBRepository(objectStoreName) {
 
     // We need this, because hasBeenBackedUp cannot be indexed as boolean.
     private val internalRepository =
-        object : IndexedDBFullRepository<InboundMegolmSessionRepositoryKey, IndexedDBInboundMegolmSession>(
-            objectStoreName = objectStoreName,
-            keySerializer = { arrayOf(it.roomId.full, it.sessionId) },
-            valueSerializer = serializer(),
-            json = json
-        ) {
+        object :
+            IndexedDBFullRepository<InboundMegolmSessionRepositoryKey, IndexedDBInboundMegolmSession>(
+                objectStoreName = objectStoreName,
+                keySerializer = { arrayOf(it.roomId.full, it.sessionId) },
+                valueSerializer = serializer(),
+                json = json,
+            ) {
             override fun serializeKey(key: InboundMegolmSessionRepositoryKey): String =
                 this@IndexedDBInboundMegolmSessionRepository.serializeKey(key)
         }
 
     companion object {
         const val objectStoreName = "inbound_megolm_session"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) {
                 createObjectStore(database, objectStoreName).apply {
-                    createIndex(
-                        "hasBeenBackedUp",
-                        KeyPath.Single("hasBeenBackedUp"),
-                        unique = false
-                    )
+                    createIndex("hasBeenBackedUp", KeyPath.Single("hasBeenBackedUp"), unique = false)
                 }
             }
         }
@@ -63,7 +53,9 @@ internal class IndexedDBInboundMegolmSessionRepository(
 
     context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> = withRead { store ->
-        store.index("hasBeenBackedUp").openCursor(IDBValidKey(0))
+        store
+            .index("hasBeenBackedUp")
+            .openCursor(IDBValidKey(0))
             .mapNotNull { json.decodeFromDynamicNullable(internalRepository.valueSerializer, it.value) }
             .map { it.toStoredInboundMegolmSession() }
             .toSet()
@@ -82,10 +74,8 @@ internal class IndexedDBInboundMegolmSessionRepository(
         internalRepository.save(key, value.toIndexedDBInboundMegolmSession())
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: InboundMegolmSessionRepositoryKey) =
-        internalRepository.delete(key)
+    override suspend fun delete(key: InboundMegolmSessionRepositoryKey) = internalRepository.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        internalRepository.deleteAll()
+    override suspend fun deleteAll() = internalRepository.deleteAll()
 }

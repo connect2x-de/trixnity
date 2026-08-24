@@ -26,11 +26,13 @@ internal class OAuth2ApiClient(
 
     private val finalHttpClientConfig: HttpClientConfig<*>.() -> Unit = {
         install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                encodeDefaults = true
-                explicitNulls = false
-            })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    encodeDefaults = true
+                    explicitNulls = false
+                }
+            )
         }
         install(HttpTimeout)
         expectSuccess = true
@@ -45,95 +47,98 @@ internal class OAuth2ApiClient(
         else HttpClient(httpClientEngine, finalHttpClientConfig)
 
     suspend fun registerClient(metadata: ClientMetadata): Result<ClientRegistrationResponse> = runCatching {
-        baseClient.post(serverMetadata.registrationEndpoint) {
-            contentType(ContentType.Application.Json)
-            setBody(metadata)
-        }.body<ClientRegistrationResponse>()
+        baseClient
+            .post(serverMetadata.registrationEndpoint) {
+                contentType(ContentType.Application.Json)
+                setBody(metadata)
+            }
+            .body<ClientRegistrationResponse>()
     }
 
-    suspend fun deviceAuthorization(
-        clientId: String,
-        deviceId: String,
-    ): Result<DeviceAuthorizationResponse> = runCatching {
-        val deviceAuthorizationEndpoint = serverMetadata.deviceAuthorizationEndpoint
-        if (deviceAuthorizationEndpoint == null) {
-            log.warn { "deviceAuthorizationEndpoint was null, check before calling this function" }
-            throw IllegalArgumentException("device authorization not supported")
-        }
-        baseClient.submitForm(
-            url = deviceAuthorizationEndpoint.toString(),
-            formParameters = parameters {
-                append("client_id", clientId)
-                append(
-                    "scope", listOf(
-                        Scope.MatrixClientApi.value,
-                        Scope.MatrixClientDevice(deviceId).value,
-                    ).joinToString(" ")
-                )
+    suspend fun deviceAuthorization(clientId: String, deviceId: String): Result<DeviceAuthorizationResponse> =
+        runCatching {
+            val deviceAuthorizationEndpoint = serverMetadata.deviceAuthorizationEndpoint
+            if (deviceAuthorizationEndpoint == null) {
+                log.warn { "deviceAuthorizationEndpoint was null, check before calling this function" }
+                throw IllegalArgumentException("device authorization not supported")
             }
-        ).body<DeviceAuthorizationResponse>()
-    }
+            baseClient
+                .submitForm(
+                    url = deviceAuthorizationEndpoint.toString(),
+                    formParameters =
+                        parameters {
+                            append("client_id", clientId)
+                            append(
+                                "scope",
+                                listOf(Scope.MatrixClientApi.value, Scope.MatrixClientDevice(deviceId).value)
+                                    .joinToString(" "),
+                            )
+                        },
+                )
+                .body<DeviceAuthorizationResponse>()
+        }
 
     suspend fun getTokenByAuthorizationCode(
         clientId: String,
         redirectUri: String,
         code: String,
-        codeVerifier: String
+        codeVerifier: String,
     ): Result<TokenResponse> = runCatching {
-        baseClient.submitForm(
-            url = serverMetadata.tokenEndpoint.toString(),
-            formParameters = parameters {
-                append("grant_type", GrantType.AuthorizationCode.value)
-                append("code", code)
-                append("redirect_uri", redirectUri)
-                append("client_id", clientId)
-                append("code_verifier", codeVerifier)
-            }
-        ).body<TokenResponse>()
+        baseClient
+            .submitForm(
+                url = serverMetadata.tokenEndpoint.toString(),
+                formParameters =
+                    parameters {
+                        append("grant_type", GrantType.AuthorizationCode.value)
+                        append("code", code)
+                        append("redirect_uri", redirectUri)
+                        append("client_id", clientId)
+                        append("code_verifier", codeVerifier)
+                    },
+            )
+            .body<TokenResponse>()
     }
 
-    suspend fun getTokenByDeviceCode(
-        clientId: String,
-        deviceCode: String,
-    ): Result<TokenResponse> = runCatching {
-        baseClient.submitForm(
-            url = serverMetadata.tokenEndpoint.toString(),
-            formParameters = parameters {
-                append("grant_type", GrantType.DeviceCode.value)
-                append("device_code", deviceCode)
-                append("client_id", clientId)
-            }
-        ).body<TokenResponse>()
+    suspend fun getTokenByDeviceCode(clientId: String, deviceCode: String): Result<TokenResponse> = runCatching {
+        baseClient
+            .submitForm(
+                url = serverMetadata.tokenEndpoint.toString(),
+                formParameters =
+                    parameters {
+                        append("grant_type", GrantType.DeviceCode.value)
+                        append("device_code", deviceCode)
+                        append("client_id", clientId)
+                    },
+            )
+            .body<TokenResponse>()
     }
 
-    suspend fun getRefreshToken(
-        refreshToken: String,
-        clientId: String?
-    ): Result<TokenResponse> = runCatching {
-        baseClient.submitForm(
-            url = serverMetadata.tokenEndpoint.toString(),
-            formParameters = parameters {
-                append("grant_type", GrantType.RefreshToken.value)
-                append("refresh_token", refreshToken)
-                clientId?.let { append("client_id", it) }
-            }
-        ).body<TokenResponse>()
+    suspend fun getRefreshToken(refreshToken: String, clientId: String?): Result<TokenResponse> = runCatching {
+        baseClient
+            .submitForm(
+                url = serverMetadata.tokenEndpoint.toString(),
+                formParameters =
+                    parameters {
+                        append("grant_type", GrantType.RefreshToken.value)
+                        append("refresh_token", refreshToken)
+                        clientId?.let { append("client_id", it) }
+                    },
+            )
+            .body<TokenResponse>()
     }
 
-    suspend fun revokeToken(
-        token: String,
-        tokenTypeHint: TokenTypeHint?,
-        clientId: String?
-    ): Result<Unit> = runCatching {
-        baseClient.submitForm(
-            url = serverMetadata.revocationEndpoint.toString(),
-            formParameters = parameters {
-                append("token", token)
-                tokenTypeHint?.let { append("token_type_hint", it.value) }
-                clientId?.let { append("client_id", it) }
-            }
-        )
-    }
+    suspend fun revokeToken(token: String, tokenTypeHint: TokenTypeHint?, clientId: String?): Result<Unit> =
+        runCatching {
+            baseClient.submitForm(
+                url = serverMetadata.revocationEndpoint.toString(),
+                formParameters =
+                    parameters {
+                        append("token", token)
+                        tokenTypeHint?.let { append("token_type_hint", it.value) }
+                        clientId?.let { append("client_id", it) }
+                    },
+            )
+        }
 
     override fun close() {
         baseClient.close()

@@ -2,9 +2,7 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
-plugins {
-    alias(sharedLibs.plugins.kotlin.multiplatform)
-}
+plugins { alias(sharedLibs.plugins.kotlin.multiplatform) }
 
 kotlin {
     addWebTarget(rootDir, nodeJsEnabled = false)

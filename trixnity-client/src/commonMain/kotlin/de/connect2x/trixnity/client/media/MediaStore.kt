@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 
 interface MediaStore {
     suspend fun init(coroutineScope: CoroutineScope) {}
+
     suspend fun addMedia(url: String, content: ByteArrayFlow)
 
     suspend fun getMedia(url: String): PlatformMedia?
@@ -12,6 +13,7 @@ interface MediaStore {
     suspend fun deleteMedia(url: String)
 
     suspend fun changeMediaUrl(oldUrl: String, newUrl: String)
+
     suspend fun deleteAll()
 
     /**

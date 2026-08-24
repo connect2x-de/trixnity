@@ -9,6 +9,8 @@ import de.connect2x.trixnity.idb.utils.IDBException.Operation.GET
 import de.connect2x.trixnity.idb.utils.IDBException.Operation.PUT
 import js.objects.unsafeJso
 import js.undefined.undefinedOrNull
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -20,8 +22,6 @@ import web.idb.IDBKeyRange
 import web.idb.IDBRequest
 import web.idb.IDBTransaction
 import web.idb.IDBValidKey
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 value class WrappedTransaction(val tx: IDBTransaction) {
 
@@ -29,87 +29,90 @@ value class WrappedTransaction(val tx: IDBTransaction) {
         database: IDBDatabase,
         name: String,
         keyPath: KeyPath? = null,
-        autoIncrement: Boolean? = null
-    ): WrappedObjectStore = WrappedObjectStore(database.createObjectStore(name, unsafeJso {
-        this.autoIncrement = autoIncrement
-        this.keyPath = when (keyPath) {
-            null -> null
-            is KeyPath.Single -> keyPath.value.toJsString()
-            is KeyPath.Multiple -> keyPath.values.map(String::toJsString).toJsArray()
-        }
-    }))
+        autoIncrement: Boolean? = null,
+    ): WrappedObjectStore =
+        WrappedObjectStore(
+            database.createObjectStore(
+                name,
+                unsafeJso {
+                    this.autoIncrement = autoIncrement
+                    this.keyPath =
+                        when (keyPath) {
+                            null -> null
+                            is KeyPath.Single -> keyPath.value.toJsString()
+                            is KeyPath.Multiple -> keyPath.values.map(String::toJsString).toJsArray()
+                        }
+                },
+            )
+        )
 
     fun objectStore(name: String): WrappedObjectStore = WrappedObjectStore(tx.objectStore(name))
 
     fun WrappedObjectStore.createIndex(
-        name: String, keyPath: KeyPath, unique: Boolean? = null, multiEntry: Boolean? = null
+        name: String,
+        keyPath: KeyPath,
+        unique: Boolean? = null,
+        multiEntry: Boolean? = null,
     ): WrappedIndex {
-        val options = unsafeJso<IDBIndexParameters> {
-            this.unique = unique
-            this.multiEntry = multiEntry
-        }
+        val options =
+            unsafeJso<IDBIndexParameters> {
+                this.unique = unique
+                this.multiEntry = multiEntry
+            }
 
         return WrappedIndex(
             when (keyPath) {
                 is KeyPath.Single -> store.createIndex(name, keyPath.value, options)
-                is KeyPath.Multiple -> store.createIndex(
-                    name, keyPath.values.map(String::toJsString).toJsArray(), options
-                )
+                is KeyPath.Multiple ->
+                    store.createIndex(name, keyPath.values.map(String::toJsString).toJsArray(), options)
             }
         )
     }
 
     fun WrappedObjectStore.index(name: String): WrappedIndex = WrappedIndex(store.index(name))
 
-    suspend fun <T : JsAny> WrappedObjectStore.get(key: IDBValidKey): T? =
-        suspendCancellableCoroutine { continuation ->
-            val request = store.get(key).unsafeCast<IDBRequest<JsAny?>>()
+    suspend fun <T : JsAny> WrappedObjectStore.get(key: IDBValidKey): T? = suspendCancellableCoroutine { continuation ->
+        val request = store.get(key).unsafeCast<IDBRequest<JsAny?>>()
 
-            request.onsuccess = EventHandler { event ->
-                val value = when (val any = event.target.result) {
+        request.onsuccess = EventHandler { event ->
+            val value =
+                when (val any = event.target.result) {
                     undefinedOrNull -> null
                     else -> any.unsafeCast<T>()
                 }
 
-                continuation.resume(value)
-            }
-
-            request.onerror = EventHandler { event ->
-                continuation.resumeWithException(IDBException.fromDom(GET, event.target.error))
-            }
+            continuation.resume(value)
         }
+
+        request.onerror = EventHandler { event ->
+            continuation.resumeWithException(IDBException.fromDom(GET, event.target.error))
+        }
+    }
 
     suspend fun <T : JsAny> WrappedObjectStore.put(value: T, key: IDBValidKey? = null): Unit =
         suspendCancellableCoroutine { continuation ->
             val request = key?.let { store.put(value, it) } ?: store.put(value)
-            request.onsuccess = EventHandler {
-                continuation.resume(Unit)
-            }
+            request.onsuccess = EventHandler { continuation.resume(Unit) }
 
             request.onerror = EventHandler { event ->
                 continuation.resumeWithException(IDBException.fromDom(PUT, event.target.error))
             }
         }
 
-    suspend fun WrappedObjectStore.delete(key: IDBValidKey): Unit =
-        suspendCancellableCoroutine { continuation ->
-            val request = store.delete(key)
+    suspend fun WrappedObjectStore.delete(key: IDBValidKey): Unit = suspendCancellableCoroutine { continuation ->
+        val request = store.delete(key)
 
-            request.onsuccess = EventHandler {
-                continuation.resume(Unit)
-            }
+        request.onsuccess = EventHandler { continuation.resume(Unit) }
 
-            request.onerror = EventHandler { event ->
-                continuation.resumeWithException(IDBException.fromDom(DELETE, event.target.error))
-            }
+        request.onerror = EventHandler { event ->
+            continuation.resumeWithException(IDBException.fromDom(DELETE, event.target.error))
         }
+    }
 
     suspend fun WrappedObjectStore.clear(): Unit = suspendCancellableCoroutine { continuation ->
         val request = store.clear()
 
-        request.onsuccess = EventHandler {
-            continuation.resume(Unit)
-        }
+        request.onsuccess = EventHandler { continuation.resume(Unit) }
 
         request.onerror = EventHandler { event ->
             continuation.resumeWithException(IDBException.fromDom(CLEAR, event.target.error))
@@ -130,9 +133,7 @@ value class WrappedTransaction(val tx: IDBTransaction) {
             }
         }
 
-        request.onerror = EventHandler { event ->
-            channel.close(IDBException.fromDom(CURSOR, event.target.error))
-        }
+        request.onerror = EventHandler { event -> channel.close(IDBException.fromDom(CURSOR, event.target.error)) }
 
         awaitClose {
             request.onsuccess = null
@@ -146,7 +147,6 @@ value class WrappedTransaction(val tx: IDBTransaction) {
         request.onsuccess = EventHandler { event ->
             val cursor = event.target.result
 
-
             if (cursor == null) {
                 channel.close()
             } else {
@@ -155,9 +155,7 @@ value class WrappedTransaction(val tx: IDBTransaction) {
             }
         }
 
-        request.onerror = EventHandler { event ->
-            channel.close(IDBException.fromDom(CURSOR, event.target.error))
-        }
+        request.onerror = EventHandler { event -> channel.close(IDBException.fromDom(CURSOR, event.target.error)) }
 
         awaitClose {
             request.onsuccess = null
@@ -171,7 +169,6 @@ value class WrappedTransaction(val tx: IDBTransaction) {
         request.onsuccess = EventHandler { event ->
             val cursor = event.target.result
 
-
             if (cursor == null) {
                 channel.close()
             } else {
@@ -180,9 +177,7 @@ value class WrappedTransaction(val tx: IDBTransaction) {
             }
         }
 
-        request.onerror = EventHandler { event ->
-            channel.close(IDBException.fromDom(CURSOR, event.target.error))
-        }
+        request.onerror = EventHandler { event -> channel.close(IDBException.fromDom(CURSOR, event.target.error)) }
 
         awaitClose {
             request.onsuccess = null
@@ -204,9 +199,7 @@ value class WrappedTransaction(val tx: IDBTransaction) {
             }
         }
 
-        request.onerror = EventHandler { event ->
-            channel.close(IDBException.fromDom(CURSOR, event.target.error))
-        }
+        request.onerror = EventHandler { event -> channel.close(IDBException.fromDom(CURSOR, event.target.error)) }
 
         awaitClose {
             request.onsuccess = null

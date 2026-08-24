@@ -26,18 +26,15 @@ import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.utils.nextString
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 
 private val log = Logger("de.connect2x.trixnity.client.key.OutgoingRoomKeyRequestEventHandler")
 
 interface OutgoingRoomKeyRequestEventHandler {
-    suspend fun requestRoomKeys(
-        roomId: RoomId,
-        sessionId: String,
-    )
+    suspend fun requestRoomKeys(roomId: RoomId, sessionId: String)
 }
 
 class OutgoingRoomKeyRequestEventHandlerImpl(
@@ -64,11 +61,15 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
         val content = event.decrypted.content
         if (event.decrypted.sender == ownUserId && content is ForwardedRoomKeyEventContent) {
             log.debug { "handle forwarded room key (roomId=${content.roomId}, sessionId=${content.sessionId})" }
-            val (senderDeviceId, senderTrustLevel) = keyStore.getDeviceKeys(ownUserId).first()?.firstNotNullOfOrNull {
-                if (it.value.value.get<Key.Ed25519Key>()?.value == event.decrypted.senderKeys.get<Key.Ed25519Key>()?.value)
-                    it.key to it.value.trustLevel
-                else null
-            } ?: (null to null)
+            val (senderDeviceId, senderTrustLevel) =
+                keyStore.getDeviceKeys(ownUserId).first()?.firstNotNullOfOrNull {
+                    if (
+                        it.value.value.get<Key.Ed25519Key>()?.value ==
+                            event.decrypted.senderKeys.get<Key.Ed25519Key>()?.value
+                    )
+                        it.key to it.value.trustLevel
+                    else null
+                } ?: (null to null)
             if (senderDeviceId == null) {
                 log.warn { "could not derive sender device id from keys ${event.decrypted.senderKeys}" }
                 return
@@ -80,9 +81,7 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
             val account = checkNotNull(accountStore.getAccount())
             val (firstKnownIndex, pickledSession) =
                 try {
-                    driver.megolm.inboundGroupSession.import(
-                        driver.megolm.exportedSessionKey(content.sessionKey)
-                    ).use {
+                    driver.megolm.inboundGroupSession.import(driver.megolm.exportedSessionKey(content.sessionKey)).use {
                         it.firstKnownIndex to it.pickle(driver.key.pickleKey(account.olmPickleKey))
                     }
                 } catch (exception: Exception) {
@@ -93,24 +92,29 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
             tm.writeTransaction {
                 olmCryptoStore.updateInboundMegolmSession(content.sessionId, content.roomId) {
                     if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                    else StoredInboundMegolmSession(
-                        senderKey = content.senderKey,
-                        sessionId = content.sessionId,
-                        roomId = content.roomId, firstKnownIndex = firstKnownIndex.toLong(),
-                        isTrusted = false, // TODO we could add more trust, if we verify the key chain
-                        hasBeenBackedUp = false, // actually not known if it has been backed up
-                        senderSigningKey = content.senderClaimedKey,
-                        forwardingCurve25519KeyChain = newForwardingCurve25519KeyChain,
-                        pickled = pickledSession
-                    )
+                    else
+                        StoredInboundMegolmSession(
+                            senderKey = content.senderKey,
+                            sessionId = content.sessionId,
+                            roomId = content.roomId,
+                            firstKnownIndex = firstKnownIndex.toLong(),
+                            isTrusted = false, // TODO we could add more trust, if we verify the key chain
+                            hasBeenBackedUp = false, // actually not known if it has been backed up
+                            senderSigningKey = content.senderClaimedKey,
+                            forwardingCurve25519KeyChain = newForwardingCurve25519KeyChain,
+                            pickled = pickledSession,
+                        )
                 }
             }
-            keyStore.getAllRoomKeyRequests()
-                .find { request -> request.content.body?.roomId == content.roomId && request.content.body?.sessionId == content.sessionId }
+            keyStore
+                .getAllRoomKeyRequests()
+                .find { request ->
+                    request.content.body?.roomId == content.roomId &&
+                        request.content.body?.sessionId == content.sessionId
+                }
                 ?.cancelRequest()
         }
     }
-
 
     internal suspend fun cancelOldOutgoingKeyRequests() {
         keyStore.getAllRoomKeyRequests().forEach {
@@ -125,60 +129,66 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
         log.debug { "cancel outgoing room key request to $cancelRequestTo" }
         if (cancelRequestTo.isNotEmpty()) {
             val cancelRequest = content.copy(action = KeyRequestAction.REQUEST_CANCELLATION, body = null)
-            api.user.sendToDevice( // TODO should be encrypted (because this is meta data)
-                mapOf(ownUserId to cancelRequestTo.associateWith { cancelRequest })
-            ).getOrThrow()
+            api.user
+                .sendToDevice( // TODO should be encrypted (because this is meta data)
+                    mapOf(ownUserId to cancelRequestTo.associateWith { cancelRequest })
+                )
+                .getOrThrow()
         }
-        tm.writeTransaction {
-            keyStore.deleteRoomKeyRequest(content.requestId)
-        }
+        tm.writeTransaction { keyStore.deleteRoomKeyRequest(content.requestId) }
     }
 
-    override suspend fun requestRoomKeys(
-        roomId: RoomId,
-        sessionId: String,
-    ) {
-        if (keyStore.getAllRoomKeyRequests()
-                .none { it.content.body?.roomId == roomId && it.content.body?.sessionId == sessionId }
+    override suspend fun requestRoomKeys(roomId: RoomId, sessionId: String) {
+        if (
+            keyStore.getAllRoomKeyRequests().none {
+                it.content.body?.roomId == roomId && it.content.body?.sessionId == sessionId
+            }
         ) {
             currentSyncState.retry(
-                onError = { error, delay -> log.warn(error) { "failed request room keys, try again in $delay" } },
+                onError = { error, delay -> log.warn(error) { "failed request room keys, try again in $delay" } }
             ) {
-                val receiverDeviceIds = keyStore.getDeviceKeys(ownUserId).first()
-                    ?.filter {
-                        it.value.trustLevel.isVerified
-                                && it.value.value.signed.deviceId != ownDeviceId
-                                && @OptIn(MSC3814::class) it.value.value.signed.dehydrated != true
-                    }
-                    ?.map { it.value.value.signed.deviceId }?.toSet()
+                val receiverDeviceIds =
+                    keyStore
+                        .getDeviceKeys(ownUserId)
+                        .first()
+                        ?.filter {
+                            it.value.trustLevel.isVerified &&
+                                it.value.value.signed.deviceId != ownDeviceId &&
+                                @OptIn(MSC3814::class) it.value.value.signed.dehydrated != true
+                        }
+                        ?.map { it.value.value.signed.deviceId }
+                        ?.toSet()
                 if (receiverDeviceIds.isNullOrEmpty()) {
                     log.debug { "there are no receivers, that we can request room keys from" }
                     return@retry
                 }
                 val requestId = SecureRandom.nextString(22)
-                val request = RoomKeyRequestEventContent(
-                    action = KeyRequestAction.REQUEST,
-                    requestingDeviceId = ownDeviceId,
-                    requestId = requestId,
-                    body = RoomKeyRequestEventContent.RequestedKeyInfo(
-                        roomId = roomId,
-                        sessionId = sessionId,
-                        algorithm = EncryptionAlgorithm.Megolm,
+                val request =
+                    RoomKeyRequestEventContent(
+                        action = KeyRequestAction.REQUEST,
+                        requestingDeviceId = ownDeviceId,
+                        requestId = requestId,
+                        body =
+                            RoomKeyRequestEventContent.RequestedKeyInfo(
+                                roomId = roomId,
+                                sessionId = sessionId,
+                                algorithm = EncryptionAlgorithm.Megolm,
+                            ),
                     )
-                )
                 log.debug { "send room key request (roomId=$roomId, sessionId=$sessionId) to $receiverDeviceIds" }
                 // TODO should be encrypted (because this is meta data)
-                api.user.sendToDevice(mapOf(ownUserId to receiverDeviceIds.associateWith { request }))
+                api.user
+                    .sendToDevice(mapOf(ownUserId to receiverDeviceIds.associateWith { request }))
                     .onSuccess {
                         tm.writeTransaction {
-                            keyStore.addRoomKeyRequest(
-                                StoredRoomKeyRequest(request, receiverDeviceIds, clock.now())
-                            )
+                            keyStore.addRoomKeyRequest(StoredRoomKeyRequest(request, receiverDeviceIds, clock.now()))
                         }
-                    }.getOrThrow()
+                    }
+                    .getOrThrow()
             }
         }
-        keyStore.getAllRoomKeyRequestsFlow()
-            .first { requests -> requests.none { it.content.body?.roomId == roomId && it.content.body?.sessionId == sessionId } }
+        keyStore.getAllRoomKeyRequestsFlow().first { requests ->
+            requests.none { it.content.body?.roomId == roomId && it.content.body?.sessionId == sessionId }
+        }
     }
 }

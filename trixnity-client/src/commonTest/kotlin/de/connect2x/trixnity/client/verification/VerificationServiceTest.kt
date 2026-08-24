@@ -85,6 +85,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -95,11 +100,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.currentTime
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VerificationServiceTest : TrixnityBaseTest() {
@@ -131,28 +131,25 @@ class VerificationServiceTest : TrixnityBaseTest() {
     private val globalAccountDataStore = getInMemoryGlobalAccountDataStore()
 
     private val apiConfig = PortableMockEngineConfig()
-    private val api = mockMatrixClientServerApiClient(
-        config = apiConfig,
-        syncBatchTokenStore = syncBatchTokenStore
-    )
-    private val cut = VerificationServiceImpl(
-        userInfo = UserInfo(aliceUserId, aliceDeviceId, Key.Ed25519Key(null, ""), Curve25519Key(null, "")),
-        api = api,
-        keyStore = keyStore,
-        globalAccountDataStore = globalAccountDataStore,
-        olmEventHandler = olmEventHandlerMock,
-        olmEncryptionService = olmEncryptionServiceMock,
-        roomService = roomServiceMock,
-        keyService = keyServiceMock,
-        userService = userServiceMock,
-        keyTrustService = keyTrustServiceMock,
-        keySecretService = keySecretServiceMock,
-        currentSyncState = CurrentSyncState(currentSyncState),
-        clock = testScope.testClock,
-        driver = driver,
-    ).apply {
-        startInCoroutineScope(testScope.backgroundScope)
-    }
+    private val api = mockMatrixClientServerApiClient(config = apiConfig, syncBatchTokenStore = syncBatchTokenStore)
+    private val cut =
+        VerificationServiceImpl(
+                userInfo = UserInfo(aliceUserId, aliceDeviceId, Key.Ed25519Key(null, ""), Curve25519Key(null, "")),
+                api = api,
+                keyStore = keyStore,
+                globalAccountDataStore = globalAccountDataStore,
+                olmEventHandler = olmEventHandlerMock,
+                olmEncryptionService = olmEncryptionServiceMock,
+                roomService = roomServiceMock,
+                keyService = keyServiceMock,
+                userService = userServiceMock,
+                keyTrustService = keyTrustServiceMock,
+                keySecretService = keySecretServiceMock,
+                currentSyncState = CurrentSyncState(currentSyncState),
+                clock = testScope.testClock,
+                driver = driver,
+            )
+            .apply { startInCoroutineScope(testScope.backgroundScope) }
 
     @Test
     fun `init » handleVerificationRequestEvents » ignore request that is timed out`() = runTest {
@@ -161,7 +158,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId)))
+                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId))),
                 )
             }
         }
@@ -173,17 +170,12 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `init » handleVerificationRequestEvents » add device verification`() = runTest {
-        val request = VerificationRequestToDeviceEventContent(
-            bobDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction1"
-        )
+        val request = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), currentTime, "transaction1")
         apiConfig.endpoints {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId)))
+                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId))),
                 )
             }
         }
@@ -195,32 +187,19 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `init » handleVerificationRequestEvents » cancel second verification request`() = runTest {
-        val request1 = VerificationRequestToDeviceEventContent(
-            bobDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction1"
-        )
-        val request2 = VerificationRequestToDeviceEventContent(
-            aliceDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction2"
-        )
+        val request1 = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), currentTime, "transaction1")
+        val request2 = VerificationRequestToDeviceEventContent(aliceDeviceId, setOf(Sas), currentTime, "transaction2")
         apiConfig.endpoints {
             matrixJsonEndpoint(Sync()) {
                 Sync.Response(
                     nextBatch = "nextBatch",
-                    toDevice = Sync.Response.ToDevice(
-                        listOf(
-                            ToDeviceEvent(request1, bobUserId),
-                            ToDeviceEvent(request2, aliceUserId)
-                        )
-                    )
+                    toDevice =
+                        Sync.Response.ToDevice(
+                            listOf(ToDeviceEvent(request1, bobUserId), ToDeviceEvent(request2, aliceUserId))
+                        ),
                 )
             }
-            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) {
-            }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) {}
         }
         api.sync.startOnce().getOrThrow()
 
@@ -230,11 +209,12 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
         delay(1.seconds)
 
-        olmEncryptionServiceMock.encryptOlmCalled shouldBe Triple(
-            VerificationCancelEventContent(Code.User, "user cancelled verification", null, "transaction2"),
-            aliceUserId,
-            aliceDeviceId
-        )
+        olmEncryptionServiceMock.encryptOlmCalled shouldBe
+            Triple(
+                VerificationCancelEventContent(Code.User, "user cancelled verification", null, "transaction2"),
+                aliceUserId,
+                aliceDeviceId,
+            )
     }
 
     @Test
@@ -243,7 +223,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
         olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf()),
             )
         )
         cut.activeDeviceVerification.value shouldBe null
@@ -251,16 +231,11 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `init » handleOlmDecryptedDeviceVerificationRequestEvents » add device verification`() = runTest {
-        val request = VerificationRequestToDeviceEventContent(
-            bobDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction1"
-        )
+        val request = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), currentTime, "transaction1")
         olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request, bobUserId, keysOf(), null, aliceUserId, keysOf()),
             )
         )
         val activeDeviceVerification = cut.activeDeviceVerification.first { it != null }
@@ -270,79 +245,63 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `init » handleOlmDecryptedDeviceVerificationRequestEvents » cancel second device verification`() = runTest {
-        apiConfig.endpoints {
-            matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) {
-            }
-        }
+        apiConfig.endpoints { matrixJsonEndpoint(SendToDevice("m.key.verification.cancel", "*")) {} }
 
-        val request1 = VerificationRequestToDeviceEventContent(
-            bobDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction1"
-        )
-        val request2 = VerificationRequestToDeviceEventContent(
-            aliceDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction2"
-        )
+        val request1 = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), currentTime, "transaction1")
+        val request2 = VerificationRequestToDeviceEventContent(aliceDeviceId, setOf(Sas), currentTime, "transaction2")
         olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                PlaintextOlmEvent(request1, bobUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request1, bobUserId, keysOf(), null, aliceUserId, keysOf()),
             )
         )
         olmEventHandlerMock.eventSubscribers.first().first()(
             DecryptedOlmEventContainer(
                 ToDeviceEvent(OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")), bobUserId),
-                PlaintextOlmEvent(request2, aliceUserId, keysOf(), null, aliceUserId, keysOf())
+                PlaintextOlmEvent(request2, aliceUserId, keysOf(), null, aliceUserId, keysOf()),
             )
         )
         val activeDeviceVerification = cut.activeDeviceVerification.first { it != null }
         require(activeDeviceVerification != null)
         activeDeviceVerification.theirDeviceId shouldBe bobDeviceId
         eventually(1.seconds) {
-            olmEncryptionServiceMock.encryptOlmCalled shouldBe Triple(
-                VerificationCancelEventContent(
-                    Code.User,
-                    "already have an active device verification",
-                    null,
-                    "transaction2"
-                ),
-                aliceUserId,
-                aliceDeviceId
-            )
+            olmEncryptionServiceMock.encryptOlmCalled shouldBe
+                Triple(
+                    VerificationCancelEventContent(
+                        Code.User,
+                        "already have an active device verification",
+                        null,
+                        "transaction2",
+                    ),
+                    aliceUserId,
+                    aliceDeviceId,
+                )
         }
     }
 
     @Test
     fun `init » startLifecycleOfActiveVerifications » start all lifecycles of device verifications`() = runTest {
-        val request = VerificationRequestToDeviceEventContent(
-            bobDeviceId,
-            setOf(Sas),
-            currentTime,
-            "transaction"
-        )
+        val request = VerificationRequestToDeviceEventContent(bobDeviceId, setOf(Sas), currentTime, "transaction")
         syncBatchTokenStore.setSyncBatchToken("token1")
         apiConfig.endpoints {
             matrixJsonEndpoint(Sync(since = "token1")) {
                 Sync.Response(
                     nextBatch = "nextBatch1",
-                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId)))
+                    toDevice = Sync.Response.ToDevice(listOf(ToDeviceEvent(request, bobUserId))),
                 )
             }
             matrixJsonEndpoint(Sync(since = "nextBatch1")) {
                 Sync.Response(
                     nextBatch = "nextBatch2",
-                    toDevice = Sync.Response.ToDevice(
-                        listOf(
-                            ToDeviceEvent(
-                                VerificationCancelEventContent(Code.User, "user", null, "transaction"),
-                                bobUserId
+                    toDevice =
+                        Sync.Response.ToDevice(
+                            listOf(
+                                ToDeviceEvent(
+                                    VerificationCancelEventContent(Code.User, "user", null, "transaction"),
+                                    bobUserId,
+                                )
                             )
-                        )
-                    )
+                        ),
                 )
             }
         }
@@ -350,10 +309,8 @@ class VerificationServiceTest : TrixnityBaseTest() {
         val activeDeviceVerification = cut.activeDeviceVerification.first { it != null }
         require(activeDeviceVerification != null)
         api.sync.startOnce().getOrThrow()
-        activeDeviceVerification.state.first { it is Cancel } shouldBe Cancel(
-            VerificationCancelEventContent(Code.User, "user", null, "transaction"),
-            false
-        )
+        activeDeviceVerification.state.first { it is Cancel } shouldBe
+            Cancel(VerificationCancelEventContent(Code.User, "user", null, "transaction"), false)
         cut.activeDeviceVerification.first { it == null } shouldBe null
     }
 
@@ -362,73 +319,73 @@ class VerificationServiceTest : TrixnityBaseTest() {
         roomServiceMock.returnGetTimelineEventsDisableDrop = true
         val nextEventId = EventId("$1nextEventId")
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(roomId, "m.room.message", "transaction1"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(roomId, "m.room.message", "transaction1")) {
                 SendEventResponse(EventId("$24event"))
             }
         }
-        val timelineEvent = TimelineEvent(
-            event = MessageEvent(
-                VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
-                eventId,
-                bobUserId,
-                roomId,
-                currentTime
-            ),
-            previousEventId = null,
-            nextEventId = nextEventId,
-            gap = null
-        )
-        roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow(
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationCancelEventContent(
-                            Code.User, "user",
-                            transactionId = null,
-                            relatesTo = RelatesTo.Reference(eventId)
-                        ),
-                        nextEventId,
+        val timelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
+                        eventId,
                         bobUserId,
                         roomId,
-                        currentTime
+                        currentTime,
                     ),
-                    previousEventId = null,
-                    nextEventId = nextEventId,
-                    gap = null
+                previousEventId = null,
+                nextEventId = nextEventId,
+                gap = null,
+            )
+        roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow(
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationCancelEventContent(
+                                    Code.User,
+                                    "user",
+                                    transactionId = null,
+                                    relatesTo = RelatesTo.Reference(eventId),
+                                ),
+                                nextEventId,
+                                bobUserId,
+                                roomId,
+                                currentTime,
+                            ),
+                        previousEventId = null,
+                        nextEventId = nextEventId,
+                        gap = null,
+                    )
                 )
             )
-        )
         val result = cut.getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)?.state
         assertNotNull(result)
-        result.first { it is Cancel } shouldBe Cancel(
-            VerificationCancelEventContent(Code.User, "user", RelatesTo.Reference(eventId), null),
-            false
-        )
+        result.first { it is Cancel } shouldBe
+            Cancel(VerificationCancelEventContent(Code.User, "user", RelatesTo.Reference(eventId), null), false)
     }
-
 
     @Test
     fun `createDeviceVerificationRequest » send request to device and save locally`() = runTest {
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.key.verification.request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.key.verification.request", "*")) { sendToDeviceEvents = it.messages }
         }
         olmEncryptionServiceMock.returnEncryptOlm =
-            Result.failure(OlmEncryptionService.EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("dino"))))
+            Result.failure(
+                OlmEncryptionService.EncryptOlmError.CryptoDriverError(CryptoDriverException(Exception("dino")))
+            )
         val createdVerification = cut.createDeviceVerificationRequest(bobUserId, setOf(bobDeviceId)).getOrThrow()
         val activeDeviceVerification = cut.activeDeviceVerification.filterNotNull().first()
         createdVerification shouldBe activeDeviceVerification
         assertSoftly(sendToDeviceEvents) {
             this?.shouldHaveSize(1)
-            this?.get(bobUserId)?.get(bobDeviceId)
-                ?.shouldBeInstanceOf<VerificationRequestToDeviceEventContent>()?.fromDevice shouldBe aliceDeviceId
+            this?.get(bobUserId)
+                ?.get(bobDeviceId)
+                ?.shouldBeInstanceOf<VerificationRequestToDeviceEventContent>()
+                ?.fromDevice shouldBe aliceDeviceId
         }
     }
 
@@ -468,23 +425,25 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `createUserVerificationRequest » direct room with user exists » send request to existing room`() = runTest {
         tm.writeTransaction {
-            globalAccountDataStore.save(
-                GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
-            )
+            globalAccountDataStore.save(GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId)))))
         }
         userServiceMock.roomUsers.put(
-            Pair(bobUserId, roomId), flowOf(
+            Pair(bobUserId, roomId),
+            flowOf(
                 RoomUser(
-                    roomId, bobUserId, "Bob",
+                    roomId,
+                    bobUserId,
+                    "Bob",
                     ClientEvent.RoomEvent.StateEvent(
                         MemberEventContent(membership = Membership.JOIN),
                         id = EventId("0"),
                         sender = bobUserId,
-                        roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
-                        stateKey = bobUserId.full
-                    )
+                        roomId = roomId,
+                        originTimestamp = testClock.now().toEpochMilliseconds(),
+                        stateKey = bobUserId.full,
+                    ),
                 )
-            )
+            ),
         )
         val result = async { cut.createUserVerificationRequest(bobUserId).getOrThrow() }
         val message = roomServiceMock.sentMessages.first { it.isNotEmpty() }.first().second
@@ -512,30 +471,38 @@ class VerificationServiceTest : TrixnityBaseTest() {
                     GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(abandonedRoom, roomId))))
                 )
             }
-            userServiceMock.roomUsers[Pair(bobUserId, abandonedRoom)] = flowOf(
-                RoomUser(
-                    abandonedRoom, bobUserId, "Bob",
-                    ClientEvent.RoomEvent.StateEvent(
-                        MemberEventContent(membership = Membership.LEAVE),
-                        id = EventId("0"),
-                        sender = bobUserId,
-                        roomId = abandonedRoom, originTimestamp = testClock.now().toEpochMilliseconds(),
-                        stateKey = bobUserId.full
+            userServiceMock.roomUsers[Pair(bobUserId, abandonedRoom)] =
+                flowOf(
+                    RoomUser(
+                        abandonedRoom,
+                        bobUserId,
+                        "Bob",
+                        ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.LEAVE),
+                            id = EventId("0"),
+                            sender = bobUserId,
+                            roomId = abandonedRoom,
+                            originTimestamp = testClock.now().toEpochMilliseconds(),
+                            stateKey = bobUserId.full,
+                        ),
                     )
                 )
-            )
-            userServiceMock.roomUsers[Pair(bobUserId, roomId)] = flowOf(
-                RoomUser(
-                    roomId, bobUserId, "Bob",
-                    ClientEvent.RoomEvent.StateEvent(
-                        MemberEventContent(membership = Membership.JOIN),
-                        id = EventId("0"),
-                        sender = bobUserId,
-                        roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
-                        stateKey = bobUserId.full
+            userServiceMock.roomUsers[Pair(bobUserId, roomId)] =
+                flowOf(
+                    RoomUser(
+                        roomId,
+                        bobUserId,
+                        "Bob",
+                        ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("0"),
+                            sender = bobUserId,
+                            roomId = roomId,
+                            originTimestamp = testClock.now().toEpochMilliseconds(),
+                            stateKey = bobUserId.full,
+                        ),
                     )
                 )
-            )
             val result = async { cut.createUserVerificationRequest(bobUserId).getOrThrow() }
             val message = roomServiceMock.sentMessages.first { it.isNotEmpty() }.first().second
             roomServiceMock.outbox.value =
@@ -561,21 +528,23 @@ class VerificationServiceTest : TrixnityBaseTest() {
                     GlobalAccountDataEvent(DirectEventContent(mapOf(bobUserId to setOf(roomId))))
                 )
             }
-            userServiceMock.roomUsers[Pair(bobUserId, roomId)] = flowOf(
-                RoomUser(
-                    roomId, bobUserId, "Bob",
-                    ClientEvent.RoomEvent.StateEvent(
-                        MemberEventContent(membership = Membership.JOIN),
-                        id = EventId("0"),
-                        sender = bobUserId,
-                        roomId = roomId, originTimestamp = testClock.now().toEpochMilliseconds(),
-                        stateKey = bobUserId.full
+            userServiceMock.roomUsers[Pair(bobUserId, roomId)] =
+                flowOf(
+                    RoomUser(
+                        roomId,
+                        bobUserId,
+                        "Bob",
+                        ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("0"),
+                            sender = bobUserId,
+                            roomId = roomId,
+                            originTimestamp = testClock.now().toEpochMilliseconds(),
+                            stateKey = bobUserId.full,
+                        ),
                     )
                 )
-            )
-            val job = testScope.launch {
-                cut.activeUserVerifications.launchIn(this)
-            }
+            val job = testScope.launch { cut.activeUserVerifications.launchIn(this) }
             cut.activeUserVerifications.value.isEmpty() shouldBe true
             val request = async { cut.createUserVerificationRequest(bobUserId).getOrThrow() }
             val message = roomServiceMock.sentMessages.first { it.isNotEmpty() }.first().second
@@ -608,15 +577,14 @@ class VerificationServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.NotCrossSigned
-                        )
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
                     )
                 }
-                keyStore.updateCrossSigningKeys(aliceUserId) {
-                    setOf()
-                }
+                keyStore.updateCrossSigningKeys(aliceUserId) { setOf() }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.SyncNotRunning))
@@ -625,11 +593,7 @@ class VerificationServiceTest : TrixnityBaseTest() {
     @Test
     fun `return PreconditionsNotMet when device keys not fetched yet`() =
         runTest(setup = { getSelfVerificationMethodsSetup() }) {
-            tm.writeTransaction {
-                keyStore.updateCrossSigningKeys(aliceUserId) {
-                    setOf()
-                }
-            }
+            tm.writeTransaction { keyStore.updateCrossSigningKeys(aliceUserId) { setOf() } }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.DeviceKeysNotFetchedYet))
         }
@@ -640,15 +604,17 @@ class VerificationServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.NotCrossSigned
-                        )
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
                     )
                 }
             }
             val result = cut.getSelfVerificationMethods()
-            result.first() shouldBe SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.CrossSigningKeysNotFetchedYet))
+            result.first() shouldBe
+                SelfVerificationMethods.PreconditionsNotMet(setOf(Reason.CrossSigningKeysNotFetchedYet))
         }
 
     @Test
@@ -657,15 +623,14 @@ class VerificationServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.NotCrossSigned
-                        )
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
                     )
                 }
-                keyStore.updateCrossSigningKeys(aliceUserId) {
-                    setOf()
-                }
+                keyStore.updateCrossSigningKeys(aliceUserId) { setOf() }
             }
             val result = cut.getSelfVerificationMethods()
             result.first() shouldBe SelfVerificationMethods.NoCrossSigningEnabled
@@ -677,17 +642,18 @@ class VerificationServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.CrossSigned(true)
-                        )
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.CrossSigned(true),
+                            )
                     )
                 }
                 keyStore.updateCrossSigningKeys(aliceUserId) {
                     setOf(
                         StoredCrossSigningKeys(
                             Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.Valid(true)
+                            KeySignatureTrustLevel.Valid(true),
                         )
                     )
                 }
@@ -696,44 +662,48 @@ class VerificationServiceTest : TrixnityBaseTest() {
         }
 
     @Test
-    fun `add CrossSignedDeviceVerification`() = runTest(setup = { getSelfVerificationMethodsSetup() }) {
-        apiConfig.endpoints {
-            matrixJsonEndpoint(SendToDevice("m.key.verification.request", "*")) {
-            }
-        }
-        tm.writeTransaction {
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
+    fun `add CrossSignedDeviceVerification`() =
+        runTest(setup = { getSelfVerificationMethodsSetup() }) {
+            apiConfig.endpoints { matrixJsonEndpoint(SendToDevice("m.key.verification.request", "*")) {} }
+            tm.writeTransaction {
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
                     )
-                )
-            }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
-                    ),
-                    "DEV2" to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.CrossSigned(false)
-                    ),
-                    "DEV3" to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, "DEV3", setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(false)
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            ),
+                        "DEV2" to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.CrossSigned(false),
+                            ),
+                        "DEV3" to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, "DEV3", setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.Valid(false),
+                            ),
                     )
-                )
+                }
             }
+            val result =
+                cut.getSelfVerificationMethods()
+                    .first()
+                    .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
+                    .methods
+            result.size shouldBe 1
+            val firstResult = result.first()
+            firstResult.shouldBeInstanceOf<CrossSignedDeviceVerification>()
+            firstResult.createDeviceVerification().getOrThrow().shouldBeInstanceOf<ActiveDeviceVerification>()
         }
-        val result = cut.getSelfVerificationMethods().first()
-            .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods
-        result.size shouldBe 1
-        val firstResult = result.first()
-        firstResult.shouldBeInstanceOf<CrossSignedDeviceVerification>()
-        firstResult.createDeviceVerification().getOrThrow().shouldBeInstanceOf<ActiveDeviceVerification>()
-    }
 
     @Test
     fun `don't add CrossSignedDeviceVerification when there are no cross signed devices`() =
@@ -743,22 +713,25 @@ class VerificationServiceTest : TrixnityBaseTest() {
                     setOf(
                         StoredCrossSigningKeys(
                             Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.Valid(true)
+                            KeySignatureTrustLevel.Valid(true),
                         )
                     )
                 }
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.NotCrossSigned
-                        )
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
                     )
                 }
             }
-            cut.getSelfVerificationMethods().first()
+            cut.getSelfVerificationMethods()
+                .first()
                 .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
-                .methods.size shouldBe 0
+                .methods
+                .size shouldBe 0
         }
 
     @Test
@@ -769,155 +742,180 @@ class VerificationServiceTest : TrixnityBaseTest() {
                     setOf(
                         StoredCrossSigningKeys(
                             Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.Valid(true)
-                        ),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
                     )
                 }
                 keyStore.updateDeviceKeys(aliceUserId) {
                     mapOf(
-                        aliceDeviceId to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                            KeySignatureTrustLevel.NotCrossSigned
-                        ),
-                        "DEV2" to StoredDeviceKeys(
-                            Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf(), true), null),
-                            KeySignatureTrustLevel.CrossSigned(false)
-                        ),
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            ),
+                        "DEV2" to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf(), true), null),
+                                KeySignatureTrustLevel.CrossSigned(false),
+                            ),
                     )
                 }
             }
-            cut.getSelfVerificationMethods().first()
+            cut.getSelfVerificationMethods()
+                .first()
                 .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
-                .methods.size shouldBe 0
+                .methods
+                .size shouldBe 0
         }
 
     @Test
-    fun `add AesHmacSha2RecoveryKeyWithPbkdf2Passphrase`() = runTest(setup = { getSelfVerificationMethodsSetup() }) {
-        val defaultKey = SecretKeyEventContent.AesHmacSha2Key(
-            name = "default key",
-            passphrase = null,
-        )
-        tm.writeTransaction {
-            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-            globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
+    fun `add AesHmacSha2RecoveryKeyWithPbkdf2Passphrase`() =
+        runTest(setup = { getSelfVerificationMethodsSetup() }) {
+            val defaultKey = SecretKeyEventContent.AesHmacSha2Key(name = "default key", passphrase = null)
+            tm.writeTransaction {
+                globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+                globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
                     )
-                )
-            }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
                     )
-                )
+                }
             }
+            cut.getSelfVerificationMethods()
+                .first()
+                .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
+                .methods shouldBe
+                setOf(AesHmacSha2RecoveryKey(keySecretServiceMock, keyTrustServiceMock, "KEY", defaultKey))
         }
-        cut.getSelfVerificationMethods().first()
-            .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods shouldBe setOf(
-            AesHmacSha2RecoveryKey(keySecretServiceMock, keyTrustServiceMock, "KEY", defaultKey)
-        )
-    }
 
     @Test
-    fun `add AesHmacSha2RecoveryKey`() = runTest(setup = { getSelfVerificationMethodsSetup() }) {
-        val defaultKey = SecretKeyEventContent.AesHmacSha2Key(
-            name = "default key",
-            passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2("salt", 10_000),
-        )
-        tm.writeTransaction {
-            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-            globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
-            keyStore.updateCrossSigningKeys(aliceUserId) {
+    fun `add AesHmacSha2RecoveryKey`() =
+        runTest(setup = { getSelfVerificationMethodsSetup() }) {
+            val defaultKey =
+                SecretKeyEventContent.AesHmacSha2Key(
+                    name = "default key",
+                    passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2("salt", 10_000),
+                )
+            tm.writeTransaction {
+                globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+                globalAccountDataStore.save(GlobalAccountDataEvent(defaultKey, "KEY"))
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
+                    )
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            )
+                    )
+                }
+            }
+            cut.getSelfVerificationMethods()
+                .first()
+                .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
+                .methods shouldBe
                 setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
-                    )
+                    AesHmacSha2RecoveryKey(keySecretServiceMock, keyTrustServiceMock, "KEY", defaultKey),
+                    AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(
+                        keySecretServiceMock,
+                        keyTrustServiceMock,
+                        "KEY",
+                        defaultKey,
+                    ),
                 )
-            }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
-                    )
-                )
-            }
         }
-        cut.getSelfVerificationMethods().first()
-            .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods shouldBe setOf(
-            AesHmacSha2RecoveryKey(keySecretServiceMock, keyTrustServiceMock, "KEY", defaultKey),
-            AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(keySecretServiceMock, keyTrustServiceMock, "KEY", defaultKey)
-        )
-    }
 
     // TODO enable this on Js
     @Test
-    fun `honor data class equality`() = runTest(setup = { getSelfVerificationMethodsSetup() }) {
-        tm.writeTransaction {
-            globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
-            globalAccountDataStore.save(
-                GlobalAccountDataEvent(
-                    SecretKeyEventContent.AesHmacSha2Key(
-                        name = "default key",
-                        passphrase = SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2(
-                            "salt",
-                            10_000
+    fun `honor data class equality`() =
+        runTest(setup = { getSelfVerificationMethodsSetup() }) {
+            tm.writeTransaction {
+                globalAccountDataStore.save(GlobalAccountDataEvent(DefaultSecretKeyEventContent("KEY")))
+                globalAccountDataStore.save(
+                    GlobalAccountDataEvent(
+                        SecretKeyEventContent.AesHmacSha2Key(
+                            name = "default key",
+                            passphrase =
+                                SecretKeyEventContent.AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2("salt", 10_000),
                         ),
-                    ), "KEY"
-                )
-            )
-
-            keyStore.updateCrossSigningKeys(aliceUserId) {
-                setOf(
-                    StoredCrossSigningKeys(
-                        Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
+                        "KEY",
                     )
                 )
+
+                keyStore.updateCrossSigningKeys(aliceUserId) {
+                    setOf(
+                        StoredCrossSigningKeys(
+                            Signed(CrossSigningKeys(aliceUserId, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
+                    )
+                }
+                keyStore.updateDeviceKeys(aliceUserId) {
+                    mapOf(
+                        aliceDeviceId to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.NotCrossSigned,
+                            ),
+                        "DEV2" to
+                            StoredDeviceKeys(
+                                Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
+                                KeySignatureTrustLevel.CrossSigned(false),
+                            ),
+                    )
+                }
             }
-            keyStore.updateDeviceKeys(aliceUserId) {
-                mapOf(
-                    aliceDeviceId to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, aliceDeviceId, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.NotCrossSigned
-                    ),
-                    "DEV2" to StoredDeviceKeys(
-                        Signed(DeviceKeys(aliceUserId, "DEV2", setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.CrossSigned(false)
-                    ),
-                )
-            }
+
+            val methods1 =
+                cut.getSelfVerificationMethods()
+                    .first()
+                    .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
+                    .methods
+            val methods2 =
+                cut.getSelfVerificationMethods()
+                    .first()
+                    .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>()
+                    .methods
+
+            methods1.size shouldBe 3
+            methods1 shouldBe methods2
         }
-
-        val methods1 = cut.getSelfVerificationMethods().first()
-            .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods
-        val methods2 = cut.getSelfVerificationMethods().first()
-            .shouldBeInstanceOf<SelfVerificationMethods.CrossSigningEnabled>().methods
-
-        methods1.size shouldBe 3
-        methods1 shouldBe methods2
-    }
 
     @Test
     fun `getActiveUserVerification » skip timed out verifications`() = runTest {
-        val timelineEvent = TimelineEvent(
-            event = MessageEvent(
-                VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
-                eventId,
-                bobUserId,
-                roomId,
-                1234
-            ),
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
+        val timelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
+                        eventId,
+                        bobUserId,
+                        roomId,
+                        1234,
+                    ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
         val result = cut.getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)
         result shouldBe null
@@ -925,18 +923,20 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getActiveUserVerification » return cached verification`() = runTest {
-        val timelineEvent = TimelineEvent(
-            event = MessageEvent(
-                VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
-                eventId,
-                bobUserId,
-                roomId,
-                currentTime,
-            ),
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
+        val timelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
+                        eventId,
+                        bobUserId,
+                        roomId,
+                        currentTime,
+                    ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
         val result1 = cut.getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)
         assertNotNull(result1)
@@ -946,18 +946,20 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getActiveUserVerification » create verification from event`() = runTest {
-        val timelineEvent = TimelineEvent(
-            event = MessageEvent(
-                VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
-                eventId,
-                bobUserId,
-                roomId,
-                currentTime,
-            ),
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
+        val timelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        VerificationRequest(bobDeviceId, aliceUserId, setOf(Sas)),
+                        eventId,
+                        bobUserId,
+                        roomId,
+                        currentTime,
+                    ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
         val result = cut.getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)
         val state = result?.state
@@ -967,18 +969,20 @@ class VerificationServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getActiveUserVerification » not create verification from own request event`() = runTest {
-        val timelineEvent = TimelineEvent(
-            event = MessageEvent(
-                VerificationRequest(aliceDeviceId, bobUserId, setOf(Sas)),
-                eventId,
-                aliceUserId,
-                roomId,
-                currentTime,
-            ),
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
+        val timelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        VerificationRequest(aliceDeviceId, bobUserId, setOf(Sas)),
+                        eventId,
+                        aliceUserId,
+                        roomId,
+                        currentTime,
+                    ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(timelineEvent)
         cut.getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId) shouldBe null
     }

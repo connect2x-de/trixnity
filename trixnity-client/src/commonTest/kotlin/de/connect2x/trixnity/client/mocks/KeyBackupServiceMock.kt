@@ -10,14 +10,16 @@ class KeyBackupServiceMock : KeyBackupService {
     override val version: MutableStateFlow<GetRoomKeysBackupVersionResponse.V1?> = MutableStateFlow(null)
 
     val loadMegolmSessionCalled = MutableStateFlow<List<Pair<RoomId, String>>>(listOf())
+
     override suspend fun loadMegolmSession(roomId: RoomId, sessionId: String) {
         loadMegolmSessionCalled.update { it + Pair(roomId, sessionId) }
     }
 
     var returnKeyBackupCanBeTrusted: Boolean = true
+
     override suspend fun keyBackupCanBeTrusted(
         keyBackupVersion: GetRoomKeysBackupVersionResponse,
-        privateKey: String
+        privateKey: String,
     ): Boolean {
         return returnKeyBackupCanBeTrusted
     }

@@ -7,7 +7,6 @@ import platform.CoreCrypto.CCHmac
 import platform.CoreCrypto.CC_SHA256_DIGEST_LENGTH
 import platform.CoreCrypto.kCCHmacAlgSHA256
 
-
 @OptIn(ExperimentalUnsignedTypes::class)
 actual suspend fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray {
     val output = ByteArray(CC_SHA256_DIGEST_LENGTH)

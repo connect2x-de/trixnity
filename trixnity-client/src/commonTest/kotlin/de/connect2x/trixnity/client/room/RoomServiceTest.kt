@@ -52,6 +52,12 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.test.assertNotNull
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,12 +69,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(MSC4354::class)
 class RoomServiceTest : TrixnityBaseTest() {
@@ -85,119 +85,114 @@ class RoomServiceTest : TrixnityBaseTest() {
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
     private val api = mockMatrixClientServerApiClient()
 
-    private val cut = RoomServiceImpl(
-        api = api,
-        roomStore = roomStore,
-        roomStateStore = getInMemoryRoomStateStore(),
-        roomAccountDataStore = getInMemoryRoomAccountDataStore(),
-        roomTimelineStore = roomTimelineStore,
-        stickyEventStore = getInMemoryStickyEventStore(),
-        roomOutboxMessageStore = roomOutboxMessageStore,
-        tm = tm,
-        roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
-        mediaService = mediaServiceMock,
-        forgetRoomService = { _, _ -> },
-        userInfo = simpleUserInfo,
-        timelineEventHandler = TimelineEventHandlerMock(),
-        clock = testScope.testClock,
-        matrixClientConfig = MatrixClientConfiguration(),
-        typingEventHandler = TypingEventHandlerImpl(api),
-        currentSyncState = CurrentSyncState(currentSyncState),
-        scope = testScope.backgroundScope,
-        eventContentMediaMappings = EventContentMediaMappings.default
-    )
+    private val cut =
+        RoomServiceImpl(
+            api = api,
+            roomStore = roomStore,
+            roomStateStore = getInMemoryRoomStateStore(),
+            roomAccountDataStore = getInMemoryRoomAccountDataStore(),
+            roomTimelineStore = roomTimelineStore,
+            stickyEventStore = getInMemoryStickyEventStore(),
+            roomOutboxMessageStore = roomOutboxMessageStore,
+            tm = tm,
+            roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
+            mediaService = mediaServiceMock,
+            forgetRoomService = { _, _ -> },
+            userInfo = simpleUserInfo,
+            timelineEventHandler = TimelineEventHandlerMock(),
+            clock = testScope.testClock,
+            matrixClientConfig = MatrixClientConfiguration(),
+            typingEventHandler = TypingEventHandlerImpl(api),
+            currentSyncState = CurrentSyncState(currentSyncState),
+            scope = testScope.backgroundScope,
+            eventContentMediaMappings = EventContentMediaMappings.default,
+        )
 
     private val eventId = EventId("\$event1")
     private val session = "SESSION"
     private val senderKey = Key.Curve25519Key(null, "senderKey")
-    private val encryptedEventContent = MegolmEncryptedMessageEventContent(
-        MegolmMessageValue("ciphertext"), senderKey.value, "SENDER", session
-    )
-    private val encryptedTimelineEvent = TimelineEvent(
-        event = MessageEvent(
-            encryptedEventContent,
-            eventId,
-            UserId("sender", "server"),
-            room,
-            1
-        ),
-        previousEventId = null,
-        nextEventId = null,
-        gap = null
-    )
-    private val replaceTimelineEvent = TimelineEvent(
-        event = MessageEvent(
-            encryptedEventContent, // in reality there is a relatesTo
-            EventId("\$event2"),
-            UserId("sender", "server"),
-            room,
-            1
-        ),
-        content = Result.success(
-            RoomMessageEventContent.TextBased.Text(
-                "*edited hi",
-                relatesTo = RelatesTo.Replace(
-                    EventId("\$event1"),
-                    RoomMessageEventContent.TextBased.Text("edited hi")
-                )
-            )
-        ),
-        previousEventId = null,
-        nextEventId = null,
-        gap = null
-    )
-    private val timelineEvent = TimelineEvent(
-        event = MessageEvent(
-            encryptedEventContent,
-            EventId("\$event1"),
-            UserId("sender", "server"),
-            room,
-            1,
-            UnsignedRoomEventData.UnsignedMessageEventData(
-                relations = Relations(
-                    mapOf(
-                        RelationType.Replace to ServerAggregation.Replace(
-                            replaceTimelineEvent.eventId,
-                            replaceTimelineEvent.event.sender,
-                            replaceTimelineEvent.event.originTimestamp
-                        )
+    private val encryptedEventContent =
+        MegolmEncryptedMessageEventContent(MegolmMessageValue("ciphertext"), senderKey.value, "SENDER", session)
+    private val encryptedTimelineEvent =
+        TimelineEvent(
+            event = MessageEvent(encryptedEventContent, eventId, UserId("sender", "server"), room, 1),
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
+    private val replaceTimelineEvent =
+        TimelineEvent(
+            event =
+                MessageEvent(
+                    encryptedEventContent, // in reality there is a relatesTo
+                    EventId("\$event2"),
+                    UserId("sender", "server"),
+                    room,
+                    1,
+                ),
+            content =
+                Result.success(
+                    RoomMessageEventContent.TextBased.Text(
+                        "*edited hi",
+                        relatesTo =
+                            RelatesTo.Replace(EventId("\$event1"), RoomMessageEventContent.TextBased.Text("edited hi")),
                     )
-                )
-            )
-        ),
-        content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
-        previousEventId = null,
-        nextEventId = null,
-        gap = null
-    )
-
+                ),
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
+    private val timelineEvent =
+        TimelineEvent(
+            event =
+                MessageEvent(
+                    encryptedEventContent,
+                    EventId("\$event1"),
+                    UserId("sender", "server"),
+                    room,
+                    1,
+                    UnsignedRoomEventData.UnsignedMessageEventData(
+                        relations =
+                            Relations(
+                                mapOf(
+                                    RelationType.Replace to
+                                        ServerAggregation.Replace(
+                                            replaceTimelineEvent.eventId,
+                                            replaceTimelineEvent.event.sender,
+                                            replaceTimelineEvent.event.originTimestamp,
+                                        )
+                                )
+                            )
+                    ),
+                ),
+            content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
 
     @Test
     fun `getTimelineEvent » event not in database » try fill gaps until found`() = runTest {
         val lastEventId = EventId("\$eventWorld")
-        val event = MessageEvent(
-            RoomMessageEventContent.TextBased.Text("hello"),
-            eventId,
-            UserId("sender", "server"),
-            room,
-            1
-        )
+        val event =
+            MessageEvent(RoomMessageEventContent.TextBased.Text("hello"), eventId, UserId("sender", "server"), room, 1)
         tm.writeTransaction {
             roomStore.update(room) { simpleRoom.copy(lastEventId = lastEventId) }
             currentSyncState.value = RUNNING
 
             roomTimelineStore.add(
                 TimelineEvent(
-                    event = MessageEvent(
-                        RoomMessageEventContent.TextBased.Text("world"),
-                        lastEventId,
-                        UserId("sender", "server"),
-                        room,
-                        0
-                    ),
+                    event =
+                        MessageEvent(
+                            RoomMessageEventContent.TextBased.Text("world"),
+                            lastEventId,
+                            UserId("sender", "server"),
+                            room,
+                            0,
+                        ),
                     previousEventId = null,
                     nextEventId = null,
-                    gap = TimelineEvent.Gap.GapBefore("start")
+                    gap = TimelineEvent.Gap.GapBefore("start"),
                 )
             )
         }
@@ -208,36 +203,28 @@ class RoomServiceTest : TrixnityBaseTest() {
                     event = event,
                     previousEventId = null,
                     nextEventId = lastEventId,
-                    gap = TimelineEvent.Gap.GapBefore("end")
+                    gap = TimelineEvent.Gap.GapBefore("end"),
                 )
             )
         }
         timelineEventFlow.filterNotNull().first() shouldBe
-                TimelineEvent(
-                    event = event,
-                    previousEventId = null,
-                    nextEventId = lastEventId,
-                    gap = TimelineEvent.Gap.GapBefore("end")
-                )
+            TimelineEvent(
+                event = event,
+                previousEventId = null,
+                nextEventId = lastEventId,
+                gap = TimelineEvent.Gap.GapBefore("end"),
+            )
     }
 
-    private fun shouldJustReturnEvent(
-        timelineEvent: TimelineEvent
-    ) = runTest {
-        tm.writeTransaction {
-            roomTimelineStore.add(timelineEvent)
-        }
+    private fun shouldJustReturnEvent(timelineEvent: TimelineEvent) = runTest {
+        tm.writeTransaction { roomTimelineStore.add(timelineEvent) }
         cut.getTimelineEvent(room, eventId).first() shouldBe timelineEvent
 
         // event gets changed later (e.g. redaction)
-        tm.writeTransaction {
-            roomTimelineStore.add(encryptedTimelineEvent)
-        }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
         val result = cut.getTimelineEvent(room, eventId)
         delay(20)
-        tm.writeTransaction {
-            roomTimelineStore.add(timelineEvent)
-        }
+        tm.writeTransaction { roomTimelineStore.add(timelineEvent) }
         delay(20)
         result.first() shouldBe timelineEvent
     }
@@ -245,43 +232,29 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getTimelineEvent » should just return event » with already encrypted event`() =
         shouldJustReturnEvent(
-            encryptedTimelineEvent.copy(
-                content = Result.success(RoomMessageEventContent.TextBased.Text("hi"))
-            )
+            encryptedTimelineEvent.copy(content = Result.success(RoomMessageEventContent.TextBased.Text("hi")))
         )
 
     @Test
     fun `getTimelineEvent » should just return event » with encryption error`() =
         shouldJustReturnEvent(
-            encryptedTimelineEvent.copy(
-                content = Result.failure(TimelineEventContentError.DecryptionTimeout)
-            )
+            encryptedTimelineEvent.copy(content = Result.failure(TimelineEventContentError.DecryptionTimeout))
         )
 
     @Test
-    fun `getTimelineEvent » should just return event » without RoomEvent`() = shouldJustReturnEvent(
-        encryptedTimelineEvent.copy(
-            event = nameEvent(1)
-        )
-    )
+    fun `getTimelineEvent » should just return event » without RoomEvent`() =
+        shouldJustReturnEvent(encryptedTimelineEvent.copy(event = nameEvent(1)))
 
     @Test
     fun `getTimelineEvent » should just return event » without MegolmEncryptedEventContent`() =
-        shouldJustReturnEvent(
-            encryptedTimelineEvent.copy(
-                event = textEvent(1)
-            )
-        )
+        shouldJustReturnEvent(encryptedTimelineEvent.copy(event = textEvent(1)))
 
     @Test
     fun `getTimelineEvent » event can be decrypted » decrypt event`() = runTest {
         val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
         roomEventDecryptionServiceMock.returnDecrypt = Result.success(expectedDecryptedEvent)
-        tm.writeTransaction {
-            roomTimelineStore.add(encryptedTimelineEvent)
-        }
-        val result = cut.getTimelineEvent(room, eventId)
-            .first { it?.content?.getOrNull() != null }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+        val result = cut.getTimelineEvent(room, eventId).first { it?.content?.getOrNull() != null }
         assertSoftly(result) {
             assertNotNull(this)
             event shouldBe encryptedTimelineEvent.event
@@ -293,38 +266,27 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `getTimelineEvent » event can be decrypted » decrypt event only once`() = runTest {
         val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
         roomEventDecryptionServiceMock.returnDecrypt = Result.success(expectedDecryptedEvent)
-        tm.writeTransaction {
-            roomTimelineStore.add(encryptedTimelineEvent)
-        }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
 
-        repeat(100) {
-            cut.getTimelineEvent(room, eventId)
-                .first { it?.content?.getOrNull() != null }
-        }
+        repeat(100) { cut.getTimelineEvent(room, eventId).first { it?.content?.getOrNull() != null } }
         roomEventDecryptionServiceMock.decryptCounter shouldBe 1
     }
 
     @Test
-    fun `getTimelineEvent » event can be decrypted » timeout when decryption takes too long`() =
-        runTest {
-            roomEventDecryptionServiceMock.decryptDelay = 10.seconds
-            roomEventDecryptionServiceMock.returnDecrypt = null
-            tm.writeTransaction {
-                roomTimelineStore.add(encryptedTimelineEvent)
-            }
-            val result =
-                async { cut.getTimelineEvent(room, eventId) { decryptionTimeout = ZERO }.collect() }
-            result.job.children.count() shouldBe 0 // there are no decryption jobs
-            result.cancel()
-        }
+    fun `getTimelineEvent » event can be decrypted » timeout when decryption takes too long`() = runTest {
+        roomEventDecryptionServiceMock.decryptDelay = 10.seconds
+        roomEventDecryptionServiceMock.returnDecrypt = null
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+        val result = async { cut.getTimelineEvent(room, eventId) { decryptionTimeout = ZERO }.collect() }
+        result.job.children.count() shouldBe 0 // there are no decryption jobs
+        result.cancel()
+    }
 
     @Test
     fun `getTimelineEvent » event can be decrypted » retry on decryption timeout`() = runTest {
         roomEventDecryptionServiceMock.decryptDelay = 10.seconds
         roomEventDecryptionServiceMock.returnDecrypt = null
-        tm.writeTransaction {
-            roomTimelineStore.add(encryptedTimelineEvent)
-        }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
         withTimeoutOrNull(100.milliseconds) {
             cut.getTimelineEvent(room, eventId) { decryptionTimeout = 50.milliseconds }.collect()
         }
@@ -336,18 +298,14 @@ class RoomServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getTimelineEvent » event can be decrypted » handle error`() = runTest {
-        roomEventDecryptionServiceMock.returnDecrypt =
-            Result.failure(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
-        tm.writeTransaction {
-            roomTimelineStore.add(encryptedTimelineEvent)
-        }
-        val result = cut.getTimelineEvent(room, eventId)
-            .first { it?.content?.isFailure == true }
+        roomEventDecryptionServiceMock.returnDecrypt = Result.failure(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+        val result = cut.getTimelineEvent(room, eventId).first { it?.content?.isFailure == true }
         assertSoftly(result) {
             assertNotNull(this)
             event shouldBe encryptedTimelineEvent.event
             content?.exceptionOrNull() shouldBe
-                    TimelineEventContentError.DecryptionError(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
+                TimelineEventContentError.DecryptionError(DecryptMegolmError.MegolmKeyUnknownMessageIndex())
         }
     }
 
@@ -358,97 +316,97 @@ class RoomServiceTest : TrixnityBaseTest() {
                 roomTimelineStore.add(timelineEvent)
                 roomTimelineStore.add(replaceTimelineEvent)
             }
-            cut.getTimelineEvent(room, eventId).first() shouldBe timelineEvent.copy(
-                content = Result.success(RoomMessageEventContent.TextBased.Text("edited hi"))
-            )
+            cut.getTimelineEvent(room, eventId).first() shouldBe
+                timelineEvent.copy(content = Result.success(RoomMessageEventContent.TextBased.Text("edited hi")))
         }
 
     @Test
-    fun `getTimelineEvent » content has been replaced » keep original relation`() =
-        runTest {
-            val timelineEventWithRelation =
-                TimelineEvent(
-                    event = MessageEvent(
+    fun `getTimelineEvent » content has been replaced » keep original relation`() = runTest {
+        val timelineEventWithRelation =
+            TimelineEvent(
+                event =
+                    MessageEvent(
                         encryptedEventContent.copy(
-                            relatesTo = RelatesTo.Reply(
-                                RelatesTo.ReplyTo(
-                                    EventId("\$replyTo")
-                                )
-                            )
+                            relatesTo = RelatesTo.Reply(RelatesTo.ReplyTo(EventId("\$replyTo")))
                         ),
                         EventId("\$event1"),
                         UserId("sender", "server"),
                         room,
                         1,
                         UnsignedRoomEventData.UnsignedMessageEventData(
-                            relations = Relations(
-                                mapOf(
-                                    RelationType.Replace to ServerAggregation.Replace(
-                                        replaceTimelineEvent.eventId,
-                                        replaceTimelineEvent.event.sender,
-                                        replaceTimelineEvent.event.originTimestamp
+                            relations =
+                                Relations(
+                                    mapOf(
+                                        RelationType.Replace to
+                                            ServerAggregation.Replace(
+                                                replaceTimelineEvent.eventId,
+                                                replaceTimelineEvent.event.sender,
+                                                replaceTimelineEvent.event.originTimestamp,
+                                            )
                                     )
                                 )
-                            )
-                        )
+                        ),
                     ),
-                    content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
-                    previousEventId = null,
-                    nextEventId = null,
-                    gap = null
-                )
-            tm.writeTransaction {
-                roomTimelineStore.add(timelineEventWithRelation)
-                roomTimelineStore.add(replaceTimelineEvent)
-            }
-            cut.getTimelineEvent(room, eventId).first() shouldBe timelineEventWithRelation.copy(
-                content = Result.success(
-                    RoomMessageEventContent.TextBased.Text(
-                        "edited hi",
-                        relatesTo = RelatesTo.Reply(RelatesTo.ReplyTo(EventId("\$replyTo")))
-                    )
-                )
+                content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
             )
+        tm.writeTransaction {
+            roomTimelineStore.add(timelineEventWithRelation)
+            roomTimelineStore.add(replaceTimelineEvent)
         }
+        cut.getTimelineEvent(room, eventId).first() shouldBe
+            timelineEventWithRelation.copy(
+                content =
+                    Result.success(
+                        RoomMessageEventContent.TextBased.Text(
+                            "edited hi",
+                            relatesTo = RelatesTo.Reply(RelatesTo.ReplyTo(EventId("\$replyTo"))),
+                        )
+                    )
+            )
+    }
 
     @Test
-    fun `getTimelineEvent » content has been replaced » not replace content when disabled`() =
-        runTest {
-            tm.writeTransaction {
-                roomTimelineStore.add(timelineEvent)
-                roomTimelineStore.add(replaceTimelineEvent)
-            }
-            cut.getTimelineEvent(room, eventId) { allowReplaceContent = false }
-                .first() shouldBe timelineEvent.copy(
-                content = Result.success(RoomMessageEventContent.TextBased.Text("hi"))
-            )
+    fun `getTimelineEvent » content has been replaced » not replace content when disabled`() = runTest {
+        tm.writeTransaction {
+            roomTimelineStore.add(timelineEvent)
+            roomTimelineStore.add(replaceTimelineEvent)
         }
+        cut.getTimelineEvent(room, eventId) { allowReplaceContent = false }.first() shouldBe
+            timelineEvent.copy(content = Result.success(RoomMessageEventContent.TextBased.Text("hi")))
+    }
 
     @Test
     fun `getTimelineEvent » content has been replaced » not replace when redacted`() = runTest {
-        val redactedTimelineEvent = TimelineEvent(
-            event = MessageEvent(
-                RedactedEventContent("m.room.message"),
-                EventId("\$event1"),
-                UserId("sender", "server"),
-                room,
-                1,
-                UnsignedRoomEventData.UnsignedMessageEventData(
-                    relations = Relations(
-                        mapOf(
-                            RelationType.Replace to ServerAggregation.Replace(
-                                replaceTimelineEvent.eventId,
-                                replaceTimelineEvent.event.sender,
-                                replaceTimelineEvent.event.originTimestamp
-                            )
-                        )
-                    )
-                )
-            ),
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
+        val redactedTimelineEvent =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        RedactedEventContent("m.room.message"),
+                        EventId("\$event1"),
+                        UserId("sender", "server"),
+                        room,
+                        1,
+                        UnsignedRoomEventData.UnsignedMessageEventData(
+                            relations =
+                                Relations(
+                                    mapOf(
+                                        RelationType.Replace to
+                                            ServerAggregation.Replace(
+                                                replaceTimelineEvent.eventId,
+                                                replaceTimelineEvent.event.sender,
+                                                replaceTimelineEvent.event.originTimestamp,
+                                            )
+                                    )
+                                )
+                        ),
+                    ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         tm.writeTransaction {
             roomTimelineStore.add(redactedTimelineEvent)
             roomTimelineStore.add(replaceTimelineEvent)
@@ -461,53 +419,30 @@ class RoomServiceTest : TrixnityBaseTest() {
         val initialRoom = Room(room, lastEventId = null)
         val event1 = textEvent(1)
         val event2 = textEvent(2)
-        val event2Timeline = TimelineEvent(
-            event = event2,
-            content = null,
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
-        tm.writeTransaction {
-            roomTimelineStore.add(event2Timeline)
-        }
-        val result = async {
-            cut.getLastTimelineEvent(room).take(3).toList()
-        }
+        val event2Timeline =
+            TimelineEvent(event = event2, content = null, previousEventId = null, nextEventId = null, gap = null)
+        tm.writeTransaction { roomTimelineStore.add(event2Timeline) }
+        val result = async { cut.getLastTimelineEvent(room).take(3).toList() }
 
         with(roomStore) {
             delay(50)
-            tm.writeTransaction {
-                update(room) { initialRoom }
-            }
+            tm.writeTransaction { update(room) { initialRoom } }
             delay(50)
-            tm.writeTransaction {
-                update(room) { initialRoom.copy(lastEventId = event1.id) }
-            }
+            tm.writeTransaction { update(room) { initialRoom.copy(lastEventId = event1.id) } }
             delay(50)
-            tm.writeTransaction {
-                update(room) { initialRoom.copy(lastEventId = event2.id) }
-            }
+            tm.writeTransaction { update(room) { initialRoom.copy(lastEventId = event2.id) } }
         }
 
         result.await()[0] shouldBe null
-        withTimeoutOrNull(100.milliseconds) {
-            result.await()[1].shouldNotBeNull().first()
-        } shouldBe null
+        withTimeoutOrNull(100.milliseconds) { result.await()[1].shouldNotBeNull().first() } shouldBe null
         result.await()[2].shouldNotBeNull().first() shouldBe event2Timeline
     }
 
     @Test
     fun `sendMessage » just save message in store for later use`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.sendMessage(room) {
-            contentBuilder = { content }
-        }
-        retry(
-            100,
-            3_000.milliseconds,
-            30.milliseconds
-        ) {// we need this, because the cache may not be fast enough
+        cut.sendMessage(room) { contentBuilder = { content } }
+        retry(100, 3_000.milliseconds, 30.milliseconds) { // we need this, because the cache may not be fast enough
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboundMessages shouldHaveSize 1
             assertSoftly(outboundMessages.first()) {
@@ -521,9 +456,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `setDraftMessage » draft Message being created`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content } }
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboundMessages shouldHaveSize 1
@@ -538,9 +471,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `setDraftMessage » sendDraftMessage » draft Message set to non draft`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content } }
 
         cut.sendDraftMessage(room)
 
@@ -558,9 +489,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `setDraftMessage » getDraftMessaage returns draft Message`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content } }
 
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val draftMessage = cut.getDraftMessage(room).first()
@@ -576,9 +505,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `setDraftMessage » setDraftMessage » updates draft message`() = runTest {
         val content1 = RoomMessageEventContent.TextBased.Text("hi")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content1 }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content1 } }
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboundMessages shouldHaveSize 1
@@ -590,9 +517,7 @@ class RoomServiceTest : TrixnityBaseTest() {
         }
 
         val content2 = RoomMessageEventContent.TextBased.Text("hi2")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content2 }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content2 } }
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboundMessages shouldHaveSize 1
@@ -607,9 +532,7 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getOutbox filters out draft Messages`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.setDraftMessage(room) {
-            contentBuilder = { content }
-        }
+        cut.setDraftMessage(room) { contentBuilder = { content } }
 
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboxMessages = cut.getOutbox(room).first()
@@ -622,16 +545,12 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getOutbox of roomId filters out events from other rooms`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
-        cut.sendMessage(room) {
-            contentBuilder = { content }
-        }
+        cut.sendMessage(room) { contentBuilder = { content } }
 
         val room2 = RoomId("123")
 
         val content2 = RoomMessageEventContent.TextBased.Text("hi2")
-        cut.sendMessage(room2) {
-            contentBuilder = { content2 }
-        }
+        cut.sendMessage(room2) { contentBuilder = { content2 } }
 
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboxMessages = cut.getOutbox(room).first()
@@ -649,20 +568,19 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `getDraftMessage » no draft message in queried room`() = runTest {
         val otherRoom = RoomId("!2")
-        val message1 = RoomOutboxMessage(
-            roomId = otherRoom,
-            transactionId = "1",
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = true,
-        )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(otherRoom, "1") { message1 }
-        }
+        val message1 =
+            RoomOutboxMessage(
+                roomId = otherRoom,
+                transactionId = "1",
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(otherRoom, "1") { message1 } }
 
         val draft = cut.getDraftMessage(room)
         draft.first() shouldBe null
@@ -670,20 +588,19 @@ class RoomServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getDraftMessage » get draft message for the room`() = runTest {
-        val message1 = RoomOutboxMessage(
-            roomId = room,
-            transactionId = "1",
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = true,
-        )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(room, "1") { message1 }
-        }
+        val message1 =
+            RoomOutboxMessage(
+                roomId = room,
+                transactionId = "1",
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(room, "1") { message1 } }
 
         val draft = cut.getDraftMessage(room)
         draft.first() shouldBe message1
@@ -691,20 +608,19 @@ class RoomServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `getDraftMessage » ignore non-drafts in the room`() = runTest {
-        val message1 = RoomOutboxMessage(
-            roomId = room,
-            transactionId = "1",
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = false, // <-- no draft
-        )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(room, "1") { message1 }
-        }
+        val message1 =
+            RoomOutboxMessage(
+                roomId = room,
+                transactionId = "1",
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = false, // <-- no draft
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(room, "1") { message1 } }
 
         val draft = cut.getDraftMessage(room)
         draft.first() shouldBe null
@@ -722,20 +638,19 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `deleteDraftMessage » no draft message in my room but in other room`() = runTest {
         val otherRoom = RoomId("!2")
-        val message1 = RoomOutboxMessage(
-            roomId = otherRoom,
-            transactionId = "1",
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = true,
-        )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(otherRoom, "1") { message1 }
-        }
+        val message1 =
+            RoomOutboxMessage(
+                roomId = otherRoom,
+                transactionId = "1",
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(otherRoom, "1") { message1 } }
 
         cut.deleteDraftMessage(room)
     }
@@ -743,28 +658,30 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `deleteDraftMessage » all draft events are deleted`() = runTest {
         val content1 = RoomMessageEventContent.TextBased.Text("hi")
-        val message1 = RoomOutboxMessage(
-            roomId = room,
-            transactionId = "1",
-            content = content1,
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = true,
-        )
-        val message2 = RoomOutboxMessage(
-            roomId = room,
-            transactionId = "2",
-            content = content1,
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = null,
-            keepMediaInCache = true,
-            isDraft = true,
-        )
+        val message1 =
+            RoomOutboxMessage(
+                roomId = room,
+                transactionId = "1",
+                content = content1,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        val message2 =
+            RoomOutboxMessage(
+                roomId = room,
+                transactionId = "2",
+                content = content1,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
 
         tm.writeTransaction {
             roomOutboxMessageStore.update(room, "1") { message1 }
@@ -788,16 +705,8 @@ class RoomServiceTest : TrixnityBaseTest() {
     fun `setDraftMessage twice concurrently will only create one draft message`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("hi")
         val content2 = RoomMessageEventContent.TextBased.Text("ELECTRICBOOGALOO")
-        testScope.launch {
-            cut.setDraftMessage(room) {
-                contentBuilder = { content }
-            }
-        }
-        testScope.launch {
-            cut.setDraftMessage(room) {
-                contentBuilder = { content2 }
-            }
-        }
+        testScope.launch { cut.setDraftMessage(room) { contentBuilder = { content } } }
+        testScope.launch { cut.setDraftMessage(room) { contentBuilder = { content2 } } }
 
         retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
@@ -808,29 +717,24 @@ class RoomServiceTest : TrixnityBaseTest() {
     @Test
     fun `retrySendMessage » sendError is set to null`() = runTest {
         val content1 = RoomMessageEventContent.TextBased.Text("hi")
-        val message1 = RoomOutboxMessage<RoomMessageEventContent.TextBased.Text>(
-            roomId = room,
-            transactionId = "1",
-            content = content1,
-            createdAt = Clock.System.now(),
-            sentAt = null,
-            eventId = null,
-            sendError = RoomOutboxMessage.SendError.NoEventPermission,
-            keepMediaInCache = true,
-            isDraft = false,
-        )
+        val message1 =
+            RoomOutboxMessage<RoomMessageEventContent.TextBased.Text>(
+                roomId = room,
+                transactionId = "1",
+                content = content1,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = RoomOutboxMessage.SendError.NoEventPermission,
+                keepMediaInCache = true,
+                isDraft = false,
+            )
 
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(room, "1") { message1 }
-        }
+        tm.writeTransaction { roomOutboxMessageStore.update(room, "1") { message1 } }
 
         cut.retrySendMessage(room, "1")
 
-        retry(
-            100,
-            3_000.milliseconds,
-            30.milliseconds
-        ) {
+        retry(100, 3_000.milliseconds, 30.milliseconds) {
             val outboundMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboundMessages shouldHaveSize 1
             assertSoftly(outboundMessages.first()) {
@@ -847,7 +751,7 @@ class RoomServiceTest : TrixnityBaseTest() {
             EventId("\$event$i"),
             UserId("sender", "server"),
             room,
-            i
+            i,
         )
     }
 
@@ -858,7 +762,7 @@ class RoomServiceTest : TrixnityBaseTest() {
             UserId("sender", "server"),
             room,
             i,
-            stateKey = ""
+            stateKey = "",
         )
     }
 }

@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.client.notification
 
-import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.JsonObject
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -17,7 +15,9 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlinx.serialization.json.JsonObject
 
 class EvaluatePushRulesTest : TrixnityBaseTest() {
 
@@ -26,21 +26,14 @@ class EvaluatePushRulesTest : TrixnityBaseTest() {
 
     private class TestPushRuleMatcher : PushRuleMatcher {
         var doesMatch = false
-        override suspend fun match(
-            rule: PushRule,
-            event: ClientEvent<*>,
-            eventJson: Lazy<JsonObject?>
-        ): Boolean = doesMatch
+
+        override suspend fun match(rule: PushRule, event: ClientEvent<*>, eventJson: Lazy<JsonObject?>): Boolean =
+            doesMatch
     }
 
-    private val pushRuleMatcher = TestPushRuleMatcher().apply {
-        scheduleSetup { doesMatch = false }
-    }
+    private val pushRuleMatcher = TestPushRuleMatcher().apply { scheduleSetup { doesMatch = false } }
 
-    private val cut = EvaluatePushRulesImpl(
-        pushRuleMatcher,
-        createMatrixEventJson(),
-    )
+    private val cut = EvaluatePushRulesImpl(pushRuleMatcher, createMatrixEventJson())
 
     private fun messageEvent(content: MessageEventContent): ClientEvent<*> =
         ClientEvent.RoomEvent.MessageEvent(
@@ -74,9 +67,9 @@ class EvaluatePushRulesTest : TrixnityBaseTest() {
                     default = true,
                     enabled = false,
                     actions = setOf(PushAction.Notify),
-                    "*!"
+                    "*!",
                 )
-            )
+            ),
         ) shouldBe null
     }
 
@@ -91,9 +84,9 @@ class EvaluatePushRulesTest : TrixnityBaseTest() {
                     default = true,
                     enabled = true,
                     actions = setOf(PushAction.Notify),
-                    "*!"
+                    "*!",
                 )
-            )
+            ),
         ) shouldBe setOf(PushAction.Notify)
     }
 
@@ -108,9 +101,9 @@ class EvaluatePushRulesTest : TrixnityBaseTest() {
                     default = true,
                     enabled = true,
                     actions = setOf(PushAction.Notify),
-                    "*!"
+                    "*!",
                 )
-            )
+            ),
         ) shouldBe setOf(PushAction.Notify)
     }
 
@@ -119,15 +112,7 @@ class EvaluatePushRulesTest : TrixnityBaseTest() {
         pushRuleMatcher.doesMatch = true
         cut.invoke(
             messageEvent(Text("Hello!")),
-            listOf(
-                PushRule.Content(
-                    ruleId = "dino",
-                    default = true,
-                    enabled = true,
-                    actions = setOf(),
-                    "*!"
-                )
-            )
+            listOf(PushRule.Content(ruleId = "dino", default = true, enabled = true, actions = setOf(), "*!")),
         ) shouldBe null
     }
 }

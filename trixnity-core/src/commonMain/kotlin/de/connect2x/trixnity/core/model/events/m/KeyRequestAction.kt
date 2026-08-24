@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class KeyRequestAction {
-    @SerialName("request")
-    REQUEST,
-
-    @SerialName("request_cancellation")
-    REQUEST_CANCELLATION
+    @SerialName("request") REQUEST,
+    @SerialName("request_cancellation") REQUEST_CANCELLATION,
 }

@@ -33,8 +33,7 @@ internal actual class InteropScopeImpl : InteropScope {
 
     actual override fun ByteArray.toInterop(): InteropPointer = toInterop(copyArrayToWasm = true)
 
-    actual override fun ByteArray.toInteropForResult(): InteropPointer =
-        toInterop(copyArrayToWasm = false)
+    actual override fun ByteArray.toInteropForResult(): InteropPointer = toInterop(copyArrayToWasm = false)
 
     actual override fun ByteArray.fromInterop(ptr: InteropPointer) {
         if (isEmpty()) return
@@ -44,8 +43,7 @@ internal actual class InteropScopeImpl : InteropScope {
 
     actual override fun ShortArray.toInterop(): InteropPointer = toInterop(copyArrayToWasm = true)
 
-    actual override fun ShortArray.toInteropForResult(): InteropPointer =
-        toInterop(copyArrayToWasm = false)
+    actual override fun ShortArray.toInteropForResult(): InteropPointer = toInterop(copyArrayToWasm = false)
 
     actual override fun ShortArray.fromInterop(ptr: InteropPointer) {
         if (isEmpty()) return
@@ -55,8 +53,7 @@ internal actual class InteropScopeImpl : InteropScope {
 
     actual override fun IntArray.toInterop(): InteropPointer = toInterop(copyArrayToWasm = true)
 
-    actual override fun IntArray.toInteropForResult(): InteropPointer =
-        toInterop(copyArrayToWasm = false)
+    actual override fun IntArray.toInteropForResult(): InteropPointer = toInterop(copyArrayToWasm = false)
 
     actual override fun IntArray.fromInterop(ptr: InteropPointer) {
         if (isEmpty()) return
@@ -66,8 +63,7 @@ internal actual class InteropScopeImpl : InteropScope {
 
     actual override fun LongArray.toInterop(): InteropPointer = toInterop(copyArrayToWasm = true)
 
-    actual override fun LongArray.toInteropForResult(): InteropPointer =
-        toInterop(copyArrayToWasm = false)
+    actual override fun LongArray.toInteropForResult(): InteropPointer = toInterop(copyArrayToWasm = false)
 
     actual override fun LongArray.fromInterop(ptr: InteropPointer) {
         if (isEmpty()) return
@@ -75,11 +71,9 @@ internal actual class InteropScopeImpl : InteropScope {
         fromWasm(ptr, this)
     }
 
-    actual override fun NativePointerArray.toPtrInterop(): InteropPointer =
-        toInterop(copyArrayToWasm = true)
+    actual override fun NativePointerArray.toPtrInterop(): InteropPointer = toInterop(copyArrayToWasm = true)
 
-    actual override fun NativePointerArray.toPtrInteropForResult(): InteropPointer =
-        toInterop(copyArrayToWasm = false)
+    actual override fun NativePointerArray.toPtrInteropForResult(): InteropPointer = toInterop(copyArrayToWasm = false)
 
     actual override fun NativePointerArray.fromPtrInterop(ptr: InteropPointer) {
         if (isEmpty()) return
@@ -150,10 +144,7 @@ actual val nullPtr: NativePointer
 
 internal actual fun reachabilityBarrier(obj: Any) {}
 
-internal class FinalizationThunk(
-    private val finalizer: (NativePointer) -> Unit,
-    private var obj: NativePointer
-) {
+internal class FinalizationThunk(private val finalizer: (NativePointer) -> Unit, private var obj: NativePointer) {
     fun clean() {
         if (obj != 0) finalizer(obj)
         obj = 0
@@ -164,23 +155,19 @@ internal expect fun register(managed: Managed, thunk: FinalizationThunk)
 
 internal expect fun unregister(managed: Managed)
 
-actual abstract class Managed
-actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
+actual abstract class Managed actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
     Native(ptr), AutoCloseable {
 
     init {
         require(ptr != 0) { "Managed ptr is 0" }
     }
 
-    private var cleaner: FinalizationThunk? =
-        FinalizationThunk(finalizer, ptr).also { register(this, it) }
+    private var cleaner: FinalizationThunk? = FinalizationThunk(finalizer, ptr).also { register(this, it) }
 
     actual override fun close() {
-        if (ptrOrNull == null)
-            throw RuntimeException("Object already closed: ${this::class.simpleName}, _ptr=0")
+        if (ptrOrNull == null) throw RuntimeException("Object already closed: ${this::class.simpleName}, _ptr=0")
         else if (null == cleaner)
-            throw RuntimeException(
-                "Object is not managed, can't close(): ${this::class.simpleName}, _ptr=$ptrOrNull")
+            throw RuntimeException("Object is not managed, can't close(): ${this::class.simpleName}, _ptr=$ptrOrNull")
         else {
             unregister(this)
             cleaner!!.clean()
@@ -190,5 +177,4 @@ actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
-actual fun NativePointer.format(): String = "0x" + toUInt().toHexString()
+@OptIn(ExperimentalStdlibApi::class) actual fun NativePointer.format(): String = "0x" + toUInt().toHexString()

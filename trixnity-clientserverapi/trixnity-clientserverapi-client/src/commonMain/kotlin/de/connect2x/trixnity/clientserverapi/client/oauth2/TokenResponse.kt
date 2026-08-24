@@ -18,20 +18,24 @@ data class TokenResponse(
 ) {
     object Serializer : JsonTransformingSerializer<TokenResponse>(TokenResponse.generatedSerializer()) {
         override fun transformDeserialize(element: JsonElement): JsonElement =
-            JsonObject(buildMap {
-                putAll(element.jsonObject)
-                element.jsonObject["scope"]?.jsonPrimitive?.contentOrNull
-                    ?.split(" ")
-                    ?.map { JsonPrimitive(it) }
-                    ?.let { put("scope", JsonArray(it)) }
-            })
+            JsonObject(
+                buildMap {
+                    putAll(element.jsonObject)
+                    element.jsonObject["scope"]
+                        ?.jsonPrimitive
+                        ?.contentOrNull
+                        ?.split(" ")
+                        ?.map { JsonPrimitive(it) }
+                        ?.let { put("scope", JsonArray(it)) }
+                }
+            )
 
         override fun transformSerialize(element: JsonElement): JsonElement =
-            JsonObject(buildMap {
-                putAll(element.jsonObject)
-                element.jsonObject["scope"]?.jsonArray
-                    ?.joinToString(" ")
-                    ?.let { put("scope", JsonPrimitive(it)) }
-            })
+            JsonObject(
+                buildMap {
+                    putAll(element.jsonObject)
+                    element.jsonObject["scope"]?.jsonArray?.joinToString(" ")?.let { put("scope", JsonPrimitive(it)) }
+                }
+            )
     }
 }

@@ -11,25 +11,27 @@ import de.connect2x.trixnity.client.room.outbox.VideoMessageEventContentMediaUpl
 import de.connect2x.trixnity.client.room.outbox.VideoMessageEventContentUriExtractor
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 
-private val eventContentMediaMappingsDefault = EventContentMediaMappings(
-    listOf(
-        of<RoomMessageEventContent.FileBased.File>(
-            FileMessageEventContentMediaUploader(),
-            FileMessageEventContentUriExtractor()
-        ),
-        of<RoomMessageEventContent.FileBased.Image>(
-            ImageMessageEventContentMediaUploader(),
-            ImageMessageEventContentUriExtractor()
-        ),
-        of<RoomMessageEventContent.FileBased.Video>(
-            VideoMessageEventContentMediaUploader(),
-            VideoMessageEventContentUriExtractor()
-        ),
-        of<RoomMessageEventContent.FileBased.Audio>(
-            AudioMessageEventContentMediaUploader(),
-            AudioMessageEventContentUriExtractor()
+private val eventContentMediaMappingsDefault =
+    EventContentMediaMappings(
+        listOf(
+            of<RoomMessageEventContent.FileBased.File>(
+                FileMessageEventContentMediaUploader(),
+                FileMessageEventContentUriExtractor(),
+            ),
+            of<RoomMessageEventContent.FileBased.Image>(
+                ImageMessageEventContentMediaUploader(),
+                ImageMessageEventContentUriExtractor(),
+            ),
+            of<RoomMessageEventContent.FileBased.Video>(
+                VideoMessageEventContentMediaUploader(),
+                VideoMessageEventContentUriExtractor(),
+            ),
+            of<RoomMessageEventContent.FileBased.Audio>(
+                AudioMessageEventContentMediaUploader(),
+                AudioMessageEventContentUriExtractor(),
+            ),
         )
     )
-)
 
-val EventContentMediaMappings.Companion.default get() = eventContentMediaMappingsDefault
+val EventContentMediaMappings.Companion.default
+    get() = eventContentMediaMappingsDefault

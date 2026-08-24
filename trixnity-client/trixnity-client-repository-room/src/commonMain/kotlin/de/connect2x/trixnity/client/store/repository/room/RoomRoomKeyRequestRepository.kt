@@ -12,34 +12,23 @@ import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.json.Json
 
-@Entity(tableName = "RoomKeyRequest")
-data class RoomRoomKeyRequest(
-    @PrimaryKey val id: String,
-    val value: String,
-)
+@Entity(tableName = "RoomKeyRequest") data class RoomRoomKeyRequest(@PrimaryKey val id: String, val value: String)
 
 @Dao
 interface RoomKeyRequestDao {
-    @Query("SELECT * FROM RoomKeyRequest WHERE id = :id LIMIT 1")
-    suspend fun get(id: String): RoomRoomKeyRequest?
+    @Query("SELECT * FROM RoomKeyRequest WHERE id = :id LIMIT 1") suspend fun get(id: String): RoomRoomKeyRequest?
 
-    @Query("SELECT * FROM RoomKeyRequest")
-    suspend fun getAll(): List<RoomRoomKeyRequest>
+    @Query("SELECT * FROM RoomKeyRequest") suspend fun getAll(): List<RoomRoomKeyRequest>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomRoomKeyRequest)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomRoomKeyRequest)
 
-    @Query("DELETE FROM RoomKeyRequest WHERE id = :id")
-    suspend fun delete(id: String)
+    @Query("DELETE FROM RoomKeyRequest WHERE id = :id") suspend fun delete(id: String)
 
-    @Query("DELETE FROM RoomKeyRequest")
-    suspend fun deleteAll()
+    @Query("DELETE FROM RoomKeyRequest") suspend fun deleteAll()
 }
 
-internal class RoomRoomKeyRequestRepository(
-    db: TrixnityRoomDatabase,
-    private val json: Json,
-) : RoomKeyRequestRepository {
+internal class RoomRoomKeyRequestRepository(db: TrixnityRoomDatabase, private val json: Json) :
+    RoomKeyRequestRepository {
 
     private val dao = db.roomKeyRequest()
 
@@ -53,18 +42,11 @@ internal class RoomRoomKeyRequestRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: String, value: StoredRoomKeyRequest) =
-        dao.insert(
-            RoomRoomKeyRequest(
-                id = key,
-                value = json.encodeToString(value),
-            )
-        )
+        dao.insert(RoomRoomKeyRequest(id = key, value = json.encodeToString(value)))
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: String) =
-        dao.delete(key)
+    override suspend fun delete(key: String) = dao.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

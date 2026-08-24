@@ -28,14 +28,12 @@ internal object ExposedRoomUserReceipts : Table("room_user_receipts") {
 internal class ExposedRoomUserReceiptsRepository(private val json: Json) : RoomUserReceiptsRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomId, secondKey: UserId): RoomUserReceipts? {
-        return ExposedRoomUserReceipts.selectAll().where {
-            ExposedRoomUserReceipts.roomId.eq(firstKey.full) and ExposedRoomUserReceipts.userId.eq(
-                secondKey.full
-            )
-        }
-            .firstOrNull()?.let {
-                json.decodeFromString(it[ExposedRoomUserReceipts.value])
+        return ExposedRoomUserReceipts.selectAll()
+            .where {
+                ExposedRoomUserReceipts.roomId.eq(firstKey.full) and ExposedRoomUserReceipts.userId.eq(secondKey.full)
             }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedRoomUserReceipts.value]) }
     }
 
     context(transaction: WriteTransaction)
@@ -59,7 +57,8 @@ internal class ExposedRoomUserReceiptsRepository(private val json: Json) : RoomU
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomId): Map<UserId, RoomUserReceipts> {
-        return ExposedRoomUserReceipts.selectAll().where { ExposedRoomUserReceipts.roomId eq firstKey.full }
+        return ExposedRoomUserReceipts.selectAll()
+            .where { ExposedRoomUserReceipts.roomId eq firstKey.full }
             .map { json.decodeFromString<RoomUserReceipts>(it[ExposedRoomUserReceipts.value]) }
             .associateBy { it.userId }
     }

@@ -52,11 +52,12 @@ fun KeyValue.Companion.of(ed25519Key: Ed25519PublicKey): KeyValue.Ed25519KeyValu
 fun KeyValue.Companion.of(curve25519Key: Curve25519PublicKey): KeyValue.Curve25519KeyValue =
     KeyValue.Curve25519KeyValue(value = curve25519Key.base64)
 
-fun EncryptedRoomKeyBackupV1SessionData.Companion.of(message: PkMessage) = EncryptedRoomKeyBackupV1SessionData(
-    ciphertext = message.ciphertext.encodeUnpaddedBase64(),
-    mac = message.mac.encodeUnpaddedBase64(),
-    ephemeral = KeyValue.of(message.ephemeralKey)
-)
+fun EncryptedRoomKeyBackupV1SessionData.Companion.of(message: PkMessage) =
+    EncryptedRoomKeyBackupV1SessionData(
+        ciphertext = message.ciphertext.encodeUnpaddedBase64(),
+        mac = message.mac.encodeUnpaddedBase64(),
+        ephemeral = KeyValue.of(message.ephemeralKey),
+    )
 
 fun MacValue.Companion.of(mac: Mac): MacValue = MacValue(mac.base64)
 
@@ -67,12 +68,15 @@ fun MegolmMessageValue.Companion.of(megolmMessage: MegolmMessage): MegolmMessage
 
 fun OlmMessageValue.Companion.of(olmMessage: Message): OlmMessageValue = OlmMessageValue(olmMessage.base64)
 
-fun CiphertextInfo.Companion.of(olmMessage: Message): CiphertextInfo = CiphertextInfo(
-    body = OlmMessageValue.of(olmMessage), type = when (olmMessage) {
-        is Message.PreKey -> OlmMessageType.INITIAL_PRE_KEY
-        is Message.Normal -> OlmMessageType.ORDINARY
-    }
-)
+fun CiphertextInfo.Companion.of(olmMessage: Message): CiphertextInfo =
+    CiphertextInfo(
+        body = OlmMessageValue.of(olmMessage),
+        type =
+            when (olmMessage) {
+                is Message.PreKey -> OlmMessageType.INITIAL_PRE_KEY
+                is Message.Normal -> OlmMessageType.ORDINARY
+            },
+    )
 
 operator fun PkMessageFactory.invoke(data: EncryptedRoomKeyBackupV1SessionData): PkMessage =
     this(data.ciphertext, data.mac, data.ephemeral.value)
@@ -85,10 +89,11 @@ operator fun NormalMessageFactory.invoke(olmMessageValue: OlmMessageValue): Mess
 
 operator fun PreKeyMessageFactory.invoke(olmMessageValue: OlmMessageValue): Message.PreKey = this(olmMessageValue.value)
 
-operator fun MessageFactory.invoke(ciphertextInfo: CiphertextInfo): Message = when (ciphertextInfo.type) {
-    OlmMessageType.INITIAL_PRE_KEY -> preKey(ciphertextInfo.body)
-    OlmMessageType.ORDINARY -> normal(ciphertextInfo.body)
-}
+operator fun MessageFactory.invoke(ciphertextInfo: CiphertextInfo): Message =
+    when (ciphertextInfo.type) {
+        OlmMessageType.INITIAL_PRE_KEY -> preKey(ciphertextInfo.body)
+        OlmMessageType.ORDINARY -> normal(ciphertextInfo.body)
+    }
 
 operator fun Ed25519PublicKeyFactory.invoke(key: Key.Ed25519Key): Ed25519PublicKey = this(key.value)
 

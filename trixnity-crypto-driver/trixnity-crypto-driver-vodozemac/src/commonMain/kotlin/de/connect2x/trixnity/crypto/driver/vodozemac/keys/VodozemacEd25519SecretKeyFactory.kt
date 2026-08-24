@@ -9,6 +9,5 @@ object VodozemacEd25519SecretKeyFactory : Ed25519SecretKeyFactory {
     override fun invoke(bytes: ByteArray): VodozemacEd25519SecretKey =
         VodozemacEd25519SecretKey(Ed25519SecretKey(bytes))
 
-    override fun invoke(base64: String): VodozemacEd25519SecretKey =
-        VodozemacEd25519SecretKey(Ed25519SecretKey(base64))
+    override fun invoke(base64: String): VodozemacEd25519SecretKey = VodozemacEd25519SecretKey(Ed25519SecretKey(base64))
 }

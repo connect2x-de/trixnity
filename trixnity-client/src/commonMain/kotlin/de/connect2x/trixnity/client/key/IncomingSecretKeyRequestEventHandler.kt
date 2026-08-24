@@ -56,8 +56,10 @@ class IncomingSecretKeyRequestEventHandler(
             val content = event.content
             when (content.action) {
                 KeyRequestAction.REQUEST -> incomingSecretKeyRequests.update { it + content }
-                KeyRequestAction.REQUEST_CANCELLATION -> incomingSecretKeyRequests
-                    .update { oldRequests -> oldRequests.filterNot { it.requestId == content.requestId }.toSet() }
+                KeyRequestAction.REQUEST_CANCELLATION ->
+                    incomingSecretKeyRequests.update { oldRequests ->
+                        oldRequests.filterNot { it.requestId == content.requestId }.toSet()
+                    }
             }
         }
     }
@@ -68,22 +70,31 @@ class IncomingSecretKeyRequestEventHandler(
             val requestingDeviceId = request.requestingDeviceId
             val senderTrustLevel = keyStore.getDeviceKey(ownUserId, requestingDeviceId).first()?.trustLevel
             if (senderTrustLevel?.isVerified == true) {
-                val requestedSecret = request.name
-                    ?.let { SecretType.ofId(it) }
-                    ?.takeIf { it.cacheable }
-                    ?.let { keyStore.getSecrets()[it] }
+                val requestedSecret =
+                    request.name
+                        ?.let { SecretType.ofId(it) }
+                        ?.takeIf { it.cacheable }
+                        ?.let { keyStore.getSecrets()[it] }
                 if (requestedSecret != null) {
-                    log.info { "send incoming secret key request answer (${request.name}) to device $requestingDeviceId" }
+                    log.info {
+                        "send incoming secret key request answer (${request.name}) to device $requestingDeviceId"
+                    }
                     val encryptedAnswer =
-                        olmEncryptionService.encryptOlm(
-                            SecretKeySendEventContent(request.requestId, requestedSecret.decryptedPrivateKey),
-                            ownUserId, requestingDeviceId
-                        ).getOrNull()
+                        olmEncryptionService
+                            .encryptOlm(
+                                SecretKeySendEventContent(request.requestId, requestedSecret.decryptedPrivateKey),
+                                ownUserId,
+                                requestingDeviceId,
+                            )
+                            .getOrNull()
                     if (encryptedAnswer != null)
-                        api.user.sendToDevice(
-                            mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer))
-                        ).getOrThrow()
-                } else log.info { "got a secret key request (${request.name}) from $requestingDeviceId, but we do not have that secret cached" }
+                        api.user
+                            .sendToDevice(mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer)))
+                            .getOrThrow()
+                } else
+                    log.info {
+                        "got a secret key request (${request.name}) from $requestingDeviceId, but we do not have that secret cached"
+                    }
             }
             incomingSecretKeyRequests.update { it - request }
         }

@@ -31,8 +31,7 @@ sealed interface CallEventContent : MessageEventContent {
      */
     @Serializable
     data class Invite(
-        @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String,
+        @Serializable(with = VersionSerializer::class) @SerialName("version") override val version: String,
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String? = null,
         @SerialName("invitee") val invitee: String? = null,
@@ -48,15 +47,10 @@ sealed interface CallEventContent : MessageEventContent {
 
         @Serializable
         enum class OfferType {
-            @SerialName("offer")
-            OFFER,
+            @SerialName("offer") OFFER
         }
 
-        @Serializable
-        data class Offer(
-            @SerialName("sdp") val sdp: String,
-            @SerialName("type") val type: OfferType,
-        )
+        @Serializable data class Offer(@SerialName("sdp") val sdp: String, @SerialName("type") val type: OfferType)
 
         override fun copyWith(relatesTo: RelatesTo?) = this
     }
@@ -68,8 +62,7 @@ sealed interface CallEventContent : MessageEventContent {
      */
     @Serializable
     data class Candidates(
-        @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String,
+        @Serializable(with = VersionSerializer::class) @SerialName("version") override val version: String,
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String? = null,
         @SerialName("candidates") val candidates: List<Candidate>,
@@ -95,8 +88,7 @@ sealed interface CallEventContent : MessageEventContent {
      */
     @Serializable
     data class Answer(
-        @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String,
+        @Serializable(with = VersionSerializer::class) @SerialName("version") override val version: String,
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String? = null,
         @SerialName("answer") val answer: Answer,
@@ -111,15 +103,10 @@ sealed interface CallEventContent : MessageEventContent {
 
         @Serializable
         enum class AnswerType {
-            @SerialName("answer")
-            ANSWER,
+            @SerialName("answer") ANSWER
         }
 
-        @Serializable
-        data class Answer(
-            @SerialName("sdp") val sdp: String,
-            @SerialName("type") val type: AnswerType,
-        )
+        @Serializable data class Answer(@SerialName("sdp") val sdp: String, @SerialName("type") val type: AnswerType)
 
         override fun copyWith(relatesTo: RelatesTo?) = this
     }
@@ -131,8 +118,7 @@ sealed interface CallEventContent : MessageEventContent {
      */
     @Serializable
     data class Hangup(
-        @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String,
+        @Serializable(with = VersionSerializer::class) @SerialName("version") override val version: String,
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String? = null,
         @SerialName("reason") val reason: Reason? = null,
@@ -143,27 +129,15 @@ sealed interface CallEventContent : MessageEventContent {
 
         @Serializable
         enum class Reason {
-            @SerialName("ice_failed")
-            ICE_FAILED,
-
-            @SerialName("invite_timeout")
-            INVITE_TIMEOUT,
+            @SerialName("ice_failed") ICE_FAILED,
+            @SerialName("invite_timeout") INVITE_TIMEOUT,
 
             // Added in v1.7:
-            @SerialName("ice_timeout")
-            ICE_TIMEOUT,
-
-            @SerialName("user_hangup")
-            USER_HANGUP,
-
-            @SerialName("user_media_failed")
-            USER_MEDIA_FAILED,
-
-            @SerialName("user_busy")
-            USER_BUSY,
-
-            @SerialName("unknown_error")
-            UNKNOWN_ERROR,
+            @SerialName("ice_timeout") ICE_TIMEOUT,
+            @SerialName("user_hangup") USER_HANGUP,
+            @SerialName("user_media_failed") USER_MEDIA_FAILED,
+            @SerialName("user_busy") USER_BUSY,
+            @SerialName("unknown_error") UNKNOWN_ERROR,
         }
 
         override fun copyWith(relatesTo: RelatesTo?) = this
@@ -181,7 +155,8 @@ sealed interface CallEventContent : MessageEventContent {
         @OptIn(ExperimentalSerializationApi::class)
         @EncodeDefault
         @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String = "1",
+        @SerialName("version")
+        override val version: String = "1",
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String,
         @SerialName("description") val description: Description,
@@ -189,7 +164,7 @@ sealed interface CallEventContent : MessageEventContent {
 
         // Added in v1.10:
 
-        @SerialName("sdp_stream_metadata") val sdpStreamMetadata: Map<String, StreamMetadata>? = null
+        @SerialName("sdp_stream_metadata") val sdpStreamMetadata: Map<String, StreamMetadata>? = null,
     ) : CallEventContent {
         override val relatesTo: RelatesTo? = null
         override val mentions: Mentions? = null
@@ -197,18 +172,12 @@ sealed interface CallEventContent : MessageEventContent {
 
         @Serializable
         enum class DescriptionType {
-            @SerialName("offer")
-            OFFER,
-
-            @SerialName("answer")
-            ANSWER
+            @SerialName("offer") OFFER,
+            @SerialName("answer") ANSWER,
         }
 
         @Serializable
-        data class Description(
-            @SerialName("sdp") val sdp: String,
-            @SerialName("type") val type: DescriptionType,
-        )
+        data class Description(@SerialName("sdp") val sdp: String, @SerialName("type") val type: DescriptionType)
 
         override fun copyWith(relatesTo: RelatesTo?) = this
     }
@@ -223,7 +192,8 @@ sealed interface CallEventContent : MessageEventContent {
         @OptIn(ExperimentalSerializationApi::class)
         @EncodeDefault
         @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String = "1",
+        @SerialName("version")
+        override val version: String = "1",
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String,
     ) : CallEventContent {
@@ -244,7 +214,8 @@ sealed interface CallEventContent : MessageEventContent {
         @OptIn(ExperimentalSerializationApi::class)
         @EncodeDefault
         @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String = "1",
+        @SerialName("version")
+        override val version: String = "1",
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String,
         @SerialName("selected_party_id") val selectedPartyId: String,
@@ -268,7 +239,8 @@ sealed interface CallEventContent : MessageEventContent {
         @OptIn(ExperimentalSerializationApi::class)
         @EncodeDefault
         @Serializable(with = VersionSerializer::class)
-        @SerialName("version") override val version: String = "1",
+        @SerialName("version")
+        override val version: String = "1",
         @SerialName("call_id") override val callId: String,
         @SerialName("party_id") override val partyId: String,
         @SerialName("sdp_stream_metadata") val sdpStreamMetadata: Map<String, StreamMetadata>,
@@ -281,15 +253,16 @@ sealed interface CallEventContent : MessageEventContent {
     }
 
     object VersionSerializer : KSerializer<String> {
-        override val descriptor: SerialDescriptor =
-            buildClassSerialDescriptor("Version")
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Version")
 
         override fun deserialize(decoder: Decoder): String {
             val jsonDecoder = decoder as? JsonDecoder ?: throw IllegalStateException("Expected JsonDecoder")
             val element = jsonDecoder.decodeJsonElement().jsonPrimitive
 
-            // All VoIP events have a version field. This is used to determine whether devices support this new version of
-            // the protocol. For example, clients can use this field to know whether to expect an m.call.select_answer event
+            // All VoIP events have a version field. This is used to determine whether devices support this new version
+            // of
+            // the protocol. For example, clients can use this field to know whether to expect an m.call.select_answer
+            // event
             // from their opponent. If clients see events with version other than 0 or "1" (including, for example, the
             // numeric value 1), they should treat these the same as if they had version == "1".
             // @see <a href="https://spec.matrix.org/v1.10/client-server-api/#voice-over-ip">matrix spec</a>

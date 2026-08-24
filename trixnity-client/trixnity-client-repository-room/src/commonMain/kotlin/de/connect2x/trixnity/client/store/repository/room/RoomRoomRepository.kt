@@ -13,60 +13,37 @@ import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.json.Json
 
-@Entity(tableName = "Room")
-data class RoomRoom(
-    @PrimaryKey val roomId: RoomId,
-    val value: String,
-)
+@Entity(tableName = "Room") data class RoomRoom(@PrimaryKey val roomId: RoomId, val value: String)
 
 @Dao
 interface RoomRoomDao {
-    @Query("SELECT * FROM Room WHERE roomId = :roomId LIMIT 1")
-    suspend fun get(roomId: RoomId): RoomRoom?
+    @Query("SELECT * FROM Room WHERE roomId = :roomId LIMIT 1") suspend fun get(roomId: RoomId): RoomRoom?
 
-    @Query("SELECT * FROM Room")
-    suspend fun getAll(): List<RoomRoom>
+    @Query("SELECT * FROM Room") suspend fun getAll(): List<RoomRoom>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomRoom)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomRoom)
 
-    @Query("DELETE FROM Room WHERE roomId = :roomId")
-    suspend fun delete(roomId: RoomId)
+    @Query("DELETE FROM Room WHERE roomId = :roomId") suspend fun delete(roomId: RoomId)
 
-    @Query("DELETE FROM Room")
-    suspend fun deleteAll()
+    @Query("DELETE FROM Room") suspend fun deleteAll()
 }
 
-internal class RoomRoomRepository(
-    db: TrixnityRoomDatabase,
-    private val json: Json,
-) : RoomRepository {
+internal class RoomRoomRepository(db: TrixnityRoomDatabase, private val json: Json) : RoomRepository {
     private val dao = db.room()
 
     context(transaction: ReadTransaction)
-    override suspend fun get(key: RoomId): Room? =
-        dao.get(key)
-            ?.let { entity -> json.decodeFromString(entity.value) }
+    override suspend fun get(key: RoomId): Room? = dao.get(key)?.let { entity -> json.decodeFromString(entity.value) }
 
     context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<Room> =
-        dao.getAll()
-            .map { entity -> json.decodeFromString(entity.value) }
+    override suspend fun getAll(): List<Room> = dao.getAll().map { entity -> json.decodeFromString(entity.value) }
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: RoomId, value: Room) =
-        dao.insert(
-            RoomRoom(
-                roomId = key,
-                value = json.encodeToString(value),
-            )
-        )
+        dao.insert(RoomRoom(roomId = key, value = json.encodeToString(value)))
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: RoomId) =
-        dao.delete(key)
+    override suspend fun delete(key: RoomId) = dao.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

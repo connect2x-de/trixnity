@@ -31,9 +31,10 @@ internal class ExposedRoomKeyRequestRepository(private val json: Json) : RoomKey
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: String): StoredRoomKeyRequest? {
-        return ExposedRoomKeyRequest.selectAll().where { ExposedRoomKeyRequest.id eq key }.firstOrNull()?.let {
-            json.decodeFromString(it[ExposedRoomKeyRequest.value])
-        }
+        return ExposedRoomKeyRequest.selectAll()
+            .where { ExposedRoomKeyRequest.id eq key }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedRoomKeyRequest.value]) }
     }
 
     context(transaction: WriteTransaction)

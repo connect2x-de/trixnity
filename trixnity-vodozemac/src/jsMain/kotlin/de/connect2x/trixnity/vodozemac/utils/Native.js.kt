@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.vodozemac.utils
 
+import de.connect2x.trixnity.vodozemac.memory
 import js.buffer.ArrayBuffer
 import js.typedarrays.BigInt64Array
 import js.typedarrays.Int16Array
 import js.typedarrays.Int32Array
 import js.typedarrays.Int8Array
-import de.connect2x.trixnity.vodozemac.memory
 
 internal actual fun toWasm(dest: NativePointer, src: ByteArray) {
     val destView = Int8Array(memory.buffer, dest, src.size)

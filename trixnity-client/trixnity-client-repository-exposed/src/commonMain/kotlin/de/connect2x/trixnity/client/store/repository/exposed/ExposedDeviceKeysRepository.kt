@@ -23,11 +23,14 @@ internal object ExposedDeviceKeys : Table("device_keys") {
 internal class ExposedDeviceKeysRepository(private val json: Json) : DeviceKeysRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: UserId): Map<String, StoredDeviceKeys>? {
-        return ExposedDeviceKeys.selectAll().where { ExposedDeviceKeys.userId eq key.full }.firstOrNull()?.let {
-            it[ExposedDeviceKeys.value].let { deviceKeys ->
-                json.decodeFromString<Map<String, StoredDeviceKeys>>(deviceKeys)
+        return ExposedDeviceKeys.selectAll()
+            .where { ExposedDeviceKeys.userId eq key.full }
+            .firstOrNull()
+            ?.let {
+                it[ExposedDeviceKeys.value].let { deviceKeys ->
+                    json.decodeFromString<Map<String, StoredDeviceKeys>>(deviceKeys)
+                }
             }
-        }
     }
 
     context(transaction: WriteTransaction)

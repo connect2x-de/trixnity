@@ -6,42 +6,28 @@ import de.connect2x.trixnity.clientserverapi.model.discovery.GetPolicyServer
 import de.connect2x.trixnity.clientserverapi.model.discovery.GetSupport
 
 interface DiscoveryApiClient {
-    /**
-     * @see [GetClient]
-     */
+    /** @see [GetClient] */
     @Deprecated("use getClient() instead.", ReplaceWith("getClient()"))
     suspend fun getWellKnown(): Result<DiscoveryInformation>
 
-    /**
-     * @see [GetClient]
-     */
+    /** @see [GetClient] */
     suspend fun getClient(): Result<DiscoveryInformation>
 
-    /**
-     * @see [GetSupport]
-     */
+    /** @see [GetSupport] */
     suspend fun getSupport(): Result<GetSupport.Response>
 
-    /**
-     * @see [GetPolicyServer]
-     */
+    /** @see [GetPolicyServer] */
     suspend fun getPolicyServer(): Result<GetPolicyServer.Response>
 }
 
-class DiscoveryApiClientImpl(
-    private val baseClient: MatrixClientServerApiBaseClient
-) : DiscoveryApiClient {
+class DiscoveryApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient) : DiscoveryApiClient {
 
     @Deprecated("use getClient() instead.", replaceWith = ReplaceWith("getClient()"))
     override suspend fun getWellKnown(): Result<DiscoveryInformation> = getClient()
 
-    override suspend fun getClient(): Result<DiscoveryInformation> =
-        baseClient.request(GetClient)
+    override suspend fun getClient(): Result<DiscoveryInformation> = baseClient.request(GetClient)
 
-    override suspend fun getSupport(): Result<GetSupport.Response> =
-        baseClient.request(GetSupport)
+    override suspend fun getSupport(): Result<GetSupport.Response> = baseClient.request(GetSupport)
 
-    override suspend fun getPolicyServer(): Result<GetPolicyServer.Response> =
-        baseClient.request(GetPolicyServer)
-
+    override suspend fun getPolicyServer(): Result<GetPolicyServer.Response> = baseClient.request(GetPolicyServer)
 }

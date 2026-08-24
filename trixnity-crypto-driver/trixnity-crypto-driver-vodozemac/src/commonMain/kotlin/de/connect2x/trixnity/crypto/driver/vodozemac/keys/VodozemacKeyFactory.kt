@@ -8,11 +8,9 @@ object VodozemacKeyFactory : KeyFactories {
 
     override val ed25519SecretKey: VodozemacEd25519SecretKeyFactory = VodozemacEd25519SecretKeyFactory
 
-
     override val curve25519PublicKey: VodozemacCurve25519PublicKeyFactory = VodozemacCurve25519PublicKeyFactory
 
     override val curve25519SecretKey: VodozemacCurve25519SecretKeyFactory = VodozemacCurve25519SecretKeyFactory
-
 
     override val ed25519Signature: VodozemacEd25519SignatureFactory = VodozemacEd25519SignatureFactory
 

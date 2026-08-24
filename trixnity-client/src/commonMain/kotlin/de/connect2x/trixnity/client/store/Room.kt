@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlin.time.Instant
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class Room(
@@ -23,9 +23,15 @@ data class Room(
     val nextRoomId: RoomId? = null,
 )
 
-val Room.previousRoomId: RoomId? get() = createEventContent?.predecessor?.roomId
-val Room.type: CreateEventContent.RoomType? get() = createEventContent?.type
-val Room.federate: Boolean? get() = createEventContent?.federate
-val Room.version: String? get() = createEventContent?.roomVersion
-val Room.joinedMemberCount: Long? get() = name?.summary?.joinedMemberCount
-val Room.invitedMemberCount: Long? get() = name?.summary?.invitedMemberCount
+val Room.previousRoomId: RoomId?
+    get() = createEventContent?.predecessor?.roomId
+val Room.type: CreateEventContent.RoomType?
+    get() = createEventContent?.type
+val Room.federate: Boolean?
+    get() = createEventContent?.federate
+val Room.version: String?
+    get() = createEventContent?.roomVersion
+val Room.joinedMemberCount: Long?
+    get() = name?.summary?.joinedMemberCount
+val Room.invitedMemberCount: Long?
+    get() = name?.summary?.invitedMemberCount

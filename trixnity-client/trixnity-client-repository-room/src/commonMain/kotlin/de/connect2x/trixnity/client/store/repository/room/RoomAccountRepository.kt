@@ -30,23 +30,16 @@ data class RoomAccount(
 
 @Dao
 interface AccountDao {
-    @Query("SELECT * FROM Account WHERE id = :id LIMIT 1")
-    suspend fun get(id: Long): RoomAccount?
+    @Query("SELECT * FROM Account WHERE id = :id LIMIT 1") suspend fun get(id: Long): RoomAccount?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomAccount)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomAccount)
 
-    @Query("DELETE FROM Account WHERE id = :id")
-    suspend fun delete(id: Long)
+    @Query("DELETE FROM Account WHERE id = :id") suspend fun delete(id: Long)
 
-    @Query("DELETE FROM Account")
-    suspend fun deleteAll()
+    @Query("DELETE FROM Account") suspend fun deleteAll()
 }
 
-internal class RoomAccountRepository(
-    db: TrixnityRoomDatabase,
-    private val json: Json,
-) : AccountRepository {
+internal class RoomAccountRepository(db: TrixnityRoomDatabase, private val json: Json) : AccountRepository {
 
     private val dao = db.account()
 
@@ -85,10 +78,8 @@ internal class RoomAccountRepository(
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: Long) =
-        dao.delete(key)
+    override suspend fun delete(key: Long) = dao.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

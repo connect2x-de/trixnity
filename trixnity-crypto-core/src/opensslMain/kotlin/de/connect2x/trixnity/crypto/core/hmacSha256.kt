@@ -4,7 +4,6 @@ import checkError
 import kotlinx.cinterop.*
 import org.openssl.*
 
-
 @OptIn(ExperimentalUnsignedTypes::class)
 actual suspend fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray = memScoped {
     val mac = checkError(EVP_MAC_fetch(null, "HMAC", null))
@@ -16,9 +15,8 @@ actual suspend fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray = memS
                     ctx = context,
                     key = pinnedKey.addressOf(0),
                     keylen = key.size.convert(),
-                    params = OSSL_PARAM_array(
-                        OSSL_PARAM_construct_utf8_string("digest".cstr.ptr, "SHA256".cstr.ptr, 0U)
-                    )
+                    params =
+                        OSSL_PARAM_array(OSSL_PARAM_construct_utf8_string("digest".cstr.ptr, "SHA256".cstr.ptr, 0U)),
                 )
             )
         }

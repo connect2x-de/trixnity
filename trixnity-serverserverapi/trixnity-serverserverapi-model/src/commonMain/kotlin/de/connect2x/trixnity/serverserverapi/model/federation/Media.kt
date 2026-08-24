@@ -11,7 +11,5 @@ sealed interface Media {
         val contentDisposition: ContentDisposition?,
     ) : Media
 
-    data class Redirect(
-        val location: String,
-    ) : Media
+    data class Redirect(val location: String) : Media
 }

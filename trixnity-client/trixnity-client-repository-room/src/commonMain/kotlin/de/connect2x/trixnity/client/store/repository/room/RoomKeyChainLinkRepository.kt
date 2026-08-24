@@ -14,14 +14,7 @@ import de.connect2x.trixnity.utils.WriteTransaction
 
 @Entity(
     tableName = "KeyChainLink",
-    primaryKeys = [
-        "signingUserId",
-        "signingKeyId",
-        "signingKeyValue",
-        "signedUserId",
-        "signedKeyId",
-        "signedKeyValue",
-    ]
+    primaryKeys = ["signingUserId", "signingKeyId", "signingKeyValue", "signedUserId", "signedKeyId", "signedKeyValue"],
 )
 data class RoomKeyChainLink(
     val signingUserId: UserId,
@@ -48,8 +41,7 @@ interface KeyChainLinkDao {
         signingKeyValue: String,
     ): List<RoomKeyChainLink>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomKeyChainLink)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomKeyChainLink)
 
     @Query(
         """
@@ -59,41 +51,26 @@ interface KeyChainLinkDao {
         AND signedKeyValue = :signedKeyValue
         """
     )
-    suspend fun delete(
-        signedUserId: UserId,
-        signedKeyId: String?,
-        signedKeyValue: String,
-    ): Int
+    suspend fun delete(signedUserId: UserId, signedKeyId: String?, signedKeyValue: String): Int
 
-    @Query("DELETE FROM KeyChainLink")
-    suspend fun deleteAll()
+    @Query("DELETE FROM KeyChainLink") suspend fun deleteAll()
 }
 
-internal class RoomKeyChainLinkRepository(
-    db: TrixnityRoomDatabase,
-) : KeyChainLinkRepository {
+internal class RoomKeyChainLinkRepository(db: TrixnityRoomDatabase) : KeyChainLinkRepository {
     private val dao = db.keyChainLink()
 
     context(transaction: ReadTransaction)
-    override suspend fun getBySigningKey(
-        signingUserId: UserId,
-        signingKey: Key.Ed25519Key
-    ): Set<KeyChainLink> =
+    override suspend fun getBySigningKey(signingUserId: UserId, signingKey: Key.Ed25519Key): Set<KeyChainLink> =
         dao.getBySigningKeys(signingUserId, signingKey.id, signingKey.value.value)
             .map { entity ->
                 KeyChainLink(
                     signingUserId = entity.signingUserId,
-                    signingKey = Key.Ed25519Key(
-                        id = entity.signingKeyId,
-                        value = entity.signingKeyValue,
-                    ),
+                    signingKey = Key.Ed25519Key(id = entity.signingKeyId, value = entity.signingKeyValue),
                     signedUserId = entity.signedUserId,
-                    signedKey = Key.Ed25519Key(
-                        id = entity.signedKeyId,
-                        value = entity.signedKeyValue,
-                    ),
+                    signedKey = Key.Ed25519Key(id = entity.signedKeyId, value = entity.signedKeyValue),
                 )
-            }.toSet()
+            }
+            .toSet()
 
     context(transaction: WriteTransaction)
     override suspend fun save(keyChainLink: KeyChainLink) =
@@ -114,6 +91,5 @@ internal class RoomKeyChainLinkRepository(
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.client.store.cache
 
 import de.connect2x.trixnity.utils.concurrentMutableMap
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 
 internal class ConcurrentObservableMap<K : Any, V> {
     private val _values = concurrentMutableMap<K, V>()
@@ -15,47 +15,42 @@ internal class ConcurrentObservableMap<K : Any, V> {
 
     sealed interface CompareAndSetResult {
         data object TryAgain : CompareAndSetResult
+
         data object OnPut : CompareAndSetResult
+
         data object OnRemove : CompareAndSetResult
+
         data object NothingChanged : CompareAndSetResult
     }
 
-    private suspend fun compareAndSet(key: K, expectedOldValue: V?, newValue: V?): CompareAndSetResult =
-        _values.write {
-            val oldValue = get(key)
-            when {
-                expectedOldValue != oldValue -> CompareAndSetResult.TryAgain
-                newValue == null -> {
-                    remove(key)
-                    CompareAndSetResult.OnRemove
-                }
-
-                expectedOldValue != newValue -> {
-                    put(key, newValue)
-                    CompareAndSetResult.OnPut
-                }
-
-                else -> CompareAndSetResult.NothingChanged
+    private suspend fun compareAndSet(key: K, expectedOldValue: V?, newValue: V?): CompareAndSetResult = _values.write {
+        val oldValue = get(key)
+        when {
+            expectedOldValue != oldValue -> CompareAndSetResult.TryAgain
+            newValue == null -> {
+                remove(key)
+                CompareAndSetResult.OnRemove
             }
+
+            expectedOldValue != newValue -> {
+                put(key, newValue)
+                CompareAndSetResult.OnPut
+            }
+
+            else -> CompareAndSetResult.NothingChanged
         }
+    }
 
     suspend fun getOrPut(key: K, defaultValue: () -> V): V =
-        _values.read { get(key) }
-            ?: checkNotNull(internalUpdate(key) { it ?: defaultValue() })
-
+        _values.read { get(key) } ?: checkNotNull(internalUpdate(key) { it ?: defaultValue() })
 
     suspend fun skipPut(key: K) {
         indexes.first().forEach { it.onSkipPut(key) }
     }
 
     @OptIn(ExperimentalContracts::class)
-    suspend fun update(
-        key: K,
-        updater: suspend (V?) -> V?,
-    ): V? {
-        contract {
-            callsInPlace(updater, InvocationKind.AT_LEAST_ONCE)
-        }
+    suspend fun update(key: K, updater: suspend (V?) -> V?): V? {
+        contract { callsInPlace(updater, InvocationKind.AT_LEAST_ONCE) }
         return internalUpdate(key, updater = updater)
     }
 
@@ -64,14 +59,8 @@ internal class ConcurrentObservableMap<K : Any, V> {
     }
 
     @OptIn(ExperimentalContracts::class)
-    private suspend fun internalUpdate(
-        key: K,
-        stale: Boolean = false,
-        updater: suspend (V?) -> V?,
-    ): V? {
-        contract {
-            callsInPlace(updater, InvocationKind.AT_LEAST_ONCE)
-        }
+    private suspend fun internalUpdate(key: K, stale: Boolean = false, updater: suspend (V?) -> V?): V? {
+        contract { callsInPlace(updater, InvocationKind.AT_LEAST_ONCE) }
         // inspired by [MutableStateFlow::update]
         while (true) {
             val oldValue = _values.read { get(key) }
@@ -79,8 +68,7 @@ internal class ConcurrentObservableMap<K : Any, V> {
             val compareAndSetResult = compareAndSet(key, oldValue, newValue)
             when (compareAndSetResult) {
                 is CompareAndSetResult.TryAgain,
-                is CompareAndSetResult.NothingChanged -> {
-                }
+                is CompareAndSetResult.NothingChanged -> {}
 
                 is CompareAndSetResult.OnPut -> {
                     indexes.value.forEach { index -> index.onPut(key) }
@@ -108,6 +96,5 @@ internal class ConcurrentObservableMap<K : Any, V> {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun getIndexSubscriptionCount(key: K): Int =
-        indexes.first().sumOf { it.getSubscriptionCount(key) }
+    suspend fun getIndexSubscriptionCount(key: K): Int = indexes.first().sumOf { it.getSubscriptionCount(key) }
 }

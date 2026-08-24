@@ -10,32 +10,27 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 
-internal class IndexedDBNotificationUpdateRepository(
-    json: Json
-) : NotificationUpdateRepository,
+internal class IndexedDBNotificationUpdateRepository(json: Json) :
+    NotificationUpdateRepository,
     IndexedDBFullRepository<String, StoredNotificationUpdate>(
         objectStoreName = objectStoreName,
         keySerializer = { arrayOf(it) },
         valueSerializer = serializer(),
-        json = json
+        json = json,
     ) {
     companion object {
         const val objectStoreName = "notification_update"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
-            if (oldVersion < 8) createIndexedDBMinimalStoreRepository(
-                database,
-                objectStoreName,
-            ) { store ->
-                store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
-            }
+            if (oldVersion < 8)
+                createIndexedDBMinimalStoreRepository(database, objectStoreName) { store ->
+                    store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
+                }
         }
     }
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

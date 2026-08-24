@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.core.model.keys
 
-import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.Serializable
 
-@JvmInline
-@Serializable
-value class MegolmMessageValue(val value: String)
+@JvmInline @Serializable value class MegolmMessageValue(val value: String)

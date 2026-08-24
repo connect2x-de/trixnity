@@ -4,5 +4,3 @@ interface ExportedSessionKey : AutoCloseable {
     val bytes: ByteArray
     val base64: String
 }
-
-

@@ -107,10 +107,7 @@ internal actual class InteropScopeImpl : InteropScope {
 }
 
 @OptIn(ExperimentalAtomicApi::class)
-private class FinalizationThunk(
-    private val finalizer: (NativePointer) -> Unit,
-    obj: NativePointer
-) {
+private class FinalizationThunk(private val finalizer: (NativePointer) -> Unit, obj: NativePointer) {
     private val ptr = obj.rawPtr
     private var obj = AtomicNativePtr(ptr)
 
@@ -125,8 +122,7 @@ private class FinalizationThunk(
         get() = obj.load() != NativePtr.NULL
 }
 
-actual abstract class Managed
-actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
+actual abstract class Managed actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
     Native(ptr), AutoCloseable {
 
     init {
@@ -148,5 +144,4 @@ actual constructor(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
     }
 }
 
-@OptIn(ExperimentalStdlibApi::class)
-actual fun NativePointer.format(): String = "0x" + toULong().toHexString().drop(4)
+@OptIn(ExperimentalStdlibApi::class) actual fun NativePointer.format(): String = "0x" + toULong().toHexString().drop(4)

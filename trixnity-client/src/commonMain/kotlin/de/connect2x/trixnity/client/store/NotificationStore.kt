@@ -8,11 +8,11 @@ import de.connect2x.trixnity.client.store.repository.NotificationRepository
 import de.connect2x.trixnity.client.store.repository.NotificationStateRepository
 import de.connect2x.trixnity.client.store.repository.NotificationUpdateRepository
 import de.connect2x.trixnity.core.model.RoomId
+import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlin.time.Clock
-import kotlin.time.Duration
 
 class NotificationStore(
     private val notificationRepository: NotificationRepository,
@@ -26,30 +26,39 @@ class NotificationStore(
 ) : Store {
     private val notificationCache =
         FullRepositoryObservableCache(
-            notificationRepository,
-            tm,
-            storeScope,
-            clock,
-            config.cacheExpireDurations.notification,
-        ) { it.id }.also(statisticCollector::addCache)
+                notificationRepository,
+                tm,
+                storeScope,
+                clock,
+                config.cacheExpireDurations.notification,
+            ) {
+                it.id
+            }
+            .also(statisticCollector::addCache)
 
     private val notificationUpdateCache =
         FullRepositoryObservableCache(
-            notificationUpdateRepository,
-            tm,
-            storeScope,
-            clock,
-            config.cacheExpireDurations.notification,
-        ) { it.id }.also(statisticCollector::addCache)
+                notificationUpdateRepository,
+                tm,
+                storeScope,
+                clock,
+                config.cacheExpireDurations.notification,
+            ) {
+                it.id
+            }
+            .also(statisticCollector::addCache)
 
     private val notificationStateCache =
         FullRepositoryObservableCache(
-            notificationStateRepository,
-            tm,
-            storeScope,
-            clock,
-            config.cacheExpireDurations.notification,
-        ) { it.roomId }.also(statisticCollector::addCache)
+                notificationStateRepository,
+                tm,
+                storeScope,
+                clock,
+                config.cacheExpireDurations.notification,
+            ) {
+                it.roomId
+            }
+            .also(statisticCollector::addCache)
 
     context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
@@ -63,23 +72,17 @@ class NotificationStore(
 
     fun getAll(): Flow<Map<String, Flow<StoredNotification?>>> = notificationCache.readAll()
 
-    fun getAllUpdates(): Flow<Map<String, Flow<StoredNotificationUpdate?>>> =
-        notificationUpdateCache.readAll()
+    fun getAllUpdates(): Flow<Map<String, Flow<StoredNotificationUpdate?>>> = notificationUpdateCache.readAll()
 
     fun getAllState() = notificationStateCache.readAll()
 
     fun getById(id: String): Flow<StoredNotification?> = notificationCache.get(id)
 
     context(transaction: StoreWriteTransaction)
-    suspend fun save(
-        value: StoredNotification
-    ) = notificationCache.set(value.id, value)
+    suspend fun save(value: StoredNotification) = notificationCache.set(value.id, value)
 
     context(transaction: StoreWriteTransaction)
-    suspend fun save(
-        id: String,
-        value: StoredNotification?
-    ) = notificationCache.set(id, value)
+    suspend fun save(id: String, value: StoredNotification?) = notificationCache.set(id, value)
 
     context(transaction: StoreWriteTransaction)
     suspend fun saveAllUpdates(values: List<StoredNotificationUpdate>) {
@@ -87,21 +90,19 @@ class NotificationStore(
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun update(
-        id: String,
-        updater: (oldNotification: StoredNotification?) -> StoredNotification?
-    ) = notificationCache.update(id, updater = updater)
+    suspend fun update(id: String, updater: (oldNotification: StoredNotification?) -> StoredNotification?) =
+        notificationCache.update(id, updater = updater)
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateState(
         roomId: RoomId,
-        updater: (oldNotificationState: StoredNotificationState?) -> StoredNotificationState?
+        updater: (oldNotificationState: StoredNotificationState?) -> StoredNotificationState?,
     ) = notificationStateCache.update(roomId, updater = updater)
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateUpdate(
         id: String,
-        updater: (oldNotificationUpdate: StoredNotificationUpdate?) -> StoredNotificationUpdate?
+        updater: (oldNotificationUpdate: StoredNotificationUpdate?) -> StoredNotificationUpdate?,
     ) = notificationUpdateCache.update(id, updater = updater)
 
     context(transaction: StoreWriteTransaction)

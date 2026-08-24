@@ -95,9 +95,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 authenticationFunction = { SignatureAuthenticationFunctionResult(UserIdPrincipal("user"), null) }
             }
             install(ConvertMediaPlugin)
-            matrixApiServer(json) {
-                federationApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { federationApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -107,29 +105,32 @@ class FederationRoutesTest : TrixnityBaseTest() {
         resetCalls(handlerMock)
     }
 
-    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
-        PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
-            authEvents = listOf(),
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            depth = 12u,
-            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-            originTimestamp = 1404838188000,
-            prevEvents = listOf(),
-            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-            sender = UserId("@alice:example.com"),
-            unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-        ),
-        mapOf(
-            "matrix.org" to keysOf(
-                Ed25519Key(
-                    "key",
-                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                )
-            )
+    private val pdu: Signed<PersistentDataUnit<*>, String> =
+        Signed(
+            PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
+                authEvents = listOf(),
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                depth = 12u,
+                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                originTimestamp = 1404838188000,
+                prevEvents = listOf(),
+                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                sender = UserId("@alice:example.com"),
+                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+            ),
+            mapOf(
+                "matrix.org" to
+                    keysOf(
+                        Ed25519Key(
+                            "key",
+                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                        )
+                    )
+            ),
         )
-    )
 
-    private val pduJson = """
+    private val pduJson =
+        """
         {
           "auth_events": [],
           "content": {
@@ -154,7 +155,8 @@ class FederationRoutesTest : TrixnityBaseTest() {
               }
           }                      
         }
-    """.trimToFlatJson()
+    """
+            .trimToFlatJson()
 
     @Test
     fun shouldSendTransaction() = testApplication {
@@ -163,16 +165,18 @@ class FederationRoutesTest : TrixnityBaseTest() {
             .returns(
                 SendTransaction.Response(
                     mapOf(
-                        EventId("$1failed_event:example.org") to PDUProcessingResult("You are not allowed to send a message to this room."),
-                        EventId("$1successful_event:example.org") to PDUProcessingResult()
+                        EventId("$1failed_event:example.org") to
+                            PDUProcessingResult("You are not allowed to send a message to this room."),
+                        EventId("$1successful_event:example.org") to PDUProcessingResult(),
                     )
                 )
             )
-        val response = client.put("/_matrix/federation/v1/send/someTransactionId") {
-            contentType(ContentType.Application.Json)
-            someSignature()
-            setBody(
-                """
+        val response =
+            client.put("/_matrix/federation/v1/send/someTransactionId") {
+                contentType(ContentType.Application.Json)
+                someSignature()
+                setBody(
+                    """
                 {
                   "edus": [
                     {
@@ -193,13 +197,15 @@ class FederationRoutesTest : TrixnityBaseTest() {
                   "origin_server_ts": 1234567890,
                   "pdus": [$pduJson]
                 }
-            """.trimIndent()
-            )
-        }
+            """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "pdus": {
                     "$1failed_event:example.org": {
@@ -208,59 +214,61 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     "$1successful_event:example.org": {}
                   }
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.sendTransaction(assert {
-                it.endpoint.txnId shouldBe "someTransactionId"
-                it.requestBody shouldBe SendTransaction.Request(
-                    edus = listOf(
-                        EphemeralDataUnit(
-                            PresenceDataUnitContent(
+            handlerMock.sendTransaction(
+                assert {
+                    it.endpoint.txnId shouldBe "someTransactionId"
+                    it.requestBody shouldBe
+                        SendTransaction.Request(
+                            edus =
                                 listOf(
-                                    PresenceDataUnitContent.PresenceUpdate(
-                                        userId = UserId("@john:matrix.org"),
-                                        presence = Presence.ONLINE,
-                                        lastActiveAgo = 5000
+                                    EphemeralDataUnit(
+                                        PresenceDataUnitContent(
+                                            listOf(
+                                                PresenceDataUnitContent.PresenceUpdate(
+                                                    userId = UserId("@john:matrix.org"),
+                                                    presence = Presence.ONLINE,
+                                                    lastActiveAgo = 5000,
+                                                )
+                                            )
+                                        )
                                     )
-                                )
-                            )
+                                ),
+                            origin = "matrix.org",
+                            originTimestamp = 1234567890,
+                            pdus = listOf(pdu),
                         )
-                    ),
-                    origin = "matrix.org",
-                    originTimestamp = 1234567890,
-                    pdus = listOf(pdu)
-                )
-            })
+                }
+            )
         }
     }
 
     @Test
     fun shouldGetEventAuthChain() = testApplication {
         initCut()
-        everySuspend { handlerMock.getEventAuthChain(any()) }
-            .returns(
-                GetEventAuthChain.Response(
-                    listOf(pdu)
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/event_auth/!room:server/$1event") {
-            someSignature()
-        }
+        everySuspend { handlerMock.getEventAuthChain(any()) }.returns(GetEventAuthChain.Response(listOf(pdu)))
+        val response = client.get("/_matrix/federation/v1/event_auth/!room:server/$1event") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "auth_chain": [$pduJson]
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getEventAuthChain(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.eventId shouldBe EventId("$1event")
-            })
+            handlerMock.getEventAuthChain(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                }
+            )
         }
     }
 
@@ -268,33 +276,29 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldBackfillRoom() = testApplication {
         initCut()
         everySuspend { handlerMock.backfillRoom(any()) }
-            .returns(
-                PduTransaction(
-                    origin = "matrix.org",
-                    originTimestamp = 1234567890,
-                    pdus = listOf(pdu)
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/backfill/!room:server?v=$1event&limit=10") {
-            someSignature()
-        }
+            .returns(PduTransaction(origin = "matrix.org", originTimestamp = 1234567890, pdus = listOf(pdu)))
+        val response = client.get("/_matrix/federation/v1/backfill/!room:server?v=$1event&limit=10") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "origin": "matrix.org",
                   "origin_server_ts": 1234567890,
                   "pdus": [$pduJson]
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.backfillRoom(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.startFrom shouldBe listOf(EventId("$1event"))
-                it.endpoint.limit shouldBe 10
-            })
+            handlerMock.backfillRoom(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.startFrom shouldBe listOf(EventId("$1event"))
+                    it.endpoint.limit shouldBe 10
+                }
+            )
         }
     }
 
@@ -302,52 +306,54 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldGetMissingEvents() = testApplication {
         initCut()
         everySuspend { handlerMock.getMissingEvents(any()) }
-            .returns(
-                PduTransaction(
-                    origin = "matrix.org",
-                    originTimestamp = 1234567890,
-                    pdus = listOf(pdu)
+            .returns(PduTransaction(origin = "matrix.org", originTimestamp = 1234567890, pdus = listOf(pdu)))
+        val response =
+            client.post("/_matrix/federation/v1/get_missing_events/!room:server") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "earliest_events": [
+                        "$1missing_event:example.org"
+                      ],
+                      "latest_events": [
+                        "$1event_that_has_the_missing_event_as_a_previous_event:example.org"
+                      ],
+                      "limit": 10,
+                      "min_depth": 0
+                    }
+                    """
+                        .trimIndent()
                 )
-            )
-        val response = client.post("/_matrix/federation/v1/get_missing_events/!room:server") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "earliest_events": [
-                    "$1missing_event:example.org"
-                  ],
-                  "latest_events": [
-                    "$1event_that_has_the_missing_event_as_a_previous_event:example.org"
-                  ],
-                  "limit": 10,
-                  "min_depth": 0
-                }
-            """.trimIndent()
-            )
-        }
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "origin": "matrix.org",
                   "origin_server_ts": 1234567890,
                   "pdus": [$pduJson]
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getMissingEvents(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.requestBody shouldBe GetMissingEvents.Request(
-                    earliestEvents = listOf(EventId("$1missing_event:example.org")),
-                    latestEvents = listOf(EventId("$1event_that_has_the_missing_event_as_a_previous_event:example.org")),
-                    limit = 10,
-                    minDepth = 0,
-                )
-            })
+            handlerMock.getMissingEvents(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.requestBody shouldBe
+                        GetMissingEvents.Request(
+                            earliestEvents = listOf(EventId("$1missing_event:example.org")),
+                            latestEvents =
+                                listOf(EventId("$1event_that_has_the_missing_event_as_a_previous_event:example.org")),
+                            limit = 10,
+                            minDepth = 0,
+                        )
+                }
+            )
         }
     }
 
@@ -355,62 +361,49 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldGetEvent() = testApplication {
         initCut()
         everySuspend { handlerMock.getEvent(any()) }
-            .returns(
-                PduTransaction(
-                    origin = "matrix.org",
-                    originTimestamp = 1234567890,
-                    pdus = listOf(pdu)
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/event/$1event") {
-            someSignature()
-        }
+            .returns(PduTransaction(origin = "matrix.org", originTimestamp = 1234567890, pdus = listOf(pdu)))
+        val response = client.get("/_matrix/federation/v1/event/$1event") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "origin": "matrix.org",
                   "origin_server_ts": 1234567890,
                   "pdus": [$pduJson]
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getEvent(assert {
-                it.endpoint.eventId shouldBe EventId("$1event")
-            })
-        }
+        verifySuspend { handlerMock.getEvent(assert { it.endpoint.eventId shouldBe EventId("$1event") }) }
     }
 
     @Test
     fun shouldGetState() = testApplication {
         initCut()
         everySuspend { handlerMock.getState(any()) }
-            .returns(
-                GetState.Response(
-                    authChain = listOf(pdu),
-                    pdus = listOf(pdu)
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/state/!room:server?event_id=$1event") {
-            someSignature()
-        }
+            .returns(GetState.Response(authChain = listOf(pdu), pdus = listOf(pdu)))
+        val response = client.get("/_matrix/federation/v1/state/!room:server?event_id=$1event") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "auth_chain": [$pduJson],
                       "pdus": [$pduJson]
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getState(assert {
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-            })
+            handlerMock.getState(
+                assert {
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                }
+            )
         }
     }
 
@@ -419,29 +412,28 @@ class FederationRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.getStateIds(any()) }
             .returns(
-                GetStateIds.Response(
-                    authChainIds = listOf(EventId("$1event")),
-                    pduIds = listOf(EventId("$2event"))
-                )
+                GetStateIds.Response(authChainIds = listOf(EventId("$1event")), pduIds = listOf(EventId("$2event")))
             )
-        val response = client.get("/_matrix/federation/v1/state_ids/!room:server?event_id=$1event") {
-            someSignature()
-        }
+        val response = client.get("/_matrix/federation/v1/state_ids/!room:server?event_id=$1event") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "auth_chain_ids": ["$1event"],
                       "pdu_ids": ["$2event"]
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getStateIds(assert {
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-            })
+            handlerMock.getStateIds(
+                assert {
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                }
+            )
         }
     }
 
@@ -451,31 +443,33 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.makeJoin(any()) }
             .returns(
                 MakeJoin.Response(
-                    eventTemplate = PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
-                            membership = Membership.JOIN
+                    eventTemplate =
+                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                            authEvents = listOf(),
+                            content =
+                                MemberEventContent(
+                                    joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
+                                    membership = Membership.JOIN,
+                                ),
+                            depth = 12u,
+                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                            originTimestamp = 1404838188000,
+                            prevEvents = listOf(),
+                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                            sender = UserId("@alice:example.com"),
+                            stateKey = "@alice:example.com",
+                            unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                         ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    roomVersion = "3"
+                    roomVersion = "3",
                 )
             )
-        val response = client.get("/_matrix/federation/v1/make_join/!room:server/@alice:example.com?ver=3") {
-            someSignature()
-        }
+        val response =
+            client.get("/_matrix/federation/v1/make_join/!room:server/@alice:example.com?ver=3") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "event": {
                         "auth_events":[],
@@ -495,14 +489,17 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       },
                       "room_version": "3"
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.makeJoin(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-                it.endpoint.supportedRoomVersions shouldBe setOf("3")
-            })
+            handlerMock.makeJoin(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                    it.endpoint.supportedRoomVersions shouldBe setOf("3")
+                }
+            )
         }
     }
 
@@ -513,73 +510,75 @@ class FederationRoutesTest : TrixnityBaseTest() {
             .returns(
                 SendJoin.Response(
                     authChain = listOf(pdu),
-                    event = Signed(
-                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                            authEvents = listOf(),
-                            content = MemberEventContent(
-                                joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
-                                membership = Membership.JOIN
+                    event =
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content =
+                                    MemberEventContent(
+                                        joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
+                                        membership = Membership.JOIN,
+                                    ),
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                             ),
-                            depth = 12u,
-                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                            originTimestamp = 1404838188000,
-                            prevEvents = listOf(),
-                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                            sender = UserId("@alice:example.com"),
-                            stateKey = "@alice:example.com",
-                            unsigned = PersistentDataUnit.UnsignedData(age = 4612)
+                            mapOf(
+                                "example.com" to
+                                    keysOf(
+                                        Ed25519Key(
+                                            "key_version",
+                                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                        )
+                                    ),
+                                "resident.example.com" to
+                                    keysOf(Ed25519Key("other_key_version", "a different signature")),
+                            ),
                         ),
-                        mapOf(
-                            "example.com" to keysOf(
-                                Ed25519Key(
-                                    "key_version",
-                                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                                )
-                            ),
-                            "resident.example.com" to keysOf(
-                                Ed25519Key(
-                                    "other_key_version",
-                                    "a different signature"
-                                )
-                            )
-                        )
-                    ),
-                    state = listOf()
+                    state = listOf(),
                 )
             )
-        val response = client.put("/_matrix/federation/v2/send_join/!room:server/$1event") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                    "auth_events":[],
-                    "content": {
-                      "membership": "join",
-                      "join_authorised_via_users_server": "@anyone:resident.example.org"
-                    },
-                    "depth":12,
-                    "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
-                    "origin_server_ts": 1404838188000,
-                    "prev_events":[],
-                    "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
-                    "sender": "@alice:example.com",
-                    "state_key": "@alice:example.com",
-                    "unsigned":{"age":4612},
-                    "type": "m.room.member",
-                    "signatures": {
-                          "example.com": {
-                            "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                          }
-                    }
-                  }
-            """.trimIndent()
-            )
-        }
+        val response =
+            client.put("/_matrix/federation/v2/send_join/!room:server/$1event") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                        "auth_events":[],
+                        "content": {
+                          "membership": "join",
+                          "join_authorised_via_users_server": "@anyone:resident.example.org"
+                        },
+                        "depth":12,
+                        "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
+                        "origin_server_ts": 1404838188000,
+                        "prev_events":[],
+                        "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
+                        "sender": "@alice:example.com",
+                        "state_key": "@alice:example.com",
+                        "unsigned":{"age":4612},
+                        "type": "m.room.member",
+                        "signatures": {
+                              "example.com": {
+                                "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
+                              }
+                        }
+                      }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "auth_chain":[$pduJson],
                       "event": {
@@ -608,38 +607,44 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       },
                       "state": []
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.sendJoin(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.requestBody shouldBe Signed(
-                    PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
-                            membership = Membership.JOIN
-                        ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    mapOf(
-                        "example.com" to keysOf(
-                            Ed25519Key(
-                                "key_version",
-                                "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                            )
-                        ),
-                    )
-                )
-            })
+            handlerMock.sendJoin(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.requestBody shouldBe
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content =
+                                    MemberEventContent(
+                                        joinAuthorisedViaUsersServer = UserId("@anyone:resident.example.org"),
+                                        membership = Membership.JOIN,
+                                    ),
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+                            ),
+                            mapOf(
+                                "example.com" to
+                                    keysOf(
+                                        Ed25519Key(
+                                            "key_version",
+                                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                        )
+                                    )
+                            ),
+                        )
+                }
+            )
         }
     }
 
@@ -649,30 +654,29 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.makeKnock(any()) }
             .returns(
                 MakeKnock.Response(
-                    eventTemplate = PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            membership = Membership.KNOCK
+                    eventTemplate =
+                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                            authEvents = listOf(),
+                            content = MemberEventContent(membership = Membership.KNOCK),
+                            depth = 12u,
+                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                            originTimestamp = 1404838188000,
+                            prevEvents = listOf(),
+                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                            sender = UserId("@alice:example.com"),
+                            stateKey = "@alice:example.com",
+                            unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                         ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    roomVersion = "3"
+                    roomVersion = "3",
                 )
             )
-        val response = client.get("/_matrix/federation/v1/make_knock/!room:server/@alice:example.com?ver=3") {
-            someSignature()
-        }
+        val response =
+            client.get("/_matrix/federation/v1/make_knock/!room:server/@alice:example.com?ver=3") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "event": {
                         "auth_events":[],
@@ -691,14 +695,17 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       },
                       "room_version": "3"
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.makeKnock(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-                it.endpoint.supportedRoomVersions shouldBe setOf("3")
-            })
+            handlerMock.makeKnock(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                    it.endpoint.supportedRoomVersions shouldBe setOf("3")
+                }
+            )
         }
     }
 
@@ -712,48 +719,51 @@ class FederationRoutesTest : TrixnityBaseTest() {
                         StrippedStateEvent(
                             content = NameEventContent("Example Room"),
                             sender = UserId("@bob:example.org"),
-                            stateKey = ""
+                            stateKey = "",
                         ),
                         StrippedStateEvent(
                             content = JoinRulesEventContent(JoinRulesEventContent.JoinRule.Knock),
                             sender = UserId("@bob:example.org"),
-                            stateKey = ""
-                        )
-                    ),
+                            stateKey = "",
+                        ),
+                    )
                 )
             )
-        val response = client.put("/_matrix/federation/v1/send_knock/!room:server/$1event") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                    "auth_events":[],
-                    "content": {
-                      "membership": "knock"
-                    },
-                    "depth":12,
-                    "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
-                    "origin_server_ts": 1404838188000,
-                    "prev_events":[],
-                    "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
-                    "sender": "@alice:example.com",
-                    "state_key": "@alice:example.com",
-                    "unsigned":{"age":4612},
-                    "type": "m.room.member",
-                    "signatures": {
-                          "example.com": {
-                            "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                          }
-                    }
-                  }
-            """.trimIndent()
-            )
-        }
+        val response =
+            client.put("/_matrix/federation/v1/send_knock/!room:server/$1event") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                        "auth_events":[],
+                        "content": {
+                          "membership": "knock"
+                        },
+                        "depth":12,
+                        "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
+                        "origin_server_ts": 1404838188000,
+                        "prev_events":[],
+                        "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
+                        "sender": "@alice:example.com",
+                        "state_key": "@alice:example.com",
+                        "unsigned":{"age":4612},
+                        "type": "m.room.member",
+                        "signatures": {
+                              "example.com": {
+                                "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
+                              }
+                        }
+                      }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "knock_room_state": [
                         {
@@ -774,37 +784,40 @@ class FederationRoutesTest : TrixnityBaseTest() {
                         }
                       ]
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.sendKnock(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.requestBody shouldBe Signed(
-                    PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            membership = Membership.KNOCK
-                        ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    mapOf(
-                        "example.com" to keysOf(
-                            Ed25519Key(
-                                "key_version",
-                                "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                            )
-                        ),
-                    )
-                )
-            })
+            handlerMock.sendKnock(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.requestBody shouldBe
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content = MemberEventContent(membership = Membership.KNOCK),
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+                            ),
+                            mapOf(
+                                "example.com" to
+                                    keysOf(
+                                        Ed25519Key(
+                                            "key_version",
+                                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                        )
+                                    )
+                            ),
+                        )
+                }
+            )
         }
     }
 
@@ -814,85 +827,88 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.invite(any()) }
             .returns(
                 Invite.Response(
-                    event = Signed(
-                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                            authEvents = listOf(),
-                            content = MemberEventContent(
-                                membership = Membership.INVITE
+                    event =
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content = MemberEventContent(membership = Membership.INVITE),
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                             ),
-                            depth = 12u,
-                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                            originTimestamp = 1404838188000,
-                            prevEvents = listOf(),
-                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                            sender = UserId("@alice:example.com"),
-                            stateKey = "@alice:example.com",
-                            unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                        ),
-                        mapOf(
-                            "example.com" to keysOf(
-                                Ed25519Key(
-                                    "key_version",
-                                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                                )
-                            )
+                            mapOf(
+                                "example.com" to
+                                    keysOf(
+                                        Ed25519Key(
+                                            "key_version",
+                                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                        )
+                                    )
+                            ),
                         )
-                    )
                 )
             )
-        val response = client.put("/_matrix/federation/v2/invite/!room:server/$1event") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "event": {
-                    "auth_events":[],
-                    "content": {
-                      "membership": "invite"
-                    },
-                    "depth":12,
-                    "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
-                    "origin_server_ts": 1404838188000,
-                    "prev_events":[],
-                    "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
-                    "sender": "@alice:example.com",
-                    "state_key": "@alice:example.com",
-                    "unsigned":{"age":4612},
-                    "type": "m.room.member",
-                    "signatures": {
-                          "example.com": {
-                            "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                          }
-                    }
-                  },
-                  "invite_room_state": [
-                        {
-                          "content": {
-                            "name": "Example Room"
-                          },
-                          "sender": "@bob:example.org",
-                          "state_key": "",
-                          "type": "m.room.name"
+        val response =
+            client.put("/_matrix/federation/v2/invite/!room:server/$1event") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "event": {
+                        "auth_events":[],
+                        "content": {
+                          "membership": "invite"
                         },
-                        {
-                          "content": {
-                            "join_rule": "invite"
-                          },
-                          "sender": "@bob:example.org",
-                          "state_key": "",
-                          "type": "m.room.join_rules"
+                        "depth":12,
+                        "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
+                        "origin_server_ts": 1404838188000,
+                        "prev_events":[],
+                        "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
+                        "sender": "@alice:example.com",
+                        "state_key": "@alice:example.com",
+                        "unsigned":{"age":4612},
+                        "type": "m.room.member",
+                        "signatures": {
+                              "example.com": {
+                                "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
+                              }
                         }
-                  ],
-                  "room_version": "3"
-                }
-            """.trimIndent()
-            )
-        }
+                      },
+                      "invite_room_state": [
+                            {
+                              "content": {
+                                "name": "Example Room"
+                              },
+                              "sender": "@bob:example.org",
+                              "state_key": "",
+                              "type": "m.room.name"
+                            },
+                            {
+                              "content": {
+                                "join_rule": "invite"
+                              },
+                              "sender": "@bob:example.org",
+                              "state_key": "",
+                              "type": "m.room.join_rules"
+                            }
+                      ],
+                      "room_version": "3"
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "event": {
                             "auth_events":[],
@@ -915,52 +931,58 @@ class FederationRoutesTest : TrixnityBaseTest() {
                             }
                           }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.invite(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.requestBody shouldBe Invite.Request(
-                    event = Signed(
-                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                            authEvents = listOf(),
-                            content = MemberEventContent(
-                                membership = Membership.INVITE
-                            ),
-                            depth = 12u,
-                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                            originTimestamp = 1404838188000,
-                            prevEvents = listOf(),
-                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                            sender = UserId("@alice:example.com"),
-                            stateKey = "@alice:example.com",
-                            unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                        ),
-                        mapOf(
-                            "example.com" to keysOf(
-                                Ed25519Key(
-                                    "key_version",
-                                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                                )
-                            ),
+            handlerMock.invite(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.requestBody shouldBe
+                        Invite.Request(
+                            event =
+                                Signed(
+                                    PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                        authEvents = listOf(),
+                                        content = MemberEventContent(membership = Membership.INVITE),
+                                        depth = 12u,
+                                        hashes =
+                                            PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                        originTimestamp = 1404838188000,
+                                        prevEvents = listOf(),
+                                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                        sender = UserId("@alice:example.com"),
+                                        stateKey = "@alice:example.com",
+                                        unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+                                    ),
+                                    mapOf(
+                                        "example.com" to
+                                            keysOf(
+                                                Ed25519Key(
+                                                    "key_version",
+                                                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                                )
+                                            )
+                                    ),
+                                ),
+                            inviteRoomState =
+                                listOf(
+                                    StrippedStateEvent(
+                                        content = NameEventContent("Example Room"),
+                                        sender = UserId("@bob:example.org"),
+                                        stateKey = "",
+                                    ),
+                                    StrippedStateEvent(
+                                        content = JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
+                                        sender = UserId("@bob:example.org"),
+                                        stateKey = "",
+                                    ),
+                                ),
+                            roomVersion = "3",
                         )
-                    ),
-                    inviteRoomState = listOf(
-                        StrippedStateEvent(
-                            content = NameEventContent("Example Room"),
-                            sender = UserId("@bob:example.org"),
-                            stateKey = ""
-                        ),
-                        StrippedStateEvent(
-                            content = JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
-                            sender = UserId("@bob:example.org"),
-                            stateKey = ""
-                        )
-                    ),
-                    roomVersion = "3"
-                )
-            })
+                }
+            )
         }
     }
 
@@ -970,30 +992,29 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.makeLeave(any()) }
             .returns(
                 MakeLeave.Response(
-                    eventTemplate = PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            membership = Membership.LEAVE
+                    eventTemplate =
+                        PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                            authEvents = listOf(),
+                            content = MemberEventContent(membership = Membership.LEAVE),
+                            depth = 12u,
+                            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                            originTimestamp = 1404838188000,
+                            prevEvents = listOf(),
+                            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                            sender = UserId("@alice:example.com"),
+                            stateKey = "@alice:example.com",
+                            unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                         ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    roomVersion = "3"
+                    roomVersion = "3",
                 )
             )
-        val response = client.get("/_matrix/federation/v1/make_leave/!room:server/@alice:example.com") {
-            someSignature()
-        }
+        val response =
+            client.get("/_matrix/federation/v1/make_leave/!room:server/@alice:example.com") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "event": {
                         "auth_events":[],
@@ -1012,96 +1033,102 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       },
                       "room_version": "3"
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.makeLeave(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-            })
+            handlerMock.makeLeave(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.userId shouldBe UserId("@alice:example.com")
+                }
+            )
         }
     }
 
     @Test
     fun shouldSendLeave() = testApplication {
         initCut()
-        everySuspend { handlerMock.sendLeave(any()) }
-            .returns(Unit)
-        val response = client.put("/_matrix/federation/v2/send_leave/!room:server/$1event") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                    "auth_events":[],
-                    "content": {
-                      "membership": "leave"
-                    },
-                    "depth":12,
-                    "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
-                    "origin_server_ts": 1404838188000,
-                    "prev_events":[],
-                    "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
-                    "sender": "@alice:example.com",
-                    "state_key": "@alice:example.com",
-                    "unsigned":{"age":4612},
-                    "type": "m.room.member",
-                    "signatures": {
-                          "example.com": {
-                            "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                          }
-                    }
-                  }
-            """.trimIndent()
-            )
-        }
+        everySuspend { handlerMock.sendLeave(any()) }.returns(Unit)
+        val response =
+            client.put("/_matrix/federation/v2/send_leave/!room:server/$1event") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                        "auth_events":[],
+                        "content": {
+                          "membership": "leave"
+                        },
+                        "depth":12,
+                        "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
+                        "origin_server_ts": 1404838188000,
+                        "prev_events":[],
+                        "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
+                        "sender": "@alice:example.com",
+                        "state_key": "@alice:example.com",
+                        "unsigned":{"age":4612},
+                        "type": "m.room.member",
+                        "signatures": {
+                              "example.com": {
+                                "ed25519:key_version": "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
+                              }
+                        }
+                      }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.sendLeave(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.eventId shouldBe EventId("$1event")
-                it.requestBody shouldBe Signed(
-                    PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            membership = Membership.LEAVE
-                        ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    ),
-                    mapOf(
-                        "example.com" to keysOf(
-                            Ed25519Key(
-                                "key_version",
-                                "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                            )
-                        ),
-                    )
-                )
-            })
+            handlerMock.sendLeave(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.eventId shouldBe EventId("$1event")
+                    it.requestBody shouldBe
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content = MemberEventContent(membership = Membership.LEAVE),
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+                            ),
+                            mapOf(
+                                "example.com" to
+                                    keysOf(
+                                        Ed25519Key(
+                                            "key_version",
+                                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                                        )
+                                    )
+                            ),
+                        )
+                }
+            )
         }
     }
 
     @Test
     fun shouldOnBindThirdPid() = testApplication {
         initCut()
-        everySuspend { handlerMock.onBindThirdPid(any()) }
-            .returns(Unit)
-        val response = client.put("/_matrix/federation/v1/3pid/onbind") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        everySuspend { handlerMock.onBindThirdPid(any()) }.returns(Unit)
+        val response =
+            client.put("/_matrix/federation/v1/3pid/onbind") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "address": "alice@example.com",
                       "invites": [
@@ -1125,120 +1152,134 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       "medium": "email",
                       "mxid": "@alice:matrix.org"
                     }
-            """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.onBindThirdPid(assert {
-                it.requestBody shouldBe OnBindThirdPid.Request(
-                    address = "alice@example.com",
-                    invites = listOf(
-                        ThirdPartyInvite(
+            handlerMock.onBindThirdPid(
+                assert {
+                    it.requestBody shouldBe
+                        OnBindThirdPid.Request(
                             address = "alice@example.com",
+                            invites =
+                                listOf(
+                                    ThirdPartyInvite(
+                                        address = "alice@example.com",
+                                        medium = "email",
+                                        userId = UserId("@alice:matrix.org"),
+                                        roomId = RoomId("!somewhere:example.org"),
+                                        sender = UserId("@bob:matrix.org"),
+                                        signed =
+                                            Signed(
+                                                ThirdPartyInvite.UserInfo(UserId("@alice:matrix.org"), "Hello World"),
+                                                mapOf("vector.im" to keysOf(Ed25519Key("0", "SomeSignatureGoesHere"))),
+                                            ),
+                                    )
+                                ),
                             medium = "email",
                             userId = UserId("@alice:matrix.org"),
-                            roomId = RoomId("!somewhere:example.org"),
-                            sender = UserId("@bob:matrix.org"),
-                            signed = Signed(
-                                ThirdPartyInvite.UserInfo(UserId("@alice:matrix.org"), "Hello World"),
-                                mapOf("vector.im" to keysOf(Ed25519Key("0", "SomeSignatureGoesHere")))
-                            )
                         )
-                    ),
-                    medium = "email",
-                    userId = UserId("@alice:matrix.org")
-                )
-            })
+                }
+            )
         }
     }
 
     @Test
     fun shouldExchangeThirdPartyInvite() = testApplication {
         initCut()
-        everySuspend { handlerMock.exchangeThirdPartyInvite(any()) }
-            .returns(Unit)
-        val response = client.put("/_matrix/federation/v1/exchange_third_party_invite/!room:server") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                    "auth_events":[],
-                    "content": {
-                        "membership": "invite",
-                        "third_party_invite": {
-                          "display_name": "alice",
-                          "signed": {
-                            "mxid": "@alice:localhost",
-                            "signatures": {
-                              "magic.forest": {
-                                "ed25519:3": "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
+        everySuspend { handlerMock.exchangeThirdPartyInvite(any()) }.returns(Unit)
+        val response =
+            client.put("/_matrix/federation/v1/exchange_third_party_invite/!room:server") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                        "auth_events":[],
+                        "content": {
+                            "membership": "invite",
+                            "third_party_invite": {
+                              "display_name": "alice",
+                              "signed": {
+                                "mxid": "@alice:localhost",
+                                "signatures": {
+                                  "magic.forest": {
+                                    "ed25519:3": "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
+                                  }
+                                },
+                                "token": "abc123"
                               }
-                            },
-                            "token": "abc123"
-                          }
-                        }
-                    },
-                    "depth":12,
-                    "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
-                    "origin_server_ts": 1404838188000,
-                    "prev_events":[],
-                    "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
-                    "sender": "@alice:example.com",
-                    "state_key": "@alice:example.com",
-                    "unsigned":{"age":4612},
-                    "type": "m.room.member"
-                  }
-            """.trimIndent()
-            )
-        }
+                            }
+                        },
+                        "depth":12,
+                        "hashes":{"sha256":"thishashcoversallfieldsincasethisisredacted"},
+                        "origin_server_ts": 1404838188000,
+                        "prev_events":[],
+                        "room_id": "!UcYsUzyxTGDxLBEvLy:example.org",
+                        "sender": "@alice:example.com",
+                        "state_key": "@alice:example.com",
+                        "unsigned":{"age":4612},
+                        "type": "m.room.member"
+                      }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.exchangeThirdPartyInvite(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.requestBody shouldBe Signed(
-                    PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
-                        authEvents = listOf(),
-                        content = MemberEventContent(
-                            membership = Membership.INVITE,
-                            thirdPartyInvite = MemberEventContent.Invite(
-                                displayName = "alice",
-                                signed = Signed(
-                                    MemberEventContent.Invite.UserInfo(
-                                        userId = UserId("@alice:localhost"),
-                                        token = "abc123"
+            handlerMock.exchangeThirdPartyInvite(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.requestBody shouldBe
+                        Signed(
+                            PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12(
+                                authEvents = listOf(),
+                                content =
+                                    MemberEventContent(
+                                        membership = Membership.INVITE,
+                                        thirdPartyInvite =
+                                            MemberEventContent.Invite(
+                                                displayName = "alice",
+                                                signed =
+                                                    Signed(
+                                                        MemberEventContent.Invite.UserInfo(
+                                                            userId = UserId("@alice:localhost"),
+                                                            token = "abc123",
+                                                        ),
+                                                        mapOf(
+                                                            "magic.forest" to
+                                                                keysOf(
+                                                                    Ed25519Key(
+                                                                        "3",
+                                                                        "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg",
+                                                                    )
+                                                                )
+                                                        ),
+                                                    ),
+                                            ),
                                     ),
-                                    mapOf(
-                                        "magic.forest" to keysOf(
-                                            Ed25519Key(
-                                                "3",
-                                                "fQpGIW1Snz+pwLZu6sTy2aHy/DYWWTspTJRPyNp0PKkymfIsNffysMl6ObMMFdIJhk6g6pwlIqZ54rxo8SLmAg"
-                                            )
-                                        )
-                                    )
-                                )
+                                depth = 12u,
+                                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                                originTimestamp = 1404838188000,
+                                prevEvents = listOf(),
+                                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                                sender = UserId("@alice:example.com"),
+                                stateKey = "@alice:example.com",
+                                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
                             )
-                        ),
-                        depth = 12u,
-                        hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-                        originTimestamp = 1404838188000,
-                        prevEvents = listOf(),
-                        roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-                        sender = UserId("@alice:example.com"),
-                        stateKey = "@alice:example.com",
-                        unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-                    )
-                )
-            })
+                        )
+                }
+            )
         }
     }
 
@@ -1248,31 +1289,35 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getPublicRooms(any()) }
             .returns(
                 GetPublicRoomsResponse(
-                    chunk = listOf(
-                        GetPublicRoomsResponse.PublicRoomsChunk(
-                            avatarUrl = "mxc://bleecker.street/CHEDDARandBRIE",
-                            guestCanJoin = false,
-                            joinRule = JoinRulesEventContent.JoinRule.Public,
-                            name = "CHEESE",
-                            joinedMembersCount = 37,
-                            roomId = RoomId("!ol19s:bleecker.street"),
-                            topic = "Tasty tasty cheese",
-                            worldReadable = true
-                        )
-                    ),
+                    chunk =
+                        listOf(
+                            GetPublicRoomsResponse.PublicRoomsChunk(
+                                avatarUrl = "mxc://bleecker.street/CHEDDARandBRIE",
+                                guestCanJoin = false,
+                                joinRule = JoinRulesEventContent.JoinRule.Public,
+                                name = "CHEESE",
+                                joinedMembersCount = 37,
+                                roomId = RoomId("!ol19s:bleecker.street"),
+                                topic = "Tasty tasty cheese",
+                                worldReadable = true,
+                            )
+                        ),
                     nextBatch = "p190q",
                     prevBatch = "p1902",
-                    totalRoomCountEstimate = 115
+                    totalRoomCountEstimate = 115,
                 )
             )
         val response =
-            client.get("/_matrix/federation/v1/publicRooms?limit=5&include_all_networks=false&since=since&third_party_instance_id=instance") {
+            client.get(
+                "/_matrix/federation/v1/publicRooms?limit=5&include_all_networks=false&since=since&third_party_instance_id=instance"
+            ) {
                 someSignature()
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "chunk": [
                     {
@@ -1290,15 +1335,18 @@ class FederationRoutesTest : TrixnityBaseTest() {
                   "prev_batch": "p1902",
                   "total_room_count_estimate": 115
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getPublicRooms(assert {
-                it.endpoint.limit shouldBe 5
-                it.endpoint.includeAllNetworks shouldBe false
-                it.endpoint.since shouldBe "since"
-                it.endpoint.thirdPartyInstanceId shouldBe "instance"
-            })
+            handlerMock.getPublicRooms(
+                assert {
+                    it.endpoint.limit shouldBe 5
+                    it.endpoint.includeAllNetworks shouldBe false
+                    it.endpoint.since shouldBe "since"
+                    it.endpoint.thirdPartyInstanceId shouldBe "instance"
+                }
+            )
         }
     }
 
@@ -1308,21 +1356,22 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getPublicRoomsWithFilter(any()) }
             .returns(
                 GetPublicRoomsResponse(
-                    chunk = listOf(
-                        GetPublicRoomsResponse.PublicRoomsChunk(
-                            avatarUrl = "mxc://bleecker.street/CHEDDARandBRIE",
-                            guestCanJoin = false,
-                            joinRule = JoinRulesEventContent.JoinRule.Public,
-                            name = "CHEESE",
-                            joinedMembersCount = 37,
-                            roomId = RoomId("!ol19s:bleecker.street"),
-                            topic = "Tasty tasty cheese",
-                            worldReadable = true
-                        )
-                    ),
+                    chunk =
+                        listOf(
+                            GetPublicRoomsResponse.PublicRoomsChunk(
+                                avatarUrl = "mxc://bleecker.street/CHEDDARandBRIE",
+                                guestCanJoin = false,
+                                joinRule = JoinRulesEventContent.JoinRule.Public,
+                                name = "CHEESE",
+                                joinedMembersCount = 37,
+                                roomId = RoomId("!ol19s:bleecker.street"),
+                                topic = "Tasty tasty cheese",
+                                worldReadable = true,
+                            )
+                        ),
                     nextBatch = "p190q",
                     prevBatch = "p1902",
-                    totalRoomCountEstimate = 115
+                    totalRoomCountEstimate = 115,
                 )
             )
         val response =
@@ -1339,13 +1388,15 @@ class FederationRoutesTest : TrixnityBaseTest() {
                       "limit": 10,
                       "third_party_instance_id": "irc"
                     }
-                """.trimIndent()
+                    """
+                        .trimIndent()
                 )
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "chunk": [
                     {
@@ -1363,17 +1414,21 @@ class FederationRoutesTest : TrixnityBaseTest() {
                   "prev_batch": "p1902",
                   "total_room_count_estimate": 115
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getPublicRoomsWithFilter(assert {
-                it.requestBody shouldBe GetPublicRoomsWithFilter.Request(
-                    filter = GetPublicRoomsWithFilter.Request.Filter("foo"),
-                    includeAllNetworks = false,
-                    limit = 10,
-                    thirdPartyInstanceId = "irc"
-                )
-            })
+            handlerMock.getPublicRoomsWithFilter(
+                assert {
+                    it.requestBody shouldBe
+                        GetPublicRoomsWithFilter.Request(
+                            filter = GetPublicRoomsWithFilter.Request.Filter("foo"),
+                            includeAllNetworks = false,
+                            limit = 10,
+                            thirdPartyInstanceId = "irc",
+                        )
+                }
+            )
         }
     }
 
@@ -1383,60 +1438,64 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getHierarchy(any()) }
             .returns(
                 GetHierarchy.Response(
-                    rooms = listOf(
-                        GetHierarchy.Response.SpaceHierarchyRoomsChunk(
-                            allowedRoomIds = setOf(RoomId("!upstream:example.org")),
-                            avatarUrl = "mxc://example.org/abcdef2",
-                            canonicalAlias = RoomAliasId("#general:example.org"),
-                            childrenState = setOf(
-                                StrippedStateEvent(
-                                    ChildEventContent(via = setOf("remote.example.org")),
-                                    originTimestamp = 1629422222222,
-                                    sender = UserId("@alice:example.org"),
-                                    stateKey = "!b:example.org",
-                                )
-                            ),
-                            guestCanJoin = false,
-                            joinRule = JoinRulesEventContent.JoinRule.Restricted,
-                            name = "The ~~First~~ Second Space",
-                            joinedMembersCount = 42,
-                            roomId = RoomId("!second_room:example.org"),
-                            roomType = CreateEventContent.RoomType.Space,
-                            topic = "Hello world",
-                            worldReadable = true
-                        )
-                    ),
-                    inaccessible_children = setOf(RoomId("!secret:example.org")),
-                    room = GetHierarchy.Response.SpaceHierarchyRoomsChunk(
-                        allowedRoomIds = setOf(),
-                        avatarUrl = "mxc://example.org/abcdef",
-                        canonicalAlias = RoomAliasId("#general:example.org"),
-                        childrenState = setOf(
-                            StrippedStateEvent(
-                                ChildEventContent(via = setOf("remote.example.org")),
-                                originTimestamp = 1629413349153,
-                                sender = UserId("@alice:example.org"),
-                                stateKey = "!a:example.org",
+                    rooms =
+                        listOf(
+                            GetHierarchy.Response.SpaceHierarchyRoomsChunk(
+                                allowedRoomIds = setOf(RoomId("!upstream:example.org")),
+                                avatarUrl = "mxc://example.org/abcdef2",
+                                canonicalAlias = RoomAliasId("#general:example.org"),
+                                childrenState =
+                                    setOf(
+                                        StrippedStateEvent(
+                                            ChildEventContent(via = setOf("remote.example.org")),
+                                            originTimestamp = 1629422222222,
+                                            sender = UserId("@alice:example.org"),
+                                            stateKey = "!b:example.org",
+                                        )
+                                    ),
+                                guestCanJoin = false,
+                                joinRule = JoinRulesEventContent.JoinRule.Restricted,
+                                name = "The ~~First~~ Second Space",
+                                joinedMembersCount = 42,
+                                roomId = RoomId("!second_room:example.org"),
+                                roomType = CreateEventContent.RoomType.Space,
+                                topic = "Hello world",
+                                worldReadable = true,
                             )
                         ),
-                        guestCanJoin = false,
-                        joinRule = JoinRulesEventContent.JoinRule.Public,
-                        name = "The First Space",
-                        joinedMembersCount = 42,
-                        roomId = RoomId("!space:example.org"),
-                        roomType = CreateEventContent.RoomType.Space,
-                        topic = "No other spaces were created first, ever",
-                        worldReadable = true
-                    )
+                    inaccessible_children = setOf(RoomId("!secret:example.org")),
+                    room =
+                        GetHierarchy.Response.SpaceHierarchyRoomsChunk(
+                            allowedRoomIds = setOf(),
+                            avatarUrl = "mxc://example.org/abcdef",
+                            canonicalAlias = RoomAliasId("#general:example.org"),
+                            childrenState =
+                                setOf(
+                                    StrippedStateEvent(
+                                        ChildEventContent(via = setOf("remote.example.org")),
+                                        originTimestamp = 1629413349153,
+                                        sender = UserId("@alice:example.org"),
+                                        stateKey = "!a:example.org",
+                                    )
+                                ),
+                            guestCanJoin = false,
+                            joinRule = JoinRulesEventContent.JoinRule.Public,
+                            name = "The First Space",
+                            joinedMembersCount = 42,
+                            roomId = RoomId("!space:example.org"),
+                            roomType = CreateEventContent.RoomType.Space,
+                            topic = "No other spaces were created first, ever",
+                            worldReadable = true,
+                        ),
                 )
             )
-        val response = client.get("/_matrix/federation/v1/hierarchy/!room:server?suggested_only=true") {
-            someSignature()
-        }
+        val response =
+            client.get("/_matrix/federation/v1/hierarchy/!room:server?suggested_only=true") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "children": [
                     {
@@ -1500,13 +1559,16 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     "world_readable": true
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getHierarchy(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.suggestedOnly shouldBe true
-            })
+            handlerMock.getHierarchy(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.suggestedOnly shouldBe true
+                }
+            )
         }
     }
 
@@ -1517,20 +1579,16 @@ class FederationRoutesTest : TrixnityBaseTest() {
             .returns(
                 QueryDirectory.Response(
                     roomId = RoomId("!roomid1234:example.org"),
-                    servers = setOf(
-                        "example.org",
-                        "example.com",
-                        "another.example.com:8449"
-                    )
+                    servers = setOf("example.org", "example.com", "another.example.com:8449"),
                 )
             )
-        val response = client.get("/_matrix/federation/v1/query/directory?room_alias=%23alias:server") {
-            someSignature()
-        }
+        val response =
+            client.get("/_matrix/federation/v1/query/directory?room_alias=%23alias:server") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "room_id": "!roomid1234:example.org",
                   "servers": [
@@ -1539,12 +1597,11 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     "another.example.com:8449"
                   ]
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.queryDirectory(assert {
-                it.endpoint.roomAlias shouldBe RoomAliasId("#alias:server")
-            })
+            handlerMock.queryDirectory(assert { it.endpoint.roomAlias shouldBe RoomAliasId("#alias:server") })
         }
     }
 
@@ -1552,30 +1609,30 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldQueryProfile() = testApplication {
         initCut()
         everySuspend { handlerMock.queryProfile(any()) }
-            .returns(
-                QueryProfile.Response(
-                    displayname = "John Doe",
-                    avatarUrl = "mxc://matrix.org/MyC00lAvatar"
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/query/profile?user_id=@user:server&field=displayname") {
-            someSignature()
-        }
+            .returns(QueryProfile.Response(displayname = "John Doe", avatarUrl = "mxc://matrix.org/MyC00lAvatar"))
+        val response =
+            client.get("/_matrix/federation/v1/query/profile?user_id=@user:server&field=displayname") {
+                someSignature()
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "avatar_url": "mxc://matrix.org/MyC00lAvatar",
                   "displayname": "John Doe"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.queryProfile(assert {
-                it.endpoint.userId shouldBe UserId("@user:server")
-                it.endpoint.field shouldBe QueryProfile.Field.DISPLAYNNAME
-            })
+            handlerMock.queryProfile(
+                assert {
+                    it.endpoint.userId shouldBe UserId("@user:server")
+                    it.endpoint.field shouldBe QueryProfile.Field.DISPLAYNNAME
+                }
+            )
         }
     }
 
@@ -1583,28 +1640,20 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldGetOIDCUserInfo() = testApplication {
         initCut()
         everySuspend { handlerMock.getOIDCUserInfo(any()) }
-            .returns(
-                GetOIDCUserInfo.Response(
-                    sub = UserId("@alice:example.com")
-                )
-            )
-        val response = client.get("/_matrix/federation/v1/openid/userinfo?access_token=token") {
-            someSignature()
-        }
+            .returns(GetOIDCUserInfo.Response(sub = UserId("@alice:example.com")))
+        val response = client.get("/_matrix/federation/v1/openid/userinfo?access_token=token") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "sub": "@alice:example.com"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getOIDCUserInfo(assert {
-                it.endpoint.accessToken shouldBe "token"
-            })
-        }
+        verifySuspend { handlerMock.getOIDCUserInfo(assert { it.endpoint.accessToken shouldBe "token" }) }
     }
 
     @Test
@@ -1613,70 +1662,78 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getDevices(any()) }
             .returns(
                 GetDevices.Response(
-                    devices = setOf(
-                        GetDevices.Response.UserDevice(
-                            deviceDisplayName = "Alice's Mobile Phone",
-                            deviceId = "JLAFKJWSCS",
-                            keys = Signed(
-                                DeviceKeys(
-                                    userId = UserId("@alice:example.com"),
-                                    deviceId = "JLAFKJWSCS",
-                                    algorithms = setOf(Olm, Megolm),
-                                    keys = keysOf(
-                                        Curve25519Key("JLAFKJWSCS", "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI"),
-                                        Ed25519Key("JLAFKJWSCS", "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI")
-                                    )
-                                ),
-                                mapOf(
-                                    UserId("@alice:example.com") to keysOf(
-                                        Ed25519Key(
-                                            "JLAFKJWSCS",
-                                            "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA"
-                                        )
-                                    )
-                                )
+                    devices =
+                        setOf(
+                            GetDevices.Response.UserDevice(
+                                deviceDisplayName = "Alice's Mobile Phone",
+                                deviceId = "JLAFKJWSCS",
+                                keys =
+                                    Signed(
+                                        DeviceKeys(
+                                            userId = UserId("@alice:example.com"),
+                                            deviceId = "JLAFKJWSCS",
+                                            algorithms = setOf(Olm, Megolm),
+                                            keys =
+                                                keysOf(
+                                                    Curve25519Key(
+                                                        "JLAFKJWSCS",
+                                                        "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI",
+                                                    ),
+                                                    Ed25519Key(
+                                                        "JLAFKJWSCS",
+                                                        "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI",
+                                                    ),
+                                                ),
+                                        ),
+                                        mapOf(
+                                            UserId("@alice:example.com") to
+                                                keysOf(
+                                                    Ed25519Key(
+                                                        "JLAFKJWSCS",
+                                                        "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA",
+                                                    )
+                                                )
+                                        ),
+                                    ),
                             )
-                        )
-                    ),
-                    masterKey = Signed(
-                        CrossSigningKeys(
-                            userId = UserId("@alice:example.com"),
-                            usage = setOf(MasterKey),
-                            keys = keysOf(
-                                Ed25519Key("base64+master+public+key", "base64+master+public+key")
+                        ),
+                    masterKey =
+                        Signed(
+                            CrossSigningKeys(
+                                userId = UserId("@alice:example.com"),
+                                usage = setOf(MasterKey),
+                                keys = keysOf(Ed25519Key("base64+master+public+key", "base64+master+public+key")),
+                            ),
+                            mapOf(
+                                UserId("@alice:example.com") to
+                                    keysOf(Ed25519Key("alice+base64+master+key", "signature+of+key"))
                             ),
                         ),
-                        mapOf(
-                            UserId("@alice:example.com") to keysOf(
-                                Ed25519Key("alice+base64+master+key", "signature+of+key")
-                            )
-                        )
-                    ),
-                    selfSigningKey = Signed(
-                        CrossSigningKeys(
-                            userId = UserId("@alice:example.com"),
-                            usage = setOf(SelfSigningKey),
-                            keys = keysOf(
-                                Ed25519Key("base64+self+signing+public+key", "base64+self+signing+public+key")
+                    selfSigningKey =
+                        Signed(
+                            CrossSigningKeys(
+                                userId = UserId("@alice:example.com"),
+                                usage = setOf(SelfSigningKey),
+                                keys =
+                                    keysOf(
+                                        Ed25519Key("base64+self+signing+public+key", "base64+self+signing+public+key")
+                                    ),
+                            ),
+                            mapOf(
+                                UserId("@alice:example.com") to
+                                    keysOf(Ed25519Key("alice+base64+master+key", "signature+of+key"))
                             ),
                         ),
-                        mapOf(
-                            UserId("@alice:example.com") to keysOf(
-                                Ed25519Key("alice+base64+master+key", "signature+of+key")
-                            )
-                        )
-                    ),
                     streamId = 5,
-                    userId = UserId("@alice:example.com")
+                    userId = UserId("@alice:example.com"),
                 )
             )
-        val response = client.get("/_matrix/federation/v1/user/devices/@alice:example.com") {
-            someSignature()
-        }
+        val response = client.get("/_matrix/federation/v1/user/devices/@alice:example.com") { someSignature() }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "devices": [
                     {
@@ -1728,13 +1785,10 @@ class FederationRoutesTest : TrixnityBaseTest() {
                   "stream_id": 5,
                   "user_id": "@alice:example.com"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getDevices(assert {
-                it.endpoint.userId shouldBe UserId("@alice:example.com")
-            })
-        }
+        verifySuspend { handlerMock.getDevices(assert { it.endpoint.userId shouldBe UserId("@alice:example.com") }) }
     }
 
     @Test
@@ -1743,46 +1797,54 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.claimKeys(any()) }
             .returns(
                 ClaimKeys.Response(
-                    oneTimeKeys = mapOf(
-                        UserId("@alice:example.com") to mapOf(
-                            "JLAFKJWSCS" to keysOf(
-                                Key.SignedCurve25519Key(
-                                    id = "AAAAHg",
-                                    value = "zKbLg+NrIjpnagy+pIY6uPL4ZwEG2v+8F9lmgsnlZzs",
-                                    fallback = true,
-                                    signatures = mapOf(
-                                        UserId("@alice:example.com") to keysOf(
-                                            Ed25519Key(
-                                                "JLAFKJWSCS",
-                                                "FLWxXqGbwrb8SM3Y795eB6OA8bwBcoMZFXBqnTn58AYWZSqiD45tlBVcDa2L7RwdKXebW/VzDlnfVJ+9jok1Bw"
+                    oneTimeKeys =
+                        mapOf(
+                            UserId("@alice:example.com") to
+                                mapOf(
+                                    "JLAFKJWSCS" to
+                                        keysOf(
+                                            Key.SignedCurve25519Key(
+                                                id = "AAAAHg",
+                                                value = "zKbLg+NrIjpnagy+pIY6uPL4ZwEG2v+8F9lmgsnlZzs",
+                                                fallback = true,
+                                                signatures =
+                                                    mapOf(
+                                                        UserId("@alice:example.com") to
+                                                            keysOf(
+                                                                Ed25519Key(
+                                                                    "JLAFKJWSCS",
+                                                                    "FLWxXqGbwrb8SM3Y795eB6OA8bwBcoMZFXBqnTn58AYWZSqiD45tlBVcDa2L7RwdKXebW/VzDlnfVJ+9jok1Bw",
+                                                                )
+                                                            )
+                                                    ),
                                             )
                                         )
-                                    ),
                                 )
-                            )
                         )
-                    )
                 )
             )
-        val response = client.post("/_matrix/federation/v1/user/keys/claim") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "one_time_keys":{
-                    "@alice:example.com":{
-                      "JLAFKJWSCS":"signed_curve25519"
+        val response =
+            client.post("/_matrix/federation/v1/user/keys/claim") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "one_time_keys":{
+                        "@alice:example.com":{
+                          "JLAFKJWSCS":"signed_curve25519"
+                        }
+                      }
                     }
-                  }
-                }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "one_time_keys":{
                     "@alice:example.com":{
@@ -1800,14 +1862,21 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.claimKeys(assert {
-                it.requestBody shouldBe ClaimKeys.Request(
-                    oneTimeKeys = mapOf(UserId("@alice:example.com") to mapOf("JLAFKJWSCS" to KeyAlgorithm.SignedCurve25519)),
-                )
-            })
+            handlerMock.claimKeys(
+                assert {
+                    it.requestBody shouldBe
+                        ClaimKeys.Request(
+                            oneTimeKeys =
+                                mapOf(
+                                    UserId("@alice:example.com") to mapOf("JLAFKJWSCS" to KeyAlgorithm.SignedCurve25519)
+                                )
+                        )
+                }
+            )
         }
     }
 
@@ -1817,79 +1886,111 @@ class FederationRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getKeys(any()) }
             .returns(
                 GetKeys.Response(
-                    deviceKeys = mapOf(
-                        UserId("@alice:example.com") to mapOf(
-                            "JLAFKJWSCS" to Signed(
-                                signed = DeviceKeys(
-                                    userId = UserId("@alice:example.com"),
-                                    deviceId = "JLAFKJWSCS",
-                                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                                    keys = keysOf(
-                                        Key.Curve25519Key("JLAFKJWSCS", "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI"),
-                                        Key.Ed25519Key("JLAFKJWSCS", "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI")
-                                    )
-                                ),
-                                signatures = mapOf(
-                                    UserId("@alice:example.com") to keysOf(
-                                        Key.Ed25519Key(
-                                            "JLAFKJWSCS",
-                                            "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA"
+                    deviceKeys =
+                        mapOf(
+                            UserId("@alice:example.com") to
+                                mapOf(
+                                    "JLAFKJWSCS" to
+                                        Signed(
+                                            signed =
+                                                DeviceKeys(
+                                                    userId = UserId("@alice:example.com"),
+                                                    deviceId = "JLAFKJWSCS",
+                                                    algorithms =
+                                                        setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                                                    keys =
+                                                        keysOf(
+                                                            Key.Curve25519Key(
+                                                                "JLAFKJWSCS",
+                                                                "3C5BFWi2Y8MaVvjM8M22DBmh24PmgR0nPvJOIArzgyI",
+                                                            ),
+                                                            Key.Ed25519Key(
+                                                                "JLAFKJWSCS",
+                                                                "lEuiRJBit0IG6nUf5pUzWTUEsRVVe/HJkoKuEww9ULI",
+                                                            ),
+                                                        ),
+                                                ),
+                                            signatures =
+                                                mapOf(
+                                                    UserId("@alice:example.com") to
+                                                        keysOf(
+                                                            Key.Ed25519Key(
+                                                                "JLAFKJWSCS",
+                                                                "dSO80A01XiigH3uBiDVx/EjzaoycHcjq9lfQX0uWsqxl2giMIiSPR8a4d291W1ihKJL/a+myXS367WT6NAIcBA",
+                                                            )
+                                                        )
+                                                ),
                                         )
-                                    )
-                                ),
-                            )
-                        )
-                    ),
-                    masterKeys = mapOf(
-                        UserId("@alice:example.com") to Signed(
-                            signed = CrossSigningKeys(
-                                userId = UserId("@alice:example.com"),
-                                usage = setOf(CrossSigningKeysUsage.MasterKey),
-                                keys = keysOf(Key.Ed25519Key("base64+master+public+key", "base64+master+public+key"))
-                            )
-                        )
-                    ),
-                    selfSigningKeys = mapOf(
-                        UserId("@alice:example.com") to Signed(
-                            signed = CrossSigningKeys(
-                                userId = UserId("@alice:example.com"),
-                                usage = setOf(CrossSigningKeysUsage.SelfSigningKey),
-                                keys = keysOf(
-                                    Key.Ed25519Key(
-                                        "base64+self+signing+public+key",
-                                        "base64+self+signing+public+key"
-                                    )
                                 )
-                            ),
-                            signatures = mapOf(
-                                UserId("@alice:example.com") to keysOf(
-                                    Key.Ed25519Key(
-                                        "base64+master+public+key",
-                                        "signature+of+self+signing+key"
-                                    )
+                        ),
+                    masterKeys =
+                        mapOf(
+                            UserId("@alice:example.com") to
+                                Signed(
+                                    signed =
+                                        CrossSigningKeys(
+                                            userId = UserId("@alice:example.com"),
+                                            usage = setOf(CrossSigningKeysUsage.MasterKey),
+                                            keys =
+                                                keysOf(
+                                                    Key.Ed25519Key(
+                                                        "base64+master+public+key",
+                                                        "base64+master+public+key",
+                                                    )
+                                                ),
+                                        )
                                 )
-                            )
-                        )
-                    )
+                        ),
+                    selfSigningKeys =
+                        mapOf(
+                            UserId("@alice:example.com") to
+                                Signed(
+                                    signed =
+                                        CrossSigningKeys(
+                                            userId = UserId("@alice:example.com"),
+                                            usage = setOf(CrossSigningKeysUsage.SelfSigningKey),
+                                            keys =
+                                                keysOf(
+                                                    Key.Ed25519Key(
+                                                        "base64+self+signing+public+key",
+                                                        "base64+self+signing+public+key",
+                                                    )
+                                                ),
+                                        ),
+                                    signatures =
+                                        mapOf(
+                                            UserId("@alice:example.com") to
+                                                keysOf(
+                                                    Key.Ed25519Key(
+                                                        "base64+master+public+key",
+                                                        "signature+of+self+signing+key",
+                                                    )
+                                                )
+                                        ),
+                                )
+                        ),
                 )
             )
-        val response = client.post("/_matrix/federation/v1/user/keys/query") {
-            someSignature()
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "device_keys":{
-                    "@alice:example.com":[]
-                  }
-                }
-                """.trimIndent()
-            )
-        }
+        val response =
+            client.post("/_matrix/federation/v1/user/keys/query") {
+                someSignature()
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "device_keys":{
+                        "@alice:example.com":[]
+                      }
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "device_keys":{
                     "@alice:example.com":{
@@ -1940,14 +2041,15 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.getKeys(assert {
-                it.requestBody shouldBe GetKeys.Request(
-                    keysFrom = mapOf(UserId("alice", "example.com") to setOf()),
-                )
-            })
+            handlerMock.getKeys(
+                assert {
+                    it.requestBody shouldBe GetKeys.Request(keysFrom = mapOf(UserId("alice", "example.com") to setOf()))
+                }
+            )
         }
     }
 
@@ -1962,25 +2064,27 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 )
             )
         val response =
-            client.get("/_matrix/federation/v1/timestamp_to_event/!room:server?ts=24&dir=f") {
-                bearerAuth("token")
-            }
+            client.get("/_matrix/federation/v1/timestamp_to_event/!room:server?ts=24&dir=f") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                {
                   "event_id": "$143273582443PhrSn:example.org",
                   "origin_server_ts": 1432735824653
                }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.timestampToEvent(assert {
-                it.endpoint.roomId shouldBe RoomId("!room:server")
-                it.endpoint.timestamp shouldBe 24
-                it.endpoint.dir shouldBe TimestampToEvent.Direction.FORWARDS
-            })
+            handlerMock.timestampToEvent(
+                assert {
+                    it.endpoint.roomId shouldBe RoomId("!room:server")
+                    it.endpoint.timestamp shouldBe 24
+                    it.endpoint.dir shouldBe TimestampToEvent.Direction.FORWARDS
+                }
+            )
         }
     }
 
@@ -1996,15 +2100,13 @@ class FederationRoutesTest : TrixnityBaseTest() {
                     ContentDisposition("attachment").withParameter("filename", "example.txt"),
                 )
             )
-        val response =
-            client.get("/_matrix/federation/v1/media/download/mediaId123") {
-                bearerAuth("token")
-            }
+        val response = client.get("/_matrix/federation/v1/media/download/mediaId123") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType()?.toString() shouldStartWith ContentType.MultiPart.Mixed.toString()
             val boundary = this.contentType()?.parameter("boundary")
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 --$boundary
                 Content-Type: application/json
                 
@@ -2018,31 +2120,24 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 text file
                 --$boundary--
                 
-            """.trimIndent().replace("\n", "\r\n")
+            """
+                    .trimIndent()
+                    .replace("\n", "\r\n")
         }
-        verifySuspend {
-            handlerMock.downloadMedia(assert {
-                it.endpoint.mediaId shouldBe "mediaId123"
-            })
-        }
+        verifySuspend { handlerMock.downloadMedia(assert { it.endpoint.mediaId shouldBe "mediaId123" }) }
     }
 
     @Test
     fun downloadMediaRedirect() = testApplication {
         initCut()
-        everySuspend { handlerMock.downloadMedia(any()) }
-            .returns(
-                Media.Redirect("https://example.org/mediablabla")
-            )
-        val response =
-            client.get("/_matrix/federation/v1/media/download/mediaId123") {
-                bearerAuth("token")
-            }
+        everySuspend { handlerMock.downloadMedia(any()) }.returns(Media.Redirect("https://example.org/mediablabla"))
+        val response = client.get("/_matrix/federation/v1/media/download/mediaId123") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType()?.toString() shouldStartWith ContentType.MultiPart.Mixed.toString()
             val boundary = this.contentType()?.parameter("boundary")
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 --$boundary
                 Content-Type: application/json
                 
@@ -2053,13 +2148,11 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 
                 --$boundary--
                 
-            """.trimIndent().replace("\n", "\r\n")
+            """
+                    .trimIndent()
+                    .replace("\n", "\r\n")
         }
-        verifySuspend {
-            handlerMock.downloadMedia(assert {
-                it.endpoint.mediaId shouldBe "mediaId123"
-            })
-        }
+        verifySuspend { handlerMock.downloadMedia(assert { it.endpoint.mediaId shouldBe "mediaId123" }) }
     }
 
     @Test
@@ -2082,7 +2175,8 @@ class FederationRoutesTest : TrixnityBaseTest() {
             this.status shouldBe HttpStatusCode.OK
             this.contentType()?.toString() shouldStartWith ContentType.MultiPart.Mixed.toString()
             val boundary = this.contentType()?.parameter("boundary")
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 --$boundary
                 Content-Type: application/json
                 
@@ -2096,25 +2190,26 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 text file
                 --$boundary--
                 
-            """.trimIndent().replace("\n", "\r\n")
+            """
+                    .trimIndent()
+                    .replace("\n", "\r\n")
         }
         verifySuspend {
-            handlerMock.downloadThumbnail(assert {
-                it.endpoint.mediaId shouldBe "mediaId123"
-                it.endpoint.width shouldBe 64
-                it.endpoint.height shouldBe 64
-                it.endpoint.method shouldBe SCALE
-            })
+            handlerMock.downloadThumbnail(
+                assert {
+                    it.endpoint.mediaId shouldBe "mediaId123"
+                    it.endpoint.width shouldBe 64
+                    it.endpoint.height shouldBe 64
+                    it.endpoint.method shouldBe SCALE
+                }
+            )
         }
     }
 
     @Test
     fun downloadThumbnailRedirect() = testApplication {
         initCut()
-        everySuspend { handlerMock.downloadThumbnail(any()) }
-            .returns(
-                Media.Redirect("https://example.org/mediablabla")
-            )
+        everySuspend { handlerMock.downloadThumbnail(any()) }.returns(Media.Redirect("https://example.org/mediablabla"))
         val response =
             client.get("/_matrix/federation/v1/media/thumbnail/mediaId123?width=64&height=64&method=scale") {
                 bearerAuth("token")
@@ -2123,7 +2218,8 @@ class FederationRoutesTest : TrixnityBaseTest() {
             this.status shouldBe HttpStatusCode.OK
             this.contentType()?.toString() shouldStartWith ContentType.MultiPart.Mixed.toString()
             val boundary = this.contentType()?.parameter("boundary")
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 --$boundary
                 Content-Type: application/json
                 
@@ -2134,15 +2230,19 @@ class FederationRoutesTest : TrixnityBaseTest() {
                 
                 --$boundary--
                 
-            """.trimIndent().replace("\n", "\r\n")
+            """
+                    .trimIndent()
+                    .replace("\n", "\r\n")
         }
         verifySuspend {
-            handlerMock.downloadThumbnail(assert {
-                it.endpoint.mediaId shouldBe "mediaId123"
-                it.endpoint.width shouldBe 64
-                it.endpoint.height shouldBe 64
-                it.endpoint.method shouldBe SCALE
-            })
+            handlerMock.downloadThumbnail(
+                assert {
+                    it.endpoint.mediaId shouldBe "mediaId123"
+                    it.endpoint.width shouldBe 64
+                    it.endpoint.height shouldBe 64
+                    it.endpoint.method shouldBe SCALE
+                }
+            )
         }
     }
 }

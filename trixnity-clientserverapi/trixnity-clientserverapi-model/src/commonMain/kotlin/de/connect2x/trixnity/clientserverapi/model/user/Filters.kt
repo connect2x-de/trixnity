@@ -9,15 +9,12 @@ data class Filters(
     @SerialName("event_format") val eventFormat: EventFormat? = null,
     @SerialName("presence") val presence: EventFilter? = null,
     @SerialName("account_data") val accountData: EventFilter? = null,
-    @SerialName("room") val room: RoomFilter? = null
+    @SerialName("room") val room: RoomFilter? = null,
 ) {
     @Serializable
     enum class EventFormat {
-        @SerialName("client")
-        CLIENT,
-
-        @SerialName("federation")
-        FEDERATION
+        @SerialName("client") CLIENT,
+        @SerialName("federation") FEDERATION,
     }
 
     @Serializable
@@ -26,7 +23,7 @@ data class Filters(
         @SerialName("not_senders") val notSenders: Set<String>? = null,
         @SerialName("not_types") val notTypes: Set<String>? = null,
         @SerialName("senders") val senders: Set<String>? = null,
-        @SerialName("types") val types: Set<String>? = null
+        @SerialName("types") val types: Set<String>? = null,
     )
 
     @Serializable
@@ -37,7 +34,7 @@ data class Filters(
         @SerialName("not_rooms") val notRooms: Set<String>? = null,
         @SerialName("rooms") val rooms: Set<String>? = null,
         @SerialName("state") val state: RoomEventFilter? = null,
-        @SerialName("timeline") val timeline: RoomEventFilter? = null
+        @SerialName("timeline") val timeline: RoomEventFilter? = null,
     ) {
         @Serializable
         data class RoomEventFilter(
@@ -50,7 +47,7 @@ data class Filters(
             @SerialName("include_redundant_members") val includeRedundantMembers: Boolean? = null,
             @SerialName("not_rooms") val notRooms: Set<String>? = null,
             @SerialName("rooms") val rooms: Set<String>? = null,
-            @SerialName("contains_url") val containsUrl: Boolean? = null
+            @SerialName("contains_url") val containsUrl: Boolean? = null,
         )
     }
 }

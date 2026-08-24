@@ -9,10 +9,14 @@ fun canonicalJsonString(jsonElement: JsonElement): String {
 
 fun canonicalJson(jsonElement: JsonElement): JsonElement {
     return when (jsonElement) {
-        is JsonObject -> JsonObject(
-            jsonElement.mapValues { (_, value) -> canonicalJson(value) }
-                .entries.sortedBy { it.key }.associateBy({ it.key }, { it.value })
-        )
+        is JsonObject ->
+            JsonObject(
+                jsonElement
+                    .mapValues { (_, value) -> canonicalJson(value) }
+                    .entries
+                    .sortedBy { it.key }
+                    .associateBy({ it.key }, { it.value })
+            )
         is JsonArray -> JsonArray(jsonElement.map { entry -> canonicalJson(entry) })
         is JsonPrimitive -> jsonElement
     }

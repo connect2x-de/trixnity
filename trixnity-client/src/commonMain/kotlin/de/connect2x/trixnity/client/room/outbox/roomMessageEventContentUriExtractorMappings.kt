@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.client.room.outbox
 
-
 import de.connect2x.trixnity.client.media.mappings.EventContentUriExtractor
 import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -8,33 +7,25 @@ import de.connect2x.trixnity.core.model.events.m.room.VideoInfo
 import kotlinx.coroutines.coroutineScope
 
 class FileMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.File> {
-    override suspend fun invoke(
-        content: RoomMessageEventContent.FileBased.File,
-    ): Set<String> = coroutineScope {
+    override suspend fun invoke(content: RoomMessageEventContent.FileBased.File): Set<String> = coroutineScope {
         setOfOrEmpty(content.getContentUri())
     }
 }
 
 class ImageMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Image> {
-    override suspend fun invoke(
-        content: RoomMessageEventContent.FileBased.Image,
-    ): Set<String> = coroutineScope {
+    override suspend fun invoke(content: RoomMessageEventContent.FileBased.Image): Set<String> = coroutineScope {
         setOfOrEmpty(content.getContentUri()) + setOfOrEmpty(content.info?.getThumbnailUri())
     }
 }
 
 class VideoMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Video> {
-    override suspend fun invoke(
-        content: RoomMessageEventContent.FileBased.Video,
-    ): Set<String> = coroutineScope {
+    override suspend fun invoke(content: RoomMessageEventContent.FileBased.Video): Set<String> = coroutineScope {
         setOfOrEmpty(content.getContentUri()) + setOfOrEmpty(content.info?.getThumbnailUri())
     }
 }
 
 class AudioMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMessageEventContent.FileBased.Audio> {
-    override suspend fun invoke(
-        content: RoomMessageEventContent.FileBased.Audio,
-    ): Set<String> = coroutineScope {
+    override suspend fun invoke(content: RoomMessageEventContent.FileBased.Audio): Set<String> = coroutineScope {
         setOfOrEmpty(content.getContentUri())
     }
 }
@@ -43,6 +34,7 @@ class AudioMessageEventContentUriExtractor() : EventContentUriExtractor<RoomMess
 private fun <T : Any> setOfOrEmpty(of: T?): Set<T> = of?.let { setOf(it) } ?: emptySet()
 
 private fun RoomMessageEventContent.FileBased.getContentUri(): String? = this.file?.url ?: this.url
-private fun ImageInfo?.getThumbnailUri(): String? = this?.thumbnailFile?.url ?: this?.thumbnailUrl
-private fun VideoInfo?.getThumbnailUri(): String? = this?.thumbnailFile?.url ?: this?.thumbnailUrl
 
+private fun ImageInfo?.getThumbnailUri(): String? = this?.thumbnailFile?.url ?: this?.thumbnailUrl
+
+private fun VideoInfo?.getThumbnailUri(): String? = this?.thumbnailFile?.url ?: this?.thumbnailUrl

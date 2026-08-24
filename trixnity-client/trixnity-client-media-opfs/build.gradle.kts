@@ -21,10 +21,6 @@ kotlin {
                 implementation(sharedLibs.lognity.api)
             }
         }
-        webTest {
-            dependencies {
-                implementation(projects.trixnityTestUtils)
-            }
-        }
+        webTest { dependencies { implementation(projects.trixnityTestUtils) } }
     }
 }

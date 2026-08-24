@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core.model.events.m
 
+import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -8,15 +9,10 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#mtag">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#mtag">matrix spec</a> */
 @Serializable
-data class TagEventContent(
-    @SerialName("tags") val tags: Map<TagName, Tag>,
-) : RoomAccountDataEventContent {
+data class TagEventContent(@SerialName("tags") val tags: Map<TagName, Tag>) : RoomAccountDataEventContent {
 
     @Serializable(with = TagName.Serializer::class)
     interface TagName {
@@ -51,12 +47,8 @@ data class TagEventContent(
             override fun serialize(encoder: Encoder, value: TagName) {
                 encoder.encodeString(value.name)
             }
-
         }
     }
 
-    @Serializable
-    data class Tag(
-        @SerialName("order") val order: Double? = null
-    )
+    @Serializable data class Tag(@SerialName("order") val order: Double? = null)
 }

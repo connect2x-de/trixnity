@@ -5,5 +5,6 @@ sealed interface Message : AutoCloseable {
     val base64: String
 
     interface Normal : Message
+
     interface PreKey : Message
 }

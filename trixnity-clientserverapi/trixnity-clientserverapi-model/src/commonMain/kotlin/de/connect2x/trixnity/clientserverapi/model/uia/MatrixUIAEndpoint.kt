@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.clientserverapi.model.uia
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 
 interface MatrixUIAEndpoint<REQUEST, RESPONSE> : MatrixEndpoint<RequestWithUIA<REQUEST>, ResponseWithUIA<RESPONSE>> {
     fun plainRequestSerializerBuilder(mappings: EventContentSerializerMappings, json: Json): KSerializer<REQUEST>? {

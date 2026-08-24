@@ -17,10 +17,7 @@ import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 
-@Entity(
-    tableName = "RoomOutboxMessage2",
-    primaryKeys = ["roomId", "transactionId"]
-)
+@Entity(tableName = "RoomOutboxMessage2", primaryKeys = ["roomId", "transactionId"])
 data class RoomRoomOutboxMessage(
     val roomId: RoomId,
     val transactionId: String,
@@ -33,20 +30,16 @@ interface RoomOutboxMessageDao {
     @Query("SELECT * FROM RoomOutboxMessage2 WHERE roomId = :roomId AND transactionId = :transactionId LIMIT 1")
     suspend fun get(roomId: RoomId, transactionId: String): RoomRoomOutboxMessage?
 
-    @Query("SELECT * FROM RoomOutboxMessage2")
-    suspend fun getAll(): List<RoomRoomOutboxMessage>
+    @Query("SELECT * FROM RoomOutboxMessage2") suspend fun getAll(): List<RoomRoomOutboxMessage>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomRoomOutboxMessage)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomRoomOutboxMessage)
 
     @Query("DELETE FROM RoomOutboxMessage2 WHERE roomId = :roomId AND transactionId = :transactionId")
     suspend fun delete(roomId: RoomId, transactionId: String)
 
-    @Query("DELETE FROM RoomOutboxMessage2 WHERE roomId = :roomId")
-    suspend fun delete(roomId: RoomId)
+    @Query("DELETE FROM RoomOutboxMessage2 WHERE roomId = :roomId") suspend fun delete(roomId: RoomId)
 
-    @Query("DELETE FROM RoomOutboxMessage2")
-    suspend fun deleteAll()
+    @Query("DELETE FROM RoomOutboxMessage2") suspend fun deleteAll()
 }
 
 internal class RoomRoomOutboxMessageRepository(
@@ -61,8 +54,7 @@ internal class RoomRoomOutboxMessageRepository(
         dao.get(key.roomId, key.transactionId)?.toModel()
 
     context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<RoomOutboxMessage<*>> =
-        dao.getAll().map { it.toModel() }
+    override suspend fun getAll(): List<RoomOutboxMessage<*>> = dao.getAll().map { it.toModel() }
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: RoomOutboxMessageRepositoryKey, value: RoomOutboxMessage<*>) {
@@ -72,39 +64,33 @@ internal class RoomRoomOutboxMessageRepository(
             RoomRoomOutboxMessage(
                 roomId = key.roomId,
                 transactionId = key.transactionId,
-                value = json.encodeToString(
-                    RoomOutboxMessage.serializer(mapping.serializer as KSerializer<MessageEventContent>),
-                    value as RoomOutboxMessage<MessageEventContent>,
-                ),
+                value =
+                    json.encodeToString(
+                        RoomOutboxMessage.serializer(mapping.serializer as KSerializer<MessageEventContent>),
+                        value as RoomOutboxMessage<MessageEventContent>,
+                    ),
                 contentType = mapping.type,
             )
         )
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) =
-        dao.delete(key.roomId, key.transactionId)
+    override suspend fun delete(key: RoomOutboxMessageRepositoryKey) = dao.delete(key.roomId, key.transactionId)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteByRoomId(roomId: RoomId) =
-        dao.delete(roomId)
+    override suspend fun deleteByRoomId(roomId: RoomId) = dao.delete(roomId)
 
     private fun RoomRoomOutboxMessage.toModel(): RoomOutboxMessage<*> =
         json.decodeFromString(
-            RoomOutboxMessage.serializer(
-                getMappingOrThrow { it.type == contentType }.serializer,
-            ),
+            RoomOutboxMessage.serializer(getMappingOrThrow { it.type == contentType }.serializer),
             value,
         )
 
     private fun getMappingOrThrow(
-        condition: (EventContentSerializerMapping<out MessageEventContent>) -> Boolean,
+        condition: (EventContentSerializerMapping<out MessageEventContent>) -> Boolean
     ): EventContentSerializerMapping<out MessageEventContent> =
-        mappings.message
-            .find { condition.invoke(it) }
-            ?: error("No serialiser found required condition!")
+        mappings.message.find { condition.invoke(it) } ?: error("No serialiser found required condition!")
 }

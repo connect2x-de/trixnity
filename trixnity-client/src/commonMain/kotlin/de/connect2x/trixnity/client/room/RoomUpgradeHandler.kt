@@ -18,6 +18,8 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancelChildren
@@ -31,8 +33,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 private val log = Logger("de.connect2x.trixnity.client.room.RoomUpgradeHandler")
 
@@ -68,22 +68,23 @@ class RoomUpgradeHandler(
     @OptIn(FlowPreview::class)
     internal suspend fun joinUpgradedRooms() {
         if (configuration.autoJoinUpgradedRooms.not()) return
-        // if we missend tombstones due to a stopped MatrixClient, we want at least check once the MatrixClient is running for a while
+        // if we missend tombstones due to a stopped MatrixClient, we want at least check once the MatrixClient is
+        // running for a while
         coroutineScope {
             select {
-                launch {
-                    tombstonesFromSync.debounce(debounce).first { it.isNotEmpty() }
-                }.onJoin { }
-                launch {
-                    delay(initialDelay)
-                }.onJoin { }
-            }.also {
-                currentCoroutineContext().cancelChildren()
-            }
+                    launch { tombstonesFromSync.debounce(debounce).first { it.isNotEmpty() } }.onJoin {}
+                    launch { delay(initialDelay) }.onJoin {}
+                }
+                .also { currentCoroutineContext().cancelChildren() }
         }
-        val upgradedRooms = roomStore.getAll().flattenValues().first()
-            .filter { it.nextRoomId != null && it.membership == Membership.JOIN }
-            .map { it.roomId }.toSet()
+        val upgradedRooms =
+            roomStore
+                .getAll()
+                .flattenValues()
+                .first()
+                .filter { it.nextRoomId != null && it.membership == Membership.JOIN }
+                .map { it.roomId }
+                .toSet()
         joinUpgradedRooms(upgradedRooms)
         while (currentCoroutineContext().isActive) {
             val upgradedRooms = tombstonesFromSync.debounce(debounce).first { it.isNotEmpty() }
@@ -104,22 +105,26 @@ class RoomUpgradeHandler(
                 }
 
                 nextRoom.membership == Membership.INVITE -> {
-                    api.room.joinRoom(nextRoomId).fold(
-                        onSuccess = {
-                            log.debug { "joined upgraded invited room $roomId -> $nextRoomId" }
-                            tombstonesFromSync.update { it - roomId }
-                        },
-                        onFailure = {
-                            log.warn(it) { "could not join upgraded invited room $roomId -> $nextRoomId" }
-                            if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                    api.room
+                        .joinRoom(nextRoomId)
+                        .fold(
+                            onSuccess = {
+                                log.debug { "joined upgraded invited room $roomId -> $nextRoomId" }
                                 tombstonesFromSync.update { it - roomId }
-                            }
-                        }
-                    )
+                            },
+                            onFailure = {
+                                log.warn(it) { "could not join upgraded invited room $roomId -> $nextRoomId" }
+                                if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                                    tombstonesFromSync.update { it - roomId }
+                                }
+                            },
+                        )
                 }
 
                 else -> {
-                    log.debug { "ignore upgrade room $roomId -> $nextRoomId because membership is ${nextRoom.membership}" }
+                    log.debug {
+                        "ignore upgrade room $roomId -> $nextRoomId because membership is ${nextRoom.membership}"
+                    }
                     tombstonesFromSync.update { it - roomId }
                 }
             }

@@ -4,9 +4,9 @@ import de.connect2x.trixnity.core.model.events.m.call.CallEventContent
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Answer.Answer
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Answer.AnswerType
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Candidates.Candidate
+import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Hangup.Reason
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Invite.Offer
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Invite.OfferType
-import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Hangup.Reason
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Negotiate.Description
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent.Negotiate.DescriptionType
 import de.connect2x.trixnity.core.model.events.m.call.Purpose
@@ -23,22 +23,30 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.invite //////////////////
 
-    private val testInvite = CallEventContent.Invite(
-        version = "1",
-        callId = "0123",
-        offer = Offer(sdp = """
-            v=0
-            o=- 6584580628695956864 2 IN IP4 127.0.0.1
-            """.trimIndent(),
-            type = OfferType.OFFER),
-        lifetime = 30000,
-        sdpStreamMetadata = mapOf(
-            "271828182845" to StreamMetadata(Purpose.SCREENSHARE),
-            "314159265358" to StreamMetadata(Purpose.USERMEDIA),
+    private val testInvite =
+        CallEventContent.Invite(
+            version = "1",
+            callId = "0123",
+            offer =
+                Offer(
+                    sdp =
+                        """
+                        v=0
+                        o=- 6584580628695956864 2 IN IP4 127.0.0.1
+                        """
+                            .trimIndent(),
+                    type = OfferType.OFFER,
+                ),
+            lifetime = 30000,
+            sdpStreamMetadata =
+                mapOf(
+                    "271828182845" to StreamMetadata(Purpose.SCREENSHARE),
+                    "314159265358" to StreamMetadata(Purpose.USERMEDIA),
+                ),
         )
-    )
 
-    private val serializedInvite = """{
+    private val serializedInvite =
+        """{
         "version": "1",
         "call_id": "0123",
         "lifetime": 30000,
@@ -58,7 +66,8 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
                 "video_muted": false
             }
         }
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallInvite() {
@@ -74,31 +83,37 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.candidates //////////////////
 
-    private val testCandidates = CallEventContent.Candidates(
-        version = "0",
-        callId = "0123",
-        candidates = listOf(
-            Candidate(
-                candidate = "candidate:423458654 1 udp 2130706431 192.168.0.100 51008 typ host generation 0 ufrag 3f8a",
-                sdpMid = "audio",
-                sdpMLineIndex = 0
-            ),
-            Candidate(
-                candidate = "candidate:423458654 2 udp 2130706431 192.168.0.100 51009 typ host generation 0 ufrag 4839",
-                sdpMid = "audio",
-                sdpMLineIndex = 1
-            ),
-        ),
-    )
+    private val testCandidates =
+        CallEventContent.Candidates(
+            version = "0",
+            callId = "0123",
+            candidates =
+                listOf(
+                    Candidate(
+                        candidate =
+                            "candidate:423458654 1 udp 2130706431 192.168.0.100 51008 typ host generation 0 ufrag 3f8a",
+                        sdpMid = "audio",
+                        sdpMLineIndex = 0,
+                    ),
+                    Candidate(
+                        candidate =
+                            "candidate:423458654 2 udp 2130706431 192.168.0.100 51009 typ host generation 0 ufrag 4839",
+                        sdpMid = "audio",
+                        sdpMLineIndex = 1,
+                    ),
+                ),
+        )
 
-    private val serializedCandidates = """{
+    private val serializedCandidates =
+        """{
         "version": 0,
         "call_id": "0123",
         "candidates": [
             {"candidate":"candidate:423458654 1 udp 2130706431 192.168.0.100 51008 typ host generation 0 ufrag 3f8a","sdpMLineIndex":0,"sdpMid":"audio"},
             {"candidate":"candidate:423458654 2 udp 2130706431 192.168.0.100 51009 typ host generation 0 ufrag 4839","sdpMLineIndex":1,"sdpMid":"audio"}
         ]
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallCandidates() {
@@ -114,18 +129,21 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.answer //////////////////
 
-    private val testAnswer = CallEventContent.Answer(
-        version = "0",
-        callId = "0123",
-        partyId = null,
-        answer = Answer(sdp = "v=0", type = AnswerType.ANSWER),
-        sdpStreamMetadata = null,
-    )
-    private val serializedAnswer = """{
+    private val testAnswer =
+        CallEventContent.Answer(
+            version = "0",
+            callId = "0123",
+            partyId = null,
+            answer = Answer(sdp = "v=0", type = AnswerType.ANSWER),
+            sdpStreamMetadata = null,
+        )
+    private val serializedAnswer =
+        """{
         "version": 0,
         "call_id": "0123",
         "answer": {"sdp":"v=0","type":"answer"}
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallAnswer() {
@@ -141,18 +159,16 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.hangup //////////////////
 
-    private val testHangup = CallEventContent.Hangup(
-        callId = "0123",
-        version = "0",
-        partyId = null,
-        reason = Reason.INVITE_TIMEOUT
-    )
+    private val testHangup =
+        CallEventContent.Hangup(callId = "0123", version = "0", partyId = null, reason = Reason.INVITE_TIMEOUT)
 
-    private val serializedHangup = """{
+    private val serializedHangup =
+        """{
         "version": 0,
         "call_id": "0123",
         "reason": "invite_timeout"
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallHangup() {
@@ -168,17 +184,20 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.negotiate //////////////////
 
-    private val testNegotiate = CallEventContent.Negotiate(
-        callId = "0123",
-        partyId = "67890",
-        description = Description("v=0", DescriptionType.OFFER),
-        lifetime = 10000,
-        sdpStreamMetadata = mapOf(
-            "271828182845" to StreamMetadata(Purpose.SCREENSHARE),
-            "314159265358" to StreamMetadata(Purpose.USERMEDIA),
-        ),
-    )
-    private val serializedNegotiate = """{
+    private val testNegotiate =
+        CallEventContent.Negotiate(
+            callId = "0123",
+            partyId = "67890",
+            description = Description("v=0", DescriptionType.OFFER),
+            lifetime = 10000,
+            sdpStreamMetadata =
+                mapOf(
+                    "271828182845" to StreamMetadata(Purpose.SCREENSHARE),
+                    "314159265358" to StreamMetadata(Purpose.USERMEDIA),
+                ),
+        )
+    private val serializedNegotiate =
+        """{
         "version": "1",
         "call_id": "0123",
         "party_id": "67890",
@@ -199,7 +218,8 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
                 "video_muted": false
             }
         }
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallNegotiate() {
@@ -217,11 +237,13 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     private val testReject = CallEventContent.Reject(callId = "0123", partyId = "23423")
 
-    private val serializedReject = """{
+    private val serializedReject =
+        """{
         "version": "1",
         "call_id": "0123",
         "party_id": "23423"
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallReject() {
@@ -237,19 +259,17 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.select_answer //////////////////
 
-    private val testSelectAnswer = CallEventContent.SelectAnswer(
-        version = "0",
-        callId = "0123",
-        partyId = "23423",
-        selectedPartyId = "67890"
-    )
+    private val testSelectAnswer =
+        CallEventContent.SelectAnswer(version = "0", callId = "0123", partyId = "23423", selectedPartyId = "67890")
 
-    private val serializedSelectAnswer = """{
+    private val serializedSelectAnswer =
+        """{
         "version": 0,
         "call_id": "0123",
         "party_id": "23423",
         "selected_party_id": "67890"
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldSerializeCallSelectAnswer() {
@@ -265,15 +285,18 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
 
     ////////////////// m.call.sdp_stream_metadata_changed //////////////////
 
-    private val testSdpStreamMetadataChanged = CallEventContent.SdpStreamMetadataChanged(
-        callId = "0123",
-        partyId = "67890",
-        sdpStreamMetadata = mapOf(
-            "271828182845" to StreamMetadata(Purpose.SCREENSHARE, audioMuted = true),
-            "314159265358" to StreamMetadata(Purpose.USERMEDIA, videoMuted = true),
-        ),
-    )
-    private val serializedSdpStreamMetadataChanged = """{
+    private val testSdpStreamMetadataChanged =
+        CallEventContent.SdpStreamMetadataChanged(
+            callId = "0123",
+            partyId = "67890",
+            sdpStreamMetadata =
+                mapOf(
+                    "271828182845" to StreamMetadata(Purpose.SCREENSHARE, audioMuted = true),
+                    "314159265358" to StreamMetadata(Purpose.USERMEDIA, videoMuted = true),
+                ),
+        )
+    private val serializedSdpStreamMetadataChanged =
+        """{
         "version": "1",
         "call_id": "0123",
         "party_id": "67890",
@@ -289,11 +312,13 @@ class CallEventContentSerializerTest : TrixnityBaseTest() {
                 "video_muted": true
             }
         }
-    }""".trimToFlatJson()
+    }"""
+            .trimToFlatJson()
 
     @Test
     fun shouldDeserializeSdpStreamMetadataChanged() {
-        val result: CallEventContent.SdpStreamMetadataChanged = json.decodeFromString(serializedSdpStreamMetadataChanged)
+        val result: CallEventContent.SdpStreamMetadataChanged =
+            json.decodeFromString(serializedSdpStreamMetadataChanged)
         assertEquals(testSdpStreamMetadataChanged, result)
     }
 

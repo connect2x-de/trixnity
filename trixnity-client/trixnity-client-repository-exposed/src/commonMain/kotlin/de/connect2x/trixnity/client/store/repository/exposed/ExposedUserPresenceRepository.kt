@@ -23,17 +23,14 @@ internal object ExposedUserPresence : Table("user_presence") {
 internal class ExposedUserPresenceRepository(private val json: Json) : UserPresenceRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: UserId): UserPresence? {
-        return ExposedUserPresence.selectAll().where { ExposedUserPresence.userId eq key.full }.firstOrNull()
-            ?.let {
-                json.decodeFromString(it[ExposedUserPresence.value])
-            }
+        return ExposedUserPresence.selectAll()
+            .where { ExposedUserPresence.userId eq key.full }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedUserPresence.value]) }
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        key: UserId,
-        value: UserPresence
-    ) {
+    override suspend fun save(key: UserId, value: UserPresence) {
         ExposedUserPresence.upsert {
             it[userId] = key.full
             it[ExposedUserPresence.value] = json.encodeToString(value)

@@ -8,9 +8,9 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.http.*
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import kotlin.coroutines.CoroutineContext
 
 interface MatrixClientAuthProvider : AuthProvider {
     val baseUrl: Url
@@ -23,23 +23,23 @@ interface MatrixClientAuthProvider : AuthProvider {
     suspend fun logout(): Result<Unit>? = null
 }
 
-/**
- * Provides methods to retrieve and store arbitrary authentication data.
- */
+/** Provides methods to retrieve and store arbitrary authentication data. */
 interface MatrixClientAuthProviderDataStore {
     suspend fun getAuthData(): MatrixClientAuthProviderData?
+
     suspend fun setAuthData(authData: MatrixClientAuthProviderData?)
 
     companion object {
-        fun inMemory(initialValue: MatrixClientAuthProviderData? = null) = object : MatrixClientAuthProviderDataStore {
-            var authData = initialValue
+        fun inMemory(initialValue: MatrixClientAuthProviderData? = null) =
+            object : MatrixClientAuthProviderDataStore {
+                var authData = initialValue
 
-            override suspend fun getAuthData(): MatrixClientAuthProviderData? = authData
+                override suspend fun getAuthData(): MatrixClientAuthProviderData? = authData
 
-            override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) {
-                this.authData = authData
+                override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) {
+                    this.authData = authData
+                }
             }
-        }
     }
 }
 
@@ -54,7 +54,7 @@ interface MatrixClientAuthProviderData {
         store: MatrixClientAuthProviderDataStore,
         onLogout: suspend (LogoutInfo) -> Unit = {},
         httpClientEngine: HttpClientEngine? = null,
-        httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null
+        httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
     ): MatrixClientAuthProvider
 
     companion object
@@ -68,19 +68,22 @@ inline fun <T> MatrixClientAuthProviderData.useApi(
     coroutineContext: CoroutineContext = Dispatchers.Default,
     httpClientEngine: HttpClientEngine? = null,
     noinline httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-    block: (MatrixClientServerApiClient) -> T
-): T = MatrixClientServerApiClientImpl(
-    authProvider = createAuthProvider(
-        store = MatrixClientAuthProviderDataStore.inMemory(this),
-        onLogout = {},
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig,
-    ),
-    eventContentSerializerMappings = eventContentSerializerMappings,
-    json = json,
-    syncBatchTokenStore = syncBatchTokenStore,
-    syncErrorDelayConfig = syncErrorDelayConfig,
-    coroutineContext = coroutineContext,
-    httpClientEngine = httpClientEngine,
-    httpClientConfig = httpClientConfig,
-).use { block(it) }
+    block: (MatrixClientServerApiClient) -> T,
+): T =
+    MatrixClientServerApiClientImpl(
+            authProvider =
+                createAuthProvider(
+                    store = MatrixClientAuthProviderDataStore.inMemory(this),
+                    onLogout = {},
+                    httpClientEngine = httpClientEngine,
+                    httpClientConfig = httpClientConfig,
+                ),
+            eventContentSerializerMappings = eventContentSerializerMappings,
+            json = json,
+            syncBatchTokenStore = syncBatchTokenStore,
+            syncErrorDelayConfig = syncErrorDelayConfig,
+            coroutineContext = coroutineContext,
+            httpClientEngine = httpClientEngine,
+            httpClientConfig = httpClientConfig,
+        )
+        .use { block(it) }

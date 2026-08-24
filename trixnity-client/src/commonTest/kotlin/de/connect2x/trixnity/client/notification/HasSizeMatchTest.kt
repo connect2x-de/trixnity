@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.client.notification
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class HasSizeMatchTest : TrixnityBaseTest() {

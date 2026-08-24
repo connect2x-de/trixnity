@@ -1,11 +1,5 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.*
@@ -15,9 +9,15 @@ import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 inline fun <reified C : StateEventContent> RoomStateStore.get(
-    roomId: RoomId,
+    roomId: RoomId
 ): Flow<Map<String, Flow<StateBaseEvent<C>?>>> = get(roomId, C::class)
 
 inline fun <reified C : StateEventContent> RoomStateStore.getByStateKey(
@@ -41,37 +41,32 @@ inline fun <reified C : RoomAccountDataEventContent> RoomAccountDataStore.get(
 ): Flow<RoomAccountDataEvent<C>?> = get(roomId, C::class, key)
 
 inline fun <reified C : GlobalAccountDataEventContent> GlobalAccountDataStore.get(
-    key: String = "",
+    key: String = ""
 ): Flow<GlobalAccountDataEvent<C>?> = get(C::class, key)
 
-suspend fun RoomStateStore.members(
-    roomId: RoomId,
-    memberships: Set<Membership>,
-): Set<UserId> =
-    get<MemberEventContent>(roomId).first()
+suspend fun RoomStateStore.members(roomId: RoomId, memberships: Set<Membership>): Set<UserId> =
+    get<MemberEventContent>(roomId)
+        .first()
         .filter { memberships.contains(it.value.first()?.content?.membership) }
-        .map { UserId(it.key) }.toSet()
+        .map { UserId(it.key) }
+        .toSet()
 
 suspend fun RoomStateStore.membersCount(
     roomId: RoomId,
     membership: Membership,
-    vararg moreMemberships: Membership
+    vararg moreMemberships: Membership,
 ): Long {
     val allMemberships = moreMemberships.toList() + membership
-    return get<MemberEventContent>(roomId).first()
-        .count { allMemberships.contains(it.value.first()?.content?.membership) }.toLong()
+    return get<MemberEventContent>(roomId)
+        .first()
+        .count { allMemberships.contains(it.value.first()?.content?.membership) }
+        .toLong()
 }
 
 suspend fun RoomStore.encryptedRooms(): Set<RoomId> =
-    getAll().first().values
-        .map { it.first() }
-        .filter { it?.encrypted == true }
-        .mapNotNull { it?.roomId }
-        .toSet()
+    getAll().first().values.map { it.first() }.filter { it?.encrypted == true }.mapNotNull { it?.roomId }.toSet()
 
-fun RoomTimelineStore.getNext(
-    event: TimelineEvent,
-): Flow<TimelineEvent?>? =
+fun RoomTimelineStore.getNext(event: TimelineEvent): Flow<TimelineEvent?>? =
     event.nextEventId?.let { get(it, event.roomId) }
 
 suspend fun RoomTimelineStore.getPrevious(event: TimelineEvent): TimelineEvent? =
@@ -81,7 +76,7 @@ suspend fun OlmCryptoStore.waitForInboundMegolmSession(
     roomId: RoomId,
     sessionId: String,
     firstKnownIndexLessThen: Long? = null,
-    onNotExisting: (suspend CoroutineScope.() -> Unit)? = null
+    onNotExisting: (suspend CoroutineScope.() -> Unit)? = null,
 ): Unit = coroutineScope {
     fun StoredInboundMegolmSession?.matches() =
         this != null && (firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen)
@@ -90,8 +85,7 @@ suspend fun OlmCryptoStore.waitForInboundMegolmSession(
         if (getInboundMegolmSession(sessionId, roomId).first().matches().not() && onNotExisting != null)
             launch { onNotExisting() }
         else null
-    getInboundMegolmSession(sessionId, roomId)
-        .first { it.matches() }
+    getInboundMegolmSession(sessionId, roomId).first { it.matches() }
     onNotExistingJob?.cancel()
 }
 

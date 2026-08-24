@@ -9,10 +9,7 @@ import kotlinx.coroutines.withContext
 private val log = Logger("de.connect2x.trixnity.utils.KeyedMutex")
 
 open class KeyedMutex<K : Any> {
-    private data class ClaimedMutex(
-        val claimCount: Int = 0,
-        val mutex: Mutex = Mutex(),
-    )
+    private data class ClaimedMutex(val claimCount: Int = 0, val mutex: Mutex = Mutex())
 
     private val mutexByKeyMutex = Mutex()
     private val mutexByKey = mutableMapOf<K, ClaimedMutex>()
@@ -20,22 +17,15 @@ open class KeyedMutex<K : Any> {
     suspend fun <T> withLock(key: K, block: suspend () -> T): T {
         return try {
             val mutex = claimMutex(key)
-            mutex.withLock {
-                block()
-            }
+            mutex.withLock { block() }
         } finally {
-            withContext(NonCancellable) {
-                releaseMutex(key)
-            }
+            withContext(NonCancellable) { releaseMutex(key) }
         }
     }
 
-
     private suspend fun claimMutex(key: K): Mutex = mutexByKeyMutex.withLock {
         log.trace { "claim mutex (key=$key)" }
-        val claimedMutex = mutexByKey[key]
-            ?.run { copy(claimCount = claimCount + 1) }
-            ?: ClaimedMutex(1)
+        val claimedMutex = mutexByKey[key]?.run { copy(claimCount = claimCount + 1) } ?: ClaimedMutex(1)
         mutexByKey[key] = claimedMutex
         claimedMutex.mutex
     }

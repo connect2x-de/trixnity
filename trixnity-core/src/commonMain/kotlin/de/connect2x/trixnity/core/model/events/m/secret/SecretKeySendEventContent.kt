@@ -1,16 +1,12 @@
 package de.connect2x.trixnity.core.model.events.m.secret
 
+import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#msecretrequest">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#msecretrequest">matrix spec</a> */
 @Serializable
 data class SecretKeySendEventContent(
-    @SerialName("request_id")
-    val requestId: String,
-    @SerialName("secret")
-    val secret: String,
+    @SerialName("request_id") val requestId: String,
+    @SerialName("secret") val secret: String,
 ) : ToDeviceEventContent

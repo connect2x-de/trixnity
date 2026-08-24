@@ -1,11 +1,11 @@
 import de.connect2x.conventions.withAndroidLibrary
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.konan.properties.hasProperty
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.net.URI
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.*
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.properties.hasProperty
+import org.jetbrains.kotlin.konan.target.KonanTarget
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -14,16 +14,15 @@ plugins {
 
 registerLibvodozemac(
     VodozemacBinaries.Remote(
-        baseUrl =
-            "https://gitlab.com/api/v4/projects/69401252/packages/generic/libvodozemac",
+        baseUrl = "https://gitlab.com/api/v4/projects/69401252/packages/generic/libvodozemac",
         version = libs.versions.vodozemac.tag,
         hashes =
             Hashes(
                 jvmJni = libs.versions.vodozemac.jvmJni,
                 androidJni = libs.versions.vodozemac.androidJni,
                 native = libs.versions.vodozemac.native,
-                webNpm = libs.versions.vodozemac.webNpm
-            )
+                webNpm = libs.versions.vodozemac.webNpm,
+            ),
     )
 )
 
@@ -53,15 +52,9 @@ data class Hashes(
 )
 
 sealed interface VodozemacBinaries {
-    data class Remote(
-        val baseUrl: String,
-        val version: Provider<String>,
-        val hashes: Hashes,
-    ) : VodozemacBinaries
+    data class Remote(val baseUrl: String, val version: Provider<String>, val hashes: Hashes) : VodozemacBinaries
 
-    data class Local(
-        val directory: String,
-    ) : VodozemacBinaries
+    data class Local(val directory: String) : VodozemacBinaries
 }
 
 data class Directories<T : OutputDirProvider>(
@@ -73,33 +66,31 @@ data class Directories<T : OutputDirProvider>(
 
 fun registerLibvodozemacLocal(binaries: VodozemacBinaries.Local): Directories<*> {
     val downloadLibvodozemacJvmJniArchive by
-    tasks.registering(CopyTar::class) {
-        file = file("${binaries.directory}/libvodozemac-jvm-jni.tar.gz")
-        outputDir = layout.buildDirectory.dir("binaries/local/jvm")
-        subdirectory = "natives"
-    }
+        tasks.registering(CopyTar::class) {
+            file = file("${binaries.directory}/libvodozemac-jvm-jni.tar.gz")
+            outputDir = layout.buildDirectory.dir("binaries/local/jvm")
+            subdirectory = "natives"
+        }
 
     val downloadLibvodozemacAndroidJniArchive by
-    tasks.registering(CopyTar::class) {
-        file = file("${binaries.directory}/libvodozemac-android-jni.tar.gz")
-        outputDir = layout.buildDirectory.dir("binaries/local/android")
-    }
+        tasks.registering(CopyTar::class) {
+            file = file("${binaries.directory}/libvodozemac-android-jni.tar.gz")
+            outputDir = layout.buildDirectory.dir("binaries/local/android")
+        }
 
     val downloadLibvodozemacNativeArchive by
-    tasks.registering(CopyTar::class) {
-        file = file("${binaries.directory}/libvodozemac-native.tar.gz")
-        outputDir = layout.buildDirectory.dir("binaries/local/native")
-    }
+        tasks.registering(CopyTar::class) {
+            file = file("${binaries.directory}/libvodozemac-native.tar.gz")
+            outputDir = layout.buildDirectory.dir("binaries/local/native")
+        }
 
     val downloadLibvodozemacWebArchive by
-    tasks.registering(CopyTar::class) {
-        file = file("${binaries.directory}/libvodozemac-web-npm.tar.gz")
-        outputDir = layout.buildDirectory.dir("binaries/local/web")
-    }
+        tasks.registering(CopyTar::class) {
+            file = file("${binaries.directory}/libvodozemac-web-npm.tar.gz")
+            outputDir = layout.buildDirectory.dir("binaries/local/web")
+        }
 
-    tasks
-        .named { it == "jsPackageJson" }
-        .configureEach { dependsOn(downloadLibvodozemacWebArchive) }
+    tasks.named { it == "jsPackageJson" }.configureEach { dependsOn(downloadLibvodozemacWebArchive) }
 
     return Directories(
         jvmJni = downloadLibvodozemacJvmJniArchive.flatMap { it.outputDir },
@@ -113,40 +104,33 @@ fun registerLibvodozemacRemote(binaries: VodozemacBinaries.Remote): Directories<
     val fullUrl = binaries.version.map { "${binaries.baseUrl}/$it" }
 
     val downloadLibvodozemacJvmJniArchive by
-    tasks.registering(DownloadAndUnpack::class) {
-        url = fullUrl.map { "$it/libvodozemac-jvm-jni.tar.gz" }
-        sha256 = binaries.hashes.jvmJni
-        outputDir = layout.buildDirectory
-            .dir("binaries/remote/jvm")
-            .flatMap { it.dir(binaries.hashes.jvmJni) }
-        subdirectory = "natives"
-    }
+        tasks.registering(DownloadAndUnpack::class) {
+            url = fullUrl.map { "$it/libvodozemac-jvm-jni.tar.gz" }
+            sha256 = binaries.hashes.jvmJni
+            outputDir = layout.buildDirectory.dir("binaries/remote/jvm").flatMap { it.dir(binaries.hashes.jvmJni) }
+            subdirectory = "natives"
+        }
 
     val downloadLibvodozemacAndroidJniArchive by
-    tasks.registering(DownloadAndUnpack::class) {
-        url = fullUrl.map { "$it/libvodozemac-android-jni.tar.gz" }
-        sha256 = binaries.hashes.androidJni
-        outputDir = layout.buildDirectory
-            .dir("binaries/remote/android")
-            .flatMap { it.dir(binaries.hashes.androidJni) }
-    }
+        tasks.registering(DownloadAndUnpack::class) {
+            url = fullUrl.map { "$it/libvodozemac-android-jni.tar.gz" }
+            sha256 = binaries.hashes.androidJni
+            outputDir =
+                layout.buildDirectory.dir("binaries/remote/android").flatMap { it.dir(binaries.hashes.androidJni) }
+        }
 
     val downloadLibvodozemacNativeArchive by
-    tasks.registering(DownloadAndUnpack::class) {
-        url = fullUrl.map { "$it/libvodozemac-native.tar.gz" }
-        sha256 = binaries.hashes.native
-        outputDir = layout.buildDirectory
-            .dir("binaries/remote/native")
-            .flatMap { it.dir(binaries.hashes.native) }
-    }
+        tasks.registering(DownloadAndUnpack::class) {
+            url = fullUrl.map { "$it/libvodozemac-native.tar.gz" }
+            sha256 = binaries.hashes.native
+            outputDir = layout.buildDirectory.dir("binaries/remote/native").flatMap { it.dir(binaries.hashes.native) }
+        }
 
     return Directories(
         jvmJni = downloadLibvodozemacJvmJniArchive.flatMap { it.outputDir },
         androidJni = downloadLibvodozemacAndroidJniArchive,
         native = downloadLibvodozemacNativeArchive.flatMap { it.outputDir },
-        webNpm = combine(fullUrl, binaries.hashes.webNpm) { url, hash ->
-            "$url/libvodozemac-web-npm.tar.gz#$hash"
-        }
+        webNpm = combine(fullUrl, binaries.hashes.webNpm) { url, hash -> "$url/libvodozemac-web-npm.tar.gz#$hash" },
     )
 }
 
@@ -176,18 +160,13 @@ private fun registerLibvodozemac(remoteBinaries: VodozemacBinaries.Remote) {
         .configureEach { dependencies { implementation(npm("vodozemac", directories.webNpm.get())) } }
 
     val cinteropDefFile by
-    tasks.registering(WriteDefFile::class) {
-        nativeLibDir = directories.native
-        defFile = layout.buildDirectory.file("binaries/libvodozemac.def")
-        targets =
-            provider {
-                kotlin.targets.withType<KotlinNativeTarget>().map { it.konanTarget }
-            }
-    }
+        tasks.registering(WriteDefFile::class) {
+            nativeLibDir = directories.native
+            defFile = layout.buildDirectory.file("binaries/libvodozemac.def")
+            targets = provider { kotlin.targets.withType<KotlinNativeTarget>().map { it.konanTarget } }
+        }
 
-    kotlin.sourceSets
-        .named { it == "jvmMain" }
-        .configureEach { resources.srcDir(directories.jvmJni) }
+    kotlin.sourceSets.named { it == "jvmMain" }.configureEach { resources.srcDir(directories.jvmJni) }
 
     androidComponents.onVariants { variant ->
         val jniLibs = checkNotNull(variant.sources.jniLibs) { "jniLibs missing" }
@@ -195,10 +174,8 @@ private fun registerLibvodozemac(remoteBinaries: VodozemacBinaries.Remote) {
     }
 
     kotlin.targets.withType<KotlinNativeTarget> {
-        val main by
-        compilations.getting {
-            val libvodozemac by
-            cinterops.creating { definitionFile = cinteropDefFile.flatMap { it.defFile } }
+        val main by compilations.getting {
+            val libvodozemac by cinterops.creating { definitionFile = cinteropDefFile.flatMap { it.defFile } }
         }
     }
 
@@ -209,10 +186,10 @@ private fun registerLibvodozemac(remoteBinaries: VodozemacBinaries.Remote) {
                 doFirst {
                     throw GradleException(
                         """
-                    Cannot publish JS when using local libvodozemac (-Plibvodozemac=<DIRECTORY>).
-                    This is a limitation of Kotlin/Js which would require downstream users to also have a local version of libvodozemac.
-                    Currently Kotlin/JS resources are not properly bundled to be retrievable via @JsModule and alike...
-                    """
+                        Cannot publish JS when using local libvodozemac (-Plibvodozemac=<DIRECTORY>).
+                        This is a limitation of Kotlin/Js which would require downstream users to also have a local version of libvodozemac.
+                        Currently Kotlin/JS resources are not properly bundled to be retrievable via @JsModule and alike...
+                        """
                             .trimIndent()
                     )
                 }
@@ -220,17 +197,13 @@ private fun registerLibvodozemac(remoteBinaries: VodozemacBinaries.Remote) {
     }
 }
 
-abstract class WriteDefFile @Inject constructor(
-) : DefaultTask() {
+abstract class WriteDefFile @Inject constructor() : DefaultTask() {
 
-    @get:Input
-    abstract val targets: ListProperty<KonanTarget>
+    @get:Input abstract val targets: ListProperty<KonanTarget>
 
-    @get:InputDirectory
-    abstract val nativeLibDir: DirectoryProperty
+    @get:InputDirectory abstract val nativeLibDir: DirectoryProperty
 
-    @get:OutputFile
-    abstract val defFile: RegularFileProperty
+    @get:OutputFile abstract val defFile: RegularFileProperty
 
     @TaskAction
     fun run() {
@@ -239,13 +212,9 @@ abstract class WriteDefFile @Inject constructor(
 
         val targetNames = targets.get().map { it.name }
 
-        val libPaths = targetNames.joinToString("\n") { target ->
-            "libraryPaths.$target = $input/$target"
-        }
+        val libPaths = targetNames.joinToString("\n") { target -> "libraryPaths.$target = $input/$target" }
 
-        val libNames = targetNames.joinToString("\n") { target ->
-            "staticLibraries.$target = libvodozemac.a"
-        }
+        val libNames = targetNames.joinToString("\n") { target -> "staticLibraries.$target = libvodozemac.a" }
 
         output.parentFile.mkdirs()
         output.writeText(
@@ -256,42 +225,35 @@ abstract class WriteDefFile @Inject constructor(
             $libNames
 
             linkerOpts.mingw = -lkernel32 -luser32 -lntdll
-        """.trimIndent()
+        """
+                .trimIndent()
         )
     }
 }
 
-
 abstract class OutputDirProvider : DefaultTask() {
-    @get:OutputDirectory
-    abstract val outputDir: DirectoryProperty
+    @get:OutputDirectory abstract val outputDir: DirectoryProperty
 }
 
-abstract class DownloadAndUnpack @Inject constructor(
+abstract class DownloadAndUnpack
+@Inject
+constructor(
     objects: ObjectFactory,
     private val layout: ProjectLayout,
     private val fileSystemOperations: FileSystemOperations,
 ) : OutputDirProvider() {
 
-    @get:Input
-    val url: Property<String> = objects.property<String>()
+    @get:Input val url: Property<String> = objects.property<String>()
 
-    @get:Input
-    val sha256: Property<String> = objects.property<String>()
+    @get:Input val sha256: Property<String> = objects.property<String>()
 
-    @get:Input
-    @get:Optional
-    val subdirectory: Property<String> = objects.property<String>()
-
+    @get:Input @get:Optional val subdirectory: Property<String> = objects.property<String>()
 
     @TaskAction
     fun run() {
         val url = url.get()
         val outputDirectory = outputDir.get()
-        val tmpFile = layout.buildDirectory
-            .file("tmp/archives/${url.split("/").last()}")
-            .get()
-            .asFile
+        val tmpFile = layout.buildDirectory.file("tmp/archives/${url.split("/").last()}").get().asFile
         val sha256 = sha256.get()
 
         tmpFile.parentFile.mkdirs()
@@ -299,13 +261,10 @@ abstract class DownloadAndUnpack @Inject constructor(
         val sha256Instance = MessageDigest.getInstance("SHA-256")
 
         URI(url).toURL().openStream().use { input ->
-            DigestOutputStream(tmpFile.outputStream(), sha256Instance).use { output ->
-                input.copyTo(output)
-            }
+            DigestOutputStream(tmpFile.outputStream(), sha256Instance).use { output -> input.copyTo(output) }
         }
 
-        val actualHash = sha256Instance.digest()
-            .joinToString("") { "%02x".format(it) }
+        val actualHash = sha256Instance.digest().joinToString("") { "%02x".format(it) }
 
         if (!sha256.equals(actualHash, ignoreCase = true)) {
             throw GradleException(
@@ -314,37 +273,30 @@ abstract class DownloadAndUnpack @Inject constructor(
                 ▶ File: file://${tmpFile.absoluteFile.path}
                 ▶ Expected: '$sha256'
                 ▶ Actual  : '$actualHash'
-                """.trimIndent()
+                """
+                    .trimIndent()
             )
         }
 
         fileSystemOperations.copy {
-            from(project.tarTree(tmpFile)) {
-                subdirectory.orNull?.also { into(it) }
-            }
+            from(project.tarTree(tmpFile)) { subdirectory.orNull?.also { into(it) } }
             into(outputDirectory)
         }
     }
 }
 
-abstract class CopyTar @Inject constructor(
-    objects: ObjectFactory,
-    private val fileSystemOperations: FileSystemOperations,
-) : OutputDirProvider() {
+abstract class CopyTar
+@Inject
+constructor(objects: ObjectFactory, private val fileSystemOperations: FileSystemOperations) : OutputDirProvider() {
 
-    @get:InputFile
-    val file: RegularFileProperty = objects.fileProperty()
+    @get:InputFile val file: RegularFileProperty = objects.fileProperty()
 
-    @get:Input
-    @get:Optional
-    val subdirectory: Property<String> = objects.property<String>()
+    @get:Input @get:Optional val subdirectory: Property<String> = objects.property<String>()
 
     @TaskAction
     fun run() {
         fileSystemOperations.copy {
-            from(project.tarTree(file)) {
-                subdirectory.orNull?.also { into(it) }
-            }
+            from(project.tarTree(file)) { subdirectory.orNull?.also { into(it) } }
             into(outputDir)
         }
     }

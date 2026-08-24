@@ -33,21 +33,23 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = DirectRoomEventHandler(
-        userInfo = UserInfo(bob, "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api = api,
-        globalAccountDataStore = globalAccountDataStore,
-    )
+    private val cut =
+        DirectRoomEventHandler(
+            userInfo = UserInfo(bob, "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            api = api,
+            globalAccountDataStore = globalAccountDataStore,
+        )
 
     private val otherRoom = RoomId("!other:server")
-    private val event = StateEvent(
-        MemberEventContent(membership = Membership.JOIN, isDirect = true),
-        EventId("$123"),
-        sender = bob,
-        room,
-        1234,
-        stateKey = alice.full
-    )
+    private val event =
+        StateEvent(
+            MemberEventContent(membership = Membership.JOIN, isDirect = true),
+            EventId("$123"),
+            sender = bob,
+            room,
+            1234,
+            stateKey = alice.full,
+        )
 
     @Test
     fun `setNewDirectEventFromMemberEvent » membership is direct » there are direct rooms with that user » add direct room`() =
@@ -75,12 +77,8 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
             var setDirectCalled = false
             apiConfig.endpoints {
                 matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
-                    it shouldBe DirectEventContent(
-                        mapOf(
-                            UserId("nobody", "server") to setOf(otherRoom),
-                            alice to setOf(room)
-                        )
-                    )
+                    it shouldBe
+                        DirectEventContent(mapOf(UserId("nobody", "server") to setOf(otherRoom), alice to setOf(room)))
                     setDirectCalled = true
                 }
             }
@@ -96,13 +94,14 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
             var setDirectCalled = false
             apiConfig.endpoints {
                 matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
-                    it shouldBe DirectEventContent(
-                        mapOf(
-                            UserId("nobody", "server") to setOf(otherRoom),
-                            alice to setOf(room),
-                            UserId("other", "server") to setOf(yetAnotherRoom)
+                    it shouldBe
+                        DirectEventContent(
+                            mapOf(
+                                UserId("nobody", "server") to setOf(otherRoom),
+                                alice to setOf(room),
+                                UserId("other", "server") to setOf(yetAnotherRoom),
+                            )
                         )
-                    )
                     setDirectCalled = true
                 }
             }
@@ -115,8 +114,8 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
                         sender = bob,
                         yetAnotherRoom,
                         1234,
-                        stateKey = UserId("other", "server").full
-                    )
+                        stateKey = UserId("other", "server").full,
+                    ),
                 )
             )
             setDirectCalled shouldBe true
@@ -141,7 +140,7 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
                         sender = bob,
                         room,
                         1234,
-                        stateKey = bob.full
+                        stateKey = bob.full,
                     )
                 )
             )
@@ -180,7 +179,7 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
                         sender = alice,
                         room,
                         1234,
-                        stateKey = bob.full
+                        stateKey = bob.full,
                     )
                 )
             )
@@ -205,7 +204,7 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
                         sender = bob,
                         room,
                         1234,
-                        stateKey = alice.full
+                        stateKey = alice.full,
                     )
                 )
             )
@@ -230,7 +229,7 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
                         sender = bob,
                         room,
                         1234,
-                        stateKey = bob.full
+                        stateKey = bob.full,
                     )
                 )
             )
@@ -238,102 +237,87 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
         }
 
     @Test
-    fun `setNewDirectEventFromMemberEvent » own membership is leave or ban » remove direct room on leave`() =
-        runTest {
-            ownMembershipIsLeaveOrBanSetup()
-            val event = StateEvent(
+    fun `setNewDirectEventFromMemberEvent » own membership is leave or ban » remove direct room on leave`() = runTest {
+        ownMembershipIsLeaveOrBanSetup()
+        val event =
+            StateEvent(
                 MemberEventContent(membership = Membership.LEAVE),
                 EventId("$123"),
                 alice,
                 room,
                 1234,
-                stateKey = bob.full
+                stateKey = bob.full,
             )
-            var setDirectCalled = false
-            apiConfig.endpoints {
-                matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
-                    it shouldBe DirectEventContent(
-                        mapOf(
-                            UserId("2", "server") to setOf(otherRoom)
-                        )
-                    )
-                    setDirectCalled = true
-                }
+        var setDirectCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
+                it shouldBe DirectEventContent(mapOf(UserId("2", "server") to setOf(otherRoom)))
+                setDirectCalled = true
             }
-            cut.setNewDirectEventFromMemberEvent(listOf(event))
-            setDirectCalled shouldBe true
         }
+        cut.setNewDirectEventFromMemberEvent(listOf(event))
+        setDirectCalled shouldBe true
+    }
 
     @Test
-    fun `setNewDirectEventFromMemberEvent » own membership is leave or ban » remove direct room on ban`() =
-        runTest {
-            ownMembershipIsLeaveOrBanSetup()
-            val event = StateEvent(
+    fun `setNewDirectEventFromMemberEvent » own membership is leave or ban » remove direct room on ban`() = runTest {
+        ownMembershipIsLeaveOrBanSetup()
+        val event =
+            StateEvent(
                 MemberEventContent(membership = Membership.BAN),
                 EventId("$123"),
                 bob,
                 room,
                 1234,
-                stateKey = bob.full
+                stateKey = bob.full,
             )
-            var setDirectCalled = false
-            apiConfig.endpoints {
-                matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
-                    it shouldBe DirectEventContent(
-                        mapOf(
-                            UserId("2", "server") to setOf(otherRoom)
-                        )
-                    )
-                    setDirectCalled = true
-                }
+        var setDirectCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
+                it shouldBe DirectEventContent(mapOf(UserId("2", "server") to setOf(otherRoom)))
+                setDirectCalled = true
             }
-            cut.setNewDirectEventFromMemberEvent(listOf(event))
-            setDirectCalled shouldBe true
         }
+        cut.setNewDirectEventFromMemberEvent(listOf(event))
+        setDirectCalled shouldBe true
+    }
 
     @Test
-    fun `setNewDirectEventFromMemberEvent » only consider last membership change`() =
-        runTest {
-            ownMembershipIsLeaveOrBanSetup()
-            val event1 = StateEvent(
+    fun `setNewDirectEventFromMemberEvent » only consider last membership change`() = runTest {
+        ownMembershipIsLeaveOrBanSetup()
+        val event1 =
+            StateEvent(
                 MemberEventContent(membership = Membership.LEAVE),
                 EventId("$123"),
                 alice,
                 room,
                 1234,
-                stateKey = bob.full
+                stateKey = bob.full,
             )
-            val event2 = StateEvent(
+        val event2 =
+            StateEvent(
                 MemberEventContent(membership = Membership.JOIN, isDirect = true),
                 EventId("$123"),
                 UserId("1", "server"),
                 room,
                 1234,
-                stateKey = bob.full
+                stateKey = bob.full,
             )
-            var setDirectCalled = false
-            apiConfig.endpoints {
-                matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
-                    it shouldBe DirectEventContent(
-                        mapOf(
-                            UserId("2", "server") to setOf(otherRoom)
-                        )
-                    )
-                    setDirectCalled = true
-                }
+        var setDirectCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SetGlobalAccountData(bob, "m.direct")) {
+                it shouldBe DirectEventContent(mapOf(UserId("2", "server") to setOf(otherRoom)))
+                setDirectCalled = true
             }
-            cut.setNewDirectEventFromMemberEvent(listOf(event1, event2))
-            setDirectCalled shouldBe false
         }
+        cut.setNewDirectEventFromMemberEvent(listOf(event1, event2))
+        setDirectCalled shouldBe false
+    }
 
     private suspend fun noDirectRoomsWithThatUserSetup() {
         tm.writeTransaction {
             globalAccountDataStore.save(
-                GlobalAccountDataEvent(
-                    DirectEventContent(
-                        mapOf(UserId("nobody", "server") to setOf(otherRoom))
-                    )
-                )
+                GlobalAccountDataEvent(DirectEventContent(mapOf(UserId("nobody", "server") to setOf(otherRoom))))
             )
         }
     }
@@ -343,10 +327,7 @@ class DirectRoomEventHandlerTest : TrixnityBaseTest() {
             globalAccountDataStore.save(
                 GlobalAccountDataEvent(
                     DirectEventContent(
-                        mapOf(
-                            UserId("1", "server") to setOf(room),
-                            UserId("2", "server") to setOf(room, otherRoom)
-                        )
+                        mapOf(UserId("1", "server") to setOf(room), UserId("2", "server") to setOf(room, otherRoom))
                     )
                 )
             )

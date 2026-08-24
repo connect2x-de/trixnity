@@ -25,7 +25,9 @@ internal object ExposedOlmSession : Table("olm_session") {
 internal class ExposedOlmSessionRepository(private val json: Json) : OlmSessionRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Curve25519KeyValue): Set<StoredOlmSession>? {
-        return ExposedOlmSession.selectAll().where { ExposedOlmSession.senderKey eq key.value }.firstOrNull()
+        return ExposedOlmSession.selectAll()
+            .where { ExposedOlmSession.senderKey eq key.value }
+            .firstOrNull()
             ?.let { json.decodeFromString(it[ExposedOlmSession.value]) }
     }
 

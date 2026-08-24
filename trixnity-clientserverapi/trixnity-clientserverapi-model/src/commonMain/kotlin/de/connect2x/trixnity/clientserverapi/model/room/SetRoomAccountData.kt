@@ -1,10 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.PUT
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -13,9 +8,16 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.contentSerializer
+import io.ktor.resources.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype">matrix spec</a>
+ * @see <a
+ *   href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3useruseridroomsroomidaccount_datatype">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v3/user/{userId}/rooms/{roomId}/account_data/{type}")
@@ -28,7 +30,6 @@ data class SetRoomAccountData(
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: RoomAccountDataEventContent?
-    ): KSerializer<RoomAccountDataEventContent> =
-        mappings.roomAccountData.contentSerializer(type, value)
+        value: RoomAccountDataEventContent?,
+    ): KSerializer<RoomAccountDataEventContent> = mappings.roomAccountData.contentSerializer(type, value)
 }

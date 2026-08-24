@@ -40,6 +40,8 @@ import de.connect2x.trixnity.utils.ConcurrentList
 import de.connect2x.trixnity.utils.ConcurrentMap
 import de.connect2x.trixnity.utils.concurrentMutableList
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -50,8 +52,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 private val log = Logger("de.connect2x.trixnity.client.room.RoomListHandler")
 
@@ -79,59 +79,63 @@ class RoomListHandler(
         val syncRooms = syncEvents.syncResponse.room
 
         syncRooms?.join?.entries?.forEachParallel { (roomId, roomInfo) ->
-            val mergeRoom = mergeRoom(
-                roomId = roomId,
-                membership = Membership.JOIN,
-                lastRelevantEvent = roomInfo.timeline?.events?.lastOrNull { config.lastRelevantEventFilter(it) },
-                summary = roomInfo.summary,
-                createEventContent = roomInfo.findInTimelineOrState(),
-                encryptionEventContent = roomInfo.findInTimelineOrState(),
-                tombstoneEventContent = roomInfo.findInTimelineOrState(),
-                nameEventContent = roomInfo.findInTimelineOrState(),
-                canonicalAliasEventContent = roomInfo.findInTimelineOrState(),
-            )
+            val mergeRoom =
+                mergeRoom(
+                    roomId = roomId,
+                    membership = Membership.JOIN,
+                    lastRelevantEvent = roomInfo.timeline?.events?.lastOrNull { config.lastRelevantEventFilter(it) },
+                    summary = roomInfo.summary,
+                    createEventContent = roomInfo.findInTimelineOrState(),
+                    encryptionEventContent = roomInfo.findInTimelineOrState(),
+                    tombstoneEventContent = roomInfo.findInTimelineOrState(),
+                    nameEventContent = roomInfo.findInTimelineOrState(),
+                    canonicalAliasEventContent = roomInfo.findInTimelineOrState(),
+                )
             roomUpdates.add(roomId, mergeRoom)
         }
         syncRooms?.leave?.entries?.forEachParallel { (roomId, roomInfo) ->
-            val mergeRoom = mergeRoom(
-                roomId = roomId,
-                membership = Membership.LEAVE,
-                lastRelevantEvent = roomInfo.timeline?.events?.lastOrNull { config.lastRelevantEventFilter(it) },
-                summary = null,
-                createEventContent = roomInfo.findInTimelineOrState(),
-                encryptionEventContent = roomInfo.findInTimelineOrState(),
-                tombstoneEventContent = roomInfo.findInTimelineOrState(),
-                nameEventContent = roomInfo.findInTimelineOrState(),
-                canonicalAliasEventContent = roomInfo.findInTimelineOrState(),
-            )
+            val mergeRoom =
+                mergeRoom(
+                    roomId = roomId,
+                    membership = Membership.LEAVE,
+                    lastRelevantEvent = roomInfo.timeline?.events?.lastOrNull { config.lastRelevantEventFilter(it) },
+                    summary = null,
+                    createEventContent = roomInfo.findInTimelineOrState(),
+                    encryptionEventContent = roomInfo.findInTimelineOrState(),
+                    tombstoneEventContent = roomInfo.findInTimelineOrState(),
+                    nameEventContent = roomInfo.findInTimelineOrState(),
+                    canonicalAliasEventContent = roomInfo.findInTimelineOrState(),
+                )
             roomUpdates.add(roomId) { mergeRoom(it) }
         }
         syncRooms?.knock?.entries?.forEachParallel { (roomId, roomInfo) ->
-            val mergeRoom = mergeRoom(
-                roomId = roomId,
-                membership = Membership.KNOCK,
-                lastRelevantEvent = null,
-                summary = null,
-                createEventContent = roomInfo.findInState(),
-                encryptionEventContent = roomInfo.findInState(),
-                tombstoneEventContent = roomInfo.findInState(),
-                nameEventContent = roomInfo.findInState(),
-                canonicalAliasEventContent = roomInfo.findInState(),
-            )
+            val mergeRoom =
+                mergeRoom(
+                    roomId = roomId,
+                    membership = Membership.KNOCK,
+                    lastRelevantEvent = null,
+                    summary = null,
+                    createEventContent = roomInfo.findInState(),
+                    encryptionEventContent = roomInfo.findInState(),
+                    tombstoneEventContent = roomInfo.findInState(),
+                    nameEventContent = roomInfo.findInState(),
+                    canonicalAliasEventContent = roomInfo.findInState(),
+                )
             roomUpdates.add(roomId) { mergeRoom(it) }
         }
         syncRooms?.invite?.entries?.forEachParallel { (roomId, roomInfo) ->
-            val mergeRoom = mergeRoom(
-                roomId = roomId,
-                membership = Membership.INVITE,
-                lastRelevantEvent = null,
-                summary = null,
-                createEventContent = roomInfo.findInState(),
-                encryptionEventContent = roomInfo.findInState(),
-                tombstoneEventContent = roomInfo.findInState(),
-                nameEventContent = roomInfo.findInState(),
-                canonicalAliasEventContent = roomInfo.findInState(),
-            )
+            val mergeRoom =
+                mergeRoom(
+                    roomId = roomId,
+                    membership = Membership.INVITE,
+                    lastRelevantEvent = null,
+                    summary = null,
+                    createEventContent = roomInfo.findInState(),
+                    encryptionEventContent = roomInfo.findInState(),
+                    tombstoneEventContent = roomInfo.findInState(),
+                    nameEventContent = roomInfo.findInState(),
+                    canonicalAliasEventContent = roomInfo.findInState(),
+                )
             roomUpdates.add(roomId) { mergeRoom(it) }
         }
 
@@ -140,11 +144,7 @@ class RoomListHandler(
         val finalRoomUpdates = roomUpdates.read { toMap() }.mapValues { it.value.read { toList() } }
         tm.writeTransaction {
             finalRoomUpdates.forEach { (roomId, updates) ->
-                roomStore.update(roomId) { oldRoom ->
-                    updates.fold(oldRoom) { room, update ->
-                        update(room)
-                    }
-                }
+                roomStore.update(roomId) { oldRoom -> updates.fold(oldRoom) { room, update -> update(room) } }
             }
         }
     }
@@ -160,8 +160,7 @@ class RoomListHandler(
         nameEventContent: NameEventContent?,
         canonicalAliasEventContent: CanonicalAliasEventContent?,
     ): (Room?) -> Room {
-        val lastRelevantEventTimestamp = lastRelevantEvent?.originTimestamp
-            ?.let { Instant.fromEpochMilliseconds(it) }
+        val lastRelevantEventTimestamp = lastRelevantEvent?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
         val name =
             calculateDisplayName(
                 roomId = roomId,
@@ -193,12 +192,14 @@ class RoomListHandler(
         val allRooms by lazy {
             async {
                 this@RoomListHandler.roomStore.getAll().first().keys +
-                        syncRooms?.run {
+                    syncRooms
+                        ?.run {
                             this.join?.keys.orEmpty() +
-                                    this.leave?.keys.orEmpty() +
-                                    this.knock?.keys.orEmpty() +
-                                    this.invite?.keys.orEmpty()
-                        }.orEmpty()
+                                this.leave?.keys.orEmpty() +
+                                this.knock?.keys.orEmpty() +
+                                this.invite?.keys.orEmpty()
+                        }
+                        .orEmpty()
             }
         }
 
@@ -251,7 +252,8 @@ class RoomListHandler(
 
             val updateAvatarUrlRooms =
                 if (directEvent != null) allRooms.await()
-                else avatarEvents.await().keys +
+                else
+                    avatarEvents.await().keys +
                         memberEvents.await().keys.intersect(allDirectRooms.await()?.keys.orEmpty())
 
             if (updateAvatarUrlRooms.isNotEmpty()) {
@@ -267,8 +269,10 @@ class RoomListHandler(
                             if (directUser != null && roomAvatarUrl.isNullOrEmpty()) {
                                 val memberEvent =
                                     memberEvents.await()[roomId]?.get(directUser.full)
-                                        ?: roomStateStore.getByStateKey<MemberEventContent>(roomId, directUser.full)
-                                            .first()?.content
+                                        ?: roomStateStore
+                                            .getByStateKey<MemberEventContent>(roomId, directUser.full)
+                                            .first()
+                                            ?.content
                                 memberEvent?.avatarUrl
                             } else null
                         val avatarUrl = roomAvatarUrl?.ifEmpty { null } ?: memberAvatarUrl
@@ -296,16 +300,20 @@ class RoomListHandler(
 
         val mergedRoomSummary =
             if (summary == null && oldSummary == null) null
-            else Sync.Response.Rooms.JoinedRoom.RoomSummary(
-                heroes = summary?.heroes ?: oldSummary?.heroes,
-                joinedMemberCount = summary?.joinedMemberCount ?: oldSummary?.joinedMemberCount,
-                invitedMemberCount = summary?.invitedMemberCount ?: oldSummary?.invitedMemberCount,
-            )
+            else
+                Sync.Response.Rooms.JoinedRoom.RoomSummary(
+                    heroes = summary?.heroes ?: oldSummary?.heroes,
+                    joinedMemberCount = summary?.joinedMemberCount ?: oldSummary?.joinedMemberCount,
+                    invitedMemberCount = summary?.invitedMemberCount ?: oldSummary?.invitedMemberCount,
+                )
 
-        val nameFromNameEvent = (nameEventContent
-            ?: roomStateStore.getByStateKey<NameEventContent>(roomId).first()?.content)?.name
-        val nameFromAliasEvent = (canonicalAliasEventContent
-            ?: roomStateStore.getByStateKey<CanonicalAliasEventContent>(roomId).first()?.content)?.alias?.full
+        val nameFromNameEvent =
+            (nameEventContent ?: roomStateStore.getByStateKey<NameEventContent>(roomId).first()?.content)?.name
+        val nameFromAliasEvent =
+            (canonicalAliasEventContent
+                    ?: roomStateStore.getByStateKey<CanonicalAliasEventContent>(roomId).first()?.content)
+                ?.alias
+                ?.full
 
         return when {
             nameFromNameEvent.isNullOrEmpty().not() ->
@@ -314,73 +322,83 @@ class RoomListHandler(
             nameFromAliasEvent.isNullOrEmpty().not() ->
                 RoomDisplayName(explicitName = nameFromAliasEvent, summary = mergedRoomSummary)
 
-            else -> coroutineScope {
-                val allMembers by lazy {
-                    async {
-                        (roomStateStore.get<MemberEventContent>(roomId).first())
-                            .mapNotNull { (key, value) -> value.first()?.content?.let { key to it } }.toMap()
+            else ->
+                coroutineScope {
+                    val allMembers by lazy {
+                        async {
+                            (roomStateStore.get<MemberEventContent>(roomId).first())
+                                .mapNotNull { (key, value) -> value.first()?.content?.let { key to it } }
+                                .toMap()
+                        }
                     }
-                }
-                val joinedMembers by lazy {
-                    async {
-                        allMembers.await()
-                            .filter { it.value.membership == Membership.INVITE || it.value.membership == Membership.JOIN }
+                    val joinedMembers by lazy {
+                        async {
+                            allMembers.await().filter {
+                                it.value.membership == Membership.INVITE || it.value.membership == Membership.JOIN
+                            }
+                        }
                     }
-                }
-                val leftMembers by lazy {
-                    async {
-                        allMembers.await() // includes this user
-                            .filter { it.value.membership == Membership.BAN || it.value.membership == Membership.LEAVE }
+                    val leftMembers by lazy {
+                        async {
+                            allMembers
+                                .await() // includes this user
+                                .filter {
+                                    it.value.membership == Membership.BAN || it.value.membership == Membership.LEAVE
+                                }
+                        }
                     }
+                    // for heroes name we do not want the local user to be part of the equation
+                    val heroes =
+                        (mergedRoomSummary?.heroes?.let { it - userInfo.userId }?.take(NUM_HEROES))
+                            ?: (joinedMembers.await() - userInfo.userId.full)
+                                .keys
+                                .take(NUM_HEROES)
+                                .map { UserId(it) }
+                                .takeIf { it.isNotEmpty() }
+                            ?: (leftMembers.await() - userInfo.userId.full).keys.take(NUM_HEROES).map { UserId(it) }
+
+                    val joinedMemberCount = kotlin.run {
+                        val invitedMemberCount = mergedRoomSummary?.invitedMemberCount?.toInt() ?: 0
+                        val joinedMemberCount = mergedRoomSummary?.joinedMemberCount?.toInt() ?: 0
+
+                        if (invitedMemberCount == 0 && joinedMemberCount == 0) joinedMembers.await().size
+                        else invitedMemberCount + joinedMemberCount
+                    }
+
+                    log.debug {
+                        "calculate room display name of $roomId (heroes=$heroes, joinedMemberCount=$joinedMemberCount"
+                    }
+                    val isEmpty = joinedMemberCount <= 1
+                    // - 1: since joined members always counts ourselves and heroes does not include us,
+                    //      remove it since we are counting "others"
+                    //   0: when we already left the room -> no need to exclude us
+                    val usCount = if (membership == Membership.INVITE || membership == Membership.JOIN) 1 else 0
+                    val otherUsersCount = (joinedMemberCount - usCount - heroes.size).coerceAtLeast(0)
+
+                    RoomDisplayName(
+                        heroes = heroes,
+                        otherUsersCount = otherUsersCount,
+                        isEmpty = isEmpty,
+                        summary = mergedRoomSummary,
+                    )
                 }
-                // for heroes name we do not want the local user to be part of the equation
-                val heroes = (mergedRoomSummary?.heroes?.let { it - userInfo.userId }?.take(NUM_HEROES))
-                    ?: (joinedMembers.await() - userInfo.userId.full)
-                        .keys
-                        .take(NUM_HEROES)
-                        .map { UserId(it) }
-                        .takeIf { it.isNotEmpty() }
-                    ?: (leftMembers.await() - userInfo.userId.full)
-                        .keys
-                        .take(NUM_HEROES)
-                        .map { UserId(it) }
-
-                val joinedMemberCount = kotlin.run {
-                    val invitedMemberCount = mergedRoomSummary?.invitedMemberCount?.toInt() ?: 0
-                    val joinedMemberCount = mergedRoomSummary?.joinedMemberCount?.toInt() ?: 0
-
-                    if (invitedMemberCount == 0 && joinedMemberCount == 0) joinedMembers.await().size
-                    else invitedMemberCount + joinedMemberCount
-                }
-
-                log.debug { "calculate room display name of $roomId (heroes=$heroes, joinedMemberCount=$joinedMemberCount" }
-                val isEmpty = joinedMemberCount <= 1
-                // - 1: since joined members always counts ourselves and heroes does not include us,
-                //      remove it since we are counting "others"
-                //   0: when we already left the room -> no need to exclude us
-                val usCount = if (membership == Membership.INVITE || membership == Membership.JOIN) 1 else 0
-                val otherUsersCount = (joinedMemberCount - usCount - heroes.size).coerceAtLeast(0)
-
-                RoomDisplayName(
-                    heroes = heroes,
-                    otherUsersCount = otherUsersCount,
-                    isEmpty = isEmpty,
-                    summary = mergedRoomSummary
-                )
-            }
         }
     }
 
     internal suspend fun deleteLeftRooms(syncEvents: SyncEvents) {
         val syncLeaveRooms = syncEvents.syncResponse.room?.leave?.keys
         if (syncLeaveRooms != null) {
-            if (config.deleteRooms is DeleteRooms.OnLeave || serverDatastore.getServerData().capabilities?.capabilities?.forgetForcedUponLeave?.enabled == true) {
-                val existingLeaveRooms = roomStore.getAll().first()
-                    .filter { it.value.first()?.membership == Membership.LEAVE }
-                    .keys
+            if (
+                config.deleteRooms is DeleteRooms.OnLeave ||
+                    serverDatastore.getServerData().capabilities?.capabilities?.forgetForcedUponLeave?.enabled == true
+            ) {
+                val existingLeaveRooms =
+                    roomStore.getAll().first().filter { it.value.first()?.membership == Membership.LEAVE }.keys
 
                 if ((existingLeaveRooms - syncLeaveRooms).isNotEmpty()) {
-                    log.warn { "there were LEAVE rooms which should have already been deleted (existingLeaveRooms=$existingLeaveRooms syncLeaveRooms=$syncLeaveRooms)" }
+                    log.warn {
+                        "there were LEAVE rooms which should have already been deleted (existingLeaveRooms=$existingLeaveRooms syncLeaveRooms=$syncLeaveRooms)"
+                    }
                 }
 
                 val forgetRooms = existingLeaveRooms + syncLeaveRooms
@@ -396,20 +414,27 @@ class RoomListHandler(
 
     private suspend fun findDeletedRoomsThatWereNeverJoined(leave: Set<RoomId>) {
         val forgetRooms = leave.mapNotNull { roomId ->
-            log.trace { "look into the timeline if we find any events that indicate that we were part of the room $roomId" }
-            val hasTimelineEvents = roomService.getById(roomId).first()?.lastEventId?.let { lastEventId ->
-                withTimeoutOrNull(5.seconds) {
-                    roomService.getTimelineEvents(roomId, lastEventId).map { flow ->
-                        val event = flow.firstOrNull()?.event
-                        val content = event?.content
-                        (event == null ||
-                                event is ClientEvent.StateBaseEvent<*> &&
-                                content is MemberEventContent &&
-                                content.membership != Membership.JOIN &&
-                                event.stateKey == userInfo.userId.full).not()
-                    }.firstOrNull { it }
-                }
-            } ?: false
+            log.trace {
+                "look into the timeline if we find any events that indicate that we were part of the room $roomId"
+            }
+            val hasTimelineEvents =
+                roomService.getById(roomId).first()?.lastEventId?.let { lastEventId ->
+                    withTimeoutOrNull(5.seconds) {
+                        roomService
+                            .getTimelineEvents(roomId, lastEventId)
+                            .map { flow ->
+                                val event = flow.firstOrNull()?.event
+                                val content = event?.content
+                                (event == null ||
+                                        event is ClientEvent.StateBaseEvent<*> &&
+                                            content is MemberEventContent &&
+                                            content.membership != Membership.JOIN &&
+                                            event.stateKey == userInfo.userId.full)
+                                    .not()
+                            }
+                            .firstOrNull { it }
+                    }
+                } ?: false
             if (hasTimelineEvents.not()) {
                 log.debug { "delete room $roomId that was never joined" }
                 roomId
@@ -422,9 +447,7 @@ class RoomListHandler(
     private suspend fun forgetRooms(forgetRooms: Collection<RoomId>) {
         if (forgetRooms.isNotEmpty()) {
             log.debug { "forget rooms: $forgetRooms" }
-            forgetRooms.forEach { roomId ->
-                forgetRoomService(roomId, false)
-            }
+            forgetRooms.forEach { roomId -> forgetRoomService(roomId, false) }
         }
     }
 
@@ -434,10 +457,8 @@ class RoomListHandler(
 
     private suspend fun ConcurrentMap<RoomId, ConcurrentList<(Room?) -> Room?>>.add(
         roomId: RoomId,
-        value: (Room?) -> Room?
-    ) = write {
-        getOrPut(roomId) { concurrentMutableList() }.write { add(value) }
-    }
+        value: (Room?) -> Room?,
+    ) = write { getOrPut(roomId) { concurrentMutableList() }.write { add(value) } }
 
     private fun DirectEventContent.mapWithRoomIdKeys() =
         mappings.entries

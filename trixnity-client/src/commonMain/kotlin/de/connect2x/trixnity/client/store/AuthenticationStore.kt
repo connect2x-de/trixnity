@@ -3,10 +3,10 @@ package de.connect2x.trixnity.client.store
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.AuthenticationRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 
 class AuthenticationStore(
     repository: AuthenticationRepository,
@@ -25,13 +25,10 @@ class AuthenticationStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateAuthentication(updater: (Authentication?) -> Authentication?) =
-        authenticationCache.update(1) { authentication ->
-            updater(authentication)
-        }
+        authenticationCache.update(1) { authentication -> updater(authentication) }
 
     context(transaction: StoreWriteTransaction)
-    override suspend fun clearCache() {
-    }
+    override suspend fun clearCache() {}
 
     context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {

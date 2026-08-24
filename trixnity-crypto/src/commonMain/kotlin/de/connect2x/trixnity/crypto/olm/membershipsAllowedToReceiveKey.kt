@@ -4,12 +4,12 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 val HistoryVisibility?.membershipsAllowedToReceiveKey: Set<Membership>
-    get() = when (this) {
-        HistoryVisibility.JOINED -> setOf(Membership.JOIN)
-        HistoryVisibility.INVITED -> setOf(Membership.JOIN, Membership.INVITE)
-        HistoryVisibility.SHARED,
-        HistoryVisibility.WORLD_READABLE,
-        -> setOf(Membership.JOIN, Membership.INVITE, Membership.KNOCK)
+    get() =
+        when (this) {
+            HistoryVisibility.JOINED -> setOf(Membership.JOIN)
+            HistoryVisibility.INVITED -> setOf(Membership.JOIN, Membership.INVITE)
+            HistoryVisibility.SHARED,
+            HistoryVisibility.WORLD_READABLE -> setOf(Membership.JOIN, Membership.INVITE, Membership.KNOCK)
 
-        null -> setOf(Membership.JOIN)
-    }
+            null -> setOf(Membership.JOIN)
+        }

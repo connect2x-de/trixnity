@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -13,9 +9,14 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv1roomsroomidhierarchy">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv1roomsroomidhierarchy">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v1/rooms/{roomId}/hierarchy")
@@ -40,7 +41,8 @@ data class GetHierarchy(
             @SerialName("children_state") val childrenState: Set<@Contextual ClientEvent.StrippedStateEvent<*>>,
             @SerialName("encryption") val encryption: EncryptionAlgorithm? = null,
             @SerialName("guest_can_join") val guestCanJoin: Boolean,
-            @SerialName("join_rule") val joinRule: JoinRulesEventContent.JoinRule = JoinRulesEventContent.JoinRule.Public,
+            @SerialName("join_rule")
+            val joinRule: JoinRulesEventContent.JoinRule = JoinRulesEventContent.JoinRule.Public,
             @SerialName("name") val name: String? = null,
             @SerialName("num_joined_members") val joinedMembersCount: Long,
             @SerialName("room_id") val roomId: RoomId,

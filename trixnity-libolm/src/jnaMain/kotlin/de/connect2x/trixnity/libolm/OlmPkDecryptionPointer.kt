@@ -6,6 +6,7 @@ import com.sun.jna.PointerType
 
 actual class OlmPkDecryptionPointer : PointerType {
     constructor(address: Pointer?) : super(address)
+
     constructor() : super()
 
     actual fun free() {

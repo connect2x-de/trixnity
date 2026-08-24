@@ -29,15 +29,12 @@ private external fun vodozemac_megolm_exported_session_key_free(session_key: Nat
 
 @ModuleImport("vodozemac", "vodozemac_megolm_exported_session_key_to_bytes")
 @ExternalSymbolName("vodozemac_megolm_exported_session_key_to_bytes")
-private external fun vodozemac_megolm_exported_session_key_to_bytes(
-    result: InteropPointer,
-    session_key: NativePointer
-)
+private external fun vodozemac_megolm_exported_session_key_to_bytes(result: InteropPointer, session_key: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_megolm_exported_session_key_from_bytes")
 @ExternalSymbolName("vodozemac_megolm_exported_session_key_from_bytes")
 private external fun vodozemac_megolm_exported_session_key_from_bytes(
     result: InteropPointer,
     bytes: InteropPointer,
-    bytes_size: Int
+    bytes_size: Int,
 )

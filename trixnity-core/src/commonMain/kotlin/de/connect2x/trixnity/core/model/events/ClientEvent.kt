@@ -18,7 +18,8 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
     /**
      * Matrix room event. Either a message event or a state event.
      *
-     * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room events</a>
+     * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room
+     *   events</a>
      * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#room-event-format">Matrix room event format</a>
      */
     sealed interface RoomEvent<C : RoomEventContent> : ClientEvent<C> {
@@ -28,14 +29,15 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
         val originTimestamp: Long
         val unsigned: UnsignedRoomEventData?
 
-        @MSC4354
-        val sticky: StickyEventData?
+        @MSC4354 val sticky: StickyEventData?
 
         /**
          * Matrix message event
          *
-         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room events</a>
-         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#room-event-format">Matrix room event format</a>
+         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room
+         *   events</a>
+         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#room-event-format">Matrix room event
+         *   format</a>
          */
         @Serializable
         data class MessageEvent<C : MessageEventContent>(
@@ -48,14 +50,17 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
             @OptIn(ExperimentalSerializationApi::class)
             @JsonNames("sticky")
             @SerialName("msc4354_sticky")
-            @MSC4354 override val sticky: StickyEventData? = null,
+            @MSC4354
+            override val sticky: StickyEventData? = null,
         ) : RoomEvent<C>
 
         /**
          * Matrix state event
          *
-         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room events</a>
-         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#room-event-format">Matrix room event format</a>
+         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#types-of-room-events">Types of matrix room
+         *   events</a>
+         * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#room-event-format">Matrix room event
+         *   format</a>
          */
         @Serializable
         data class StateEvent<C : StateEventContent>(
@@ -69,13 +74,12 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
             @OptIn(ExperimentalSerializationApi::class)
             @JsonNames("sticky")
             @SerialName("msc4354_sticky")
-            @MSC4354 override val sticky: StickyEventData? = null,
+            @MSC4354
+            override val sticky: StickyEventData? = null,
         ) : RoomEvent<C>, StateBaseEvent<C>
     }
 
-    /**
-     * This is just an internal base class for [RoomEvent.StateEvent] and [StrippedStateEvent].
-     */
+    /** This is just an internal base class for [RoomEvent.StateEvent] and [StrippedStateEvent]. */
     sealed interface StateBaseEvent<C : StateEventContent> : ClientEvent<C> {
         override val content: C
         val id: EventId?
@@ -101,7 +105,7 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
     @Serializable
     data class ToDeviceEvent<C : ToDeviceEventContent>(
         @SerialName("content") override val content: C,
-        @SerialName("sender") val sender: UserId
+        @SerialName("sender") val sender: UserId,
     ) : ClientEvent<C>
 
     // TODO could be split into GlobalEphemeralEvent (without sender and roomId) and RoomEphemeralEvent
@@ -109,7 +113,7 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
     data class EphemeralEvent<C : EphemeralEventContent>(
         @SerialName("content") override val content: C,
         @SerialName("sender") val sender: UserId? = null,
-        @SerialName("room_id") val roomId: RoomId? = null
+        @SerialName("room_id") val roomId: RoomId? = null,
     ) : ClientEvent<C>
 
     @Serializable
@@ -117,13 +121,13 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
         @SerialName("content") override val content: C,
         @SerialName("room_id") val roomId: RoomId,
         // This does not actually exist. We use it to circumvent inconsistent spec.
-        @SerialName("key") val key: String = ""
+        @SerialName("key") val key: String = "",
     ) : ClientEvent<C>
 
     @Serializable
     data class GlobalAccountDataEvent<C : GlobalAccountDataEventContent>(
         @SerialName("content") override val content: C,
         // This does not actually exist. We use it to circumvent inconsistent spec.
-        @SerialName("key") val key: String = ""
+        @SerialName("key") val key: String = "",
     ) : ClientEvent<C>
 }

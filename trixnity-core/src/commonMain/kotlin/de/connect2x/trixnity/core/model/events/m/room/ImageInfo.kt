@@ -8,22 +8,14 @@ import kotlinx.serialization.json.JsonNames
 
 @Serializable
 data class ImageInfo(
-    @SerialName("h")
-    val height: Int? = null,
-    @SerialName("w")
-    val width: Int? = null,
-    @SerialName("mimetype")
-    override val mimeType: String? = null,
-    @SerialName("size")
-    override val size: Long? = null,
-    @SerialName("thumbnail_url")
-    val thumbnailUrl: String? = null,
-    @SerialName("thumbnail_file")
-    val thumbnailFile: EncryptedFile? = null,
-    @SerialName("thumbnail_info")
-    val thumbnailInfo: ThumbnailInfo? = null,
-    @SerialName("is_animated")
-    val isAnimated: Boolean? = null,
+    @SerialName("h") val height: Int? = null,
+    @SerialName("w") val width: Int? = null,
+    @SerialName("mimetype") override val mimeType: String? = null,
+    @SerialName("size") override val size: Long? = null,
+    @SerialName("thumbnail_url") val thumbnailUrl: String? = null,
+    @SerialName("thumbnail_file") val thumbnailFile: EncryptedFile? = null,
+    @SerialName("thumbnail_info") val thumbnailInfo: ThumbnailInfo? = null,
+    @SerialName("is_animated") val isAnimated: Boolean? = null,
     @MSC2448
     @OptIn(ExperimentalSerializationApi::class)
     @JsonNames("blurhash")

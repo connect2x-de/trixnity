@@ -29,7 +29,9 @@ class DirectRoomEventHandler(
         api.sync.subscribeEventList(subscriber = ::setNewDirectEventFromMemberEvent).unsubscribeOnCompletion(scope)
     }
 
-    internal suspend fun setNewDirectEventFromMemberEvent(events: List<ClientEvent.StateBaseEvent<MemberEventContent>>) {
+    internal suspend fun setNewDirectEventFromMemberEvent(
+        events: List<ClientEvent.StateBaseEvent<MemberEventContent>>
+    ) {
         if (events.isNotEmpty()) {
             val initialDirectEventContentMappings =
                 globalAccountDataStore.get<DirectEventContent>().first()?.content?.mappings.orEmpty()
@@ -45,16 +47,23 @@ class DirectRoomEventHandler(
                 val sender = event.sender
                 val userWithMembershipChange = UserId(stateKey)
 
-                if (userWithMembershipChange == userInfo.userId && (event.content.membership == LEAVE || event.content.membership == BAN)) {
+                if (
+                    userWithMembershipChange == userInfo.userId &&
+                        (event.content.membership == LEAVE || event.content.membership == BAN)
+                ) {
                     log.debug { "remove room $roomId from direct rooms, because we left it" }
                     directEventContentMappings =
-                        directEventContentMappings.mapValues { it.value?.minus(roomId) }
+                        directEventContentMappings
+                            .mapValues { it.value?.minus(roomId) }
                             .filterValues { it.isNullOrEmpty().not() }
-                } else if (event.content.isDirect == true && !(userInfo.userId == sender && sender == userWithMembershipChange)) {
+                } else if (
+                    event.content.isDirect == true && !(userInfo.userId == sender && sender == userWithMembershipChange)
+                ) {
                     val directUser = if (userInfo.userId == sender) userWithMembershipChange else sender
                     log.debug { "mark room $roomId as direct room with $directUser" }
                     directEventContentMappings =
-                        directEventContentMappings + (directUser to (directEventContentMappings[directUser].orEmpty() + roomId))
+                        directEventContentMappings +
+                            (directUser to (directEventContentMappings[directUser].orEmpty() + roomId))
                 }
             }
 

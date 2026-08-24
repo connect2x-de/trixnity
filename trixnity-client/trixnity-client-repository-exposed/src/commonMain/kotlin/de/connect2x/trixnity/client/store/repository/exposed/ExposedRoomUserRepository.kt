@@ -30,9 +30,8 @@ internal class ExposedRoomUserRepository(private val json: Json) : RoomUserRepos
     override suspend fun get(firstKey: RoomId, secondKey: UserId): RoomUser? {
         return ExposedRoomUser.selectAll()
             .where { ExposedRoomUser.roomId.eq(firstKey.full) and ExposedRoomUser.userId.eq(secondKey.full) }
-            .firstOrNull()?.let {
-                json.decodeFromString(it[ExposedRoomUser.value])
-            }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedRoomUser.value]) }
     }
 
     context(transaction: WriteTransaction)
@@ -56,7 +55,8 @@ internal class ExposedRoomUserRepository(private val json: Json) : RoomUserRepos
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomId): Map<UserId, RoomUser> {
-        return ExposedRoomUser.selectAll().where { ExposedRoomUser.roomId eq firstKey.full }
+        return ExposedRoomUser.selectAll()
+            .where { ExposedRoomUser.roomId eq firstKey.full }
             .map { json.decodeFromString<RoomUser>(it[ExposedRoomUser.value]) }
             .associateBy { it.userId }
     }

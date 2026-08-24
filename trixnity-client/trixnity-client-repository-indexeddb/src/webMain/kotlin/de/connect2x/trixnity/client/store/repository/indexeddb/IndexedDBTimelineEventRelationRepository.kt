@@ -21,9 +21,8 @@ internal class IndexedDBTimelineEventRelation(
     val relatedEventId: String,
 )
 
-internal class IndexedDBTimelineEventRelationRepository(
-    json: Json
-) : TimelineEventRelationRepository,
+internal class IndexedDBTimelineEventRelationRepository(json: Json) :
+    TimelineEventRelationRepository,
     IndexedDBMapRepository<TimelineEventRelationKey, EventId, TimelineEventRelation, IndexedDBTimelineEventRelation>(
         objectStoreName = objectStoreName,
         firstKeyIndexName = "roomId|relatedEventId|relationType",
@@ -43,7 +42,7 @@ internal class IndexedDBTimelineEventRelationRepository(
                 eventId = EventId(it.eventId),
                 roomId = RoomId(it.roomId),
                 relationType = RelationType.of(it.relationType),
-                relatedEventId = EventId(it.relatedEventId)
+                relatedEventId = EventId(it.relatedEventId),
             )
         },
         representationSerializer = IndexedDBTimelineEventRelation.serializer(),
@@ -51,6 +50,7 @@ internal class IndexedDBTimelineEventRelationRepository(
     ) {
     companion object {
         const val objectStoreName = "timeline_event_relation"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1)
                 createIndexedDBTwoDimensionsStoreRepository(
@@ -67,9 +67,6 @@ internal class IndexedDBTimelineEventRelationRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

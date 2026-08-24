@@ -7,22 +7,18 @@ import kotlinx.serialization.json.JsonObject
 
 private val log = Logger("de.connect2x.trixnity.client.notification.jsonPath")
 
-//language=RegExp
+// language=RegExp
 private val dotRegex = """(?<!\\)(?:\\\\)*[.]""".toRegex()
 
-//language=RegExp
+// language=RegExp
 private val removeEscapes = """\\([.\\])""".toRegex()
-internal fun jsonPath(
-    value: JsonObject,
-    key: String
-): JsonElement? {
+
+internal fun jsonPath(value: JsonObject, key: String): JsonElement? {
     return try {
         var targetProperty: JsonElement? = value
         key.split(dotRegex)
             .map { it.replace(removeEscapes, "$1") }
-            .forEach { segment ->
-                targetProperty = (targetProperty as? JsonObject)?.get(segment)
-            }
+            .forEach { segment -> targetProperty = (targetProperty as? JsonObject)?.get(segment) }
         targetProperty
     } catch (exc: Exception) {
         log.warn(exc) { "could not find event property for key $key in event $value" }

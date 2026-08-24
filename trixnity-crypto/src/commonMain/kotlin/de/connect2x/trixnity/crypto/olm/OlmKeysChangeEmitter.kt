@@ -7,7 +7,4 @@ interface OlmKeysChangeEmitter {
     fun subscribeOneTimeKeysCount(subscriber: suspend (OlmKeysChange) -> Unit): () -> Unit
 }
 
-data class OlmKeysChange(
-    val oneTimeKeysCount: OneTimeKeysCount?,
-    val fallbackKeyTypes: UnusedFallbackKeyTypes?,
-)
+data class OlmKeysChange(val oneTimeKeysCount: OneTimeKeysCount?, val fallbackKeyTypes: UnusedFallbackKeyTypes?)

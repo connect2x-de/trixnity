@@ -13,20 +13,22 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.Instant
 
 class OlmStoreMock : OlmStore {
     val devices: MutableMap<UserId, Map<String, SignedDeviceKeys>> = mutableMapOf()
-    override suspend fun getDeviceKeys(userId: UserId): Map<String, SignedDeviceKeys>? =
-        devices[userId]
+
+    override suspend fun getDeviceKeys(userId: UserId): Map<String, SignedDeviceKeys>? = devices[userId]
 
     val roomMembers = mutableMapOf<RoomId, Set<UserId>>()
+
     override suspend fun getMembers(roomId: RoomId, memberships: Set<Membership>): Set<UserId> =
         roomMembers[roomId].orEmpty()
 
     val deviceTrustLevels: MutableMap<UserId, Map<String, DeviceTrustLevel>> = mutableMapOf()
+
     override suspend fun getTrustLevel(userId: UserId, deviceId: String): DeviceTrustLevel? =
         deviceTrustLevels[userId]?.get(deviceId)
 
@@ -37,7 +39,7 @@ class OlmStoreMock : OlmStore {
 
     override suspend fun updateOlmSessions(
         identityKeyValue: Curve25519KeyValue,
-        updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
+        updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?,
     ) {
         olmSessions[identityKeyValue] = updater(olmSessions[identityKeyValue])
     }
@@ -49,16 +51,17 @@ class OlmStoreMock : OlmStore {
 
     override suspend fun updateOutboundMegolmSession(
         roomId: RoomId,
-        updater: (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
+        updater: (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?,
     ) {
         outboundMegolmSession[roomId] = updater(outboundMegolmSession[roomId])
     }
 
     val inboundMegolmSession = mutableMapOf<Pair<String, RoomId>, StoredInboundMegolmSession?>()
+
     override suspend fun updateInboundMegolmSession(
         sessionId: String,
         roomId: RoomId,
-        updater: (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
+        updater: (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?,
     ) {
         inboundMegolmSession[sessionId to roomId] = updater(inboundMegolmSession[sessionId to roomId])
     }
@@ -67,38 +70,44 @@ class OlmStoreMock : OlmStore {
         return inboundMegolmSession[sessionId to roomId]
     }
 
-
     val inboundMegolmSessionIndex = mutableMapOf<Triple<String, RoomId, Long>, StoredInboundMegolmMessageIndex?>()
+
     override suspend fun updateInboundMegolmMessageIndex(
         sessionId: String,
         roomId: RoomId,
         messageIndex: Long,
-        updater: (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
+        updater: (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?,
     ) {
         inboundMegolmSessionIndex[Triple(sessionId, roomId, messageIndex)] =
             updater(inboundMegolmSessionIndex[Triple(sessionId, roomId, messageIndex)])
     }
 
-
     val olmAccount: MutableStateFlow<String> = MutableStateFlow("")
+
     override suspend fun getOlmAccount(): String = olmAccount.value
+
     override suspend fun updateOlmAccount(updater: (String) -> String) {
         olmAccount.update { updater(it) }
     }
 
     override suspend fun getOlmPickleKey(): String? = null
+
     val forgetFallbackKeyAfter: MutableStateFlow<Instant?> = MutableStateFlow(null)
+
     override suspend fun getForgetFallbackKeyAfter(): Instant? = forgetFallbackKeyAfter.value
+
     override suspend fun updateForgetFallbackKeyAfter(updater: (Instant?) -> Instant?) {
         forgetFallbackKeyAfter.update { updater(it) }
     }
 
     var historyVisibility: HistoryVisibilityEventContent.HistoryVisibility? = null
+
     override suspend fun getHistoryVisibility(roomId: RoomId): HistoryVisibilityEventContent.HistoryVisibility? {
         return historyVisibility
     }
 
     val roomEncryptionAlgorithm = mutableMapOf<RoomId, EncryptionAlgorithm?>()
+
     override suspend fun getRoomEncryptionAlgorithm(roomId: RoomId): EncryptionAlgorithm? {
         return roomEncryptionAlgorithm[roomId]
     }

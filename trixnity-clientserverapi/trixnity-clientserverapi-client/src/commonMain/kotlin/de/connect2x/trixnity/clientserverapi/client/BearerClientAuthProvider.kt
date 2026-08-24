@@ -51,10 +51,12 @@ abstract class BearerClientAuthProvider<T : BearerTokens>(
             it.not()
         }
 
-        val token = store.getAuthData<T>() ?: run {
-            log.warn { "no bearer tokens found even after waiting for refresh" }
-            return
-        }
+        val token =
+            store.getAuthData<T>()
+                ?: run {
+                    log.warn { "no bearer tokens found even after waiting for refresh" }
+                    return
+                }
 
         request.headers {
             val tokenValue = "Bearer ${token.accessToken}"

@@ -22,51 +22,36 @@ sealed interface LoginType {
 
     @Serializable
     data object Password : LoginType {
-        @SerialName("type")
-        override val name = "m.login.password"
+        @SerialName("type") override val name = "m.login.password"
     }
 
     @Serializable
-    data class Token(
-        @SerialName("get_login_token") val getLoginToken: Boolean? = null,
-    ) : LoginType {
-        @SerialName("type")
-        override val name = "m.login.token"
+    data class Token(@SerialName("get_login_token") val getLoginToken: Boolean? = null) : LoginType {
+        @SerialName("type") override val name = "m.login.token"
     }
 
     @Serializable
     data object AppService : LoginType {
-        @SerialName("type")
-        override val name = "m.login.application_service"
+        @SerialName("type") override val name = "m.login.application_service"
     }
 
     @Serializable
     data class SSO(
-        @SerialName("identity_providers")
-        val identityProviders: Set<IdentityProvider> = setOf(),
-        @SerialName("oauth_aware_preferred")
-        val oAuth2AwarePreferred: Boolean? = null,
+        @SerialName("identity_providers") val identityProviders: Set<IdentityProvider> = setOf(),
+        @SerialName("oauth_aware_preferred") val oAuth2AwarePreferred: Boolean? = null,
     ) : LoginType {
-        @SerialName("type")
-        override val name = "m.login.sso"
+        @SerialName("type") override val name = "m.login.sso"
 
         @Serializable
         data class IdentityProvider(
-            @SerialName("brand")
-            val brand: String? = null,
-            @SerialName("icon")
-            val icon: String? = null,
-            @SerialName("id")
-            val id: String,
-            @SerialName("name")
-            val name: String,
+            @SerialName("brand") val brand: String? = null,
+            @SerialName("icon") val icon: String? = null,
+            @SerialName("id") val id: String,
+            @SerialName("name") val name: String,
         )
     }
 
-    data class Unknown(
-        override val name: String,
-        val raw: JsonObject
-    ) : LoginType
+    data class Unknown(override val name: String, val raw: JsonObject) : LoginType
 
     object Serializer : KSerializer<LoginType> {
         override fun deserialize(decoder: Decoder): LoginType {
@@ -85,19 +70,22 @@ sealed interface LoginType {
 
         override fun serialize(encoder: Encoder, value: LoginType) {
             require(encoder is JsonEncoder)
-            val jsonObject: JsonObject = when (value) {
-                is Password -> encoder.json.encodeToJsonElement(value).jsonObject
-                is Token -> encoder.json.encodeToJsonElement(value).jsonObject
-                is AppService -> encoder.json.encodeToJsonElement(value).jsonObject
-                is SSO -> encoder.json.encodeToJsonElement(value).jsonObject
-                is Unknown -> JsonObject(buildMap {
-                    putAll(value.raw)
-                })
-            }
-            encoder.encodeJsonElement(JsonObject(buildMap {
-                putAll(jsonObject)
-                put("type", JsonPrimitive(value.name))
-            }))
+            val jsonObject: JsonObject =
+                when (value) {
+                    is Password -> encoder.json.encodeToJsonElement(value).jsonObject
+                    is Token -> encoder.json.encodeToJsonElement(value).jsonObject
+                    is AppService -> encoder.json.encodeToJsonElement(value).jsonObject
+                    is SSO -> encoder.json.encodeToJsonElement(value).jsonObject
+                    is Unknown -> JsonObject(buildMap { putAll(value.raw) })
+                }
+            encoder.encodeJsonElement(
+                JsonObject(
+                    buildMap {
+                        putAll(jsonObject)
+                        put("type", JsonPrimitive(value.name))
+                    }
+                )
+            )
         }
 
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("LoginType")

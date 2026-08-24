@@ -1,18 +1,18 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetPublicRoomsResponse(
     @SerialName("chunk") val chunk: List<PublicRoomsChunk>,
     @SerialName("next_batch") val nextBatch: String? = null,
     @SerialName("prev_batch") val prevBatch: String? = null,
-    @SerialName("total_room_count_estimate") val totalRoomCountEstimate: Long? = null
+    @SerialName("total_room_count_estimate") val totalRoomCountEstimate: Long? = null,
 ) {
     @Serializable
     data class PublicRoomsChunk(

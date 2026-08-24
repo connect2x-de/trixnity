@@ -1,19 +1,18 @@
 package de.connect2x.trixnity.core.model.events.block.m
 
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
-value class TopicContentBlock(
-    val blocks: @Contextual EventContentBlocks,
-) : EventContentBlock.Default {
+value class TopicContentBlock(val blocks: @Contextual EventContentBlocks) : EventContentBlock.Default {
     constructor(text: TextContentBlock) : this(EventContentBlocks(text))
 
-    override val type: EventContentBlock.Type<TopicContentBlock> get() = Type
+    override val type: EventContentBlock.Type<TopicContentBlock>
+        get() = Type
 
     companion object Type : EventContentBlock.Type<TopicContentBlock> {
         override val value: String = "m.topic"
@@ -21,5 +20,6 @@ value class TopicContentBlock(
         override fun toString(): String = value
     }
 
-    val text: TextContentBlock? get() = blocks[TextContentBlock]
+    val text: TextContentBlock?
+        get() = blocks[TextContentBlock]
 }

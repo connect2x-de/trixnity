@@ -3,6 +3,8 @@
 package de.connect2x.trixnity.idb.utils
 
 import de.connect2x.trixnity.idb.utils.IDBException.Operation.TRANSACTION
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -14,78 +16,51 @@ import web.idb.IDBDatabase
 import web.idb.IDBTransactionMode
 import web.idb.readonly
 import web.idb.readwrite
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
-suspend fun <T> IDBDatabase.readTransaction(
-    vararg names: String,
-    block: suspend WrappedTransaction.() -> T
-): T = transaction(
-    names = names,
-    mode = IDBTransactionMode.readonly,
-    block = block,
-)
+suspend fun <T> IDBDatabase.readTransaction(vararg names: String, block: suspend WrappedTransaction.() -> T): T =
+    transaction(names = names, mode = IDBTransactionMode.readonly, block = block)
 
-suspend fun <T> IDBDatabase.writeTransaction(
-    vararg names: String,
-    block: suspend WrappedTransaction.() -> T
-): T = transaction(
-    names = names,
-    mode = IDBTransactionMode.readwrite,
-    block = block,
-)
-
+suspend fun <T> IDBDatabase.writeTransaction(vararg names: String, block: suspend WrappedTransaction.() -> T): T =
+    transaction(names = names, mode = IDBTransactionMode.readwrite, block = block)
 
 private suspend fun <T> IDBDatabase.transaction(
     names: Array<out String>,
     mode: IDBTransactionMode,
-    block: suspend WrappedTransaction.() -> T
-): T =
-    coroutineScope {
-        val tx = transaction(names.map { it.toJsString() }.toJsArray(), mode)
+    block: suspend WrappedTransaction.() -> T,
+): T = coroutineScope {
+    val tx = transaction(names.map { it.toJsString() }.toJsArray(), mode)
 
-        var blockDone = false
+    var blockDone = false
 
-        launch(start = CoroutineStart.UNDISPATCHED) {
-            suspendCancellableCoroutine { continuation ->
-
-                continuation.invokeOnCancellation {
-                    try {
-                        tx.abort()
-                    } catch (e: Throwable) {
-                        // The only way we get here is if the transaction has finished
-                        // This should only happen in two cases:
-                        // 1. The transaction was already aborted
-                        // 2. The transaction has no more requests scheduled, e.g. `block` is done
-                        // If for some other reason we still get here, we cannot really do anything
-                        // besides logging the exception
-                        if (!blockDone) console.error(
-                            "could not abort transaction",
-                            e.stackTraceToString()
-                        )
-                    }
-                }
-
-                tx.onerror = EventHandler {
-                    continuation.resumeWithException(
-                        IDBException.fromDom(TRANSACTION, tx.error),
-                    )
-                }
-                tx.oncomplete = EventHandler {
-                    continuation.resume(Unit)
-                }
-                tx.onabort = EventHandler {
-                    if (!continuation.isCancelled) continuation.resumeWithException(
-                        IDBException.fromDom(TRANSACTION, tx.error),
-                    )
+    launch(start = CoroutineStart.UNDISPATCHED) {
+        suspendCancellableCoroutine { continuation ->
+            continuation.invokeOnCancellation {
+                try {
+                    tx.abort()
+                } catch (e: Throwable) {
+                    // The only way we get here is if the transaction has finished
+                    // This should only happen in two cases:
+                    // 1. The transaction was already aborted
+                    // 2. The transaction has no more requests scheduled, e.g. `block` is done
+                    // If for some other reason we still get here, we cannot really do anything
+                    // besides logging the exception
+                    if (!blockDone) console.error("could not abort transaction", e.stackTraceToString())
                 }
             }
-        }
 
-        withContext(IDBDispatcher()) {
-            WrappedTransaction(tx).block().also {
-                blockDone = true
-                tx.commit()
+            tx.onerror = EventHandler { continuation.resumeWithException(IDBException.fromDom(TRANSACTION, tx.error)) }
+            tx.oncomplete = EventHandler { continuation.resume(Unit) }
+            tx.onabort = EventHandler {
+                if (!continuation.isCancelled)
+                    continuation.resumeWithException(IDBException.fromDom(TRANSACTION, tx.error))
             }
         }
     }
+
+    withContext(IDBDispatcher()) {
+        WrappedTransaction(tx).block().also {
+            blockDone = true
+            tx.commit()
+        }
+    }
+}

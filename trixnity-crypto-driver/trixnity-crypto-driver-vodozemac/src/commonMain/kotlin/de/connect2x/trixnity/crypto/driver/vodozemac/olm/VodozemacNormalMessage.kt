@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.olm
 
-import de.connect2x.trixnity.vodozemac.olm.OlmMessage.Normal.Text as Inner
 import de.connect2x.trixnity.crypto.driver.olm.Message
+import de.connect2x.trixnity.vodozemac.olm.OlmMessage.Normal.Text as Inner
 import kotlin.jvm.JvmInline
 
 @JvmInline

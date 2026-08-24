@@ -1,21 +1,5 @@
 package de.connect2x.trixnity.client.media.indexeddb
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import io.ktor.utils.io.core.toByteArray
-import js.errors.toThrowable
-import js.typedarrays.Int8Array
-import js.typedarrays.Uint8Array
-import js.typedarrays.toByteArray
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestResult
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withContext
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.media.indexeddb.IndexedDBMediaStore.Companion.MEDIA_OBJECT_STORE_NAME
 import de.connect2x.trixnity.client.media.indexeddb.IndexedDBMediaStore.Companion.TMP_MEDIA_OBJECT_STORE_NAME
@@ -25,14 +9,16 @@ import de.connect2x.trixnity.idb.utils.readTransaction
 import de.connect2x.trixnity.idb.utils.writeTransaction
 import de.connect2x.trixnity.utils.nextString
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.ktor.utils.io.core.toByteArray
 import js.array.jsArrayOf
 import js.buffer.ArrayBuffer
+import js.errors.toThrowable
+import js.typedarrays.Int8Array
+import js.typedarrays.Uint8Array
+import js.typedarrays.toByteArray
 import js.typedarrays.toInt8Array
-import web.blob.Blob
-import web.blob.arrayBuffer
-import web.events.EventHandler
-import web.idb.IDBDatabase
-import web.idb.IDBValidKey
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -41,6 +27,20 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import web.blob.Blob
+import web.blob.arrayBuffer
+import web.events.EventHandler
+import web.idb.IDBDatabase
+import web.idb.IDBValidKey
 
 class IndexedDBMediaStoreTest {
 
@@ -64,16 +64,15 @@ class IndexedDBMediaStoreTest {
         coroutineScope.cancel()
     }
 
-    private fun test(
-        testBody: suspend TestScope.() -> Unit
-    ): TestResult = runTest(timeout = 5_000.milliseconds) {
-        beforeTest()
-        try {
-            testBody()
-        } finally {
-            afterTest()
+    private fun test(testBody: suspend TestScope.() -> Unit): TestResult =
+        runTest(timeout = 5_000.milliseconds) {
+            beforeTest()
+            try {
+                testBody()
+            } finally {
+                afterTest()
+            }
         }
-    }
 
     @Test
     fun shouldInit() = test {
@@ -88,17 +87,10 @@ class IndexedDBMediaStoreTest {
         val actualSize = suspendCoroutine { continuation ->
             val request = store.getAll()
 
-            request.onsuccess = EventHandler { event ->
-                continuation.resume(event.target.result.length)
-            }
+            request.onsuccess = EventHandler { event -> continuation.resume(event.target.result.length) }
 
             request.onerror = EventHandler { event ->
-                continuation.resumeWithException(
-                    Error(
-                        "get size",
-                        event.target.error?.toThrowable()
-                    )
-                )
+                continuation.resumeWithException(Error("get size", event.target.error?.toThrowable()))
             }
         }
 
@@ -133,30 +125,28 @@ class IndexedDBMediaStoreTest {
     @Test
     fun shouldAddMedia() = test {
         cut.addMedia(file1, flowOf("h".toByteArray(), "i".toByteArray()))
-        database.readTransaction(MEDIA_OBJECT_STORE_NAME) {
-            val store = objectStore(MEDIA_OBJECT_STORE_NAME)
-            store shouldBeSize 1
-            checkNotNull(store.get<Blob>(IDBValidKey(file1)))
-        }.let { Int8Array(it.arrayBuffer()) }
-            .toByteArray().decodeToString() shouldBe "hi"
+        database
+            .readTransaction(MEDIA_OBJECT_STORE_NAME) {
+                val store = objectStore(MEDIA_OBJECT_STORE_NAME)
+                store shouldBeSize 1
+                checkNotNull(store.get<Blob>(IDBValidKey(file1)))
+            }
+            .let { Int8Array(it.arrayBuffer()) }
+            .toByteArray()
+            .decodeToString() shouldBe "hi"
     }
 
     @Test
     fun shouldGetMedia() = test {
         database.writeTransaction(MEDIA_OBJECT_STORE_NAME) {
             val store = objectStore(MEDIA_OBJECT_STORE_NAME)
-            store.put(
-                Blob(jsArrayOf("hi".encodeToByteArray().toInt8Array())),
-                IDBValidKey(file1)
-            )
+            store.put(Blob(jsArrayOf("hi".encodeToByteArray().toInt8Array())), IDBValidKey(file1))
         }
         cut.getMedia(file1)?.toByteArray()?.decodeToString() shouldBe "hi"
     }
 
     @Test
-    fun shouldGetMediaWhenNotExists() = test {
-        cut.getMedia(file1)?.toByteArray()?.decodeToString() shouldBe null
-    }
+    fun shouldGetMediaWhenNotExists() = test { cut.getMedia(file1)?.toByteArray()?.decodeToString() shouldBe null }
 
     @Test
     fun shouldDeleteMedia() = test {
@@ -228,9 +218,7 @@ class IndexedDBMediaStoreTest {
             tmpStore shouldBeSize 1
         }
         coroutineScope.cancel()
-        withContext(Dispatchers.Default) {
-            delay(50.milliseconds)
-        }
+        withContext(Dispatchers.Default) { delay(50.milliseconds) }
         database.readTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
             val tmpStore = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
             tmpStore shouldBeSize 0
@@ -264,10 +252,11 @@ class IndexedDBMediaStoreTest {
             val tmpStore = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
             tmpStore shouldBeSize 0
         }
-        val tmpFile = platformMedia
-            .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
-            .getTemporaryFile()
-            .getOrThrow()
+        val tmpFile =
+            platformMedia
+                .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
+                .getTemporaryFile()
+                .getOrThrow()
         database.readTransaction(TMP_MEDIA_OBJECT_STORE_NAME) {
             val tmpStore = objectStore(TMP_MEDIA_OBJECT_STORE_NAME)
             tmpStore shouldBeSize 1

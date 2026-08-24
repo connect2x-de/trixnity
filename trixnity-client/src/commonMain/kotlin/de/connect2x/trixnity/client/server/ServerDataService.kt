@@ -9,6 +9,8 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2MatrixClientAuthProvider
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
 import de.connect2x.trixnity.core.EventHandler
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -16,8 +18,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.minutes
 
 private val log = Logger("de.connect2x.trixnity.client.server.ServerDataService")
 
@@ -35,13 +35,12 @@ class ServerDataService(
             while (currentCoroutineContext().isActive) {
                 coroutineScope {
                     val newVersionsAsync = async {
-                        api.server.getVersions()
-                            .onFailure { log.warn(it) { "failed get server version" } }
-                            .getOrNull()
+                        api.server.getVersions().onFailure { log.warn(it) { "failed get server version" } }.getOrNull()
                     }
 
                     val newCapabilitiesAsync = async {
-                        api.server.getCapabilities()
+                        api.server
+                            .getCapabilities()
                             .onFailure { log.warn(it) { "failed get server capabilities" } }
                             .getOrNull()
                     }
@@ -49,19 +48,20 @@ class ServerDataService(
                     val newMediaConfigAsync = async {
                         if (newVersions == null) return@async null
                         if (newVersions.versions.contains(MATRIX_SPEC_1_11)) {
-                            api.media.getConfig()
-                        } else {
-                            @Suppress("DEPRECATION")
-                            api.media.getConfigLegacy().map { GetMediaConfig.Response(it.maxUploadSize) }
-                        }.onFailure { log.warn(it) { "failed get media config" } }
+                                api.media.getConfig()
+                            } else {
+                                @Suppress("DEPRECATION")
+                                api.media.getConfigLegacy().map { GetMediaConfig.Response(it.maxUploadSize) }
+                            }
+                            .onFailure { log.warn(it) { "failed get media config" } }
                             .getOrNull()
                     }
                     val newOAuth2ServerMetadataAsync = async {
                         if (api.authProviderType != OAuth2MatrixClientAuthProvider::class) return@async null
-                        api.authentication.getOAuth2ServerMetadata()
-                            .onFailure {
-                                log.warn(it) { "failed get oAuth2ServerMetadata" }
-                            }.getOrNull()
+                        api.authentication
+                            .getOAuth2ServerMetadata()
+                            .onFailure { log.warn(it) { "failed get oAuth2ServerMetadata" } }
+                            .getOrNull()
                     }
                     val newMediaConfig = newMediaConfigAsync.await()
                     val newCapabilities = newCapabilitiesAsync.await()
@@ -73,7 +73,7 @@ class ServerDataService(
                                     versions = newVersions,
                                     mediaConfig = newMediaConfig,
                                     capabilities = newCapabilities,
-                                    auth = newOAuth2ServerMetadata
+                                    auth = newOAuth2ServerMetadata,
                                 )
                             )
                         }

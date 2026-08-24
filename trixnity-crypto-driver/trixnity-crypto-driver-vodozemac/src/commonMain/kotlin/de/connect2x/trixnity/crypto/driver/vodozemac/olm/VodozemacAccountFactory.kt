@@ -7,6 +7,7 @@ import de.connect2x.trixnity.vodozemac.olm.Account
 
 object VodozemacAccountFactory : AccountFactory {
     override val dehydratedDevicesSupported = true
+
     override fun invoke(): VodozemacAccount = VodozemacAccount(Account())
 
     override fun fromPickle(pickle: String, pickleKey: PickleKey?): VodozemacAccount {
@@ -18,11 +19,7 @@ object VodozemacAccountFactory : AccountFactory {
     override fun fromDehydratedDevice(pickle: String, nonce: String, pickleKey: PickleKey): VodozemacAccount {
         require(pickleKey is VodozemacPickleKey)
         return VodozemacAccount(
-            Account.fromDehydratedDevice(
-                ciphertext = pickle,
-                nonce = nonce,
-                pickleKey = pickleKey.inner
-            )
+            Account.fromDehydratedDevice(ciphertext = pickle, nonce = nonce, pickleKey = pickleKey.inner)
         )
     }
 }

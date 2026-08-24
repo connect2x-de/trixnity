@@ -10,16 +10,11 @@ import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * @see <a href="https://spec.matrix.org/v1.18/client-server-api/#getwell-knownmatrixpolicy_server">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.18/client-server-api/#getwell-knownmatrixpolicy_server">matrix spec</a> */
 @Serializable
 @Resource("/.well-known/matrix/policy_server")
 @HttpMethod(GET)
 @Auth(AuthRequired.NO)
 object GetPolicyServer : MatrixEndpoint<Unit, GetPolicyServer.Response> {
-    @Serializable
-    data class Response(
-        @SerialName("public_keys") val publicKeys: Keys
-    )
+    @Serializable data class Response(@SerialName("public_keys") val publicKeys: Keys)
 }

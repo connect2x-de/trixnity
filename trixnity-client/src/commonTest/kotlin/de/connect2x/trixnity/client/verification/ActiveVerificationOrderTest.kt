@@ -3,7 +3,6 @@ package de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.store.KeyStore
-import de.connect2x.trixnity.core.model.keys.MacValue
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.key.verification.SasMacEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
@@ -11,6 +10,7 @@ import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMe
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
 import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.MacValue
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
@@ -32,15 +32,8 @@ class ActiveVerificationOrderTest : TrixnityBaseTest() {
     private val handledEvents = mutableListOf<VerificationStep>()
 
     private val keyStore = getInMemoryKeyStore()
-    private val cut = TestActiveVerification(
-        VerificationRequestToDeviceEventContent(
-            bobDevice,
-            setOf(Sas),
-            1234,
-            "t"
-        ),
-        keyStore
-    )
+    private val cut =
+        TestActiveVerification(VerificationRequestToDeviceEventContent(bobDevice, setOf(Sas), 1234, "t"), keyStore)
 
     @Test
     fun `events are handled in order`() = runTest {

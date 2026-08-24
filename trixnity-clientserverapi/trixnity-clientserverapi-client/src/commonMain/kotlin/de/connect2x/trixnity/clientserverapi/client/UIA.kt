@@ -1,29 +1,24 @@
 package de.connect2x.trixnity.clientserverapi.client
 
-import io.ktor.http.*
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
 import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
 import de.connect2x.trixnity.core.ErrorResponse
+import io.ktor.http.*
 
 sealed interface UIA<T> {
-    data class Success<T>(
-        val value: T
-    ) : UIA<T>
+    data class Success<T>(val value: T) : UIA<T>
 
     data class Step<T>(
         val state: UIAState,
         private val getFallbackUrlCallback: (AuthenticationType) -> Url,
         private val authenticateCallback: suspend (AuthenticationRequest) -> Result<UIA<T>>,
-        private val onSuccessCallback: suspend () -> Unit = {}
+        private val onSuccessCallback: suspend () -> Unit = {},
     ) : UIA<T> {
-        fun getFallbackUrl(authenticationType: AuthenticationType): Url =
-            getFallbackUrlCallback(authenticationType)
+        fun getFallbackUrl(authenticationType: AuthenticationType): Url = getFallbackUrlCallback(authenticationType)
 
         suspend fun authenticate(request: AuthenticationRequest): Result<UIA<T>> =
-            authenticateCallback(request).mapCatching {
-                it.injectOnSuccessIntoUIA(onSuccessCallback)
-            }
+            authenticateCallback(request).mapCatching { it.injectOnSuccessIntoUIA(onSuccessCallback) }
     }
 
     data class Error<T>(
@@ -31,15 +26,12 @@ sealed interface UIA<T> {
         val errorResponse: ErrorResponse,
         private val getFallbackUrlCallback: (AuthenticationType) -> Url,
         private val authenticateCallback: suspend (AuthenticationRequest) -> Result<UIA<T>>,
-        private val onSuccessCallback: suspend () -> Unit = {}
+        private val onSuccessCallback: suspend () -> Unit = {},
     ) : UIA<T> {
-        fun getFallbackUrl(authenticationType: AuthenticationType): Url =
-            getFallbackUrlCallback(authenticationType)
+        fun getFallbackUrl(authenticationType: AuthenticationType): Url = getFallbackUrlCallback(authenticationType)
 
         suspend fun authenticate(request: AuthenticationRequest): Result<UIA<T>> =
-            authenticateCallback(request).mapCatching {
-                it.injectOnSuccessIntoUIA(onSuccessCallback)
-            }
+            authenticateCallback(request).mapCatching { it.injectOnSuccessIntoUIA(onSuccessCallback) }
     }
 }
 

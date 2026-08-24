@@ -22,26 +22,26 @@ class ClassicMatrixClientAuthProvider(
     override val baseUrl: Url,
     store: MatrixClientAuthProviderDataStore,
     private val onLogout: suspend (LogoutInfo) -> Unit,
-) : BearerClientAuthProvider<ClassicMatrixClientAuthProviderData>(
-    store = store,
-    onLogout = onLogout
-) {
+) : BearerClientAuthProvider<ClassicMatrixClientAuthProviderData>(store = store, onLogout = onLogout) {
     override suspend fun refreshTokens(
         bearerTokens: ClassicMatrixClientAuthProviderData,
-        httpClient: HttpClient
+        httpClient: HttpClient,
     ): ClassicMatrixClientAuthProviderData {
         val refreshToken = bearerTokens.refreshToken ?: return bearerTokens
         val refreshResponse =
             try {
-                httpClient.post("/_matrix/client/v3/refresh") {
-                    attributes.put(AuthCircuitBreaker, Unit)
-                    contentType(ContentType.Application.Json)
-                    accept(ContentType.Application.Json)
-                    setBody(Refresh.Request(refreshToken))
-                }.body<Refresh.Response>()
+                httpClient
+                    .post("/_matrix/client/v3/refresh") {
+                        attributes.put(AuthCircuitBreaker, Unit)
+                        contentType(ContentType.Application.Json)
+                        accept(ContentType.Application.Json)
+                        setBody(Refresh.Request(refreshToken))
+                    }
+                    .body<Refresh.Response>()
             } catch (matrixServerException: MatrixServerException) {
-                if (matrixServerException.statusCode == HttpStatusCode.Unauthorized ||
-                    matrixServerException.statusCode == HttpStatusCode.Forbidden // not spec compliant
+                if (
+                    matrixServerException.statusCode == HttpStatusCode.Unauthorized ||
+                        matrixServerException.statusCode == HttpStatusCode.Forbidden // not spec compliant
                 )
                     when (val errorResponse = matrixServerException.errorResponse) {
                         is ErrorResponse.UnknownToken -> {
@@ -50,7 +50,9 @@ class ClassicMatrixClientAuthProvider(
                         }
 
                         is ErrorResponse.Forbidden -> {
-                            log.info { "could not refresh token, therefore call onLogout (unknown token) - this is not spec compliant" }
+                            log.info {
+                                "could not refresh token, therefore call onLogout (unknown token) - this is not spec compliant"
+                            }
                             onLogout(LogoutInfo(false, false))
                         }
 
@@ -76,7 +78,6 @@ class ClassicMatrixClientAuthProvider(
         }
 }
 
-
 @Serializable
 data class ClassicMatrixClientAuthProviderData(
     override val baseUrl: Url,
@@ -86,22 +87,19 @@ data class ClassicMatrixClientAuthProviderData(
 ) : MatrixClientAuthProviderData, BearerTokens {
     override fun toString(): String =
         "ClassicMatrixAuthProviderData(" +
-                "accessToken=${accessToken.tokenHash()}, " +
-                "accessTokenExpiresInMs=$accessTokenExpiresInMs, " +
-                "refreshToken=${refreshToken?.tokenHash()}, " +
-                ")"
+            "accessToken=${accessToken.tokenHash()}, " +
+            "accessTokenExpiresInMs=$accessTokenExpiresInMs, " +
+            "refreshToken=${refreshToken?.tokenHash()}, " +
+            ")"
 
     private fun String.tokenHash() = "<hash:" + encodeToByteArray().toByteString().sha256().hex().take(6) + ">"
+
     override fun createAuthProvider(
         store: MatrixClientAuthProviderDataStore,
         onLogout: suspend (LogoutInfo) -> Unit,
         httpClientEngine: HttpClientEngine?,
-        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
-    ): MatrixClientAuthProvider = ClassicMatrixClientAuthProvider(
-        baseUrl = baseUrl,
-        store = store,
-        onLogout = onLogout
-    )
+        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?,
+    ): MatrixClientAuthProvider = ClassicMatrixClientAuthProvider(baseUrl = baseUrl, store = store, onLogout = onLogout)
 }
 
 fun MatrixClientAuthProviderData.Companion.classic(
@@ -109,12 +107,13 @@ fun MatrixClientAuthProviderData.Companion.classic(
     accessToken: String,
     accessTokenExpiresInMs: Long? = null,
     refreshToken: String? = null,
-): ClassicMatrixClientAuthProviderData = ClassicMatrixClientAuthProviderData(
-    baseUrl = baseUrl,
-    accessToken = accessToken,
-    accessTokenExpiresInMs = accessTokenExpiresInMs,
-    refreshToken = refreshToken
-)
+): ClassicMatrixClientAuthProviderData =
+    ClassicMatrixClientAuthProviderData(
+        baseUrl = baseUrl,
+        accessToken = accessToken,
+        accessTokenExpiresInMs = accessTokenExpiresInMs,
+        refreshToken = refreshToken,
+    )
 
 suspend fun MatrixClientAuthProviderData.Companion.classicLogin(
     baseUrl: Url,
@@ -128,27 +127,27 @@ suspend fun MatrixClientAuthProviderData.Companion.classicLogin(
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
 ): Result<ClassicMatrixClientAuthProviderData> =
-    classicLoginWith(
-        baseUrl = baseUrl,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig,
-    ) { api ->
-        api.authentication.login(
-            identifier = identifier,
-            password = password,
-            token = token,
-            type = loginType,
-            deviceId = deviceId,
-            initialDeviceDisplayName = initialDeviceDisplayName,
-            refreshToken = refreshToken
-        ).getOrThrow().let { login ->
-            ClassicMatrixClientAuthProviderData(
-                baseUrl = baseUrl,
-                accessToken = login.accessToken,
-                accessTokenExpiresInMs = login.accessTokenExpiresInMs,
-                refreshToken = login.refreshToken,
+    classicLoginWith(baseUrl = baseUrl, httpClientEngine = httpClientEngine, httpClientConfig = httpClientConfig) { api
+        ->
+        api.authentication
+            .login(
+                identifier = identifier,
+                password = password,
+                token = token,
+                type = loginType,
+                deviceId = deviceId,
+                initialDeviceDisplayName = initialDeviceDisplayName,
+                refreshToken = refreshToken,
             )
-        }
+            .getOrThrow()
+            .let { login ->
+                ClassicMatrixClientAuthProviderData(
+                    baseUrl = baseUrl,
+                    accessToken = login.accessToken,
+                    accessTokenExpiresInMs = login.accessTokenExpiresInMs,
+                    refreshToken = login.refreshToken,
+                )
+            }
     }
 
 suspend fun MatrixClientAuthProviderData.Companion.classicLoginWithPassword(
@@ -204,10 +203,9 @@ suspend fun MatrixClientAuthProviderData.Companion.classicLoginWith(
     with: suspend (MatrixClientServerApiClient) -> ClassicMatrixClientAuthProviderData,
 ): Result<ClassicMatrixClientAuthProviderData> = kotlin.runCatching {
     MatrixClientServerApiClientImpl(
-        baseUrl = baseUrl,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig,
-    ).use { api ->
-        with(api)
-    }
+            baseUrl = baseUrl,
+            httpClientEngine = httpClientEngine,
+            httpClientConfig = httpClientConfig,
+        )
+        .use { api -> with(api) }
 }

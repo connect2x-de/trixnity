@@ -21,13 +21,10 @@ value class LibOlmInboundGroupSession(val inner: OlmInboundGroupSession) : Inbou
 
         val result = rethrow { inner.decrypt(message.inner) }
 
-        InboundGroupSession.DecryptedMessage(
-            plaintext = result.message, messageIndex = result.index.toInt()
-        )
+        InboundGroupSession.DecryptedMessage(plaintext = result.message, messageIndex = result.index.toInt())
     }
 
     override fun exportAt(index: Int): LibOlmExportedSessionKey = LibOlmExportedSessionKey(inner.export(index.toLong()))
-
 
     override fun exportAtFirstKnownIndex(): LibOlmExportedSessionKey = exportAt(firstKnownIndex)
 
@@ -38,6 +35,4 @@ value class LibOlmInboundGroupSession(val inner: OlmInboundGroupSession) : Inbou
     }
 
     override fun close() = inner.free()
-
 }
-

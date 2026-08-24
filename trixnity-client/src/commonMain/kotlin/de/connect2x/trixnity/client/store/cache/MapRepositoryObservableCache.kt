@@ -3,6 +3,9 @@ package de.connect2x.trixnity.client.store.cache
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.repository.MapRepository
 import de.connect2x.trixnity.utils.TransactionManager
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,16 +15,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 private val log = Logger("de.connect2x.trixnity.client.store.cache.MapRepositoryObservableCache")
 
-data class MapRepositoryCoroutinesCacheKey<K1, K2>(
-    val firstKey: K1,
-    val secondKey: K2,
-)
+data class MapRepositoryCoroutinesCacheKey<K1, K2>(val firstKey: K1, val secondKey: K2)
 
 private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
     private val name: String,
@@ -37,8 +34,7 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
 
     override suspend fun onPut(key: MapRepositoryCoroutinesCacheKey<K1, K2>) {
         log.trace { "$name: put key $key into map index" }
-        values.getOrPut(key.firstKey) { MapRepositoryObservableMapIndexValue() }
-            .keys.add(key.secondKey)
+        values.getOrPut(key.firstKey) { MapRepositoryObservableMapIndexValue() }.keys.add(key.secondKey)
     }
 
     override suspend fun onSkipPut(key: MapRepositoryCoroutinesCacheKey<K1, K2>) {
@@ -57,7 +53,8 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
                 mapping.keys.remove(key.secondKey)
                 when {
                     mapping.keys.size() == 0 -> null
-                    mapping.fullyLoadedFromStore -> mapping.copy(fullyLoadedFromStore = mapping.fullyLoadedFromStore && stale)
+                    mapping.fullyLoadedFromStore ->
+                        mapping.copy(fullyLoadedFromStore = mapping.fullyLoadedFromStore && stale)
                     else -> mapping
                 }
             } else mapping
@@ -71,38 +68,27 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
     override suspend fun getSubscriptionCount(key: MapRepositoryCoroutinesCacheKey<K1, K2>): Int =
         values.getOrPut(key.firstKey) { MapRepositoryObservableMapIndexValue() }.subscribers.value
 
-
-    fun getMapping(key: K1): Flow<Set<K2>> =
-        flow {
-            val value = values.update(key) {
-                it ?: MapRepositoryObservableMapIndexValue(fullyLoadedFromStore = false)
-            }
-            checkNotNull(value)
-            emitAll(
-                flow {
+    fun getMapping(key: K1): Flow<Set<K2>> = flow {
+        val value = values.update(key) { it ?: MapRepositoryObservableMapIndexValue(fullyLoadedFromStore = false) }
+        checkNotNull(value)
+        emitAll(
+            flow {
                     val fullyLoadedFromStore = values.get(key)?.fullyLoadedFromStore
                     if (fullyLoadedFromStore != true) {
                         log.trace { "$name: not fully loaded from store. load now for key $key" }
                         loadFromStore(key)
                     }
-                    values.update(key) {
-                        it?.copy(fullyLoadedFromStore = true)
-                    }
+                    values.update(key) { it?.copy(fullyLoadedFromStore = true) }
                     emitAll(value.keys.values)
-                }.onStart { value.subscribers.update { it + 1 } }
-                    .onCompletion { value.subscribers.update { it - 1 } }
-            )
-        }
+                }
+                .onStart { value.subscribers.update { it + 1 } }
+                .onCompletion { value.subscribers.update { it - 1 } }
+        )
+    }
 
     override suspend fun collectStatistic(): ObservableCacheIndexStatistic {
-        val (all, subscribed) = values.internalRead {
-            count() to values.count { it.subscribers.value > 0 }
-        }
-        return ObservableCacheIndexStatistic(
-            name = "Map",
-            all = all,
-            subscribed = subscribed,
-        )
+        val (all, subscribed) = values.internalRead { count() to values.count { it.subscribers.value > 0 } }
+        return ObservableCacheIndexStatistic(name = "Map", all = all, subscribed = subscribed)
     }
 }
 
@@ -112,26 +98,26 @@ internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
     cacheScope: CoroutineScope,
     clock: Clock,
     expireDuration: Duration = 1.minutes,
-    values: ConcurrentObservableMap<MapRepositoryCoroutinesCacheKey<K1, K2>, MutableStateFlow<CacheValue<V?>>> = ConcurrentObservableMap(),
-) : ObservableCache<MapRepositoryCoroutinesCacheKey<K1, K2>, V, MapRepositoryObservableCacheStore<K1, K2, V>>(
-    name = repository::class.simpleName ?: repository::class.toString(),
-    store = MapRepositoryObservableCacheStore(repository),
-    tm = tm,
-    cacheScope = cacheScope,
-    expireDuration = expireDuration,
-    clock = clock,
-    values = values,
-) {
+    values: ConcurrentObservableMap<MapRepositoryCoroutinesCacheKey<K1, K2>, MutableStateFlow<CacheValue<V?>>> =
+        ConcurrentObservableMap(),
+) :
+    ObservableCache<MapRepositoryCoroutinesCacheKey<K1, K2>, V, MapRepositoryObservableCacheStore<K1, K2, V>>(
+        name = repository::class.simpleName ?: repository::class.toString(),
+        store = MapRepositoryObservableCacheStore(repository),
+        tm = tm,
+        cacheScope = cacheScope,
+        expireDuration = expireDuration,
+        clock = clock,
+        values = values,
+    ) {
     private val mapRepositoryIndex: MapRepositoryObservableCacheIndex<K1, K2> =
         MapRepositoryObservableCacheIndex(name) { key ->
             log.trace { "load map from database by first key $key" }
             withCacheTransaction {
-                tm.readTransaction { store.getByFirstKey(key) }.forEach { value ->
-                    setCacheOnly(
-                        key = MapRepositoryCoroutinesCacheKey(key, value.key),
-                        value = value.value,
-                    )
-                }
+                tm.readTransaction { store.getByFirstKey(key) }
+                    .forEach { value ->
+                        setCacheOnly(key = MapRepositoryCoroutinesCacheKey(key, value.key), value = value.value)
+                    }
             }
         }
 
@@ -141,8 +127,6 @@ internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
 
     fun readByFirstKey(key: K1): Flow<Map<K2, Flow<V?>>> =
         mapRepositoryIndex.getMapping(key).map { mapping ->
-            mapping.associateWith { secondKey ->
-                get(MapRepositoryCoroutinesCacheKey(key, secondKey))
-            }
+            mapping.associateWith { secondKey -> get(MapRepositoryCoroutinesCacheKey(key, secondKey)) }
         }
 }

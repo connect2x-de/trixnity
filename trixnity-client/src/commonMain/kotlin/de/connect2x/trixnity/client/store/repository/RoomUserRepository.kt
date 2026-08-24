@@ -5,6 +5,5 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 
 interface RoomUserRepository : DeleteByRoomIdMapRepository<RoomId, UserId, RoomUser> {
-    override fun serializeKey(firstKey: RoomId, secondKey: UserId): String =
-        firstKey.full + secondKey.full
+    override fun serializeKey(firstKey: RoomId, secondKey: UserId): String = firstKey.full + secondKey.full
 }

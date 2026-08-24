@@ -27,23 +27,25 @@ internal object ExposedInboundMegolmMessageIndex : Table("inbound_megolm_message
 internal class ExposedInboundMegolmMessageIndexRepository : InboundMegolmMessageIndexRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: InboundMegolmMessageIndexRepositoryKey): StoredInboundMegolmMessageIndex? =
-        ExposedInboundMegolmMessageIndex.selectAll().where {
-            ExposedInboundMegolmMessageIndex.sessionId.eq(key.sessionId) and
+        ExposedInboundMegolmMessageIndex.selectAll()
+            .where {
+                ExposedInboundMegolmMessageIndex.sessionId.eq(key.sessionId) and
                     ExposedInboundMegolmMessageIndex.roomId.eq(key.roomId.full) and
                     ExposedInboundMegolmMessageIndex.messageIndex.eq(key.messageIndex)
-        }.firstOrNull()?.let {
-            StoredInboundMegolmMessageIndex(
-                key.sessionId, key.roomId, key.messageIndex,
-                EventId(it[ExposedInboundMegolmMessageIndex.eventId]),
-                it[ExposedInboundMegolmMessageIndex.origin_timestamp]
-            )
-        }
+            }
+            .firstOrNull()
+            ?.let {
+                StoredInboundMegolmMessageIndex(
+                    key.sessionId,
+                    key.roomId,
+                    key.messageIndex,
+                    EventId(it[ExposedInboundMegolmMessageIndex.eventId]),
+                    it[ExposedInboundMegolmMessageIndex.origin_timestamp],
+                )
+            }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        key: InboundMegolmMessageIndexRepositoryKey,
-        value: StoredInboundMegolmMessageIndex
-    ) {
+    override suspend fun save(key: InboundMegolmMessageIndexRepositoryKey, value: StoredInboundMegolmMessageIndex) {
         ExposedInboundMegolmMessageIndex.upsert {
             it[sessionId] = value.sessionId
             it[roomId] = value.roomId.full
@@ -56,9 +58,7 @@ internal class ExposedInboundMegolmMessageIndexRepository : InboundMegolmMessage
     context(transaction: WriteTransaction)
     override suspend fun delete(key: InboundMegolmMessageIndexRepositoryKey) {
         ExposedInboundMegolmMessageIndex.deleteWhere {
-            sessionId.eq(key.sessionId) and
-                    roomId.eq(key.roomId.full) and
-                    messageIndex.eq(key.messageIndex)
+            sessionId.eq(key.sessionId) and roomId.eq(key.roomId.full) and messageIndex.eq(key.messageIndex)
         }
     }
 

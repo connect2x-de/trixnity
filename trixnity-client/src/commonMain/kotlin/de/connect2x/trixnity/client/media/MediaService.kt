@@ -68,7 +68,7 @@ interface MediaService {
     suspend fun uploadMedia(
         cacheUri: String,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
-        keepMediaInCache: Boolean = true
+        keepMediaInCache: Boolean = true,
     ): Result<String>
 
     suspend fun removeCachedMedia(uri: String)
@@ -87,10 +87,7 @@ class MediaServiceImpl(
         const val UPLOAD_MEDIA_MXC_URI_PREFIX = "mxc://"
     }
 
-    private suspend fun <T : ByteArrayFlow> Media.saveMedia(
-        uri: String,
-        transform: ByteArrayFlow.() -> T
-    ) {
+    private suspend fun <T : ByteArrayFlow> Media.saveMedia(uri: String, transform: ByteArrayFlow.() -> T) {
         val media = content.toByteArrayFlow().transform()
         log.debug { "save media to store: $uri" }
         mediaStore.addMedia(uri, media)
@@ -101,7 +98,7 @@ class MediaServiceImpl(
         mxcUri: String,
         maxSize: Long?,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
-        downloadHandler: suspend (Media) -> Unit
+        downloadHandler: suspend (Media) -> Unit,
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
             download(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
@@ -112,10 +109,12 @@ class MediaServiceImpl(
 
     private suspend fun checkAvailableSpace(expectedSize: Long?) {
         if (expectedSize == null) return
-        val availableSpace = mediaStore.getAvailableSpace() ?: run {
-            log.warn { "skipping storage check because available space could not be determined" }
-            return
-        }
+        val availableSpace =
+            mediaStore.getAvailableSpace()
+                ?: run {
+                    log.warn { "skipping storage check because available space could not be determined" }
+                    return
+                }
 
         if (expectedSize > availableSpace) {
             throw InsufficientSpaceException(expectedSize, availableSpace)
@@ -137,31 +136,35 @@ class MediaServiceImpl(
                     checkAvailableSpace(expectedSize)
                     log.debug { "download media: $uri" }
                     if (sha256Hash == null) {
-                        api.media.downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
-                            it.saveMedia(uri) { this }
-                        }.getOrThrow()
+                        api.media
+                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
+                                it.saveMedia(uri) { this }
+                            }
+                            .getOrThrow()
                     } else {
-                        api.media.downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
-                            it.saveMedia(uri) {
-                                val sha256ByteFlow = sha256()
-                                sha256ByteFlow.onCompletion { cause ->
-                                    if (cause != null) {
-                                        mediaStore.deleteMedia(uri)
-                                        return@onCompletion
-                                    }
+                        api.media
+                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
+                                it.saveMedia(uri) {
+                                    val sha256ByteFlow = sha256()
+                                    sha256ByteFlow.onCompletion { cause ->
+                                        if (cause != null) {
+                                            mediaStore.deleteMedia(uri)
+                                            return@onCompletion
+                                        }
 
-                                    val expectedHash = sha256ByteFlow.hash.value
-                                    if (expectedHash != sha256Hash) {
-                                        mediaStore.deleteMedia(uri)
-                                        throw MediaValidationException(expectedHash, sha256Hash)
+                                        val expectedHash = sha256ByteFlow.hash.value
+                                        if (expectedHash != sha256Hash) {
+                                            mediaStore.deleteMedia(uri)
+                                            throw MediaValidationException(expectedHash, sha256Hash)
+                                        }
                                     }
                                 }
                             }
-                        }.getOrThrow()
+                            .getOrThrow()
                     }
-                    requireNotNull(
-                        mediaStore.getMedia(uri)
-                    ) { "media should not be null, because it has just been saved" }
+                    requireNotNull(mediaStore.getMedia(uri)) {
+                            "media should not be null, because it has just been saved"
+                        }
                         .transformByteArrayFlow { it.onCompletion { if (!saveToCache) mediaStore.deleteMedia(uri) } }
                 } else {
                     log.debug { "found media in store: $uri" }
@@ -169,12 +172,12 @@ class MediaServiceImpl(
                 }
             }
 
-            uri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX) -> mediaStore.getMedia(uri)
-                ?: mediaCacheMappingStore.getMediaCacheMapping(uri)?.mxcUri
-                    ?.let {
+            uri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX) ->
+                mediaStore.getMedia(uri)
+                    ?: mediaCacheMappingStore.getMediaCacheMapping(uri)?.mxcUri?.let {
                         getMedia(it, saveToCache, maxSize, expectedSize, sha256Hash, progress).getOrThrow()
                     }
-                ?: throw IllegalArgumentException("cache uri $uri does not exists")
+                    ?: throw IllegalArgumentException("cache uri $uri does not exists")
 
             else -> throw IllegalArgumentException("uri $uri is no valid cache or mxc uri")
         }
@@ -195,15 +198,14 @@ class MediaServiceImpl(
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> = kotlin.runCatching {
-        val originalHash = encryptedFile.hashes["sha256"]
-            ?: throw MediaValidationException(null, null)
-        getMedia(encryptedFile.url, saveToCache, maxSize, expectedSize, originalHash, progress).getOrThrow()
+        val originalHash = encryptedFile.hashes["sha256"] ?: throw MediaValidationException(null, null)
+        getMedia(encryptedFile.url, saveToCache, maxSize, expectedSize, originalHash, progress)
+            .getOrThrow()
             .transformByteArrayFlow {
                 it.decryptAes256Ctr(
                     initialisationVector = encryptedFile.initialisationVector.decodeUnpaddedBase64Bytes(),
                     // url-safe base64 is given
-                    key = encryptedFile.key.key.replace("-", "+").replace("_", "/")
-                        .decodeUnpaddedBase64Bytes()
+                    key = encryptedFile.key.key.replace("-", "+").replace("_", "/").decodeUnpaddedBase64Bytes(),
                 )
             }
     }
@@ -223,20 +225,22 @@ class MediaServiceImpl(
         val existingMedia = mediaStore.getMedia(thumbnailUrl)
         if (existingMedia == null) {
             checkAvailableSpace(expectedSize)
-            api.media.downloadThumbnailDependingOnServerVersion(
-                mxcUri = uri,
-                width = width,
-                height = height,
-                maxSize = maxSize,
-                method = method,
-                animated = animated,
-                progress = progress
-            ) {
-                it.saveMedia(thumbnailUrl) { this }
-            }.getOrThrow()
-            requireNotNull(
-                mediaStore.getMedia(thumbnailUrl)
-            ) { "media should not be null, because it has just been saved" }
+            api.media
+                .downloadThumbnailDependingOnServerVersion(
+                    mxcUri = uri,
+                    width = width,
+                    height = height,
+                    maxSize = maxSize,
+                    method = method,
+                    animated = animated,
+                    progress = progress,
+                ) {
+                    it.saveMedia(thumbnailUrl) { this }
+                }
+                .getOrThrow()
+            requireNotNull(mediaStore.getMedia(thumbnailUrl)) {
+                    "media should not be null, because it has just been saved"
+                }
                 .transformByteArrayFlow { it.onCompletion { if (!saveToCache) mediaStore.deleteMedia(thumbnailUrl) } }
         } else existingMedia
     }
@@ -249,7 +253,7 @@ class MediaServiceImpl(
         method: ThumbnailResizingMethod,
         animated: Boolean,
         progress: MutableStateFlow<FileTransferProgress?>? = null,
-        downloadHandler: suspend (Media) -> Unit
+        downloadHandler: suspend (Media) -> Unit,
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
             downloadThumbnail(
@@ -260,7 +264,7 @@ class MediaServiceImpl(
                 animated = animated,
                 progress = progress,
                 maxSize = maxSize,
-                downloadHandler = downloadHandler
+                downloadHandler = downloadHandler,
             )
         } else {
             @Suppress("DEPRECATION")
@@ -271,50 +275,52 @@ class MediaServiceImpl(
                 method = method,
                 progress = progress,
                 maxSize = maxSize,
-                downloadHandler = downloadHandler
+                downloadHandler = downloadHandler,
             )
         }
 
     override suspend fun prepareUploadMedia(content: ByteArrayFlow, contentType: ContentType?): String {
-        return "$UPLOAD_MEDIA_CACHE_URI_PREFIX${SecureRandom.nextString(22)}".also { cacheUri ->
-            var fileSize = 0L
-            mediaStore.addMedia(cacheUri, content.onEach { fileSize += it.size })
-            tm.writeTransaction {
-                mediaCacheMappingStore.saveMediaCacheMapping(
-                    cacheUri,
-                    MediaCacheMapping(cacheUri, size = fileSize, contentType = contentType?.toString())
-                )
+        return "$UPLOAD_MEDIA_CACHE_URI_PREFIX${SecureRandom.nextString(22)}"
+            .also { cacheUri ->
+                var fileSize = 0L
+                mediaStore.addMedia(cacheUri, content.onEach { fileSize += it.size })
+                tm.writeTransaction {
+                    mediaCacheMappingStore.saveMediaCacheMapping(
+                        cacheUri,
+                        MediaCacheMapping(cacheUri, size = fileSize, contentType = contentType?.toString()),
+                    )
+                }
             }
-        }
     }
 
     override suspend fun prepareUploadEncryptedMedia(content: ByteArrayFlow): EncryptedFile {
         val key = SecureRandom.nextBytes(32)
         val nonce = SecureRandom.nextBytes(8)
         val initialisationVector = nonce + ByteArray(8)
-        val encrypted =
-            content.encryptAes256Ctr(key = key, initialisationVector = initialisationVector).sha256()
+        val encrypted = content.encryptAes256Ctr(key = key, initialisationVector = initialisationVector).sha256()
         val cacheUri = prepareUploadMedia(encrypted, ContentType.Application.OctetStream)
 
         val hash = requireNotNull(encrypted.hash.value) { "hash was null" }
 
         return EncryptedFile(
             url = cacheUri,
-            key = EncryptedFile.JWK(
-                // url-safe base64 is required
-                key = key.encodeUnpaddedBase64().replace("+", "-").replace("/", "_")
-            ),
+            key =
+                EncryptedFile.JWK(
+                    // url-safe base64 is required
+                    key = key.encodeUnpaddedBase64().replace("+", "-").replace("/", "_")
+                ),
             initialisationVector = initialisationVector.encodeUnpaddedBase64(),
-            hashes = mapOf("sha256" to hash)
+            hashes = mapOf("sha256" to hash),
         )
     }
 
     override suspend fun uploadMedia(
         cacheUri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        keepMediaInCache: Boolean
+        keepMediaInCache: Boolean,
     ): Result<String> {
-        if (!cacheUri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX)) throw IllegalArgumentException("$cacheUri is no cacheUri")
+        if (!cacheUri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX))
+            throw IllegalArgumentException("$cacheUri is no cacheUri")
 
         val uploadMediaCache = requireNotNull(mediaCacheMappingStore.getMediaCacheMapping(cacheUri))
         val cachedMxcUri = uploadMediaCache.mxcUri
@@ -325,46 +331,43 @@ class MediaServiceImpl(
             val content =
                 mediaStore.getMedia(cacheUri)
                     ?: throw IllegalArgumentException("content for cacheUri $cacheUri not found")
-            api.media.upload(
-                Media(
-                    content = content.toByteReadChannel(),
-                    contentLength = uploadMediaCache.size,
-                    contentType = uploadMediaCache.contentType
-                        ?.let {
-                            try {
-                                ContentType.parse(it)
-                            } catch (_: Exception) {
-                                null
+            api.media
+                .upload(
+                    Media(
+                        content = content.toByteReadChannel(),
+                        contentLength = uploadMediaCache.size,
+                        contentType =
+                            uploadMediaCache.contentType?.let {
+                                try {
+                                    ContentType.parse(it)
+                                } catch (_: Exception) {
+                                    null
+                                }
+                            } ?: ContentType.Application.OctetStream,
+                        null,
+                    ),
+                    progress = progress,
+                )
+                .map { response ->
+                    response.contentUri.also { mxcUri ->
+                        if (keepMediaInCache) {
+                            mediaStore.changeMediaUrl(cacheUri, mxcUri)
+                            tm.writeTransaction {
+                                mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { it?.copy(mxcUri = mxcUri) }
                             }
-                        }
-                        ?: ContentType.Application.OctetStream,
-                    null
-                ),
-                progress = progress
-            ).map { response ->
-                response.contentUri.also { mxcUri ->
-                    if (keepMediaInCache) {
-                        mediaStore.changeMediaUrl(cacheUri, mxcUri)
-                        tm.writeTransaction {
-                            mediaCacheMappingStore.updateMediaCacheMapping(cacheUri) { it?.copy(mxcUri = mxcUri) }
-                        }
-                    } else {
-                        mediaStore.deleteMedia(cacheUri)
-                        tm.writeTransaction {
-                            mediaCacheMappingStore.deleteMediaCacheMapping(cacheUri)
+                        } else {
+                            mediaStore.deleteMedia(cacheUri)
+                            tm.writeTransaction { mediaCacheMappingStore.deleteMediaCacheMapping(cacheUri) }
                         }
                     }
                 }
-            }
         } else Result.success(cachedMxcUri)
     }
 
     override suspend fun removeCachedMedia(uri: String) {
         if (mediaStore.getMedia(uri) != null) {
             mediaStore.deleteMedia(uri)
-            tm.writeTransaction {
-                mediaCacheMappingStore.deleteMediaCacheMapping(uri)
-            }
+            tm.writeTransaction { mediaCacheMappingStore.deleteMediaCacheMapping(uri) }
         } else {
             log.info { "Tried removing media $uri from cache but media was not found locally." }
         }

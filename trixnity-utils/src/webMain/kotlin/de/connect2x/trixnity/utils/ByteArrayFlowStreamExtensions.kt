@@ -7,27 +7,26 @@ import js.typedarrays.toUint8Array
 import kotlinx.coroutines.flow.flow
 import web.streams.*
 
-fun byteArrayFlowFromReadableStream(streamFactory: suspend () -> ReadableStream<Uint8Array<ArrayBuffer>>): ByteArrayFlow =
-    flow {
-        val reader = streamFactory().getReader()
-        try {
-            while (true) {
-                val readResult = reader.read()
-                if (readResult.done) break
-                val readResultValue = readResult.value ?: break
-                emit(readResultValue.toByteArray())
-            }
-        } finally {
-            reader.cancel()
+fun byteArrayFlowFromReadableStream(
+    streamFactory: suspend () -> ReadableStream<Uint8Array<ArrayBuffer>>
+): ByteArrayFlow = flow {
+    val reader = streamFactory().getReader()
+    try {
+        while (true) {
+            val readResult = reader.read()
+            if (readResult.done) break
+            val readResultValue = readResult.value ?: break
+            emit(readResultValue.toByteArray())
         }
+    } finally {
+        reader.cancel()
     }
+}
 
 suspend fun ByteArrayFlow.writeTo(writableStream: WritableStream<Uint8Array<ArrayBuffer>>) {
     val writer = writableStream.getWriter()
     try {
-        collect {
-            writer.write(it.toUint8Array())
-        }
+        collect { writer.write(it.toUint8Array()) }
     } finally {
         writer.close()
     }

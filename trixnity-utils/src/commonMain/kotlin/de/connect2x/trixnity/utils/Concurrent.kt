@@ -12,9 +12,7 @@ interface Concurrent<R, W : R> {
     suspend fun <V> read(reader: suspend R.() -> V): V
 }
 
-class ConcurrentImpl<R, W : R>(
-    constructor: () -> W
-) : Concurrent<R, W> {
+class ConcurrentImpl<R, W : R>(constructor: () -> W) : Concurrent<R, W> {
     companion object {
         internal const val LEFT = true
         internal const val RIGHT = false
@@ -30,7 +28,9 @@ class ConcurrentImpl<R, W : R>(
     private val rightReaderCount = MutableStateFlow(0)
 
     private fun writeSide(switchValue: Boolean = switch) = if (switchValue == LEFT) left else right
+
     private fun readSide(switchValue: Boolean = switch) = if (switchValue == LEFT) right else left
+
     private fun readerCount(switchValue: Boolean = switch) =
         if (switchValue == LEFT) rightReaderCount else leftReaderCount
 
@@ -44,7 +44,8 @@ class ConcurrentImpl<R, W : R>(
         val writeSide2 = writeSide()
         val result2 = writer(writeSide2)
 
-        if (result1 === writeSide1 || result2 === writeSide2) throw IllegalArgumentException("writer must not leak internal data")
+        if (result1 === writeSide1 || result2 === writeSide2)
+            throw IllegalArgumentException("writer must not leak internal data")
         result2
     }
 

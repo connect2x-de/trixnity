@@ -22,21 +22,20 @@ internal object ExposedNotificationState : Table("notification_state") {
     val value = text("value")
 }
 
-internal class ExposedNotificationStateRepository(
-    private val json: Json,
-) : NotificationStateRepository {
+internal class ExposedNotificationStateRepository(private val json: Json) : NotificationStateRepository {
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): List<StoredNotificationState> {
         return ExposedNotificationState.selectAll()
-            .map { json.decodeFromString<StoredNotificationState>(it[ExposedNotificationState.value]) }.toList()
+            .map { json.decodeFromString<StoredNotificationState>(it[ExposedNotificationState.value]) }
+            .toList()
     }
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: RoomId): StoredNotificationState? {
-        return ExposedNotificationState.selectAll().where {
-            ExposedNotificationState.roomId.eq(key.full)
-        }.firstOrNull()
+        return ExposedNotificationState.selectAll()
+            .where { ExposedNotificationState.roomId.eq(key.full) }
+            .firstOrNull()
             ?.let { json.decodeFromString(it[ExposedNotificationState.value]) }
     }
 

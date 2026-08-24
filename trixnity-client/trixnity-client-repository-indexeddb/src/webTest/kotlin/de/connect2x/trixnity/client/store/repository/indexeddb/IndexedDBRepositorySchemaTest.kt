@@ -2,14 +2,15 @@ package de.connect2x.trixnity.client.store.repository.indexeddb
 
 import de.connect2x.trixnity.idb.schemaexporter.exportSchema
 import io.kotest.assertions.json.shouldEqualJson
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class IndexedDBRepositorySchemaTest {
 
     private val databaseName = "repository"
 
-    private val schema = """
+    private val schema =
+        """
         {
           "name": "repository",
           "version": 10,
@@ -360,7 +361,8 @@ class IndexedDBRepositorySchemaTest {
             }
           }
         }
-    """.trimIndent()
+        """
+            .trimIndent()
 
     @Test
     fun `schema should match`() = runTest {
@@ -372,5 +374,4 @@ class IndexedDBRepositorySchemaTest {
     private suspend fun prepare() {
         createDatabase(databaseName)
     }
-
 }

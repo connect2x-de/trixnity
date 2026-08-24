@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.core.model.events.m.key.verification
 
+import de.connect2x.trixnity.core.model.events.m.Mentions
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -8,22 +10,14 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.model.events.m.Mentions
-import de.connect2x.trixnity.core.model.events.m.RelatesTo
 
-/**
- * @see <a href="https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/unstable/client-server-api/#mkeyverificationcancel">matrix spec</a> */
 @Serializable
 data class VerificationCancelEventContent(
-    @SerialName("code")
-    val code: Code,
-    @SerialName("reason")
-    val reason: String,
-    @SerialName("m.relates_to")
-    override val relatesTo: RelatesTo.Reference?,
-    @SerialName("transaction_id")
-    override val transactionId: String?,
+    @SerialName("code") val code: Code,
+    @SerialName("reason") val reason: String,
+    @SerialName("m.relates_to") override val relatesTo: RelatesTo.Reference?,
+    @SerialName("transaction_id") override val transactionId: String?,
 ) : VerificationStep {
     override val mentions: Mentions? = null
     override val externalUrl: String? = null
@@ -32,23 +26,17 @@ data class VerificationCancelEventContent(
     sealed interface Code {
         val value: String
 
-        /**
-         * The user cancelled the verification.
-         */
+        /** The user cancelled the verification. */
         data object User : Code {
             override val value = "m.user"
         }
 
-        /**
-         * The verification process timed out. Verification processes can define their own timeout parameters.
-         */
+        /** The verification process timed out. Verification processes can define their own timeout parameters. */
         data object Timeout : Code {
             override val value = "m.timeout"
         }
 
-        /**
-         * The device does not know about the given transaction ID.
-         */
+        /** The device does not know about the given transaction ID. */
         data object UnknownTransaction : Code {
             override val value = "m.unknown_transaction"
         }
@@ -71,23 +59,17 @@ data class VerificationCancelEventContent(
             override val value = "m.unexpected_message"
         }
 
-        /**
-         * The key was not verified.
-         */
+        /** The key was not verified. */
         data object KeyMismatch : Code {
             override val value = "m.key_mismatch"
         }
 
-        /**
-         * The expected user did not match the user verified.
-         */
+        /** The expected user did not match the user verified. */
         data object UserMismatch : Code {
             override val value = "m.user_mismatch"
         }
 
-        /**
-         * The message received was invalid.
-         */
+        /** The message received was invalid. */
         data object InvalidMessage : Code {
             override val value = "m.invalid_message"
         }
@@ -100,23 +82,17 @@ data class VerificationCancelEventContent(
             override val value = "m.accepted"
         }
 
-        /**
-         * For SAS: The hash commitment did not match.
-         */
+        /** For SAS: The hash commitment did not match. */
         data object MismatchedCommitment : Code {
             override val value = "m.mismatched_commitment"
         }
 
-        /**
-         * For SAS: The SAS did not match.
-         */
+        /** For SAS: The SAS did not match. */
         data object MismatchedSas : Code {
             override val value = "m.mismatched_sas"
         }
 
-        /**
-         * Internal error.
-         */
+        /** Internal error. */
         data object InternalError : Code {
             override val value = "de.connect2x.internal"
         }

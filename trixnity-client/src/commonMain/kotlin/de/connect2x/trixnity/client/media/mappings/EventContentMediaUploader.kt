@@ -8,6 +8,6 @@ interface EventContentMediaUploader<T : EventContent> {
     suspend operator fun invoke(
         uploadProgress: MutableStateFlow<FileTransferProgress?>,
         content: T,
-        upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+        upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
     ): T
 }

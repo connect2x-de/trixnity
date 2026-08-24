@@ -2,16 +2,16 @@ package de.connect2x.trixnity.core.model.events.m
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import kotlin.jvm.JvmInline
 
 private val log = Logger("de.connect2x.trixnity.core.model.events.m.Relations")
 
@@ -30,13 +30,11 @@ value class Relations(val relations: Map<RelationType, ServerAggregation>) {
                     .mapValues { (relationType, json) ->
                         try {
                             when (relationType) {
-                                is RelationType.Replace -> decoder.json.decodeFromJsonElement<ServerAggregation.Replace>(
-                                    json
-                                )
+                                is RelationType.Replace ->
+                                    decoder.json.decodeFromJsonElement<ServerAggregation.Replace>(json)
 
-                                is RelationType.Thread -> decoder.json.decodeFromJsonElement<ServerAggregation.Thread>(
-                                    json
-                                )
+                                is RelationType.Thread ->
+                                    decoder.json.decodeFromJsonElement<ServerAggregation.Thread>(json)
 
                                 is RelationType.Unknown -> ServerAggregation.Unknown(relationType, json)
                                 else -> ServerAggregation.Unknown(relationType, json)
@@ -51,17 +49,18 @@ value class Relations(val relations: Map<RelationType, ServerAggregation>) {
 
         override fun serialize(encoder: Encoder, value: Relations) {
             require(encoder is JsonEncoder)
-            val aggregationsJson = JsonObject(
-                value.relations
-                    .mapKeys { (_, value) -> value.relationType.name }
-                    .mapValues { (_, value) ->
-                        when (value) {
-                            is ServerAggregation.Replace -> encoder.json.encodeToJsonElement(value)
-                            is ServerAggregation.Thread -> encoder.json.encodeToJsonElement(value)
-                            is ServerAggregation.Unknown -> value.raw
+            val aggregationsJson =
+                JsonObject(
+                    value.relations
+                        .mapKeys { (_, value) -> value.relationType.name }
+                        .mapValues { (_, value) ->
+                            when (value) {
+                                is ServerAggregation.Replace -> encoder.json.encodeToJsonElement(value)
+                                is ServerAggregation.Thread -> encoder.json.encodeToJsonElement(value)
+                                is ServerAggregation.Unknown -> value.raw
+                            }
                         }
-                    }
-            )
+                )
             encoder.encodeJsonElement(aggregationsJson)
         }
     }
@@ -89,8 +88,7 @@ sealed interface ServerAggregation {
         @SerialName("sender") val sender: UserId,
         @SerialName("origin_server_ts") val originTimestamp: Long,
     ) : ServerAggregation {
-        @Transient
-        override val relationType: RelationType.Replace = RelationType.Replace
+        @Transient override val relationType: RelationType.Replace = RelationType.Replace
     }
 
     @Serializable
@@ -99,12 +97,8 @@ sealed interface ServerAggregation {
         @SerialName("count") val count: Long,
         @SerialName("current_user_participated") val currentUserParticipated: Boolean,
     ) : ServerAggregation {
-        @Transient
-        override val relationType: RelationType.Thread = RelationType.Thread
+        @Transient override val relationType: RelationType.Thread = RelationType.Thread
     }
 
-    data class Unknown(
-        override val relationType: RelationType,
-        val raw: JsonElement,
-    ) : ServerAggregation
+    data class Unknown(override val relationType: RelationType, val raw: JsonElement) : ServerAggregation
 }

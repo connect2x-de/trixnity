@@ -13,11 +13,7 @@ class UnauthenticatedMatrixClientAuthProvider(override val baseUrl: Url) : Matri
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean = true
 
-    override suspend fun addRequestHeaders(
-        request: HttpRequestBuilder,
-        authHeader: HttpAuthHeader?
-    ) {
-    }
+    override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {}
 }
 
 @Serializable
@@ -26,7 +22,7 @@ data class UnauthenticatedMatrixClientAuthProviderData(override val baseUrl: Url
         store: MatrixClientAuthProviderDataStore,
         onLogout: suspend (LogoutInfo) -> Unit,
         httpClientEngine: HttpClientEngine?,
-        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
+        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?,
     ): MatrixClientAuthProvider = UnauthenticatedMatrixClientAuthProvider(baseUrl)
 }
 

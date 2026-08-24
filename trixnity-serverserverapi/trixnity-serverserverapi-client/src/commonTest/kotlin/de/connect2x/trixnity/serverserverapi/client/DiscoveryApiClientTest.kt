@@ -1,183 +1,201 @@
 package de.connect2x.trixnity.serverserverapi.client
 
-import io.kotest.matchers.shouldBe
-import io.ktor.client.engine.mock.*
-import io.ktor.http.*
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.serverserverapi.model.discovery.*
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.testutils.scopedMockEngine
+import io.kotest.matchers.shouldBe
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 class DiscoveryApiClientTest : TrixnityBaseTest() {
     @Test
     fun shouldGetWellKnown() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals("/.well-known/matrix/server", request.url.encodedPath)
-                    assertEquals(HttpMethod.Get, request.method)
-                    respond(
-                        """
-                            {
-                              "m.server": "delegated.example.com:1234"
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                }
-            })
-        matrixRestClient.discovery.getWellKnown(Url(""))
-            .getOrThrow() shouldBe GetWellKnown.Response("delegated.example.com:1234")
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals("/.well-known/matrix/server", request.url.encodedPath)
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
+                                {
+                                  "m.server": "delegated.example.com:1234"
+                                }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                            )
+                        }
+                    },
+            )
+        matrixRestClient.discovery.getWellKnown(Url("")).getOrThrow() shouldBe
+            GetWellKnown.Response("delegated.example.com:1234")
     }
 
     @Test
     fun shouldGetWellKnownRegardlessOfContentType() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals("/.well-known/matrix/server", request.url.encodedPath)
-                    assertEquals(HttpMethod.Get, request.method)
-                    respond(
-                        """
-                            {
-                              "m.server": "delegated.example.com:1234"
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                    )
-                }
-            })
-        matrixRestClient.discovery.getWellKnown(Url(""))
-            .getOrThrow() shouldBe GetWellKnown.Response("delegated.example.com:1234")
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals("/.well-known/matrix/server", request.url.encodedPath)
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
+                                {
+                                  "m.server": "delegated.example.com:1234"
+                                }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                            )
+                        }
+                    },
+            )
+        matrixRestClient.discovery.getWellKnown(Url("")).getOrThrow() shouldBe
+            GetWellKnown.Response("delegated.example.com:1234")
     }
 
     @Test
     fun shouldGetServerVersion() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals("/_matrix/federation/v1/version", request.url.fullPath)
-                    assertEquals(HttpMethod.Get, request.method)
-                    respond(
-                        """
-                            {
-                              "server": {
-                                "name": "My_Homeserver_Implementation",
-                                "version": "ArbitraryVersionNumber"
-                              }
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                }
-            })
-        matrixRestClient.discovery.getServerVersion(Url(""))
-            .getOrThrow() shouldBe GetServerVersion.Response(
-            GetServerVersion.Response.Server(
-                name = "My_Homeserver_Implementation",
-                version = "ArbitraryVersionNumber"
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals("/_matrix/federation/v1/version", request.url.fullPath)
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
+                                {
+                                  "server": {
+                                    "name": "My_Homeserver_Implementation",
+                                    "version": "ArbitraryVersionNumber"
+                                  }
+                                }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                            )
+                        }
+                    },
             )
-        )
+        matrixRestClient.discovery.getServerVersion(Url("")).getOrThrow() shouldBe
+            GetServerVersion.Response(
+                GetServerVersion.Response.Server(
+                    name = "My_Homeserver_Implementation",
+                    version = "ArbitraryVersionNumber",
+                )
+            )
     }
 
     @Test
     fun shouldGetServerKeys() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals("/_matrix/key/v2/server", request.url.fullPath)
-                    assertEquals(HttpMethod.Get, request.method)
-                    respond(
-                        """
-                            {
-                              "server_name": "example.org",
-                              "valid_until_ts": 1652262000000,
-                              "old_verify_keys": {
-                                "ed25519:0ldk3y": {
-                                  "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
-                                  "expired_ts": 1532645052628
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals("/_matrix/key/v2/server", request.url.fullPath)
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
+                                {
+                                  "server_name": "example.org",
+                                  "valid_until_ts": 1652262000000,
+                                  "old_verify_keys": {
+                                    "ed25519:0ldk3y": {
+                                      "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                      "expired_ts": 1532645052628
+                                    }
+                                  },
+                                  "verify_keys": {
+                                    "ed25519:abc123": {
+                                      "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                    }
+                                  },
+                                  "signatures": {
+                                    "example.org": {
+                                      "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
+                                    }
+                                  }
                                 }
-                              },
-                              "verify_keys": {
-                                "ed25519:abc123": {
-                                  "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                                }
-                              },
-                              "signatures": {
-                                "example.org": {
-                                  "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
-                                }
-                              }
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                }
-            })
-        matrixRestClient.discovery.getServerKeys(Url(""))
-            .getOrThrow() shouldBe Signed(
-            ServerKeys(
-                serverName = "example.org",
-                validUntil = 1652262000000,
-                oldVerifyKeys = mapOf(
-                    "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                        expiredAt = 1532645052628,
-                        keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
-                    )
-                ),
-                verifyKeys = mapOf(
-                    "ed25519:abc123" to ServerKeys.VerifyKey(
-                        keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                    )
-                )
-            ),
-            mapOf(
-                "example.org" to keysOf(
-                    Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                )
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                            )
+                        }
+                    },
             )
-        )
+        matrixRestClient.discovery.getServerKeys(Url("")).getOrThrow() shouldBe
+            Signed(
+                ServerKeys(
+                    serverName = "example.org",
+                    validUntil = 1652262000000,
+                    oldVerifyKeys =
+                        mapOf(
+                            "ed25519:0ldk3y" to
+                                ServerKeys.OldVerifyKey(
+                                    expiredAt = 1532645052628,
+                                    keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                )
+                        ),
+                    verifyKeys =
+                        mapOf(
+                            "ed25519:abc123" to
+                                ServerKeys.VerifyKey(keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA")
+                        ),
+                ),
+                mapOf(
+                    "example.org" to keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                ),
+            )
     }
 
     @Test
     fun shouldQueryServerKeys() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals("/_matrix/key/v2/query", request.url.fullPath)
-                    assertEquals(HttpMethod.Post, request.method)
-                    assertEquals(
-                        """
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals("/_matrix/key/v2/query", request.url.fullPath)
+                            assertEquals(HttpMethod.Post, request.method)
+                            assertEquals(
+                                """
                         {
                           "server_keys": {
                             "example.org": {
@@ -187,149 +205,172 @@ class DiscoveryApiClientTest : TrixnityBaseTest() {
                             }
                           }
                         }
-                    """.trimToFlatJson(), request.body.toByteArray().decodeToString()
-                    )
-                    respond(
-                        """
-                            {
-                              "server_keys": [
+                    """
+                                    .trimToFlatJson(),
+                                request.body.toByteArray().decodeToString(),
+                            )
+                            respond(
+                                """
                                 {
-                                  "server_name": "example.org",
-                                  "valid_until_ts": 1652262000000,
-                                  "old_verify_keys": {
-                                    "ed25519:0ldk3y": {
-                                      "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
-                                      "expired_ts": 1532645052628
+                                  "server_keys": [
+                                    {
+                                      "server_name": "example.org",
+                                      "valid_until_ts": 1652262000000,
+                                      "old_verify_keys": {
+                                        "ed25519:0ldk3y": {
+                                          "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                          "expired_ts": 1532645052628
+                                        }
+                                      },
+                                      "verify_keys": {
+                                        "ed25519:abc123": {
+                                          "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                        }
+                                      },
+                                      "signatures": {
+                                        "example.org": {
+                                          "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
+                                        }
+                                      }
                                     }
-                                  },
-                                  "verify_keys": {
-                                    "ed25519:abc123": {
-                                      "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                                    }
-                                  },
-                                  "signatures": {
-                                    "example.org": {
-                                      "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
-                                    }
-                                  }
+                                  ]
                                 }
-                              ]
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                }
-            })
-        matrixRestClient.discovery.queryServerKeys(
-            Url(""),
-            QueryServerKeys.Request(buildJsonObject {
-                put("example.org", buildJsonObject {
-                    put("ed25519:abc123", buildJsonObject {
-                        put("minimum_valid_until_ts", JsonPrimitive(1234567890))
-                    })
-                })
-            })
-        ).getOrThrow() shouldBe QueryServerKeysResponse(
-            setOf(
-                Signed(
-                    ServerKeys(
-                        serverName = "example.org",
-                        validUntil = 1652262000000,
-                        oldVerifyKeys = mapOf(
-                            "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                                expiredAt = 1532645052628,
-                                keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                             )
+                        }
+                    },
+            )
+        matrixRestClient.discovery
+            .queryServerKeys(
+                Url(""),
+                QueryServerKeys.Request(
+                    buildJsonObject {
+                        put(
+                            "example.org",
+                            buildJsonObject {
+                                put(
+                                    "ed25519:abc123",
+                                    buildJsonObject { put("minimum_valid_until_ts", JsonPrimitive(1234567890)) },
+                                )
+                            },
+                        )
+                    }
+                ),
+            )
+            .getOrThrow() shouldBe
+            QueryServerKeysResponse(
+                setOf(
+                    Signed(
+                        ServerKeys(
+                            serverName = "example.org",
+                            validUntil = 1652262000000,
+                            oldVerifyKeys =
+                                mapOf(
+                                    "ed25519:0ldk3y" to
+                                        ServerKeys.OldVerifyKey(
+                                            expiredAt = 1532645052628,
+                                            keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                        )
+                                ),
+                            verifyKeys =
+                                mapOf(
+                                    "ed25519:abc123" to
+                                        ServerKeys.VerifyKey(
+                                            keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                        )
+                                ),
                         ),
-                        verifyKeys = mapOf(
-                            "ed25519:abc123" to ServerKeys.VerifyKey(
-                                keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                            )
-                        )
-                    ),
-                    mapOf(
-                        "example.org" to keysOf(
-                            Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                        )
+                        mapOf(
+                            "example.org" to
+                                keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                        ),
                     )
                 )
             )
-        )
     }
 
     @Test
     fun shouldQueryServerKeysByServer() = runTest {
-        val matrixRestClient = MatrixServerServerApiClientImpl(
-            hostname = "hostname",
-            getDelegatedDestination = { host, port -> host to port },
-            sign = { Key.Ed25519Key("key", "value") },
-            roomVersionStore = TestRoomVersionStore("12"),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    assertEquals(
-                        "/_matrix/key/v2/query/example.org?minimum_valid_until_ts=1234567890",
-                        request.url.fullPath
-                    )
-                    assertEquals(HttpMethod.Get, request.method)
-                    respond(
-                        """
-                            {
-                              "server_keys": [
+        val matrixRestClient =
+            MatrixServerServerApiClientImpl(
+                hostname = "hostname",
+                getDelegatedDestination = { host, port -> host to port },
+                sign = { Key.Ed25519Key("key", "value") },
+                roomVersionStore = TestRoomVersionStore("12"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals(
+                                "/_matrix/key/v2/query/example.org?minimum_valid_until_ts=1234567890",
+                                request.url.fullPath,
+                            )
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
                                 {
-                                  "server_name": "example.org",
-                                  "valid_until_ts": 1652262000000,
-                                  "old_verify_keys": {
-                                    "ed25519:0ldk3y": {
-                                      "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
-                                      "expired_ts": 1532645052628
+                                  "server_keys": [
+                                    {
+                                      "server_name": "example.org",
+                                      "valid_until_ts": 1652262000000,
+                                      "old_verify_keys": {
+                                        "ed25519:0ldk3y": {
+                                          "key": "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                          "expired_ts": 1532645052628
+                                        }
+                                      },
+                                      "verify_keys": {
+                                        "ed25519:abc123": {
+                                          "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                        }
+                                      },
+                                      "signatures": {
+                                        "example.org": {
+                                          "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
+                                        }
+                                      }
                                     }
-                                  },
-                                  "verify_keys": {
-                                    "ed25519:abc123": {
-                                      "key": "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                                    }
-                                  },
-                                  "signatures": {
-                                    "example.org": {
-                                      "ed25519:auto2": "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"
-                                    }
-                                  }
+                                  ]
                                 }
-                              ]
-                            }
-                        """.trimIndent(),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
-                }
-            })
-        matrixRestClient.discovery.queryKeysByServer(Url(""), "example.org", 1234567890)
-            .getOrThrow() shouldBe QueryServerKeysResponse(
-            setOf(
-                Signed(
-                    ServerKeys(
-                        serverName = "example.org",
-                        validUntil = 1652262000000,
-                        oldVerifyKeys = mapOf(
-                            "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                                expiredAt = 1532645052628,
-                                keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
                             )
+                        }
+                    },
+            )
+        matrixRestClient.discovery.queryKeysByServer(Url(""), "example.org", 1234567890).getOrThrow() shouldBe
+            QueryServerKeysResponse(
+                setOf(
+                    Signed(
+                        ServerKeys(
+                            serverName = "example.org",
+                            validUntil = 1652262000000,
+                            oldVerifyKeys =
+                                mapOf(
+                                    "ed25519:0ldk3y" to
+                                        ServerKeys.OldVerifyKey(
+                                            expiredAt = 1532645052628,
+                                            keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                        )
+                                ),
+                            verifyKeys =
+                                mapOf(
+                                    "ed25519:abc123" to
+                                        ServerKeys.VerifyKey(
+                                            keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                        )
+                                ),
                         ),
-                        verifyKeys = mapOf(
-                            "ed25519:abc123" to ServerKeys.VerifyKey(
-                                keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                            )
-                        )
-                    ),
-                    mapOf(
-                        "example.org" to keysOf(
-                            Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                        )
+                        mapOf(
+                            "example.org" to
+                                keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                        ),
                     )
                 )
             )
-        )
     }
 }

@@ -39,9 +39,9 @@ import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.time.Instant
 
 abstract class InMemoryMinimalRepository<K, V> : MinimalRepository<K, V> {
     val content = MutableStateFlow<Map<K, V>>(mapOf())
@@ -74,12 +74,10 @@ abstract class InMemoryMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
     val content = MutableStateFlow<Map<K1, Map<K2, V>>>(mapOf())
 
     context(transaction: ReadTransaction)
-    override suspend fun get(firstKey: K1): Map<K2, V> =
-        content.value[firstKey].orEmpty()
+    override suspend fun get(firstKey: K1): Map<K2, V> = content.value[firstKey].orEmpty()
 
     context(transaction: ReadTransaction)
-    override suspend fun get(firstKey: K1, secondKey: K2): V? =
-        content.value[firstKey]?.get(secondKey)
+    override suspend fun get(firstKey: K1, secondKey: K2): V? = content.value[firstKey]?.get(secondKey)
 
     context(transaction: WriteTransaction)
     override suspend fun save(firstKey: K1, secondKey: K2, value: V) {
@@ -98,34 +96,38 @@ abstract class InMemoryMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
 }
 
 class InMemoryAccountRepository : AccountRepository, InMemoryMinimalRepository<Long, Account>()
+
 class InMemoryAuthenticationRepository : AuthenticationRepository, InMemoryMinimalRepository<Long, Authentication>()
 
 class InMemoryServerDataRepository : ServerDataRepository, InMemoryMinimalRepository<Long, ServerData>()
+
 class InMemoryOutdatedKeysRepository : OutdatedKeysRepository, InMemoryMinimalRepository<Long, Set<UserId>>()
-class InMemoryDeviceKeysRepository : DeviceKeysRepository,
-    InMemoryMinimalRepository<UserId, Map<String, StoredDeviceKeys>>()
 
-class InMemoryCrossSigningKeysRepository : CrossSigningKeysRepository,
-    InMemoryMinimalRepository<UserId, Set<StoredCrossSigningKeys>>()
+class InMemoryDeviceKeysRepository :
+    DeviceKeysRepository, InMemoryMinimalRepository<UserId, Map<String, StoredDeviceKeys>>()
 
-class InMemoryKeyVerificationStateRepository : KeyVerificationStateRepository,
-    InMemoryMinimalRepository<KeyVerificationStateKey, KeyVerificationState>()
+class InMemoryCrossSigningKeysRepository :
+    CrossSigningKeysRepository, InMemoryMinimalRepository<UserId, Set<StoredCrossSigningKeys>>()
 
-class InMemorySecretsRepository : SecretsRepository,
-    InMemoryMinimalRepository<Long, Map<SecretType, StoredSecret>>()
+class InMemoryKeyVerificationStateRepository :
+    KeyVerificationStateRepository, InMemoryMinimalRepository<KeyVerificationStateKey, KeyVerificationState>()
+
+class InMemorySecretsRepository : SecretsRepository, InMemoryMinimalRepository<Long, Map<SecretType, StoredSecret>>()
 
 class InMemoryOlmAccountRepository : OlmAccountRepository, InMemoryMinimalRepository<Long, String>()
-class InMemoryOlmForgetFallbackKeyAfterRepository : OlmForgetFallbackKeyAfterRepository,
-    InMemoryMinimalRepository<Long, Instant>()
 
-class InMemoryOlmSessionRepository : OlmSessionRepository,
-    InMemoryFullRepository<Curve25519KeyValue, Set<StoredOlmSession>>()
+class InMemoryOlmForgetFallbackKeyAfterRepository :
+    OlmForgetFallbackKeyAfterRepository, InMemoryMinimalRepository<Long, Instant>()
 
-class InMemoryInboundMegolmMessageIndexRepository : InboundMegolmMessageIndexRepository,
+class InMemoryOlmSessionRepository :
+    OlmSessionRepository, InMemoryFullRepository<Curve25519KeyValue, Set<StoredOlmSession>>()
+
+class InMemoryInboundMegolmMessageIndexRepository :
+    InboundMegolmMessageIndexRepository,
     InMemoryMinimalRepository<InboundMegolmMessageIndexRepositoryKey, StoredInboundMegolmMessageIndex>()
 
-class InMemoryOutboundMegolmSessionRepository : OutboundMegolmSessionRepository,
-    InMemoryFullRepository<RoomId, StoredOutboundMegolmSession>()
+class InMemoryOutboundMegolmSessionRepository :
+    OutboundMegolmSessionRepository, InMemoryFullRepository<RoomId, StoredOutboundMegolmSession>()
 
 class InMemoryRoomUserRepository : RoomUserRepository, InMemoryMapRepository<RoomId, UserId, RoomUser>() {
     context(transaction: WriteTransaction)
@@ -134,24 +136,26 @@ class InMemoryRoomUserRepository : RoomUserRepository, InMemoryMapRepository<Roo
     }
 }
 
-class InMemoryRoomUserReceiptsRepository : RoomUserReceiptsRepository,
-    InMemoryMapRepository<RoomId, UserId, RoomUserReceipts>() {
+class InMemoryRoomUserReceiptsRepository :
+    RoomUserReceiptsRepository, InMemoryMapRepository<RoomId, UserId, RoomUserReceipts>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { it - roomId }
     }
 }
 
-class InMemoryRoomStateRepository : RoomStateRepository,
-    InMemoryMapRepository<RoomStateRepositoryKey, String, ClientEvent.StateBaseEvent<*>>() {
+class InMemoryRoomStateRepository :
+    RoomStateRepository, InMemoryMapRepository<RoomStateRepositoryKey, String, ClientEvent.StateBaseEvent<*>>() {
     context(transaction: ReadTransaction)
     override suspend fun getByRooms(
         roomIds: Set<RoomId>,
         type: String,
-        stateKey: String
+        stateKey: String,
     ): List<ClientEvent.StateBaseEvent<*>> =
-        content.value.filterKeys { roomIds.contains(it.roomId) && it.type == type }
-            .values.flatMap { entry -> entry.filterKeys { it == stateKey }.values }
+        content.value
+            .filterKeys { roomIds.contains(it.roomId) && it.type == type }
+            .values
+            .flatMap { entry -> entry.filterKeys { it == stateKey }.values }
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
@@ -159,34 +163,37 @@ class InMemoryRoomStateRepository : RoomStateRepository,
     }
 }
 
-class InMemoryTimelineEventRepository : TimelineEventRepository,
-    InMemoryMinimalRepository<TimelineEventKey, TimelineEvent>() {
+class InMemoryTimelineEventRepository :
+    TimelineEventRepository, InMemoryMinimalRepository<TimelineEventKey, TimelineEvent>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
 }
 
-class InMemoryTimelineEventRelationRepository : TimelineEventRelationRepository,
-    InMemoryMapRepository<TimelineEventRelationKey, EventId, TimelineEventRelation>() {
+class InMemoryTimelineEventRelationRepository :
+    TimelineEventRelationRepository, InMemoryMapRepository<TimelineEventRelationKey, EventId, TimelineEventRelation>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
-
 }
 
 @MSC4354
-class InMemoryStickyEventRepository : StickyEventRepository,
-    InMemoryMapRepository<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey, StoredStickyEvent<StickyEventContent>>() {
+class InMemoryStickyEventRepository :
+    StickyEventRepository,
+    InMemoryMapRepository<
+        StickyEventRepositoryFirstKey,
+        StickyEventRepositorySecondKey,
+        StoredStickyEvent<StickyEventContent>,
+    >() {
     context(transaction: ReadTransaction)
-    override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
+    override suspend fun getByEndTimeBefore(
+        before: Instant
+    ): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
         content.value
-            .flatMap { (key, values) ->
-                values.filterValues {
-                    it.endTime < before
-                }.map { key to it.key }
-            }.toSet()
+            .flatMap { (key, values) -> values.filterValues { it.endTime < before }.map { key to it.key } }
+            .toSet()
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
@@ -196,37 +203,41 @@ class InMemoryStickyEventRepository : StickyEventRepository,
     context(transaction: ReadTransaction)
     override suspend fun getByEventId(
         roomId: RoomId,
-        eventId: EventId
+        eventId: EventId,
     ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? =
-        content.value.entries.firstNotNullOfOrNull { (key, values) ->
-            values.entries.find { it.value.event.roomId == roomId && it.value.event.id == eventId }?.let { key to it }
-        }?.let { it.first to it.second.key }
+        content.value.entries
+            .firstNotNullOfOrNull { (key, values) ->
+                values.entries
+                    .find { it.value.event.roomId == roomId && it.value.event.id == eventId }
+                    ?.let { key to it }
+            }
+            ?.let { it.first to it.second.key }
 }
 
-class InMemoryMediaCacheMappingRepository : MediaCacheMappingRepository,
-    InMemoryMinimalRepository<String, MediaCacheMapping>()
+class InMemoryMediaCacheMappingRepository :
+    MediaCacheMappingRepository, InMemoryMinimalRepository<String, MediaCacheMapping>()
 
-class InMemoryGlobalAccountDataRepository : GlobalAccountDataRepository,
-    InMemoryMapRepository<String, String, GlobalAccountDataEvent<*>>()
+class InMemoryGlobalAccountDataRepository :
+    GlobalAccountDataRepository, InMemoryMapRepository<String, String, GlobalAccountDataEvent<*>>()
 
-class InMemoryUserPresenceRepository : UserPresenceRepository,
-    InMemoryMinimalRepository<UserId, UserPresence>()
+class InMemoryUserPresenceRepository : UserPresenceRepository, InMemoryMinimalRepository<UserId, UserPresence>()
 
-class InMemoryRoomAccountDataRepository : RoomAccountDataRepository,
-    InMemoryMapRepository<RoomAccountDataRepositoryKey, String, RoomAccountDataEvent<*>>() {
+class InMemoryRoomAccountDataRepository :
+    RoomAccountDataRepository, InMemoryMapRepository<RoomAccountDataRepositoryKey, String, RoomAccountDataEvent<*>>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
     }
 }
 
-class InMemorySecretKeyRequestRepository : SecretKeyRequestRepository,
-    InMemoryFullRepository<String, StoredSecretKeyRequest>()
+class InMemorySecretKeyRequestRepository :
+    SecretKeyRequestRepository, InMemoryFullRepository<String, StoredSecretKeyRequest>()
 
-class InMemoryRoomKeyRequestRepository : RoomKeyRequestRepository,
-    InMemoryFullRepository<String, StoredRoomKeyRequest>()
+class InMemoryRoomKeyRequestRepository :
+    RoomKeyRequestRepository, InMemoryFullRepository<String, StoredRoomKeyRequest>()
 
-class InMemoryInboundMegolmSessionRepository : InboundMegolmSessionRepository,
+class InMemoryInboundMegolmSessionRepository :
+    InboundMegolmSessionRepository,
     InMemoryFullRepository<InboundMegolmSessionRepositoryKey, StoredInboundMegolmSession>() {
     context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
@@ -235,8 +246,8 @@ class InMemoryInboundMegolmSessionRepository : InboundMegolmSessionRepository,
 
 class InMemoryRoomRepository : RoomRepository, InMemoryFullRepository<RoomId, Room>()
 
-class InMemoryRoomOutboxMessageRepository : RoomOutboxMessageRepository,
-    InMemoryFullRepository<RoomOutboxMessageRepositoryKey, RoomOutboxMessage<*>>() {
+class InMemoryRoomOutboxMessageRepository :
+    RoomOutboxMessageRepository, InMemoryFullRepository<RoomOutboxMessageRepositoryKey, RoomOutboxMessage<*>>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterKeys { it.roomId != roomId } }
@@ -250,16 +261,16 @@ class InMemoryNotificationRepository : NotificationRepository, InMemoryFullRepos
     }
 }
 
-class InMemoryNotificationUpdateRepository : NotificationUpdateRepository,
-    InMemoryFullRepository<String, StoredNotificationUpdate>() {
+class InMemoryNotificationUpdateRepository :
+    NotificationUpdateRepository, InMemoryFullRepository<String, StoredNotificationUpdate>() {
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         content.update { value -> value.filterValues { it.roomId != roomId } }
     }
 }
 
-class InMemoryNotificationStateRepository : NotificationStateRepository,
-    InMemoryFullRepository<RoomId, StoredNotificationState>()
+class InMemoryNotificationStateRepository :
+    NotificationStateRepository, InMemoryFullRepository<RoomId, StoredNotificationState>()
 
 class InMemoryKeyChainLinkRepository : KeyChainLinkRepository {
     private val values = MutableStateFlow<Set<KeyChainLink>>(setOf())
@@ -287,5 +298,4 @@ class InMemoryKeyChainLinkRepository : KeyChainLinkRepository {
     }
 }
 
-class InMemoryMigrationRepository : MigrationRepository,
-    InMemoryMinimalRepository<String, String>()
+class InMemoryMigrationRepository : MigrationRepository, InMemoryMinimalRepository<String, String>()

@@ -51,13 +51,13 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.test.TestScope
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant.Companion.fromEpochMilliseconds
+import kotlinx.coroutines.test.TestScope
+import kotlinx.serialization.ExperimentalSerializationApi
 
 class OlmEncryptionServiceTest : TrixnityBaseTest() {
 
@@ -76,24 +76,26 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
 
     private val aliceCurveKey = Curve25519Key(aliceDeviceId, aliceAccount.curve25519Key.base64)
     private val aliceEdKey = Ed25519Key(aliceDeviceId, aliceAccount.ed25519Key.base64)
-    private val aliceDeviceKeys = SignedDeviceKeys(
-        DeviceKeys(
-            alice,
-            aliceDeviceId,
-            setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-            Keys(keysOf(aliceCurveKey, aliceEdKey))
-        ),
-    )
+    private val aliceDeviceKeys =
+        SignedDeviceKeys(
+            DeviceKeys(
+                alice,
+                aliceDeviceId,
+                setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                Keys(keysOf(aliceCurveKey, aliceEdKey)),
+            )
+        )
     private val bobCurveKey = Curve25519Key(bobDeviceId, bobAccount.curve25519Key.base64)
     private val bobEdKey = Ed25519Key(bobDeviceId, bobAccount.ed25519Key.base64)
-    private val bobDeviceKeys = SignedDeviceKeys(
-        DeviceKeys(
-            bob,
-            bobDeviceId,
-            setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-            Keys(keysOf(bobCurveKey, bobEdKey))
-        ),
-    )
+    private val bobDeviceKeys =
+        SignedDeviceKeys(
+            DeviceKeys(
+                bob,
+                bobDeviceId,
+                setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                Keys(keysOf(bobCurveKey, bobEdKey)),
+            )
+        )
 
     private val mockSignService = SignServiceMock()
     private val olmEncryptionServiceRequestHandlerMock = OlmEncryptionServiceRequestHandlerMock()
@@ -102,37 +104,42 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     @OptIn(ExperimentalSerializationApi::class)
     private val plaintextOlmEventSerializer =
         requireNotNull(json.serializersModule.getContextual(PlaintextOlmEvent::class))
-    private val decryptedOlmEventContent = RoomKeyEventContent(
-        RoomId("!room:server"),
-        "sessionId",
-        SessionKeyValue("sessionKey"),
-        EncryptionAlgorithm.Megolm,
-    )
+    private val decryptedOlmEventContent =
+        RoomKeyEventContent(
+            RoomId("!room:server"),
+            "sessionId",
+            SessionKeyValue("sessionKey"),
+            EncryptionAlgorithm.Megolm,
+        )
 
     private val room = RoomId("!room:server")
 
     @BeforeTest
     fun beforeTest() {
-        olmStoreMock.devices[bob] = mapOf(
-            bobDeviceId to Signed(
-                DeviceKeys(
-                    userId = bob,
-                    deviceId = bobDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(bobCurveKey, bobEdKey))
-                )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                        )
+                    )
             )
-        )
-        olmStoreMock.devices[alice] = mapOf(
-            aliceDeviceId to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = aliceDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(aliceCurveKey, aliceEdKey))
-                )
+        olmStoreMock.devices[alice] =
+            mapOf(
+                aliceDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = alice,
+                            deviceId = aliceDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
+                        )
+                    )
             )
-        )
         olmStoreMock.olmSessions.clear()
         olmStoreMock.roomMembers[room] = setOf(alice, bob)
         olmStoreMock.olmAccount.value = aliceAccount.pickle()
@@ -140,55 +147,51 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
         mockSignService.selfSignedDeviceKeys = aliceDeviceKeys
     }
 
-    private val sendPlaintextOlmEvent = PlaintextOlmEvent(
-        content = decryptedOlmEventContent,
-        sender = alice,
-        senderKeys = keysOf(aliceEdKey.copy(id = null)),
-        senderDeviceKeys = aliceDeviceKeys,
-        recipient = bob,
-        recipientKeys = keysOf(bobEdKey.copy(id = null))
-    )
-    private val receivePlaintextOlmEvent = PlaintextOlmEvent(
-        content = decryptedOlmEventContent,
-        sender = bob,
-        senderKeys = keysOf(bobEdKey.copy(id = null)),
-        senderDeviceKeys = bobDeviceKeys,
-        recipient = alice,
-        recipientKeys = keysOf(aliceEdKey.copy(id = null))
-    )
+    private val sendPlaintextOlmEvent =
+        PlaintextOlmEvent(
+            content = decryptedOlmEventContent,
+            sender = alice,
+            senderKeys = keysOf(aliceEdKey.copy(id = null)),
+            senderDeviceKeys = aliceDeviceKeys,
+            recipient = bob,
+            recipientKeys = keysOf(bobEdKey.copy(id = null)),
+        )
+    private val receivePlaintextOlmEvent =
+        PlaintextOlmEvent(
+            content = decryptedOlmEventContent,
+            sender = bob,
+            senderKeys = keysOf(bobEdKey.copy(id = null)),
+            senderDeviceKeys = bobDeviceKeys,
+            recipient = alice,
+            recipientKeys = keysOf(aliceEdKey.copy(id = null)),
+        )
 
-    private val cut = OlmEncryptionServiceImpl(
-        UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
-        json,
-        olmStoreMock,
-        olmEncryptionServiceRequestHandlerMock,
-        mockSignService,
-        testScope.testClock,
-        driver,
-    )
+    private val cut =
+        OlmEncryptionServiceImpl(
+            UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
+            json,
+            olmStoreMock,
+            olmEncryptionServiceRequestHandlerMock,
+            mockSignService,
+            testScope.testClock,
+            driver,
+        )
 
     private fun Account.getOneTimeKey(store: Boolean = false): Curve25519PublicKey {
         generateOneTimeKeys(1)
-        return oneTimeKeys.values.first()
-            .also {
-                markKeysAsPublished()
-                if (store) olmStoreMock.olmAccount.value = pickle()
-            }
+        return oneTimeKeys.values.first().also {
+            markKeysAsPublished()
+            if (store) olmStoreMock.olmAccount.value = pickle()
+        }
     }
 
     private fun mockClaimKeys() {
         val bobsFakeSignedCurveKey =
-            Key.SignedCurve25519Key(
-                bobDeviceId,
-                bobAccount.getOneTimeKey().base64,
-                signatures = mapOf(),
+            Key.SignedCurve25519Key(bobDeviceId, bobAccount.getOneTimeKey().base64, signatures = mapOf())
+        olmEncryptionServiceRequestHandlerMock.claimKeys =
+            Result.success(
+                ClaimKeys.Response(emptyMap(), mapOf(bob to mapOf(bobDeviceId to keysOf(bobsFakeSignedCurveKey))))
             )
-        olmEncryptionServiceRequestHandlerMock.claimKeys = Result.success(
-            ClaimKeys.Response(
-                emptyMap(),
-                mapOf(bob to mapOf(bobDeviceId to keysOf(bobsFakeSignedCurveKey)))
-            )
-        )
     }
 
     private suspend fun shouldEncryptOlm() {
@@ -199,14 +202,13 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
         encryptedMessage.senderKey shouldBe aliceCurveKey.value
         encryptedCipherText.type shouldBe INITIAL_PRE_KEY
 
-        val (plaintext, _) = bobAccount.createInboundSession(
-            theirIdentityKey = aliceAccount.curve25519Key, preKeyMessage = message.preKey(encryptedCipherText.body)
-        )
+        val (plaintext, _) =
+            bobAccount.createInboundSession(
+                theirIdentityKey = aliceAccount.curve25519Key,
+                preKeyMessage = message.preKey(encryptedCipherText.body),
+            )
 
-        json.decodeFromString(
-            plaintextOlmEventSerializer,
-            plaintext,
-        ) shouldBe sendPlaintextOlmEvent
+        json.decodeFromString(plaintextOlmEventSerializer, plaintext) shouldBe sendPlaintextOlmEvent
 
         olmStoreMock.olmSessions[bobCurveKey.value] shouldNotBe null
     }
@@ -220,24 +222,14 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `encryptOlm - encrypt multiple without stored olm encrypt session`() = runTest {
         val bobsFakeSignedCurveKey =
-            Key.SignedCurve25519Key(
-                bobDeviceId,
-                bobAccount.getOneTimeKey().base64,
-                signatures = mapOf(),
+            Key.SignedCurve25519Key(bobDeviceId, bobAccount.getOneTimeKey().base64, signatures = mapOf())
+        olmEncryptionServiceRequestHandlerMock.claimKeys =
+            Result.success(
+                ClaimKeys.Response(emptyMap(), mapOf(bob to mapOf(bobDeviceId to keysOf(bobsFakeSignedCurveKey))))
             )
-        olmEncryptionServiceRequestHandlerMock.claimKeys = Result.success(
-            ClaimKeys.Response(
-                emptyMap(),
-                mapOf(bob to mapOf(bobDeviceId to keysOf(bobsFakeSignedCurveKey)))
-            )
-        )
 
-        val results = cut.encryptOlm(
-            decryptedOlmEventContent, setOf(
-                bob to bobDeviceId,
-                UserId("unknown", "server") to "d",
-            )
-        )
+        val results =
+            cut.encryptOlm(decryptedOlmEventContent, setOf(bob to bobDeviceId, UserId("unknown", "server") to "d"))
         val encryptedMessage = results.get(bob to bobDeviceId)?.getOrThrow()
         val encryptedCipherText = encryptedMessage?.ciphertext[bobCurveKey.value.value]
         assertNotNull(encryptedCipherText)
@@ -245,52 +237,55 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
         encryptedMessage.senderKey shouldBe aliceCurveKey.value
         encryptedCipherText.type shouldBe INITIAL_PRE_KEY
 
-        val (plaintext, _) = bobAccount.createInboundSession(
-            theirIdentityKey = aliceAccount.curve25519Key, preKeyMessage = message.preKey(encryptedCipherText.body)
-        )
+        val (plaintext, _) =
+            bobAccount.createInboundSession(
+                theirIdentityKey = aliceAccount.curve25519Key,
+                preKeyMessage = message.preKey(encryptedCipherText.body),
+            )
 
-        json.decodeFromString(
-            plaintextOlmEventSerializer,
-            plaintext,
-        ) shouldBe sendPlaintextOlmEvent
+        json.decodeFromString(plaintextOlmEventSerializer, plaintext) shouldBe sendPlaintextOlmEvent
 
         olmStoreMock.olmSessions[bobCurveKey.value] shouldNotBe null
 
-        results.get(UserId("unknown", "server") to "d")
-            ?.exceptionOrNull() shouldBe EncryptOlmError.NoOlmSupported("device keys not found")
+        results.get(UserId("unknown", "server") to "d")?.exceptionOrNull() shouldBe
+            EncryptOlmError.NoOlmSupported("device keys not found")
     }
 
     @Test
     fun `encryptOlm - encrypt for verified dehydrated device`() = runTest {
         mockClaimKeys()
-        olmStoreMock.devices[bob] = mapOf(
-            bobDeviceId to Signed(
-                DeviceKeys(
-                    userId = bob,
-                    deviceId = bobDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(bobCurveKey, bobEdKey)),
-                    dehydrated = true
-                )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
             )
-        )
         olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.CrossSigned(false))
         shouldEncryptOlm()
     }
 
     @Test
     fun `encryptOlm - is Failure when try to encrypt with unverified dehydrated device`() = runTest {
-        olmStoreMock.devices[bob] = mapOf(
-            bobDeviceId to Signed(
-                DeviceKeys(
-                    userId = bob,
-                    deviceId = bobDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(bobCurveKey, bobEdKey)),
-                    dehydrated = true
-                )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
             )
-        )
         olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
         val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
         result.exceptionOrNull().shouldBeInstanceOf<EncryptOlmError.DehydratedDeviceNotCrossSigned>()
@@ -302,29 +297,33 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
         mockSignService.returnVerify = VerifyResult.Invalid("dino")
 
         cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId).exceptionOrNull() shouldBe
-                EncryptOlmError.NoOlmSupported("one time key validation failed: Invalid(reason=dino)")
+            EncryptOlmError.NoOlmSupported("one time key validation failed: Invalid(reason=dino)")
         olmStoreMock.olmSessions.shouldBeEmpty()
     }
 
     @Test
     fun `encryptOlm - encrypt event with stored session`() = runTest {
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
 
-        val (_, aliceSession) = aliceAccount.createInboundSession(
-            theirIdentityKey = bobAccount.curve25519Key,
-            preKeyMessage = bobSession.encrypt("first message") as Message.PreKey,
-        )
+        val (_, aliceSession) =
+            aliceAccount.createInboundSession(
+                theirIdentityKey = bobAccount.curve25519Key,
+                preKeyMessage = bobSession.encrypt("first message") as Message.PreKey,
+            )
 
-        val storedOlmSession = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession.sessionId,
-            lastUsedAt = testClock.now(),
-            createdAt = testClock.now(),
-            pickled = aliceSession.pickle(),
-            initiatedByThisDevice = false
-        )
+        val storedOlmSession =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession.sessionId,
+                lastUsedAt = testClock.now(),
+                createdAt = testClock.now(),
+                pickled = aliceSession.pickle(),
+                initiatedByThisDevice = false,
+            )
 
         olmStoreMock.olmSessions[bobCurveKey.value] = setOf(storedOlmSession)
 
@@ -335,9 +334,8 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
         encryptedMessage.senderKey shouldBe aliceCurveKey.value
         encryptedCipherText.type shouldBe ORDINARY
 
-        json.decodeFromString(
-            plaintextOlmEventSerializer, bobSession.decrypt(message(encryptedCipherText))
-        ) shouldBe sendPlaintextOlmEvent
+        json.decodeFromString(plaintextOlmEventSerializer, bobSession.decrypt(message(encryptedCipherText))) shouldBe
+            sendPlaintextOlmEvent
 
         olmStoreMock.olmSessions[bobCurveKey.value]?.firstOrNull().shouldNotBeNull() shouldNotBe storedOlmSession
     }
@@ -345,56 +343,54 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `recoverOlm - not create multiple recovery sessions in short time`() = runTest {
         mockClaimKeys()
-        val aliceSession = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
+        val aliceSession =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
 
         aliceSession.encrypt("first message")
 
-        val storedOlmSession = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession.sessionId,
-            lastUsedAt = testClock.now() - 3.seconds,
-            createdAt = testClock.now(),
-            pickled = aliceSession.pickle(),
-            initiatedByThisDevice = false
-        )
+        val storedOlmSession =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession.sessionId,
+                lastUsedAt = testClock.now() - 3.seconds,
+                createdAt = testClock.now(),
+                pickled = aliceSession.pickle(),
+                initiatedByThisDevice = false,
+            )
         olmStoreMock.olmSessions[bobCurveKey.value] = setOf(storedOlmSession)
 
-        cut.recoverOlm(
-            OlmRecovery(bob, bobDeviceId, testClock.now() - 2.seconds)
-        ).getOrThrow().shouldNotBeNull()
-        cut.recoverOlm(
-            OlmRecovery(bob, bobDeviceId, testClock.now() - 1.seconds)
-        ).getOrThrow().shouldBeNull()
+        cut.recoverOlm(OlmRecovery(bob, bobDeviceId, testClock.now() - 2.seconds)).getOrThrow().shouldNotBeNull()
+        cut.recoverOlm(OlmRecovery(bob, bobDeviceId, testClock.now() - 1.seconds)).getOrThrow().shouldBeNull()
     }
 
     @Test
     fun `decryptOlm - decrypt pre key message from new session`() = runTest {
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
 
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        ).getOrThrow() shouldBe receivePlaintextOlmEvent
+            .getOrThrow() shouldBe receivePlaintextOlmEvent
 
         olmStoreMock.olmSessions[bobCurveKey.value].shouldNotBeNull() shouldHaveSize 1
 
-        val account = account.fromPickle(
-            pickle = olmStoreMock.olmAccount.value.shouldNotBeNull(),
-        )
+        val account = account.fromPickle(pickle = olmStoreMock.olmAccount.value.shouldNotBeNull())
 
         // we check, that the one time key cannot be used twice
         shouldThrow<CryptoDriverException> {
@@ -407,36 +403,39 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `decryptOlm - ignore dehydrated device`() = runTest {
-        olmStoreMock.devices[bob] = mapOf(
-            bobDeviceId to Signed(
-                DeviceKeys(
-                    userId = bob,
-                    deviceId = bobDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(bobCurveKey, bobEdKey)),
-                    dehydrated = true
-                )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
             )
-        )
 
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
 
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        ).exceptionOrNull() shouldBe DecryptOlmError.DehydratedDeviceNotAllowed()
+            .exceptionOrNull() shouldBe DecryptOlmError.DehydratedDeviceNotAllowed()
 
         olmStoreMock.olmSessions[bobCurveKey.value].shouldBeNull()
     }
@@ -444,200 +443,220 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decryptOlm - not decrypt pre key message when the 5 last created sessions are not older then 1 hour`() =
         runTest {
-            val bobSession = bobAccount.createOutboundSession(
-                identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-            )
-            val encryptedMessage = bobSession.encrypt(
-                json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-            )
-
-            val existingSessions = (0..4).map { pseudoSessionId ->
-                val dummyAccount = account()
-
-                val aliceSession = aliceAccount.createOutboundSession(
-                    identityKey = dummyAccount.curve25519Key, oneTimeKey = dummyAccount.getOneTimeKey()
+            val bobSession =
+                bobAccount.createOutboundSession(
+                    identityKey = aliceAccount.curve25519Key,
+                    oneTimeKey = aliceAccount.getOneTimeKey(true),
                 )
+            val encryptedMessage =
+                bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
-                StoredOlmSession(
-                    senderKey = bobCurveKey.value,
-                    sessionId = pseudoSessionId.toString(),
-                    lastUsedAt = testClock.now(),
-                    createdAt = testClock.now(),
-                    pickled = aliceSession.pickle(),
-                    initiatedByThisDevice = false
-                )
-            }.toSet()
+            val existingSessions =
+                (0..4)
+                    .map { pseudoSessionId ->
+                        val dummyAccount = account()
+
+                        val aliceSession =
+                            aliceAccount.createOutboundSession(
+                                identityKey = dummyAccount.curve25519Key,
+                                oneTimeKey = dummyAccount.getOneTimeKey(),
+                            )
+
+                        StoredOlmSession(
+                            senderKey = bobCurveKey.value,
+                            sessionId = pseudoSessionId.toString(),
+                            lastUsedAt = testClock.now(),
+                            createdAt = testClock.now(),
+                            pickled = aliceSession.pickle(),
+                            initiatedByThisDevice = false,
+                        )
+                    }
+                    .toSet()
 
             olmStoreMock.olmSessions[bobCurveKey.value] = existingSessions
             cut.decryptOlm(
-                ClientEvent.ToDeviceEvent(
-                    OlmEncryptedToDeviceEventContent(
-                        ciphertext = mapOf(
-                            aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+                    ClientEvent.ToDeviceEvent(
+                        OlmEncryptedToDeviceEventContent(
+                            ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                            senderKey = bobCurveKey.value,
                         ),
-                        senderKey = bobCurveKey.value
-                    ), bob
+                        bob,
+                    )
                 )
-            ).exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.TooManySessions>()
+                .exceptionOrNull()
+                .shouldBeInstanceOf<DecryptOlmError.TooManySessions>()
         }
 
     @Test
     fun `decryptOlm - fail on ordinary message`() = runTest {
         mockClaimKeys()
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo(OlmMessageValue.of(encryptedMessage), ORDINARY)
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext =
+                            mapOf(
+                                aliceCurveKey.value.value to
+                                    CiphertextInfo(OlmMessageValue.of(encryptedMessage), ORDINARY)
+                            ),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.NoMatchingOlmSessionFound>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptOlmError.NoMatchingOlmSessionFound>()
             .olmRecovery shouldBe OlmRecovery(bob, bobDeviceId, testClock.now())
     }
 
     @Test
     fun `decryptOlm - decrypt ordinary message`() = runTest {
-        val aliceSession = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
+        val aliceSession =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
 
         val firstMessage = aliceSession.encrypt("first message") as Message.PreKey
 
-        val (_, bobSession) = bobAccount.createInboundSession(
-            preKeyMessage = firstMessage
-        )
+        val (_, bobSession) = bobAccount.createInboundSession(preKeyMessage = firstMessage)
 
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
-        val storedOlmSession = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession.sessionId,
-            lastUsedAt = testClock.now(),
-            createdAt = testClock.now(),
-            pickled = aliceSession.pickle(),
-            initiatedByThisDevice = false
-        )
+        val storedOlmSession =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession.sessionId,
+                lastUsedAt = testClock.now(),
+                createdAt = testClock.now(),
+                pickled = aliceSession.pickle(),
+                initiatedByThisDevice = false,
+            )
 
         olmStoreMock.olmSessions[bobCurveKey.value] = setOf(storedOlmSession)
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
-                    ), senderKey = bobCurveKey.value
-                ), bob
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
+                    ),
+                    bob,
+                )
             )
-        ).getOrThrow() shouldBe receivePlaintextOlmEvent
+            .getOrThrow() shouldBe receivePlaintextOlmEvent
         olmStoreMock.olmSessions[bobCurveKey.value]?.firstOrNull().shouldNotBeNull() shouldNotBe storedOlmSession
     }
 
     @Test
     fun `decryptOlm - try multiple sessions descended by last used`() = runTest {
-        val aliceSession1 = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
-        val aliceSession2 = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
-        val aliceSession3 = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
+        val aliceSession1 =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
+        val aliceSession2 =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
+        val aliceSession3 =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
 
         val firstMessage = aliceSession1.encrypt("first message") as Message.PreKey
 
-        val (_, bobSession) = bobAccount.createInboundSession(
-            preKeyMessage = firstMessage
-        )
+        val (_, bobSession) = bobAccount.createInboundSession(preKeyMessage = firstMessage)
 
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
-        val storedOlmSession1 = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession1.sessionId,
-            lastUsedAt = testClock.now(),
-            createdAt = testClock.now(),
-            pickled = aliceSession1.pickle(),
-            initiatedByThisDevice = false
-        )
-        val storedOlmSession2 = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession2.sessionId,
-            lastUsedAt = fromEpochMilliseconds(24),
-            createdAt = testClock.now(),
-            pickled = aliceSession2.pickle(),
-            initiatedByThisDevice = false
-        )
-        val storedOlmSession3 = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession3.sessionId,
-            lastUsedAt = testClock.now(),
-            createdAt = testClock.now(),
-            pickled = aliceSession3.pickle(),
-            initiatedByThisDevice = false
-        )
-        olmStoreMock.olmSessions[bobCurveKey.value] = setOf(
-            storedOlmSession2, storedOlmSession1, storedOlmSession3
-        )
+        val storedOlmSession1 =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession1.sessionId,
+                lastUsedAt = testClock.now(),
+                createdAt = testClock.now(),
+                pickled = aliceSession1.pickle(),
+                initiatedByThisDevice = false,
+            )
+        val storedOlmSession2 =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession2.sessionId,
+                lastUsedAt = fromEpochMilliseconds(24),
+                createdAt = testClock.now(),
+                pickled = aliceSession2.pickle(),
+                initiatedByThisDevice = false,
+            )
+        val storedOlmSession3 =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession3.sessionId,
+                lastUsedAt = testClock.now(),
+                createdAt = testClock.now(),
+                pickled = aliceSession3.pickle(),
+                initiatedByThisDevice = false,
+            )
+        olmStoreMock.olmSessions[bobCurveKey.value] = setOf(storedOlmSession2, storedOlmSession1, storedOlmSession3)
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
-                    ), senderKey = bobCurveKey.value
-                ), bob
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
+                    ),
+                    bob,
+                )
             )
-        ).getOrThrow() shouldBe receivePlaintextOlmEvent
+            .getOrThrow() shouldBe receivePlaintextOlmEvent
         olmStoreMock.olmSessions[bobCurveKey.value].shouldNotBeNull() shouldNotContain storedOlmSession1
     }
 
     suspend fun TestScope.handleManipulation(manipulatedOlmEvent: PlaintextOlmEvent<RoomKeyEventContent>) {
-        val aliceSession = aliceAccount.createOutboundSession(
-            identityKey = bobAccount.curve25519Key, oneTimeKey = bobAccount.getOneTimeKey()
-        )
+        val aliceSession =
+            aliceAccount.createOutboundSession(
+                identityKey = bobAccount.curve25519Key,
+                oneTimeKey = bobAccount.getOneTimeKey(),
+            )
         val firstMessage = aliceSession.encrypt("first message") as Message.PreKey
 
-        val storedOlmSession = StoredOlmSession(
-            senderKey = bobCurveKey.value,
-            sessionId = aliceSession.sessionId,
-            lastUsedAt = testClock.now(),
-            createdAt = testClock.now(),
-            pickled = aliceSession.pickle(),
-            initiatedByThisDevice = false
-        )
+        val storedOlmSession =
+            StoredOlmSession(
+                senderKey = bobCurveKey.value,
+                sessionId = aliceSession.sessionId,
+                lastUsedAt = testClock.now(),
+                createdAt = testClock.now(),
+                pickled = aliceSession.pickle(),
+                initiatedByThisDevice = false,
+            )
         olmStoreMock.olmSessions[bobCurveKey.value] = setOf(storedOlmSession)
 
-        val (_, bobSession) = bobAccount.createInboundSession(
-            preKeyMessage = firstMessage
-        )
+        val (_, bobSession) = bobAccount.createInboundSession(preKeyMessage = firstMessage)
 
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, manipulatedOlmEvent)
-        )
+        val encryptedMessage = bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, manipulatedOlmEvent))
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
-                    ), senderKey = bobCurveKey.value
-                ), bob
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
+                    ),
+                    bob,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.ValidationFailed>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptOlmError.ValidationFailed>()
     }
 
     @Test
@@ -665,129 +684,146 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decryptOlm - decrypt message with sender device keys in decrypted event`() = runTest {
         olmStoreMock.devices.clear()
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        ).getOrThrow() shouldBe receivePlaintextOlmEvent
+            .getOrThrow() shouldBe receivePlaintextOlmEvent
     }
 
     @Test
     fun `decryptOlm - fail decryption when sender device keys userId did not match`() = runTest {
         olmStoreMock.devices.clear()
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(
-                plaintextOlmEventSerializer, receivePlaintextOlmEvent.copy(
-                    senderDeviceKeys = Signed(
-                        checkNotNull(receivePlaintextOlmEvent.senderDeviceKeys?.signed?.copy(userId = alice)),
-                        null
-                    )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
+        val encryptedMessage =
+            bobSession.encrypt(
+                json.encodeToString(
+                    plaintextOlmEventSerializer,
+                    receivePlaintextOlmEvent.copy(
+                        senderDeviceKeys =
+                            Signed(
+                                checkNotNull(receivePlaintextOlmEvent.senderDeviceKeys?.signed?.copy(userId = alice)),
+                                null,
+                            )
+                    ),
                 )
             )
-        )
 
         cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.ValidationFailed>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptOlmError.ValidationFailed>()
     }
 
     @Test
     fun `decryptOlm - fail decryption when sender device keys in decrypted event has invalid signature`() = runTest {
         olmStoreMock.devices.clear()
         mockSignService.returnVerify = VerifyResult.Invalid("invalid signature")
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent)
-        )
-
-        val result = cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
-                    ),
-                    senderKey = bobCurveKey.value
-                ), bob
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
             )
-        )
+        val encryptedMessage =
+            bobSession.encrypt(json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent))
+
+        val result =
+            cut.decryptOlm(
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
+                    ),
+                    bob,
+                )
+            )
         result.exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.ValidationFailed>()
     }
 
     @Test
     fun `decryptOlm - fail decryption when sender device keys are missing from store and event`() = runTest {
         olmStoreMock.devices.clear()
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent.copy(senderDeviceKeys = null))
-        )
-
-        val result = cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
-                    ),
-                    senderKey = bobCurveKey.value
-                ), bob
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
             )
-        )
+        val encryptedMessage =
+            bobSession.encrypt(
+                json.encodeToString(plaintextOlmEventSerializer, receivePlaintextOlmEvent.copy(senderDeviceKeys = null))
+            )
+
+        val result =
+            cut.decryptOlm(
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
+                    ),
+                    bob,
+                )
+            )
         result.exceptionOrNull() shouldBe DecryptOlmError.ValidationFailed("no sender device keys found")
     }
 
     @Test
     fun `decryptOlm - fail decryption when sender device keys are dehydrated`() = runTest {
         olmStoreMock.devices.clear()
-        val bobSession = bobAccount.createOutboundSession(
-            identityKey = aliceAccount.curve25519Key, oneTimeKey = aliceAccount.getOneTimeKey(true)
-        )
-        val encryptedMessage = bobSession.encrypt(
-            json.encodeToString(
-                plaintextOlmEventSerializer,
-                receivePlaintextOlmEvent.copy(
-                    senderDeviceKeys = Signed(
-                        checkNotNull(receivePlaintextOlmEvent.senderDeviceKeys?.signed?.copy(dehydrated = true)),
-                        null
-                    )
+        val bobSession =
+            bobAccount.createOutboundSession(
+                identityKey = aliceAccount.curve25519Key,
+                oneTimeKey = aliceAccount.getOneTimeKey(true),
+            )
+        val encryptedMessage =
+            bobSession.encrypt(
+                json.encodeToString(
+                    plaintextOlmEventSerializer,
+                    receivePlaintextOlmEvent.copy(
+                        senderDeviceKeys =
+                            Signed(
+                                checkNotNull(
+                                    receivePlaintextOlmEvent.senderDeviceKeys?.signed?.copy(dehydrated = true)
+                                ),
+                                null,
+                            )
+                    ),
                 )
             )
-        )
 
-        val result = cut.decryptOlm(
-            ClientEvent.ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(
-                        aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)
+        val result =
+            cut.decryptOlm(
+                ClientEvent.ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(
+                        ciphertext = mapOf(aliceCurveKey.value.value to CiphertextInfo.of(encryptedMessage)),
+                        senderKey = bobCurveKey.value,
                     ),
-                    senderKey = bobCurveKey.value
-                ), bob
+                    bob,
+                )
             )
-        )
         result.exceptionOrNull().shouldBeInstanceOf<DecryptOlmError.DehydratedDeviceNotAllowed>()
     }
 }

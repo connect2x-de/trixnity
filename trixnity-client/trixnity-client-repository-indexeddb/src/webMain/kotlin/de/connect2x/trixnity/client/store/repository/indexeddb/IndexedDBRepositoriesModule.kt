@@ -44,8 +44,7 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-private val log =
-    Logger("de.connect2x.trixnity.client.store.repository.indexeddb.IndexedDBRepositoriesModule")
+private val log = Logger("de.connect2x.trixnity.client.store.repository.indexeddb.IndexedDBRepositoriesModule")
 
 fun RepositoriesModule.Companion.indexedDB(databaseName: String = "trixnity"): RepositoriesModule = RepositoriesModule {
     log.debug { "create missing tables and columns" }
@@ -54,9 +53,7 @@ fun RepositoriesModule.Companion.indexedDB(databaseName: String = "trixnity"): R
     module {
         single { database }
         single(createdAtStart = true) {
-            get<CoroutineScope>().coroutineContext.job.invokeOnCompletion {
-                database.close()
-            }
+            get<CoroutineScope>().coroutineContext.job.invokeOnCompletion { database.close() }
         }
         single<StoreTransactionManager> { IndexedDBStoreTransactionManager(get(), allStoreNames) }
         singleOf(::IndexedDBAccountRepository) { bind<AccountRepository>() }
@@ -91,46 +88,46 @@ fun RepositoriesModule.Companion.indexedDB(databaseName: String = "trixnity"): R
         singleOf(::IndexedDBNotificationStateRepository) { bind<NotificationStateRepository>() }
         singleOf(::IndexedDBNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
         singleOf(::IndexedDBMigrationRepository) { bind<MigrationRepository>() }
-        @OptIn(MSC4354::class)
-        singleOf(::IndexedDBStickyEventRepository) { bind<StickyEventRepository>() }
+        @OptIn(MSC4354::class) singleOf(::IndexedDBStickyEventRepository) { bind<StickyEventRepository>() }
     }
 }
 
-internal val allStoreNames = arrayOf(
-    IndexedDBAccountRepository.objectStoreName,
-    IndexedDBAuthenticationRepository.objectStoreName,
-    IndexedServerDataRepository.objectStoreName,
-    IndexedDBCrossSigningKeysRepository.objectStoreName,
-    IndexedDBDeviceKeysRepository.objectStoreName,
-    IndexedDBGlobalAccountDataRepository.objectStoreName,
-    IndexedDBInboundMegolmMessageIndexRepository.objectStoreName,
-    IndexedDBInboundMegolmSessionRepository.objectStoreName,
-    IndexedDBKeyChainLinkRepository.objectStoreName,
-    IndexedDBKeyVerificationStateRepository.objectStoreName,
-    IndexedDBMediaCacheMappingRepository.objectStoreName,
-    IndexedDBOlmAccountRepository.objectStoreName,
-    IndexedDBOlmForgetFallbackKeyAfterRepository.objectStoreName,
-    IndexedDBOlmSessionRepository.objectStoreName,
-    IndexedDBOutboundMegolmSessionRepository.objectStoreName,
-    IndexedDBOutdatedKeysRepository.objectStoreName,
-    IndexedDBRoomAccountDataRepository.objectStoreName,
-    IndexedDBRoomKeyRequestRepository.objectStoreName,
-    IndexedDBRoomOutboxMessageRepository.objectStoreName,
-    IndexedDBRoomRepository.objectStoreName,
-    IndexedDBRoomStateRepository.objectStoreName,
-    IndexedDBRoomUserRepository.objectStoreName,
-    IndexedDBRoomUserReceiptsRepository.objectStoreName,
-    IndexedDBSecretKeyRequestRepository.objectStoreName,
-    IndexedDBSecretsRepository.objectStoreName,
-    IndexedDBTimelineEventRelationRepository.objectStoreName,
-    IndexedDBTimelineEventRepository.objectStoreName,
-    IndexedDBUserPresenceRepository.objectStoreName,
-    IndexedDBNotificationRepository.objectStoreName,
-    IndexedDBNotificationStateRepository.objectStoreName,
-    IndexedDBNotificationUpdateRepository.objectStoreName,
-    IndexedDBMigrationRepository.objectStoreName,
-    IndexedDBStickyEventRepository.objectStoreName,
-)
+internal val allStoreNames =
+    arrayOf(
+        IndexedDBAccountRepository.objectStoreName,
+        IndexedDBAuthenticationRepository.objectStoreName,
+        IndexedServerDataRepository.objectStoreName,
+        IndexedDBCrossSigningKeysRepository.objectStoreName,
+        IndexedDBDeviceKeysRepository.objectStoreName,
+        IndexedDBGlobalAccountDataRepository.objectStoreName,
+        IndexedDBInboundMegolmMessageIndexRepository.objectStoreName,
+        IndexedDBInboundMegolmSessionRepository.objectStoreName,
+        IndexedDBKeyChainLinkRepository.objectStoreName,
+        IndexedDBKeyVerificationStateRepository.objectStoreName,
+        IndexedDBMediaCacheMappingRepository.objectStoreName,
+        IndexedDBOlmAccountRepository.objectStoreName,
+        IndexedDBOlmForgetFallbackKeyAfterRepository.objectStoreName,
+        IndexedDBOlmSessionRepository.objectStoreName,
+        IndexedDBOutboundMegolmSessionRepository.objectStoreName,
+        IndexedDBOutdatedKeysRepository.objectStoreName,
+        IndexedDBRoomAccountDataRepository.objectStoreName,
+        IndexedDBRoomKeyRequestRepository.objectStoreName,
+        IndexedDBRoomOutboxMessageRepository.objectStoreName,
+        IndexedDBRoomRepository.objectStoreName,
+        IndexedDBRoomStateRepository.objectStoreName,
+        IndexedDBRoomUserRepository.objectStoreName,
+        IndexedDBRoomUserReceiptsRepository.objectStoreName,
+        IndexedDBSecretKeyRequestRepository.objectStoreName,
+        IndexedDBSecretsRepository.objectStoreName,
+        IndexedDBTimelineEventRelationRepository.objectStoreName,
+        IndexedDBTimelineEventRepository.objectStoreName,
+        IndexedDBUserPresenceRepository.objectStoreName,
+        IndexedDBNotificationRepository.objectStoreName,
+        IndexedDBNotificationStateRepository.objectStoreName,
+        IndexedDBNotificationUpdateRepository.objectStoreName,
+        IndexedDBMigrationRepository.objectStoreName,
+        IndexedDBStickyEventRepository.objectStoreName,
+    )
 
 internal suspend fun createDatabase(databaseName: String) =
     IDBUtils.openDatabase(databaseName, 10) { database, oldVersion, _ ->

@@ -23,8 +23,8 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
-import kotlinx.coroutines.flow.first
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
 
 class ClientOlmStore(
     private val accountStore: AccountStore,
@@ -38,10 +38,7 @@ class ClientOlmStore(
     override suspend fun getDeviceKeys(userId: UserId): Map<String, SignedDeviceKeys>? =
         keyStore.getDeviceKeys(userId).first()?.mapValues { it.value.value }
 
-    override suspend fun getMembers(
-        roomId: RoomId,
-        memberships: Set<Membership>
-    ): Set<UserId> {
+    override suspend fun getMembers(roomId: RoomId, memberships: Set<Membership>): Set<UserId> {
         loadMembersService(roomId, true)
         return roomStateStore.members(roomId, memberships)
     }
@@ -54,11 +51,9 @@ class ClientOlmStore(
 
     override suspend fun updateOlmSessions(
         identityKeyValue: Curve25519KeyValue,
-        updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
+        updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?,
     ) {
-        tm.writeTransaction {
-            olmCryptoStore.updateOlmSessions(identityKeyValue, updater)
-        }
+        tm.writeTransaction { olmCryptoStore.updateOlmSessions(identityKeyValue, updater) }
     }
 
     override suspend fun getOutboundMegolmSession(roomId: RoomId): StoredOutboundMegolmSession? =
@@ -66,23 +61,18 @@ class ClientOlmStore(
 
     override suspend fun updateOutboundMegolmSession(
         roomId: RoomId,
-        updater: (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?
+        updater: (StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?,
     ) {
-        tm.writeTransaction {
-            olmCryptoStore.updateOutboundMegolmSession(roomId, updater)
-        }
+        tm.writeTransaction { olmCryptoStore.updateOutboundMegolmSession(roomId, updater) }
     }
 
     override suspend fun updateInboundMegolmSession(
         sessionId: String,
         roomId: RoomId,
-        updater: (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?
+        updater: (StoredInboundMegolmSession?) -> StoredInboundMegolmSession?,
     ) {
-        tm.writeTransaction {
-            olmCryptoStore.updateInboundMegolmSession(sessionId, roomId, updater)
-        }
+        tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId, updater) }
     }
-
 
     override suspend fun getInboundMegolmSession(sessionId: String, roomId: RoomId): StoredInboundMegolmSession? =
         olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()
@@ -91,29 +81,24 @@ class ClientOlmStore(
         sessionId: String,
         roomId: RoomId,
         messageIndex: Long,
-        updater: (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?
+        updater: (StoredInboundMegolmMessageIndex?) -> StoredInboundMegolmMessageIndex?,
     ) {
-        tm.writeTransaction {
-            olmCryptoStore.updateInboundMegolmMessageIndex(sessionId, roomId, messageIndex, updater)
-        }
+        tm.writeTransaction { olmCryptoStore.updateInboundMegolmMessageIndex(sessionId, roomId, messageIndex, updater) }
     }
 
     override suspend fun getOlmAccount(): String = checkNotNull(olmCryptoStore.getOlmAccount())
-    override suspend fun updateOlmAccount(updater: (String) -> String) =
-        tm.writeTransaction {
-            olmCryptoStore.updateOlmAccount {
-                updater(checkNotNull(it))
-            }
-        }
+
+    override suspend fun updateOlmAccount(updater: (String) -> String) = tm.writeTransaction {
+        olmCryptoStore.updateOlmAccount { updater(checkNotNull(it)) }
+    }
 
     override suspend fun getOlmPickleKey(): String? = checkNotNull(accountStore.getAccount()).olmPickleKey
 
     override suspend fun getForgetFallbackKeyAfter(): Instant? = olmCryptoStore.getForgetFallbackKeyAfter()
 
-    override suspend fun updateForgetFallbackKeyAfter(updater: (Instant?) -> Instant?) =
-        tm.writeTransaction {
-            olmCryptoStore.updateForgetFallbackKeyAfter(updater)
-        }
+    override suspend fun updateForgetFallbackKeyAfter(updater: (Instant?) -> Instant?) = tm.writeTransaction {
+        olmCryptoStore.updateForgetFallbackKeyAfter(updater)
+    }
 
     override suspend fun getHistoryVisibility(roomId: RoomId): HistoryVisibilityEventContent.HistoryVisibility? =
         roomStateStore.getByStateKey<HistoryVisibilityEventContent>(roomId).first()?.content?.historyVisibility
@@ -121,4 +106,3 @@ class ClientOlmStore(
     override suspend fun getRoomEncryptionAlgorithm(roomId: RoomId): EncryptionAlgorithm? =
         roomStateStore.getByStateKey<EncryptionEventContent>(roomId).first()?.content?.algorithm
 }
-

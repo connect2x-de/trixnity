@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.client.store
 
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class RoomUser(

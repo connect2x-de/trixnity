@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client
 
-import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
-import kotlinx.coroutines.flow.StateFlow
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 class CurrentSyncState(currentSyncState: StateFlow<SyncState>) : StateFlow<SyncState> by currentSyncState {

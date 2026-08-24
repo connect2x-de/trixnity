@@ -5,6 +5,7 @@ expect class OlmAccount : WantsToBeFree {
 
     companion object {
         fun create(): OlmAccount
+
         fun unpickle(key: String?, pickle: String): OlmAccount
     }
 
@@ -14,13 +15,18 @@ expect class OlmAccount : WantsToBeFree {
     val maxNumberOfOneTimeKeys: Long
 
     override fun free()
+
     fun pickle(key: String?): String
 
     fun sign(message: String): String
-    fun markKeysAsPublished()
-    fun generateOneTimeKeys(numberOfKeys: Long)
-    fun removeOneTimeKeys(session: OlmSession)
-    fun generateFallbackKey()
-    fun forgetOldFallbackKey()
 
+    fun markKeysAsPublished()
+
+    fun generateOneTimeKeys(numberOfKeys: Long)
+
+    fun removeOneTimeKeys(session: OlmSession)
+
+    fun generateFallbackKey()
+
+    fun forgetOldFallbackKey()
 }

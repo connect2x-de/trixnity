@@ -1,19 +1,20 @@
 package de.connect2x.trixnity.client.store
 
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.push.PushAction
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.push.PushAction
 import okio.ByteString.Companion.toByteString
 
 /**
  * A locally stored notification. It can either be a [Message] or a [State].
  *
- * It has a unique [id]. For [Message] it is calculated from [Message.roomId] and [Message.eventId], for [State] from [State.roomId], [State.type] and [State.stateKey].
+ * It has a unique [id]. For [Message] it is calculated from [Message.roomId] and [Message.eventId], for [State] from
+ * [State.roomId], [State.type] and [State.stateKey].
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -49,8 +50,7 @@ sealed interface StoredNotification {
         override val sortKey: String,
         override val roomId: RoomId,
         override val eventId: EventId?,
-        @SerialName("eventContentType")
-        val type: String,
+        @SerialName("eventContentType") val type: String,
         val stateKey: String,
         override val actions: Set<PushAction>,
         override val dismissed: Boolean = false,
@@ -63,4 +63,3 @@ sealed interface StoredNotification {
         override val id: String = id(roomId, type, stateKey)
     }
 }
-

@@ -7,55 +7,47 @@ actual class OlmSession private constructor() : WantsToBeFree {
     internal actual val ptr: OlmSessionPointer = rethrow { Session() }
 
     actual companion object {
-        actual fun createOutbound(
-            account: OlmAccount,
-            theirIdentityKey: String,
-            theirOneTimeKey: String
-        ): OlmSession {
+        actual fun createOutbound(account: OlmAccount, theirIdentityKey: String, theirOneTimeKey: String): OlmSession {
             return OlmSession().apply {
                 rethrow { ptr.create_outbound(account.ptr, theirIdentityKey, theirOneTimeKey) }
             }
         }
 
-        actual fun createInbound(
-            account: OlmAccount,
-            oneTimeKeyMessage: String
-        ): OlmSession {
-            return OlmSession().apply {
-                rethrow { ptr.create_inbound(account.ptr, oneTimeKeyMessage) }
-            }
+        actual fun createInbound(account: OlmAccount, oneTimeKeyMessage: String): OlmSession {
+            return OlmSession().apply { rethrow { ptr.create_inbound(account.ptr, oneTimeKeyMessage) } }
         }
 
-        actual fun createInboundFrom(
-            account: OlmAccount,
-            identityKey: String,
-            oneTimeKeyMessage: String
-        ): OlmSession {
+        actual fun createInboundFrom(account: OlmAccount, identityKey: String, oneTimeKeyMessage: String): OlmSession {
             return OlmSession().apply {
                 rethrow { ptr.create_inbound_from(account.ptr, identityKey, oneTimeKeyMessage) }
             }
         }
 
         actual fun unpickle(key: String?, pickle: String): OlmSession {
-            return OlmSession().apply {
-                rethrow { ptr.unpickle(key ?: "", pickle) }
-            }
+            return OlmSession().apply { rethrow { ptr.unpickle(key ?: "", pickle) } }
         }
     }
 
-    actual val sessionId: String get() = rethrow { ptr.session_id() }
-    actual val hasReceivedMessage: Boolean get() = rethrow { ptr.has_received_message() }
-    actual val description: String get() = rethrow { ptr.describe() }
+    actual val sessionId: String
+        get() = rethrow { ptr.session_id() }
+
+    actual val hasReceivedMessage: Boolean
+        get() = rethrow { ptr.has_received_message() }
+
+    actual val description: String
+        get() = rethrow { ptr.describe() }
 
     actual override fun free() = ptr.free()
 
     actual fun pickle(key: String?): String = rethrow { ptr.pickle(key ?: "") }
 
-    actual fun matchesInboundSession(oneTimeKeyMessage: String): Boolean =
-        rethrow { ptr.matches_inbound(oneTimeKeyMessage) }
+    actual fun matchesInboundSession(oneTimeKeyMessage: String): Boolean = rethrow {
+        ptr.matches_inbound(oneTimeKeyMessage)
+    }
 
-    actual fun matchesInboundSessionFrom(identityKey: String, oneTimeKeyMessage: String): Boolean =
-        rethrow { ptr.matches_inbound_from(identityKey, oneTimeKeyMessage) }
+    actual fun matchesInboundSessionFrom(identityKey: String, oneTimeKeyMessage: String): Boolean = rethrow {
+        ptr.matches_inbound_from(identityKey, oneTimeKeyMessage)
+    }
 
     actual fun encrypt(plainText: String): OlmMessage {
         val message = rethrow { ptr.encrypt(plainText) }
@@ -66,5 +58,3 @@ actual class OlmSession private constructor() : WantsToBeFree {
         ptr.decrypt(message.type.value.toJsNumber(), message.cipherText)
     }
 }
-
-

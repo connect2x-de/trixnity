@@ -1,18 +1,18 @@
 package de.connect2x.trixnity.client.media.okio
 
-import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.utils.toByteArrayFlow
-import okio.Path.Companion.toPath
-import okio.fakefilesystem.FakeFileSystem
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.test.runTest
+import okio.Path.Companion.toPath
+import okio.fakefilesystem.FakeFileSystem
 
 class OkioMediaStoreTest {
 
@@ -29,13 +29,14 @@ class OkioMediaStoreTest {
     fun beforeTest() {
         fileSystem = FakeFileSystem()
         coroutineScope = CoroutineScope(Dispatchers.Default)
-        cut = OkioMediaStore(
-            basePath = basePath,
-            fileSystem = fileSystem,
-            coroutineScope = coroutineScope,
-            configuration = MatrixClientConfiguration(),
-            clock = Clock.System
-        )
+        cut =
+            OkioMediaStore(
+                basePath = basePath,
+                fileSystem = fileSystem,
+                coroutineScope = coroutineScope,
+                configuration = MatrixClientConfiguration(),
+                clock = Clock.System,
+            )
     }
 
     @AfterTest
@@ -73,9 +74,7 @@ class OkioMediaStoreTest {
     fun shouldNotAddMediaOnException() = runTest {
         cut.init(coroutineScope)
         val file = MutableSharedFlow<ByteArray>()
-        val job = async {
-            cut.addMedia("url1", file)
-        }
+        val job = async { cut.addMedia("url1", file) }
         file.emit("h".encodeToByteArray())
         job.cancel()
         fileSystem.exists(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) shouldBe false
@@ -84,9 +83,7 @@ class OkioMediaStoreTest {
     @Test
     fun shouldGetMedia() = runTest {
         cut.init(coroutineScope)
-        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) {
-            writeUtf8("hi")
-        }
+        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) { writeUtf8("hi") }
         cut.getMedia("url1")?.toByteArray()?.decodeToString() shouldBe "hi"
     }
 
@@ -99,9 +96,7 @@ class OkioMediaStoreTest {
     @Test
     fun shouldDeleteMedia() = runTest {
         cut.init(coroutineScope)
-        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) {
-            writeUtf8("hi")
-        }
+        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) { writeUtf8("hi") }
         cut.deleteMedia("url1")
         fileSystem.listOrNull(basePath)?.size shouldBe 2
     }
@@ -116,9 +111,7 @@ class OkioMediaStoreTest {
     @Test
     fun shouldChangeMediaUrl() = runTest {
         cut.init(coroutineScope)
-        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) {
-            writeUtf8("hi")
-        }
+        fileSystem.write(basePath.resolve("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=")) { writeUtf8("hi") }
         cut.changeMediaUrl("url1", "url2")
         fileSystem.read(basePath.resolve("hnKdljIEgbx_eKM0uMgfIWYx_slrDvGQQFN8QUQ4QGg=")) { readUtf8() } shouldBe "hi"
     }
@@ -166,10 +159,11 @@ class OkioMediaStoreTest {
         cut.addMedia("url1", "hi".encodeToByteArray().toByteArrayFlow())
         val platformMedia = cut.getMedia("url1").shouldNotBeNull()
         fileSystem.listOrNull(tmpPath)?.size shouldBe 0
-        val tmpFile = platformMedia
-            .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
-            .getTemporaryFile()
-            .getOrThrow()
+        val tmpFile =
+            platformMedia
+                .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
+                .getTemporaryFile()
+                .getOrThrow()
         fileSystem.listOrNull(tmpPath)?.size shouldBe 1
         fileSystem.read(tmpFile.path) { readUtf8() } shouldBe "###encrypted###"
     }

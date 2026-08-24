@@ -46,9 +46,12 @@ internal class ExposedRoomOutboxMessageRepository(
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: RoomOutboxMessageRepositoryKey): RoomOutboxMessage<*>? {
-        return ExposedRoomOutboxMessage.selectAll().where {
-            ExposedRoomOutboxMessage.roomId.eq(key.roomId.full) and ExposedRoomOutboxMessage.transactionId.eq(key.transactionId)
-        }.firstOrNull()
+        return ExposedRoomOutboxMessage.selectAll()
+            .where {
+                ExposedRoomOutboxMessage.roomId.eq(key.roomId.full) and
+                    ExposedRoomOutboxMessage.transactionId.eq(key.transactionId)
+            }
+            .firstOrNull()
             ?.let(::mapToRoomOutboxMessage)
     }
 
@@ -60,10 +63,11 @@ internal class ExposedRoomOutboxMessageRepository(
             it[roomId] = key.roomId.full
             it[transactionId] = key.transactionId
             @Suppress("UNCHECKED_CAST")
-            it[ExposedRoomOutboxMessage.value] = json.encodeToString(
-                RoomOutboxMessage.serializer(mapping.serializer),
-                value as RoomOutboxMessage<MessageEventContent>
-            )
+            it[ExposedRoomOutboxMessage.value] =
+                json.encodeToString(
+                    RoomOutboxMessage.serializer(mapping.serializer),
+                    value as RoomOutboxMessage<MessageEventContent>,
+                )
             it[contentType] = mapping.type
         }
     }

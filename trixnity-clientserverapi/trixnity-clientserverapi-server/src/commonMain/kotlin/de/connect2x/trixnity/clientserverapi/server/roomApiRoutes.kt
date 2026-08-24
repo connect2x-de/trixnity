@@ -5,11 +5,7 @@ import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMap
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-internal fun Route.roomApiRoutes(
-    handler: RoomApiHandler,
-    json: Json,
-    contentMappings: EventContentSerializerMappings
-) {
+internal fun Route.roomApiRoutes(handler: RoomApiHandler, json: Json, contentMappings: EventContentSerializerMappings) {
     matrixEndpoint(json, contentMappings, handler::getEvent)
     matrixEndpoint(json, contentMappings, handler::getStateEvent)
     matrixEndpoint(json, contentMappings, handler::getState)

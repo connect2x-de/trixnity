@@ -12,10 +12,8 @@ class MessageEventContentSerializerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldSerialize() {
-        val result = json.encodeToString(
-            RoomMessageEventContent.Serializer,
-            RoomMessageEventContent.TextBased.Notice("test")
-        )
+        val result =
+            json.encodeToString(RoomMessageEventContent.Serializer, RoomMessageEventContent.TextBased.Notice("test"))
         assertEquals("""{"body":"test","msgtype":"m.notice"}""", result)
     }
 

@@ -14,9 +14,5 @@ interface InboundGroupSession : AutoCloseable {
 
     fun pickle(pickleKey: PickleKey? = null): String
 
-    data class DecryptedMessage(
-        val plaintext: String,
-        val messageIndex: Int,
-    )
+    data class DecryptedMessage(val plaintext: String, val messageIndex: Int)
 }
-

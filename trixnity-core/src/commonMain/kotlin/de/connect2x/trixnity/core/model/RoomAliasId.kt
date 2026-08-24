@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.core.model
 
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.util.MatrixIdRegex
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
@@ -18,10 +18,12 @@ value class RoomAliasId(val full: String) {
 
     val localpart: String
         get() = full.trimStart(sigilCharacter).substringBefore(':')
+
     val domain: String
         get() = full.trimStart(sigilCharacter).substringAfter(':')
 
-    val isValid: Boolean get() = isValid(full)
+    val isValid: Boolean
+        get() = isValid(full)
 
     override fun toString() = full
 }

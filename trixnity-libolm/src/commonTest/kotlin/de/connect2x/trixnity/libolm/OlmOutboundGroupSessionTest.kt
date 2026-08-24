@@ -5,11 +5,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
+import kotlin.test.Test
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
 
 class OlmOutboundGroupSessionTest {
 
@@ -44,23 +44,18 @@ class OlmOutboundGroupSessionTest {
 
     @Test
     fun pickle() = runTest {
-        freeAfter(OlmOutboundGroupSession.create()) { session ->
-            session.pickle("someKey") shouldNot beBlank()
-        }
+        freeAfter(OlmOutboundGroupSession.create()) { session -> session.pickle("someKey") shouldNot beBlank() }
     }
 
     @Test
     fun pickleWithEmptyKey() = runTest {
-        freeAfter(OlmOutboundGroupSession.create()) { session ->
-            session.pickle("") shouldNot beBlank()
-        }
+        freeAfter(OlmOutboundGroupSession.create()) { session -> session.pickle("") shouldNot beBlank() }
     }
 
     @Test
     fun unpickle() = runTest {
-        val pickle = freeAfter(OlmOutboundGroupSession.create()) { session ->
-            session.pickle("someKey") to session.sessionId
-        }
+        val pickle =
+            freeAfter(OlmOutboundGroupSession.create()) { session -> session.pickle("someKey") to session.sessionId }
         freeAfter(OlmOutboundGroupSession.unpickle("someKey", pickle.first)) { session ->
             session.sessionId shouldBe pickle.second
         }
@@ -68,9 +63,8 @@ class OlmOutboundGroupSessionTest {
 
     @Test
     fun unpickleWIthEmptyKey() = runTest {
-        val pickle = freeAfter(OlmOutboundGroupSession.create()) { session ->
-            session.pickle(null) to session.sessionId
-        }
+        val pickle =
+            freeAfter(OlmOutboundGroupSession.create()) { session -> session.pickle(null) to session.sessionId }
         freeAfter(OlmOutboundGroupSession.unpickle(null, pickle.first)) { session ->
             session.sessionId shouldBe pickle.second
         }

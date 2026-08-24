@@ -5,5 +5,6 @@ import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 
 object LibOlmNormalMessageFactory : NormalMessageFactory {
     override fun invoke(bytes: ByteArray): LibOlmNormalMessage = this(bytes.encodeUnpaddedBase64())
+
     override fun invoke(base64: String): LibOlmNormalMessage = LibOlmNormalMessage(base64)
 }

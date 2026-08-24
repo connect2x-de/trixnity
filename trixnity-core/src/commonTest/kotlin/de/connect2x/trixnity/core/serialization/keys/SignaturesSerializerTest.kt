@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.core.serialization.keys
 
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
 import de.connect2x.trixnity.core.model.keys.Signatures
@@ -8,6 +7,7 @@ import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.serialization.json.Json
 
 class SignaturesSerializerTest : TrixnityBaseTest() {
 
@@ -15,14 +15,13 @@ class SignaturesSerializerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldSerializeSignatures() {
-        val content: Signatures<String> = mapOf(
-            "@alice:example.com" to keysOf(Ed25519Key("JLAFKJWSCS", "aKey")),
-            "example.org" to keysOf(
-                Ed25519Key("0", "some9signature"),
-                Ed25519Key("1", "some10signature")
+        val content: Signatures<String> =
+            mapOf(
+                "@alice:example.com" to keysOf(Ed25519Key("JLAFKJWSCS", "aKey")),
+                "example.org" to keysOf(Ed25519Key("0", "some9signature"), Ed25519Key("1", "some10signature")),
             )
-        )
-        val expectedResult = """
+        val expectedResult =
+            """
             {
               "@alice:example.com":{
                 "ed25519:JLAFKJWSCS":"aKey"
@@ -32,14 +31,18 @@ class SignaturesSerializerTest : TrixnityBaseTest() {
                 "ed25519:1":"some10signature"
               }
             }
-    """.trimIndent().lines().joinToString("") { it.trim() }
+            """
+                .trimIndent()
+                .lines()
+                .joinToString("") { it.trim() }
         val result = json.encodeToString(content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeSignatures() {
-        val input = """
+        val input =
+            """
             {
               "@alice:example.com": {
                 "ed25519:JLAFKJWSCS": "aKey"
@@ -49,50 +52,49 @@ class SignaturesSerializerTest : TrixnityBaseTest() {
                 "ed25519:1": "some10signature"
               }
             }
-    """.trimIndent()
+            """
+                .trimIndent()
         val result = json.decodeFromString<Signatures<String>>(input)
         assertEquals(
             mapOf(
                 "@alice:example.com" to keysOf(Ed25519Key("JLAFKJWSCS", "aKey")),
-                "example.org" to keysOf(
-                    Ed25519Key("0", "some9signature"),
-                    Ed25519Key("1", "some10signature")
-                )
-            ), result
+                "example.org" to keysOf(Ed25519Key("0", "some9signature"), Ed25519Key("1", "some10signature")),
+            ),
+            result,
         )
     }
 
     @Test
     fun shouldSerializeSignaturesOfUserIds() {
-        val content = mapOf(
-            UserId("alice", "example.com") to keysOf(Ed25519Key("JLAFKJWSCS", "aKey")),
-        )
+        val content = mapOf(UserId("alice", "example.com") to keysOf(Ed25519Key("JLAFKJWSCS", "aKey")))
 
-        val expectedResult = """
+        val expectedResult =
+            """
             {
               "@alice:example.com":{
                 "ed25519:JLAFKJWSCS":"aKey"
               }
             }
-    """.trimIndent().lines().joinToString("") { it.trim() }
+            """
+                .trimIndent()
+                .lines()
+                .joinToString("") { it.trim() }
         val result = json.encodeToString(content)
         assertEquals(expectedResult, result)
     }
 
     @Test
     fun shouldDeserializeSignaturesOfUserIds() {
-        val input = """
+        val input =
+            """
             {
               "@alice:example.com": {
                 "ed25519:JLAFKJWSCS": "aKey"
               }
             }
-    """.trimIndent()
+            """
+                .trimIndent()
         val result = json.decodeFromString<Signatures<UserId>>(input)
-        assertEquals(
-            mapOf(
-                UserId("alice", "example.com") to keysOf(Ed25519Key("JLAFKJWSCS", "aKey"))
-            ), result
-        )
+        assertEquals(mapOf(UserId("alice", "example.com") to keysOf(Ed25519Key("JLAFKJWSCS", "aKey"))), result)
     }
 }

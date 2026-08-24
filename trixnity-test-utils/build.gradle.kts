@@ -17,9 +17,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
     withAndroidLibrary("$group.test.utils")
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
+        all { languageSettings.optIn("kotlin.time.ExperimentalTime") }
 
         commonMain.dependencies {
             api(sharedLibs.kotlin.test)
@@ -35,8 +33,6 @@ kotlin {
             implementation(sharedLibs.lognity.slf4j)
         }
 
-        androidMain.dependencies {
-            api(kotlin("test-junit"))
-        }
+        androidMain.dependencies { api(kotlin("test-junit")) }
     }
 }

@@ -5,9 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class DirectoryVisibility {
-    @SerialName("public")
-    PUBLIC,
-
-    @SerialName("private")
-    PRIVATE
+    @SerialName("public") PUBLIC,
+    @SerialName("private") PRIVATE,
 }

@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 internal fun Route.adminApiRoutes(
     handler: AdminApiHandler,
     json: Json,
-    contentMappings: EventContentSerializerMappings
+    contentMappings: EventContentSerializerMappings,
 ) {
     matrixEndpoint(json, contentMappings, handler::getSuspend)
     matrixEndpoint(json, contentMappings, handler::setSuspend)

@@ -29,14 +29,16 @@ internal object ExposedAccount : LongIdTable("account") {
 internal class ExposedAccountRepository(private val json: Json) : AccountRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): Account? {
-        return ExposedAccount.selectAll().where { ExposedAccount.id eq key }
+        return ExposedAccount.selectAll()
+            .where { ExposedAccount.id eq key }
             .firstOrNull()
             ?.let {
                 Account(
                     olmPickleKey = it[ExposedAccount.olmPickleKey],
                     baseUrl = it[ExposedAccount.baseUrl],
-                    userId = it[ExposedAccount.userId]?.let { it1 -> UserId(it1) }
-                        ?: throw IllegalStateException("userId not found"),
+                    userId =
+                        it[ExposedAccount.userId]?.let { it1 -> UserId(it1) }
+                            ?: throw IllegalStateException("userId not found"),
                     deviceId = it[ExposedAccount.deviceId] ?: throw IllegalStateException("deviceId not found"),
                     accessToken = it[ExposedAccount.accessToken],
                     refreshToken = it[ExposedAccount.refreshToken],
@@ -74,4 +76,3 @@ internal class ExposedAccountRepository(private val json: Json) : AccountReposit
         ExposedAccount.deleteAll()
     }
 }
-

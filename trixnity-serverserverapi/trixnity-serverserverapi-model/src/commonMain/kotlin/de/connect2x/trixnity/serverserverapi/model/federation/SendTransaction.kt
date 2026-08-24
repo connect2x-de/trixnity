@@ -12,15 +12,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#put_matrixfederationv1sendtxnid">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/server-server-api/#put_matrixfederationv1sendtxnid">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/federation/v1/send/{txnId}")
 @HttpMethod(HttpMethodType.PUT)
-data class SendTransaction(
-    @SerialName("txnId") val txnId: String,
-) : MatrixEndpoint<SendTransaction.Request, SendTransaction.Response> {
+data class SendTransaction(@SerialName("txnId") val txnId: String) :
+    MatrixEndpoint<SendTransaction.Request, SendTransaction.Response> {
     @Serializable
     data class Request(
         @SerialName("edus") val edus: List<@Contextual EphemeralDataUnit<*>>? = null,
@@ -30,12 +27,7 @@ data class SendTransaction(
     )
 
     @Serializable
-    data class Response(
-        @SerialName("pdus") val pdus: Map<EventId, PDUProcessingResult>,
-    ) {
-        @Serializable
-        data class PDUProcessingResult(
-            @SerialName("error") val error: String? = null
-        )
+    data class Response(@SerialName("pdus") val pdus: Map<EventId, PDUProcessingResult>) {
+        @Serializable data class PDUProcessingResult(@SerialName("error") val error: String? = null)
     }
 }

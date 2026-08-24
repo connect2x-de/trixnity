@@ -13,7 +13,6 @@ inline fun <T, W1 : WantsToBeFree> freeAfter(w1: W1, block: (W1) -> T): T =
         w1.free()
     }
 
-
 inline fun <T, W1 : WantsToBeFree, W2 : WantsToBeFree> freeAfter(w1: W1, w2: W2, block: (W1, W2) -> T): T =
     try {
         block(w1, w2)
@@ -26,7 +25,7 @@ inline fun <T, W1 : WantsToBeFree, W2 : WantsToBeFree, W3 : WantsToBeFree> freeA
     w1: W1,
     w2: W2,
     w3: W3,
-    block: (W1, W2, W3) -> T
+    block: (W1, W2, W3) -> T,
 ): T =
     try {
         block(w1, w2, w3)
@@ -41,7 +40,7 @@ inline fun <T, W1 : WantsToBeFree, W2 : WantsToBeFree, W3 : WantsToBeFree, W4 : 
     w2: W2,
     w3: W3,
     w4: W4,
-    block: (W1, W2, W3, W4) -> T
+    block: (W1, W2, W3, W4) -> T,
 ): T =
     try {
         block(w1, w2, w3, w4)

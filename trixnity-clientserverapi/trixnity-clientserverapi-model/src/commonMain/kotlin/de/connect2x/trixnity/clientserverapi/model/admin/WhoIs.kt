@@ -14,22 +14,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Resource("/_matrix/client/v3/admin/whois/{userId}")
 @HttpMethod(GET)
-data class WhoIs(
-    @SerialName("userId") val userId: UserId,
-) : MatrixEndpoint<Unit, WhoIs.Response> {
+data class WhoIs(@SerialName("userId") val userId: UserId) : MatrixEndpoint<Unit, WhoIs.Response> {
     @Serializable
     data class Response(
         @SerialName("user_id") val userId: UserId? = null,
-        @SerialName("devices") val devices: Map<String, DeviceInfo>? = null
+        @SerialName("devices") val devices: Map<String, DeviceInfo>? = null,
     ) {
         @Serializable
-        data class DeviceInfo(
-            @SerialName("sessions") val sessions: Set<SessionInfo>? = null
-        ) {
+        data class DeviceInfo(@SerialName("sessions") val sessions: Set<SessionInfo>? = null) {
             @Serializable
-            data class SessionInfo(
-                @SerialName("connections") val connections: Set<ConnectionInfo>? = null
-            ) {
+            data class SessionInfo(@SerialName("connections") val connections: Set<ConnectionInfo>? = null) {
                 @Serializable
                 data class ConnectionInfo(
                     @SerialName("ip") val ip: String? = null,

@@ -15,9 +15,9 @@ import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
-import kotlin.test.Test
 
 class ClientOlmStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -27,14 +27,15 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
 
     private val keyStore = getInMemoryKeyStore()
 
-    private val cut = ClientOlmStore(
-        accountStore = getInMemoryAccountStore(),
-        olmCryptoStore = getInMemoryOlmStore(),
-        keyStore = keyStore,
-        roomStateStore = getInMemoryRoomStateStore(),
-        tm = tm,
-        loadMembersService = { _, _ -> },
-    )
+    private val cut =
+        ClientOlmStore(
+            accountStore = getInMemoryAccountStore(),
+            olmCryptoStore = getInMemoryOlmStore(),
+            keyStore = keyStore,
+            roomStateStore = getInMemoryRoomStateStore(),
+            tm = tm,
+            loadMembersService = { _, _ -> },
+        )
 
     @Test
     fun `getDeviceKeys » identity key is present » return identity key`() = runTest {
@@ -43,47 +44,33 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
 
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
-                mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        deviceKeys,
-                        KeySignatureTrustLevel.Valid(true)
-                    )
-                )
+                mapOf(aliceDevice to StoredDeviceKeys(deviceKeys, KeySignatureTrustLevel.Valid(true)))
             }
         }
         cut.getDeviceKeys(alice)?.get(aliceDevice) shouldBe deviceKeys
     }
 
     @Test
-    fun `getDeviceKeys » identity key is not present » fetch and return identity key when found`() =
-        runTest {
-            val deviceKeys =
-                SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
+    fun `getDeviceKeys » identity key is not present » fetch and return identity key when found`() = runTest {
+        val deviceKeys =
+            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
 
-            val result = async { cut.getDeviceKeys(alice) }
-            keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-            tm.writeTransaction {
-                keyStore.updateDeviceKeys(alice) {
-                    mapOf(
-                        aliceDevice to StoredDeviceKeys(
-                            deviceKeys,
-                            KeySignatureTrustLevel.Valid(true)
-                        )
-                    )
-                }
-                keyStore.updateOutdatedKeys { setOf() }
+        val result = async { cut.getDeviceKeys(alice) }
+        keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
+        tm.writeTransaction {
+            keyStore.updateDeviceKeys(alice) {
+                mapOf(aliceDevice to StoredDeviceKeys(deviceKeys, KeySignatureTrustLevel.Valid(true)))
             }
-            result.await()?.get(aliceDevice) shouldBe deviceKeys
+            keyStore.updateOutdatedKeys { setOf() }
         }
+        result.await()?.get(aliceDevice) shouldBe deviceKeys
+    }
 
     @Test
-    fun `getDeviceKeys » identity key is not present » return null when no identity key found`() =
-        runTest {
-            val result = async { cut.getDeviceKeys(alice) }
-            keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-            tm.writeTransaction {
-                keyStore.updateOutdatedKeys { setOf() }
-            }
-            result.await() shouldBe null
-        }
+    fun `getDeviceKeys » identity key is not present » return null when no identity key found`() = runTest {
+        val result = async { cut.getDeviceKeys(alice) }
+        keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
+        tm.writeTransaction { keyStore.updateOutdatedKeys { setOf() } }
+        result.await() shouldBe null
+    }
 }

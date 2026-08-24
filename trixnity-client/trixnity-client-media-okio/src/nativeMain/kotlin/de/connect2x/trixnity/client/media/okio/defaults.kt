@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client.media.okio
 
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import okio.FileSystem
-import kotlin.coroutines.CoroutineContext
 
 internal actual val defaultFileSystem: FileSystem = FileSystem.SYSTEM
 internal actual val ioContext: CoroutineContext = Dispatchers.IO

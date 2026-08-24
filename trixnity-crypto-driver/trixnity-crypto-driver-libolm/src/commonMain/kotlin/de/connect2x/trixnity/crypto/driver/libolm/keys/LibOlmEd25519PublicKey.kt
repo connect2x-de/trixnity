@@ -20,11 +20,7 @@ value class LibOlmEd25519PublicKey(private val inner: String) : Ed25519PublicKey
     override fun verify(message: String, signature: Ed25519Signature) {
         check(signature is LibOlmEd25519Signature)
 
-        rethrow {
-            freeAfter(OlmUtility.create()) { utility ->
-                utility.verifyEd25519(inner, message, signature.inner)
-            }
-        }
+        rethrow { freeAfter(OlmUtility.create()) { utility -> utility.verifyEd25519(inner, message, signature.inner) } }
     }
 
     override fun close() {}

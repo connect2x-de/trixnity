@@ -10,6 +10,9 @@ import de.connect2x.trixnity.test.utils.scheduleSetup
 import de.connect2x.trixnity.test.utils.testClock
 import de.connect2x.trixnity.utils.ReadTransaction
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,17 +20,11 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 
 class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
 
-    data class Entry(
-        val key: String,
-        val value: String,
-    )
+    data class Entry(val key: String, val value: String)
 
     private class TestInMemoryFullRepository() : InMemoryFullRepository<String, Entry>() {
         val continueGetAll = MutableStateFlow(true)
@@ -42,19 +39,19 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
         override fun serializeKey(key: String): String = key
     }
 
-    private val repository = TestInMemoryFullRepository()
-        .also {
-            scheduleSetup { tm.writeTransaction { it.deleteAll() } }
-        }
-    private val cut = FullRepositoryObservableCache(
-        repository = repository,
-        tm = tm,
-        cacheScope = testScope.backgroundScope,
-        clock = testScope.testClock,
-        expireDuration = 1.minutes,
-    ) { it.key }.also {
-        scheduleSetup { it.clear() }
-    }
+    private val repository =
+        TestInMemoryFullRepository().also { scheduleSetup { tm.writeTransaction { it.deleteAll() } } }
+    private val cut =
+        FullRepositoryObservableCache(
+                repository = repository,
+                tm = tm,
+                cacheScope = testScope.backgroundScope,
+                clock = testScope.testClock,
+                expireDuration = 1.minutes,
+            ) {
+                it.key
+            }
+            .also { scheduleSetup { it.clear() } }
 
     @Test
     fun `readAll » read all values`() = runTest {
@@ -63,7 +60,7 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("key2", Entry("key2", "old2"))
         }
         cut.readAll().flatten().map { it.mapValues { it.value?.value } }.first() shouldBe
-                mapOf("key1" to "old1", "key2" to "old2")
+            mapOf("key1" to "old1", "key2" to "old2")
     }
 
     @Test
@@ -74,9 +71,7 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
         }
         val all = cut.readAll().flatten().map { it.keys }.stateIn(backgroundScope)
         all.value shouldBe setOf("key1", "key2")
-        tm.writeTransaction {
-            cut.update("key1") { null }
-        }
+        tm.writeTransaction { cut.update("key1") { null } }
         all.first { it == setOf("key2") }
     }
 
@@ -115,10 +110,6 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
         }
 
         repository.continueGetAll.value = true
-        result.await() shouldBe setOf(
-            Entry("k1", "v1"),
-            Entry("k2", "v2"),
-            Entry("k3", "v3")
-        )
+        result.await() shouldBe setOf(Entry("k1", "v1"), Entry("k2", "v2"), Entry("k3", "v3"))
     }
 }

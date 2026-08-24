@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.crypto.core
 
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class AesHmacSha2Test : TrixnityBaseTest() {
     private val key = ByteArray(32) { (it + 1).toByte() }
@@ -32,11 +32,11 @@ class AesHmacSha2Test : TrixnityBaseTest() {
     fun encrypt() = runTest {
         val content = "this is really fancy content with more then 128 bit block size".encodeToByteArray()
         encryptAesHmacSha2(content, key, "KEY", initialisationVector) shouldBe
-                AesHmacSha2EncryptedData(
-                    iv = "AQIDBAUGBwgAAAAAAAAAAA",
-                    ciphertext = "vLdCiyNTr8HhSFeOhQJsp6eS/CwbZLtfzcknG3I721SFmwLzUIrlmyhf9hzfgzCGw2cITIk6RyA3TmF6elU",
-                    mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I"
-                )
+            AesHmacSha2EncryptedData(
+                iv = "AQIDBAUGBwgAAAAAAAAAAA",
+                ciphertext = "vLdCiyNTr8HhSFeOhQJsp6eS/CwbZLtfzcknG3I721SFmwLzUIrlmyhf9hzfgzCGw2cITIk6RyA3TmF6elU",
+                mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I",
+            )
     }
 
     @Test
@@ -46,8 +46,10 @@ class AesHmacSha2Test : TrixnityBaseTest() {
             AesHmacSha2EncryptedData(
                 iv = "AQIDBAUGBwgAAAAAAAAAAA",
                 ciphertext = "vLdCiyNTr8HhSFeOhQJsp6eS/CwbZLtfzcknG3I721SFmwLzUIrlmyhf9hzfgzCGw2cITIk6RyA3TmF6elU",
-                mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I"
-            ), key, "KEY"
+                mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I",
+            ),
+            key,
+            "KEY",
         ) shouldBe content
     }
 
@@ -58,8 +60,10 @@ class AesHmacSha2Test : TrixnityBaseTest() {
             AesHmacSha2EncryptedData(
                 iv = "AQIDBAUGBwgAAAAAAAAAAA==",
                 ciphertext = "vLdCiyNTr8HhSFeOhQJsp6eS/CwbZLtfzcknG3I721SFmwLzUIrlmyhf9hzfgzCGw2cITIk6RyA3TmF6elU=",
-                mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I="
-            ), key, "KEY"
+                mac = "2Q8Bt/Y8jABla2lTi0G3j3inwxkUWX85NNdkkKxwK0I=",
+            ),
+            key,
+            "KEY",
         ) shouldBe content
     }
 

@@ -36,7 +36,7 @@ private external fun vodozemac_sas_sas_public_key(sas: NativePointer): NativePoi
 @ExternalSymbolName("vodozemac_sas_sas_diffie_hellman")
 private external fun vodozemac_sas_sas_diffie_hellman(
     sas: NativePointer,
-    their_public_key: NativePointer
+    their_public_key: NativePointer,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_sas_sas_free")

@@ -31,10 +31,8 @@ internal object PkDecryptionBindings {
         ciphertext_size: Int,
         mac: InteropPointer,
         mac_size: Int,
-        ephemeral_key: NativePointer
-    ) =
-        vodozemac_pk_decryption_decrypt(
-            result, pk, ciphertext, ciphertext_size, mac, mac_size, ephemeral_key)
+        ephemeral_key: NativePointer,
+    ) = vodozemac_pk_decryption_decrypt(result, pk, ciphertext, ciphertext_size, mac, mac_size, ephemeral_key)
 
     fun fromLibolmPickle(
         result: InteropPointer,
@@ -42,9 +40,7 @@ internal object PkDecryptionBindings {
         pickleSize: Int,
         pickleKey: InteropPointer,
         pickleKeySize: Int,
-    ) =
-        vodozemac_pk_decryption_from_libolm_pickle(
-            result, pickle, pickleSize, pickleKey, pickleKeySize)
+    ) = vodozemac_pk_decryption_from_libolm_pickle(result, pickle, pickleSize, pickleKey, pickleKeySize)
 }
 
 @ModuleImport("vodozemac", "vodozemac_pk_decryption_new")
@@ -72,7 +68,7 @@ private external fun vodozemac_pk_decryption_decrypt(
     ciphertext_size: Int,
     mac: InteropPointer,
     mac_size: Int,
-    ephemeral_key: NativePointer
+    ephemeral_key: NativePointer,
 )
 
 @ModuleImport("vodozemac", "vodozemac_pk_decryption_free")

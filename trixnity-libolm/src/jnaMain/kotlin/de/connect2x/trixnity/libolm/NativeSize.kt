@@ -22,10 +22,13 @@ import com.sun.jna.Native
 
 class NativeSize(value: ULong = 0u) : IntegerType(Native.SIZE_T_SIZE, value.toLong(), true) {
     constructor(value: Int) : this(value.toULong())
+
     constructor() : this(0)
 
     override fun toByte(): Byte = toLong().toByte()
+
     override fun toShort(): Short = toLong().toShort()
+
     fun toULong(): ULong = toLong().toULong()
 
     companion object {

@@ -11,7 +11,9 @@ private val eventContentSerializerMappingsDefaultEphemeralDataUnit = EventConten
     ephemeralDataUnitOf<DirectToDeviceDataUnitContent>("m.direct_to_device")
 }
 
-val EventContentSerializerMappings.Companion.defaultEphemeralDataUnit get() = eventContentSerializerMappingsDefaultEphemeralDataUnit
+val EventContentSerializerMappings.Companion.defaultEphemeralDataUnit
+    get() = eventContentSerializerMappingsDefaultEphemeralDataUnit
 
-fun EventContentSerializerMappings.Companion.defaultEphemeralDataUnit(customMappings: EventContentSerializerMappings): EventContentSerializerMappings =
-    EventContentSerializerMappings.defaultDataUnit + customMappings
+fun EventContentSerializerMappings.Companion.defaultEphemeralDataUnit(
+    customMappings: EventContentSerializerMappings
+): EventContentSerializerMappings = EventContentSerializerMappings.defaultDataUnit + customMappings

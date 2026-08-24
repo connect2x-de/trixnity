@@ -13,6 +13,7 @@ import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -21,7 +22,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import web.idb.IDBDatabase
 import web.idb.IDBKeyRange
-import kotlin.time.Instant
 
 @Serializable
 @MSC4354
@@ -35,10 +35,14 @@ internal class IndexedDBStickyEvent(
 )
 
 @OptIn(MSC4354::class)
-internal class IndexedDBStickyEventRepository(
-    json: Json,
-) : StickyEventRepository,
-    IndexedDBMapRepository<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey, StoredStickyEvent<StickyEventContent>, IndexedDBStickyEvent>(
+internal class IndexedDBStickyEventRepository(json: Json) :
+    StickyEventRepository,
+    IndexedDBMapRepository<
+        StickyEventRepositoryFirstKey,
+        StickyEventRepositorySecondKey,
+        StoredStickyEvent<StickyEventContent>,
+        IndexedDBStickyEvent,
+    >(
         objectStoreName = objectStoreName,
         firstKeyIndexName = "roomId|type",
         firstKeySerializer = { arrayOf(it.roomId.full, it.type) },
@@ -51,7 +55,7 @@ internal class IndexedDBStickyEventRepository(
                 sender = k2.sender,
                 stickyKey = dbStickyKey(k2.stickyKey),
                 endTimeMs = v.endTime.toEpochMilliseconds(),
-                value = v
+                value = v,
             )
         },
         mapFromRepresentation = { it.value },
@@ -60,6 +64,7 @@ internal class IndexedDBStickyEventRepository(
     ) {
     companion object {
         const val objectStoreName = "sticky_event"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 10)
                 createIndexedDBTwoDimensionsStoreRepository(
@@ -70,64 +75,58 @@ internal class IndexedDBStickyEventRepository(
                     firstKeyIndexKeyPath = KeyPath.Multiple("roomId", "type"),
                 ) { store ->
                     store.createIndex("roomId", KeyPath.Single("roomId"), unique = false)
-                    store.createIndex(
-                        "endTimeMs",
-                        KeyPath.Single("endTimeMs"),
-                        unique = false
-                    )
+                    store.createIndex("endTimeMs", KeyPath.Single("endTimeMs"), unique = false)
                     store.createIndex(
                         "roomId|eventId",
                         KeyPath.Multiple("roomId", "value.event.event_id"),
-                        unique = false
+                        unique = false,
                     )
                 }
         }
 
         private const val STICKY_KEY_NULL = "NULL"
         private const val STICKY_KEY_NON_NULL_PREFIX = "V-"
+
         private fun dbStickyKey(stickyKey: String?): String =
             stickyKey?.let { STICKY_KEY_NON_NULL_PREFIX + it } ?: STICKY_KEY_NULL
 
         private fun originalStickyKey(stickyKey: String): String? =
-            if (stickyKey == STICKY_KEY_NULL) null
-            else stickyKey.removePrefix(STICKY_KEY_NON_NULL_PREFIX)
+            if (stickyKey == STICKY_KEY_NULL) null else stickyKey.removePrefix(STICKY_KEY_NON_NULL_PREFIX)
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
-        withRead { store ->
-            store.index("endTimeMs")
-                .openCursor(IDBKeyRange.upperBound(before.toEpochMilliseconds().toDouble().toJsNumber(), true))
-                .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
-                .map {
-                    StickyEventRepositoryFirstKey(RoomId(it.roomId), it.type) to
-                            StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
-                }
-                .toSet()
-        }
+    override suspend fun getByEndTimeBefore(
+        before: Instant
+    ): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> = withRead { store ->
+        store
+            .index("endTimeMs")
+            .openCursor(IDBKeyRange.upperBound(before.toEpochMilliseconds().toDouble().toJsNumber(), true))
+            .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
+            .map {
+                StickyEventRepositoryFirstKey(RoomId(it.roomId), it.type) to
+                    StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
+            }
+            .toSet()
+    }
 
     context(transaction: ReadTransaction)
     override suspend fun getByEventId(
         roomId: RoomId,
-        eventId: EventId
-    ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? =
-        withRead { store ->
-            store.index("roomId|eventId")
-                .openCursor(keyOf(arrayOf(roomId.full, eventId.full)))
-                .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
-                .map {
-                    StickyEventRepositoryFirstKey(RoomId(it.roomId), it.type) to
-                            StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
-                }
-                .firstOrNull()
-        }
+        eventId: EventId,
+    ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? = withRead { store ->
+        store
+            .index("roomId|eventId")
+            .openCursor(keyOf(arrayOf(roomId.full, eventId.full)))
+            .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
+            .map {
+                StickyEventRepositoryFirstKey(RoomId(it.roomId), it.type) to
+                    StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
+            }
+            .firstOrNull()
+    }
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
-
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

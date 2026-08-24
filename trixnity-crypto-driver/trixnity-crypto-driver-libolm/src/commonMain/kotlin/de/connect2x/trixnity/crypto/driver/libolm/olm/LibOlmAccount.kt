@@ -17,9 +17,7 @@ import de.connect2x.trixnity.libolm.OlmSession
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class LibOlmAccount(
-    private val inner: OlmAccount,
-) : Account {
+value class LibOlmAccount(private val inner: OlmAccount) : Account {
     override val ed25519Key: LibOlmEd25519PublicKey
         get() = LibOlmEd25519PublicKey(inner.identityKeys.ed25519)
 
@@ -27,46 +25,34 @@ value class LibOlmAccount(
         get() = LibOlmCurve25519PublicKey(inner.identityKeys.curve25519)
 
     override val maxNumberOfOneTimeKeys: Int
-        get() = inner.maxNumberOfOneTimeKeys.toInt() / 2 // adapted to vodozemac behavior (recommendation how many keys to upload)
+        get() =
+            inner.maxNumberOfOneTimeKeys.toInt() /
+                2 // adapted to vodozemac behavior (recommendation how many keys to upload)
 
     override val storedOneTimeKeyCount: Int
         get() = inner.oneTimeKeys.curve25519.size
 
     override val oneTimeKeys: Map<String, LibOlmCurve25519PublicKey>
-        get() = inner.oneTimeKeys.curve25519.mapValues {
-            LibOlmCurve25519PublicKey(
-                it.value
-            )
-        }
+        get() = inner.oneTimeKeys.curve25519.mapValues { LibOlmCurve25519PublicKey(it.value) }
 
     override val fallbackKey: Pair<String, LibOlmCurve25519PublicKey>?
-        get() = with(inner.unpublishedFallbackKey.curve25519) {
-            when (size) {
-                0 -> null
-                1 -> entries.first().let {
-                    it.key to LibOlmCurve25519PublicKey(
-                        it.value
-                    )
-                }
+        get() =
+            with(inner.unpublishedFallbackKey.curve25519) {
+                when (size) {
+                    0 -> null
+                    1 -> entries.first().let { it.key to LibOlmCurve25519PublicKey(it.value) }
 
-                else -> error("internal error: too many fallback keys: $this")
+                    else -> error("internal error: too many fallback keys: $this")
+                }
             }
-        }
 
     override fun sign(message: String): LibOlmEd25519Signature = LibOlmEd25519Signature(inner.sign(message))
 
-    override fun createOutboundSession(
-        identityKey: Curve25519PublicKey,
-        oneTimeKey: Curve25519PublicKey,
-    ): Session {
+    override fun createOutboundSession(identityKey: Curve25519PublicKey, oneTimeKey: Curve25519PublicKey): Session {
         require(identityKey is LibOlmCurve25519PublicKey)
         require(oneTimeKey is LibOlmCurve25519PublicKey)
 
-        val session = OlmSession.createOutbound(
-            inner,
-            identityKey.inner,
-            oneTimeKey.inner,
-        )
+        val session = OlmSession.createOutbound(inner, identityKey.inner, oneTimeKey.inner)
 
         return LibOlmSession(session)
     }
@@ -78,27 +64,18 @@ value class LibOlmAccount(
         require(preKeyMessage is LibOlmPreKeyMessage)
         require(theirIdentityKey == null || theirIdentityKey is LibOlmCurve25519PublicKey)
 
-        val session = when (theirIdentityKey) {
-            null -> OlmSession.createInbound(
-                inner, preKeyMessage.inner
-            )
+        val session =
+            when (theirIdentityKey) {
+                null -> OlmSession.createInbound(inner, preKeyMessage.inner)
 
-            else -> OlmSession.createInboundFrom(
-                inner,
-                theirIdentityKey.inner,
-                preKeyMessage.inner,
-            )
-        }
+                else -> OlmSession.createInboundFrom(inner, theirIdentityKey.inner, preKeyMessage.inner)
+            }
 
         inner.removeOneTimeKeys(session)
 
-        val plaintext = session.decrypt(
-            OlmMessage(preKeyMessage.inner, OlmMessage.OlmMessageType.INITIAL_PRE_KEY)
-        )
+        val plaintext = session.decrypt(OlmMessage(preKeyMessage.inner, OlmMessage.OlmMessageType.INITIAL_PRE_KEY))
 
-        InboundSessionCreationResult(
-            plaintext = plaintext, session = LibOlmSession(session)
-        )
+        InboundSessionCreationResult(plaintext = plaintext, session = LibOlmSession(session))
     }
 
     override fun generateOneTimeKeys(count: Int): OneTimeKeyGenerationResult {
@@ -109,10 +86,7 @@ value class LibOlmAccount(
         val created = new.entries - previous.entries
         val removed = previous.entries - new.entries
 
-        return OneTimeKeyGenerationResult(
-            created = created.map { it.value },
-            removed = removed.map { it.value },
-        )
+        return OneTimeKeyGenerationResult(created = created.map { it.value }, removed = removed.map { it.value })
     }
 
     override fun generateFallbackKey(): LibOlmCurve25519PublicKey? {
@@ -140,11 +114,8 @@ value class LibOlmAccount(
 
     override fun close() = inner.free()
 
-
-    data class InboundSessionCreationResult(
-        override val plaintext: String,
-        override val session: LibOlmSession,
-    ) : Account.InboundSessionCreationResult
+    data class InboundSessionCreationResult(override val plaintext: String, override val session: LibOlmSession) :
+        Account.InboundSessionCreationResult
 
     data class OneTimeKeyGenerationResult(
         override val created: List<LibOlmCurve25519PublicKey>,

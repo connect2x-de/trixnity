@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.core.model.events.m.room
 
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.StateEventContent
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -7,20 +9,13 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.StateEventContent
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#mroomjoin_rules">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#mroomjoin_rules">matrix spec</a> */
 @Serializable
 data class JoinRulesEventContent(
-    @SerialName("join_rule")
-    val joinRule: JoinRule,
-    @SerialName("allow")
-    val allow: Set<AllowCondition>? = null,
-    @SerialName("external_url")
-    override val externalUrl: String? = null,
+    @SerialName("join_rule") val joinRule: JoinRule,
+    @SerialName("allow") val allow: Set<AllowCondition>? = null,
+    @SerialName("external_url") override val externalUrl: String? = null,
 ) : StateEventContent {
     @Serializable(with = JoinRule.Serializer::class)
     sealed interface JoinRule {
@@ -75,10 +70,8 @@ data class JoinRulesEventContent(
 
     @Serializable
     data class AllowCondition(
-        @SerialName("room_id")
-        val roomId: RoomId,
-        @SerialName("type")
-        val type: AllowConditionType
+        @SerialName("room_id") val roomId: RoomId,
+        @SerialName("type") val type: AllowConditionType,
     ) {
         @Serializable(with = AllowConditionType.Serializer::class)
         sealed interface AllowConditionType {

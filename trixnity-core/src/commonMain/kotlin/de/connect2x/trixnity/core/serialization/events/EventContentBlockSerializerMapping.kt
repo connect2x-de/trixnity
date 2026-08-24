@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import kotlinx.serialization.KSerializer
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import kotlin.reflect.KClass
+import kotlinx.serialization.KSerializer
 
 interface EventContentBlockSerializerMapping<C : EventContentBlock> {
     val type: EventContentBlock.Type<C>

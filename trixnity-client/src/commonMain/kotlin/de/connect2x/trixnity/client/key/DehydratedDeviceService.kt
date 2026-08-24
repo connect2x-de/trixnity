@@ -55,6 +55,8 @@ import de.connect2x.trixnity.crypto.sign.sign
 import de.connect2x.trixnity.utils.decodeBase64
 import de.connect2x.trixnity.utils.retry
 import io.ktor.utils.io.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
@@ -74,8 +76,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private val log = Logger("de.connect2x.trixnity.client.key.DehydratedDeviceService")
 
@@ -95,20 +95,17 @@ class DehydratedDeviceService(
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
         if (config.experimentalFeatures.enableMSC3814) {
-            scope.launch {
-                handleChanges()
-            }
+            scope.launch { handleChanges() }
         }
     }
 
     private suspend fun handleChanges() { // TODO unit test
-        keyStore.getSecretsFlow()
+        keyStore
+            .getSecretsFlow()
             .map { it[SecretType.M_DEHYDRATED_DEVICE] }
             .distinctUntilChanged()
-            .scan(listOf<StoredSecret?>()) { acc, new ->
-                if (acc.isEmpty()) listOf(new)
-                else listOf(new) + acc[0]
-            }.filter { it.isNotEmpty() }
+            .scan(listOf<StoredSecret?>()) { acc, new -> if (acc.isEmpty()) listOf(new) else listOf(new) + acc[0] }
+            .filter { it.isNotEmpty() }
             .collect { encodedDehydratedDeviceSecrets ->
                 try {
                     val currentEncodedDehydratedDeviceSecret = encodedDehydratedDeviceSecrets[0]
@@ -123,33 +120,38 @@ class DehydratedDeviceService(
                             null
                         }
                     if (dehydratedDeviceSecret == null) {
-                        log.warn { "skip device dehydration, because dehydrated device private key could not be decoded" }
+                        log.warn {
+                            "skip device dehydration, because dehydrated device private key could not be decoded"
+                        }
                         return@collect
                     }
                     val dehydratedTrustLevel =
                         combine(
-                            keyStore.getDeviceKeys(userInfo.userId)
-                                .filterNotNull()
-                                .map { deviceKeys ->
-                                    deviceKeys[userInfo.deviceId]?.trustLevel to
+                                keyStore
+                                    .getDeviceKeys(userInfo.userId)
+                                    .filterNotNull()
+                                    .map { deviceKeys ->
+                                        deviceKeys[userInfo.deviceId]?.trustLevel to
                                             deviceKeys.values.find { it.value.signed.dehydrated == true }?.trustLevel
+                                    }
+                                    .distinctUntilChanged(),
+                                keyService.bootstrapRunning,
+                            ) { trustLevels, bootstrapRunning ->
+                                Pair(trustLevels, bootstrapRunning)
+                            }
+                            .transform { (trustLevels, bootstrapRunning) ->
+                                if (bootstrapRunning) {
+                                    log.debug { "skip device dehydration, because bootstrap still running" }
+                                    return@transform
                                 }
-                                .distinctUntilChanged(),
-                            keyService.bootstrapRunning,
-                        ) { trustLevels, bootstrapRunning ->
-                            Pair(trustLevels, bootstrapRunning)
-                        }.transform { (trustLevels, bootstrapRunning) ->
-                            if (bootstrapRunning) {
-                                log.debug { "skip device dehydration, because bootstrap still running" }
-                                return@transform
+                                val ownTrustLevel = trustLevels.first
+                                if (ownTrustLevel !is CrossSigned || ownTrustLevel.isVerified.not()) {
+                                    log.debug { "skip device dehydration, because own device key not signed (yet)" }
+                                    return@transform
+                                }
+                                emit(trustLevels.second)
                             }
-                            val ownTrustLevel = trustLevels.first
-                            if (ownTrustLevel !is CrossSigned || ownTrustLevel.isVerified.not()) {
-                                log.debug { "skip device dehydration, because own device key not signed (yet)" }
-                                return@transform
-                            }
-                            emit(trustLevels.second)
-                        }.first()
+                            .first()
 
                     when {
                         dehydratedTrustLevel == null -> {
@@ -186,15 +188,18 @@ class DehydratedDeviceService(
     internal suspend fun tryRehydrateDevice(dehydratedDeviceKey: ByteArray) {
         val currentDehydratedDevice =
             retry(
-                onError = { error, delay -> log.warn(error) { "failed loading dehydrated device, try again in $delay" } },
+                onError = { error, delay ->
+                    log.warn(error) { "failed loading dehydrated device, try again in $delay" }
+                }
             ) {
-                api.device.getDehydratedDevice()
+                api.device
+                    .getDehydratedDevice()
                     .fold(
                         onSuccess = { it },
                         onFailure = {
                             if (it is MatrixServerException && it.errorResponse is ErrorResponse.NotFound) null
                             else throw it
-                        }
+                        },
                     )
             }
         if (currentDehydratedDevice == null) {
@@ -205,73 +210,74 @@ class DehydratedDeviceService(
 
         when (val deviceData = currentDehydratedDevice.deviceData) {
             is DehydratedDeviceData.DehydrationV2Compatibility -> {
-                val olmAccountPickle = try {
-                    decryptAesHmacSha2(
-                        AesHmacSha2EncryptedData(
-                            iv = deviceData.iv,
-                            ciphertext = deviceData.encryptedDevicePickle,
-                            mac = deviceData.mac
-                        ),
-                        dehydratedDeviceKey, deviceData.algorithm
-                    ).decodeToString()
-                } catch (e: Exception) {
-                    log.warn(e) { "could not decrypt rehydrated device account pickle" }
-                    return
-                }
-                val rehydratedUserInfo = try {
-                    driver.olm.account.fromPickle(olmAccountPickle).use { account ->
-                        useAll(
-                            { account.ed25519Key },
-                            { account.curve25519Key },
-                        ) { signingKey, identityKey ->
-                            val deviceId = identityKey.base64
-
-                            UserInfo(
-                                userInfo.userId,
-                                deviceId,
-                                Key.of(deviceId, signingKey),
-                                Key.of(deviceId, identityKey)
+                val olmAccountPickle =
+                    try {
+                        decryptAesHmacSha2(
+                                AesHmacSha2EncryptedData(
+                                    iv = deviceData.iv,
+                                    ciphertext = deviceData.encryptedDevicePickle,
+                                    mac = deviceData.mac,
+                                ),
+                                dehydratedDeviceKey,
+                                deviceData.algorithm,
                             )
-                        }
+                            .decodeToString()
+                    } catch (e: Exception) {
+                        log.warn(e) { "could not decrypt rehydrated device account pickle" }
+                        return
                     }
-                } catch (e: Exception) {
-                    log.warn(e) { "could not load rehydrated device account" }
-                    return
-                }
+                val rehydratedUserInfo =
+                    try {
+                        driver.olm.account.fromPickle(olmAccountPickle).use { account ->
+                            useAll({ account.ed25519Key }, { account.curve25519Key }) { signingKey, identityKey ->
+                                val deviceId = identityKey.base64
+
+                                UserInfo(
+                                    userInfo.userId,
+                                    deviceId,
+                                    Key.of(deviceId, signingKey),
+                                    Key.of(deviceId, identityKey),
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        log.warn(e) { "could not load rehydrated device account" }
+                        return
+                    }
                 tryDehydrateDevice(olmAccountPickle, rehydratedUserInfo, currentDehydratedDevice.deviceId)
             }
 
             is DehydratedDeviceData.DehydrationV2 -> {
-                val pickleKey = try {
-                    checkNotNull(driver.key.pickleKey(dehydratedDeviceKey))
-                } catch (e: Exception) {
-                    log.warn(e) { "could not load pickle key for dehydrated device" }
-                    return
-                }
-                val olmAccount = try {
-                    driver.olm.account.fromDehydratedDevice(deviceData.devicePickle, deviceData.nonce, pickleKey)
-                } catch (e: Exception) {
-                    log.warn(e) { "could not load rehydrated device account" }
-                    return
-                }
-                val (rehydratedUserInfo, olmAccountPickle) = olmAccount.use { olmAccount ->
-                    val rehydratedUserInfo =
-                        useAll(
-                            { olmAccount.ed25519Key },
-                            { olmAccount.curve25519Key },
-                        ) { signingKey, identityKey ->
-                            val deviceId = identityKey.base64
+                val pickleKey =
+                    try {
+                        checkNotNull(driver.key.pickleKey(dehydratedDeviceKey))
+                    } catch (e: Exception) {
+                        log.warn(e) { "could not load pickle key for dehydrated device" }
+                        return
+                    }
+                val olmAccount =
+                    try {
+                        driver.olm.account.fromDehydratedDevice(deviceData.devicePickle, deviceData.nonce, pickleKey)
+                    } catch (e: Exception) {
+                        log.warn(e) { "could not load rehydrated device account" }
+                        return
+                    }
+                val (rehydratedUserInfo, olmAccountPickle) =
+                    olmAccount.use { olmAccount ->
+                        val rehydratedUserInfo =
+                            useAll({ olmAccount.ed25519Key }, { olmAccount.curve25519Key }) { signingKey, identityKey ->
+                                val deviceId = identityKey.base64
 
-                            UserInfo(
-                                userInfo.userId,
-                                deviceId,
-                                Key.of(deviceId, signingKey),
-                                Key.of(deviceId, identityKey)
-                            )
-                        }
-                    val olmAccountPickle = olmAccount.pickle()
-                    rehydratedUserInfo to olmAccountPickle
-                }
+                                UserInfo(
+                                    userInfo.userId,
+                                    deviceId,
+                                    Key.of(deviceId, signingKey),
+                                    Key.of(deviceId, identityKey),
+                                )
+                            }
+                        val olmAccountPickle = olmAccount.pickle()
+                        rehydratedUserInfo to olmAccountPickle
+                    }
                 tryDehydrateDevice(olmAccountPickle, rehydratedUserInfo, currentDehydratedDevice.deviceId)
             }
 
@@ -281,85 +287,88 @@ class DehydratedDeviceService(
         }
     }
 
-    private suspend fun tryDehydrateDevice(
-        olmAccountPickle: String,
-        rehydratedUserInfo: UserInfo,
-        deviceId: String
-    ) {
-        val dehydratedDeviceOlmStore = object : OlmStore by olmStore {
-            override suspend fun getOlmAccount(): String = olmAccountPickle
-            override suspend fun updateOlmAccount(updater: (String) -> String) {
-                updater(olmAccountPickle)
-            }
+    private suspend fun tryDehydrateDevice(olmAccountPickle: String, rehydratedUserInfo: UserInfo, deviceId: String) {
+        val dehydratedDeviceOlmStore =
+            object : OlmStore by olmStore {
+                override suspend fun getOlmAccount(): String = olmAccountPickle
 
-            private val temporaryOlmSessions = MutableStateFlow<Set<StoredOlmSession>?>(null)
-            override suspend fun updateOlmSessions(
-                identityKeyValue: KeyValue.Curve25519KeyValue,
-                updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?
-            ) {
-                temporaryOlmSessions.update {
-                    updater.invoke(it)
+                override suspend fun updateOlmAccount(updater: (String) -> String) {
+                    updater(olmAccountPickle)
+                }
+
+                private val temporaryOlmSessions = MutableStateFlow<Set<StoredOlmSession>?>(null)
+
+                override suspend fun updateOlmSessions(
+                    identityKeyValue: KeyValue.Curve25519KeyValue,
+                    updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?,
+                ) {
+                    temporaryOlmSessions.update { updater.invoke(it) }
                 }
             }
-        }
         val eventEmitter = object : ClientEventEmitterImpl<List<ClientEvent<*>>>() {}
-        // TODO at the end, we only use ::handleOlmEncryptedRoomKeyEventContent and ::handleOlmEvents, so maybe just extract it
-        val olmEventHandler = OlmEventHandlerImpl(
-            userInfo = rehydratedUserInfo,
-            eventEmitter = eventEmitter,
-            olmKeysChangeEmitter = object : OlmKeysChangeEmitter {
-                override fun subscribeOneTimeKeysCount(subscriber: suspend (OlmKeysChange) -> Unit): () -> Unit =
-                    { }
-            },
-            olmEncryptionService = OlmEncryptionServiceImpl(
+        // TODO at the end, we only use ::handleOlmEncryptedRoomKeyEventContent and ::handleOlmEvents, so maybe just
+        // extract it
+        val olmEventHandler =
+            OlmEventHandlerImpl(
                 userInfo = rehydratedUserInfo,
-                json = json,
-                store = dehydratedDeviceOlmStore,
-                requests = object : OlmEncryptionServiceRequestHandler {
-                    override suspend fun claimKeys(oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>): Result<ClaimKeys.Response> =
-                        Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
-                },
+                eventEmitter = eventEmitter,
+                olmKeysChangeEmitter =
+                    object : OlmKeysChangeEmitter {
+                        override fun subscribeOneTimeKeysCount(
+                            subscriber: suspend (OlmKeysChange) -> Unit
+                        ): () -> Unit = {}
+                    },
+                olmEncryptionService =
+                    OlmEncryptionServiceImpl(
+                        userInfo = rehydratedUserInfo,
+                        json = json,
+                        store = dehydratedDeviceOlmStore,
+                        requests =
+                            object : OlmEncryptionServiceRequestHandler {
+                                override suspend fun claimKeys(
+                                    oneTimeKeys: Map<UserId, Map<String, KeyAlgorithm>>
+                                ): Result<ClaimKeys.Response> =
+                                    Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
+                            },
+                        signService = signService,
+                        clock = clock,
+                        driver = driver,
+                    ),
                 signService = signService,
+                requestHandler =
+                    object : OlmEventHandlerRequestHandler {
+                        override suspend fun setOneTimeKeys(oneTimeKeys: Keys?, fallbackKeys: Keys?): Result<Unit> =
+                            Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
+
+                        override suspend fun sendToDevice(
+                            events: Map<UserId, Map<String, ToDeviceEventContent>>,
+                            transactionId: String,
+                        ): Result<Unit> =
+                            Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
+                    },
+                store = dehydratedDeviceOlmStore,
                 clock = clock,
                 driver = driver,
-            ),
-            signService = signService,
-            requestHandler = object : OlmEventHandlerRequestHandler {
-                override suspend fun setOneTimeKeys(oneTimeKeys: Keys?, fallbackKeys: Keys?): Result<Unit> =
-                    Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
-
-                override suspend fun sendToDevice(
-                    events: Map<UserId, Map<String, ToDeviceEventContent>>,
-                    transactionId: String
-                ): Result<Unit> =
-                    Result.failure(IllegalStateException("unsupported operation for dehydrated device"))
-            },
-            store = dehydratedDeviceOlmStore,
-            clock = clock,
-            driver = driver,
-        )
+            )
         coroutineScope {
             olmEventHandler.startInCoroutineScope(this)
             var nextBatch: String? = null
             while (isActive) {
                 val eventBatch =
                     retry(
-                        onError = { error, delay -> log.warn(error) { "failed loading rehydrated device events, try again in $delay" } },
+                        onError = { error, delay ->
+                            log.warn(error) { "failed loading rehydrated device events, try again in $delay" }
+                        }
                     ) {
-                        api.device.getDehydratedDeviceEvents(
-                            deviceId = deviceId,
-                            nextBatch = nextBatch
-                        ).fold(
-                            onSuccess = { it },
-                            onFailure = {
-                                if (it is MatrixServerException) null
-                                else throw it
-                            }
-                        )
+                        api.device
+                            .getDehydratedDeviceEvents(deviceId = deviceId, nextBatch = nextBatch)
+                            .fold(
+                                onSuccess = { it },
+                                onFailure = { if (it is MatrixServerException) null else throw it },
+                            )
                     } ?: break
                 nextBatch = eventBatch.nextBatch
-                if (eventBatch.events.isEmpty()) break
-                else eventEmitter.emit(eventBatch.events)
+                if (eventBatch.events.isEmpty()) break else eventEmitter.emit(eventBatch.events)
             }
             currentCoroutineContext().cancelChildren()
         }
@@ -376,21 +385,19 @@ class DehydratedDeviceService(
 
                 log.debug { "create new dehydrated device $deviceId" }
 
-                val dehydratedUserInfo = UserInfo(
-                    userId,
-                    deviceId,
-                    signingKey,
-                    identityKey,
-                )
-                val dehydratedDeviceSignService = SignServiceImpl(
-                    userInfo = dehydratedUserInfo,
-                    json = json,
-                    store = object : SignServiceStore {
-                        override suspend fun getOlmAccount(): String = olmAccount.pickle()
-                        override suspend fun getOlmPickleKey(): String? = null
-                    },
-                    driver = driver,
-                )
+                val dehydratedUserInfo = UserInfo(userId, deviceId, signingKey, identityKey)
+                val dehydratedDeviceSignService =
+                    SignServiceImpl(
+                        userInfo = dehydratedUserInfo,
+                        json = json,
+                        store =
+                            object : SignServiceStore {
+                                override suspend fun getOlmAccount(): String = olmAccount.pickle()
+
+                                override suspend fun getOlmPickleKey(): String? = null
+                            },
+                        driver = driver,
+                    )
                 olmAccount.generateOneTimeKeys(olmAccount.maxNumberOfOneTimeKeys)
                 val oneTimeKeys = olmAccount.oneTimeKeys.toCurve25519Keys(dehydratedDeviceSignService)
                 olmAccount.generateFallbackKey()
@@ -399,83 +406,91 @@ class DehydratedDeviceService(
                 olmAccount.markKeysAsPublished()
 
                 log.debug { "wait for M_CROSS_SIGNING_SELF_SIGNING private key" }
-                val selfSigningPrivateKey = withTimeoutOrNull(30.seconds) {
-                    keyStore.getSecretsFlow().map { it[M_CROSS_SIGNING_SELF_SIGNING] }.filterNotNull().first()
-                }?.decryptedPrivateKey
+                val selfSigningPrivateKey =
+                    withTimeoutOrNull(30.seconds) {
+                            keyStore.getSecretsFlow().map { it[M_CROSS_SIGNING_SELF_SIGNING] }.filterNotNull().first()
+                        }
+                        ?.decryptedPrivateKey
                 if (selfSigningPrivateKey == null) {
                     log.warn { "could not find private key of $M_CROSS_SIGNING_SELF_SIGNING" }
                     return
                 }
                 val selfSigningPublicKey =
-                    driver.key.ed25519SecretKey(selfSigningPrivateKey).use(Ed25519SecretKey::publicKey)
+                    driver.key
+                        .ed25519SecretKey(selfSigningPrivateKey)
+                        .use(Ed25519SecretKey::publicKey)
                         .use(Ed25519PublicKey::base64)
 
-                val deviceKeys = DeviceKeys(
-                    userId = userId,
-                    deviceId = deviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = keysOf(dehydratedUserInfo.signingPublicKey, dehydratedUserInfo.identityPublicKey),
-                    dehydrated = true,
-                ).let {
-                    dehydratedDeviceSignService.sign(it, DeviceKey) + dehydratedDeviceSignService.sign(
-                        it, KeyPair(selfSigningPrivateKey, selfSigningPublicKey)
-                    ).signatures
-                }
+                val deviceKeys =
+                    DeviceKeys(
+                            userId = userId,
+                            deviceId = deviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = keysOf(dehydratedUserInfo.signingPublicKey, dehydratedUserInfo.identityPublicKey),
+                            dehydrated = true,
+                        )
+                        .let {
+                            dehydratedDeviceSignService.sign(it, DeviceKey) +
+                                dehydratedDeviceSignService
+                                    .sign(it, KeyPair(selfSigningPrivateKey, selfSigningPublicKey))
+                                    .signatures
+                        }
 
                 log.debug { "upload device" }
                 retry(
-                    onError = { error, delay -> log.warn(error) { "failed upload dehydrated device, try again in $delay" } },
+                    onError = { error, delay ->
+                        log.warn(error) { "failed upload dehydrated device, try again in $delay" }
+                    }
                 ) {
-                    api.device.setDehydratedDevice(
-                        deviceId = deviceId,
-                        deviceData =
-                            if (driver.olm.account.dehydratedDevicesSupported) {
-                                val pickleKey = try {
-                                    checkNotNull(driver.key.pickleKey.invoke(dehydratedDeviceKey))
-                                } catch (e: Exception) {
-                                    log.warn(e) { "could not load pickle key for dehydrated device" }
-                                    return@retry null
-                                }
-                                val dehydratedDevice = olmAccount.dehydrate(pickleKey)
-                                DehydratedDeviceData.DehydrationV2(
-                                    devicePickle = dehydratedDevice.pickle,
-                                    nonce = dehydratedDevice.nonce,
-                                )
-                            } else {
-                                with(
-                                    encryptAesHmacSha2(
-                                        content = olmAccount.pickle().encodeToByteArray(),
-                                        key = dehydratedDeviceKey,
-                                        name = DehydratedDeviceData.DehydrationV2Compatibility.ALGORITHM
+                    api.device
+                        .setDehydratedDevice(
+                            deviceId = deviceId,
+                            deviceData =
+                                if (driver.olm.account.dehydratedDevicesSupported) {
+                                    val pickleKey =
+                                        try {
+                                            checkNotNull(driver.key.pickleKey.invoke(dehydratedDeviceKey))
+                                        } catch (e: Exception) {
+                                            log.warn(e) { "could not load pickle key for dehydrated device" }
+                                            return@retry null
+                                        }
+                                    val dehydratedDevice = olmAccount.dehydrate(pickleKey)
+                                    DehydratedDeviceData.DehydrationV2(
+                                        devicePickle = dehydratedDevice.pickle,
+                                        nonce = dehydratedDevice.nonce,
                                     )
-                                ) {
-                                    DehydratedDeviceData.DehydrationV2Compatibility(
-                                        iv = iv,
-                                        encryptedDevicePickle = ciphertext,
-                                        mac = mac,
-                                    )
-                                }
-                            },
-                        deviceKeys = deviceKeys,
-                        oneTimeKeys = oneTimeKeys,
-                        fallbackKeys = fallbackKey,
-                        initialDeviceDisplayName = "dehydrated device",
-                    ).fold(
-                        onSuccess = { it },
-                        onFailure = {
-                            if (it is MatrixServerException) null
-                            else throw it
-                        }
-                    )
+                                } else {
+                                    with(
+                                        encryptAesHmacSha2(
+                                            content = olmAccount.pickle().encodeToByteArray(),
+                                            key = dehydratedDeviceKey,
+                                            name = DehydratedDeviceData.DehydrationV2Compatibility.ALGORITHM,
+                                        )
+                                    ) {
+                                        DehydratedDeviceData.DehydrationV2Compatibility(
+                                            iv = iv,
+                                            encryptedDevicePickle = ciphertext,
+                                            mac = mac,
+                                        )
+                                    }
+                                },
+                            deviceKeys = deviceKeys,
+                            oneTimeKeys = oneTimeKeys,
+                            fallbackKeys = fallbackKey,
+                            initialDeviceDisplayName = "dehydrated device",
+                        )
+                        .fold(onSuccess = { it }, onFailure = { if (it is MatrixServerException) null else throw it })
                 }
 
                 log.debug { "wait for dehydrated device keys to be marked as cross signed and verified" }
-                val verifiedResult = withTimeoutOrNull(30.seconds) {
-                    keyStore.getDeviceKey(userId, deviceId)
-                        .mapNotNull { it?.trustLevel }
-                        .first { it is CrossSigned && it.verified }
-                    Unit
-                }
+                val verifiedResult =
+                    withTimeoutOrNull(30.seconds) {
+                        keyStore
+                            .getDeviceKey(userId, deviceId)
+                            .mapNotNull { it?.trustLevel }
+                            .first { it is CrossSigned && it.verified }
+                        Unit
+                    }
                 if (verifiedResult == null) {
                     log.warn { "dehydrated device keys were not marked as cross signed and verified" }
                 } else {
@@ -489,12 +504,20 @@ class DehydratedDeviceService(
     }
 
     private suspend fun Map<String, Curve25519PublicKey>?.toCurve25519Keys(
-        signService: SignService, fallback: Boolean? = null
-    ) = this?.takeIf { it.isNotEmpty() }?.let {
-        Keys(it.map {
-            signService.signCurve25519Key(
-                keyId = it.key, keyValue = it.value.use(Curve25519PublicKey::base64), fallback = fallback
-            )
-        }.toSet())
-    }
+        signService: SignService,
+        fallback: Boolean? = null,
+    ) =
+        this?.takeIf { it.isNotEmpty() }
+            ?.let {
+                Keys(
+                    it.map {
+                            signService.signCurve25519Key(
+                                keyId = it.key,
+                                keyValue = it.value.use(Curve25519PublicKey::base64),
+                                fallback = fallback,
+                            )
+                        }
+                        .toSet()
+                )
+            }
 }

@@ -53,6 +53,9 @@ import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.utils.retry
 import io.ktor.http.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -78,9 +81,6 @@ import org.koin.core.Koin
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Duration
 
 private val log = Logger("de.connect2x.trixnity.client.MatrixClient")
 
@@ -95,9 +95,7 @@ interface MatrixClient : AutoCloseable {
 
     val di: Koin
 
-    /**
-     * Use this for further access to matrix client-server-API.
-     */
+    /** Use this for further access to matrix client-server-API. */
     val api: MatrixClientServerApiClient
     val profile: StateFlow<Profile?>
 
@@ -124,18 +122,14 @@ interface MatrixClient : AutoCloseable {
 
     suspend fun startSync(presence: Presence? = Presence.ONLINE)
 
-    /**
-     * Usually used for background sync.
-     */
+    /** Usually used for background sync. */
     suspend fun syncOnce(presence: Presence? = Presence.OFFLINE, timeout: Duration = Duration.ZERO): Result<Unit>
 
-    /**
-     * Usually used for background sync.
-     */
+    /** Usually used for background sync. */
     suspend fun <T> syncOnce(
         presence: Presence? = Presence.OFFLINE,
         timeout: Duration = Duration.ZERO,
-        runOnce: suspend (SyncEvents) -> T
+        runOnce: suspend (SyncEvents) -> T,
     ): Result<T>
 
     suspend fun stopSync()
@@ -143,17 +137,17 @@ interface MatrixClient : AutoCloseable {
     suspend fun cancelSync()
 
     /**
-     * Beforehand it should be checked, if the server has the capability to set the [profileField].
-     * Use [serverData] to get [Capability.ProfileFields] and check with [Capability.ProfileFields.isChangeAllowed].
-     * If [Capability.ProfileFields] is not preset, check for [Capability.SetDisplayName] or [Capability.SetAvatarUrl].
+     * Beforehand it should be checked, if the server has the capability to set the [profileField]. Use [serverData] to
+     * get [Capability.ProfileFields] and check with [Capability.ProfileFields.isChangeAllowed]. If
+     * [Capability.ProfileFields] is not preset, check for [Capability.SetDisplayName] or [Capability.SetAvatarUrl].
      * Otherwise, it is allowed.
      */
     suspend fun setProfileField(profileField: ProfileField): Result<Unit>
 
     /**
-     * Beforehand it should be checked, if the server has the capability to delete the [key].
-     * Use [serverData] to get [Capability.ProfileFields] and check with [Capability.ProfileFields.isChangeAllowed].
-     * If [Capability.ProfileFields] is not preset, check for [Capability.SetDisplayName] or [Capability.SetAvatarUrl].
+     * Beforehand it should be checked, if the server has the capability to delete the [key]. Use [serverData] to get
+     * [Capability.ProfileFields] and check with [Capability.ProfileFields.isChangeAllowed]. If
+     * [Capability.ProfileFields] is not preset, check for [Capability.SetDisplayName] or [Capability.SetAvatarUrl].
      * Otherwise, it is allowed.
      */
     suspend fun deleteProfileField(key: ProfileField.Key<*>): Result<Unit>
@@ -193,16 +187,14 @@ suspend fun MatrixClient.Companion.create(
         CoroutineScope(finalCoroutineContext + SupervisorJob(coroutineContext[Job]) + coroutineExceptionHandler)
 
     try {
-        val extraModules = listOf(
-            repositoriesModule.create(),
-            mediaStoreModule.create(),
-            cryptoDriverModule.create(),
-        )
+        val extraModules = listOf(repositoriesModule.create(), mediaStoreModule.create(), cryptoDriverModule.create())
         val koinApplication = koinApplication {
-            modules(module {
-                single { coroutineScope }
-                single { config }
-            })
+            modules(
+                module {
+                    single { coroutineScope }
+                    single { config }
+                }
+            )
             modules(extraModules)
             modules(config.modulesFactories.map { it.invoke() })
         }
@@ -224,18 +216,19 @@ suspend fun MatrixClient.Companion.create(
             AuthenticationStoreMatrixClientAuthProviderDataStore(
                 mappings = di.get(),
                 store = authenticationStore,
-                tm = tm
+                tm = tm,
             )
 
         if (isFirstInit) {
             requireNotNull(authProviderData) { "authProviderData must not be null when repositories are empty." }
-            val whoAmI = authProviderData.useApi(
-                coroutineContext = finalCoroutineContext,
-                httpClientEngine = config.httpClientEngine,
-                httpClientConfig = config.httpClientConfig,
-            ) {
-                it.authentication.whoAmI().getOrThrow()
-            }
+            val whoAmI =
+                authProviderData.useApi(
+                    coroutineContext = finalCoroutineContext,
+                    httpClientEngine = config.httpClientEngine,
+                    httpClientConfig = config.httpClientConfig,
+                ) {
+                    it.authentication.whoAmI().getOrThrow()
+                }
             userId = whoAmI.userId
             deviceId = checkNotNull(whoAmI.deviceId) { "deviceId in whoAmI response must not be null" }
         } else {
@@ -248,12 +241,13 @@ suspend fun MatrixClient.Companion.create(
             when {
                 initialAccount?.accessToken != null && initialAccount.baseUrl != null -> {
                     log.debug { "migrate to new authentication system" }
-                    val authProviderData = ClassicMatrixClientAuthProviderData(
-                        baseUrl = Url(initialAccount.baseUrl),
-                        accessToken = initialAccount.accessToken,
-                        accessTokenExpiresInMs = null,
-                        refreshToken = initialAccount.refreshToken
-                    )
+                    val authProviderData =
+                        ClassicMatrixClientAuthProviderData(
+                            baseUrl = Url(initialAccount.baseUrl),
+                            accessToken = initialAccount.accessToken,
+                            accessTokenExpiresInMs = null,
+                            refreshToken = initialAccount.refreshToken,
+                        )
                     tm.writeTransaction {
                         accountStore.updateAccount { it?.copy(baseUrl = null, accessToken = null, refreshToken = null) }
                     }
@@ -263,16 +257,17 @@ suspend fun MatrixClient.Companion.create(
 
                 initialAuthentication != null && authProviderData != null -> {
                     log.debug { "re-authenticate" }
-                    val (newUserId, newDeviceId) = authProviderData.useApi(
-                        coroutineContext = finalCoroutineContext,
-                        httpClientEngine = config.httpClientEngine,
-                        httpClientConfig = config.httpClientConfig,
-                    ) {
-                        it.authentication.whoAmI().getOrThrow()
-                    }
+                    val (newUserId, newDeviceId) =
+                        authProviderData.useApi(
+                            coroutineContext = finalCoroutineContext,
+                            httpClientEngine = config.httpClientEngine,
+                            httpClientConfig = config.httpClientConfig,
+                        ) {
+                            it.authentication.whoAmI().getOrThrow()
+                        }
                     require(newUserId == userId && newDeviceId == deviceId) {
                         "newly authenticated userId ($newUserId) and deviceId ($newDeviceId) " +
-                                "must match stored authenticated userId ($userId) and deviceId ($deviceId). "
+                            "must match stored authenticated userId ($userId) and deviceId ($deviceId). "
                     }
                     authProviderDataStore.setAuthData(authProviderData)
                     authProviderData
@@ -283,36 +278,42 @@ suspend fun MatrixClient.Companion.create(
                     authProviderData
                 }
 
-                else -> checkNotNull(authProviderDataStore.getAuthData()) { "No stored authProviderData found, you need to provide one." }
+                else ->
+                    checkNotNull(authProviderDataStore.getAuthData()) {
+                        "No stored authProviderData found, you need to provide one."
+                    }
             }
 
-        val authProvider = finalAuthProviderData.createAuthProvider(
-            store = authProviderDataStore,
-            onLogout = { onLogout(it, authenticationStore, tm) },
-            httpClientEngine = config.httpClientEngine,
-            httpClientConfig = config.httpClientConfig
-        )
+        val authProvider =
+            finalAuthProviderData.createAuthProvider(
+                store = authProviderDataStore,
+                onLogout = { onLogout(it, authenticationStore, tm) },
+                httpClientEngine = config.httpClientEngine,
+                httpClientConfig = config.httpClientConfig,
+            )
 
-        val api = config.matrixClientServerApiClientFactory.create(
-            authProvider = authProvider,
-            json = di.get(),
-            eventContentSerializerMappings = di.get(),
-            syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
-            syncErrorDelayConfig = config.syncErrorDelayConfig,
-            coroutineContext = finalCoroutineContext,
-            httpClientEngine = config.httpClientEngine,
-            httpClientConfig = config.httpClientConfig,
-        )
+        val api =
+            config.matrixClientServerApiClientFactory.create(
+                authProvider = authProvider,
+                json = di.get(),
+                eventContentSerializerMappings = di.get(),
+                syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
+                syncErrorDelayConfig = config.syncErrorDelayConfig,
+                coroutineContext = finalCoroutineContext,
+                httpClientEngine = config.httpClientEngine,
+                httpClientConfig = config.httpClientConfig,
+            )
         try {
             val newProfile =
                 if (isFirstInit || initialAccount.profile == null) {
-                    api.user.getProfile(userId)
+                    api.user
+                        .getProfile(userId)
                         .fold(
                             onSuccess = { it },
                             onFailure = {
                                 if (it is MatrixServerException && it.statusCode == HttpStatusCode.NotFound) Profile()
                                 else throw it
-                            }
+                            },
                         )
                 } else null
             if (isFirstInit) {
@@ -323,29 +324,30 @@ suspend fun MatrixClient.Companion.create(
                             userId = userId,
                             deviceId = deviceId,
                             syncBatchToken = null,
-                            profile = newProfile
+                            profile = newProfile,
                         )
                     }
                 }
             } else if (newProfile != null) { // migration path
-                tm.writeTransaction {
-                    accountStore.updateAccount { it?.copy(profile = newProfile) }
-                }
+                tm.writeTransaction { accountStore.updateAccount { it?.copy(profile = newProfile) } }
             }
 
-            val userInfo = getUserInfo(
-                userId = userId,
-                deviceId = deviceId,
-                driver = di.get(),
-                accountStore = di.get(),
-                olmCryptoStore = di.get(),
-                tm = tm
-            )
+            val userInfo =
+                getUserInfo(
+                    userId = userId,
+                    deviceId = deviceId,
+                    driver = di.get(),
+                    accountStore = di.get(),
+                    olmCryptoStore = di.get(),
+                    tm = tm,
+                )
 
-            koinApplication.modules(module {
-                single { userInfo }
-                single<MatrixClientServerApiClient> { api }
-            })
+            koinApplication.modules(
+                module {
+                    single { userInfo }
+                    single<MatrixClientServerApiClient> { api }
+                }
+            )
 
             if (isFirstInit) {
                 val keyStore = di.get<KeyStore>()
@@ -356,10 +358,7 @@ suspend fun MatrixClient.Companion.create(
                 tm.writeTransaction {
                     selfSignedDeviceKeys.signed.keys.forEach {
                         it.value.valueOrNull?.let { keyValue ->
-                            keyStore.saveKeyVerificationState(
-                                it,
-                                KeyVerificationState.Verified(keyValue)
-                            )
+                            keyStore.saveKeyVerificationState(it, KeyVerificationState.Verified(keyValue))
                         }
                     }
                     keyStore.updateOutdatedKeys { it + userId }
@@ -391,45 +390,39 @@ private class AuthenticationStoreMatrixClientAuthProviderDataStore(
 
     override suspend fun getAuthData(): MatrixClientAuthProviderData? =
         store.getAuthentication()?.let { authentication ->
-            val mapping = checkNotNull(mappings.find { it.id == authentication.providerId }) {
-                "authProviderData id=${authentication.providerId} is not supported. Supported ids: ${mappings.map { it.id }}"
-            }
+            val mapping =
+                checkNotNull(mappings.find { it.id == authentication.providerId }) {
+                    "authProviderData id=${authentication.providerId} is not supported. Supported ids: ${mappings.map { it.id }}"
+                }
             json.decodeFromString(mapping.serializer, authentication.providerData)
         }
 
-    override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) =
-        tm.writeTransaction {
-            store.updateAuthentication {
-                if (authData != null) {
-                    val mapping = checkNotNull(mappings.find { it.kClass == authData::class }) {
+    override suspend fun setAuthData(authData: MatrixClientAuthProviderData?) = tm.writeTransaction {
+        store.updateAuthentication {
+            if (authData != null) {
+                val mapping =
+                    checkNotNull(mappings.find { it.kClass == authData::class }) {
                         "authProviderData kClass=${authData::class} is not supported. Supported types: ${mappings.map { it.kClass }}"
                     }
 
-                    @Suppress("UNCHECKED_CAST")
-                    val providerData =
-                        json.encodeToString(mapping.serializer as KSerializer<MatrixClientAuthProviderData>, authData)
-                    it?.copy(providerData = providerData)
-                        ?: Authentication(
-                            providerId = mapping.id,
-                            providerData = providerData,
-                            logoutInfo = null,
-                        )
-                } else null
-            }
+                @Suppress("UNCHECKED_CAST")
+                val providerData =
+                    json.encodeToString(mapping.serializer as KSerializer<MatrixClientAuthProviderData>, authData)
+                it?.copy(providerData = providerData)
+                    ?: Authentication(providerId = mapping.id, providerData = providerData, logoutInfo = null)
+            } else null
         }
+    }
 }
 
 private class AccountStoreSyncBatchTokenStore(
     private val store: AccountStore,
     private val tm: StoreTransactionManager,
 ) : SyncBatchTokenStore {
-    override suspend fun getSyncBatchToken(): String? =
-        store.getAccount()?.syncBatchToken
+    override suspend fun getSyncBatchToken(): String? = store.getAccount()?.syncBatchToken
 
     override suspend fun setSyncBatchToken(token: String) {
-        tm.writeTransaction {
-            store.updateAccount { it?.copy(syncBatchToken = token) }
-        }
+        tm.writeTransaction { store.updateAccount { it?.copy(syncBatchToken = token) } }
     }
 }
 
@@ -440,11 +433,7 @@ private suspend fun onLogout(
 ) {
     log.debug { "This device has been logged out ($logoutInfo)." }
     withContext(NonCancellable) {
-        tm.writeTransaction {
-            authenticationStore.updateAuthentication {
-                it?.copy(logoutInfo = logoutInfo)
-            }
-        }
+        tm.writeTransaction { authenticationStore.updateAuthentication { it?.copy(logoutInfo = logoutInfo) } }
     }
 }
 
@@ -465,33 +454,24 @@ private suspend fun getUserInfo(
     driver: CryptoDriver,
     accountStore: AccountStore,
     olmCryptoStore: OlmCryptoStore,
-    tm: StoreTransactionManager
+    tm: StoreTransactionManager,
 ): UserInfo {
 
     val pickleKey = driver.key.pickleKey(accountStore.getAccount()?.olmPickleKey)
 
-    val (signingKey, identityKey) = (olmCryptoStore.getOlmAccount()
-        ?.let { driver.olm.account.fromPickle(it, pickleKey) }
-        ?: driver.olm.account())
-        .use { account ->
-            tm.writeTransaction {
-                olmCryptoStore.updateOlmAccount { account.pickle(pickleKey) }
-            }
+    val (signingKey, identityKey) =
+        (olmCryptoStore.getOlmAccount()?.let { driver.olm.account.fromPickle(it, pickleKey) } ?: driver.olm.account())
+            .use { account ->
+                tm.writeTransaction { olmCryptoStore.updateOlmAccount { account.pickle(pickleKey) } }
 
-            useAll(
-                { account.ed25519Key },
-                { account.curve25519Key }
-            ) { signingKey, identityKey ->
-                Key.of(deviceId, signingKey) to Key.of(deviceId, identityKey)
+                useAll({ account.ed25519Key }, { account.curve25519Key }) { signingKey, identityKey ->
+                    Key.of(deviceId, signingKey) to Key.of(deviceId, identityKey)
+                }
             }
-        }
     return UserInfo(userId, deviceId, signingKey, identityKey)
 }
 
-class MatrixClientImpl internal constructor(
-    override val baseUrl: Url,
-    override val di: Koin,
-) : MatrixClient {
+class MatrixClientImpl internal constructor(override val baseUrl: Url, override val di: Koin) : MatrixClient {
     private val coroutineScope: CoroutineScope = di.get()
     private val tm: StoreTransactionManager = di.get()
     private val rootStore: RootStore = di.get()
@@ -510,28 +490,33 @@ class MatrixClientImpl internal constructor(
 
     override val started: MatrixClientStarted = di.get()
 
-    override val profile: StateFlow<Profile?> = accountStore.getAccountAsFlow().map { it?.profile ?: Profile() }
-        .stateIn(coroutineScope, Eagerly, null)
-    override val serverData: StateFlow<ServerData?> = di.get<ServerDataStore>().getServerDataFlow()
-        .stateIn(coroutineScope, Eagerly, null)
+    override val profile: StateFlow<Profile?> =
+        accountStore.getAccountAsFlow().map { it?.profile ?: Profile() }.stateIn(coroutineScope, Eagerly, null)
+    override val serverData: StateFlow<ServerData?> =
+        di.get<ServerDataStore>().getServerDataFlow().stateIn(coroutineScope, Eagerly, null)
 
     override val syncState = api.sync.currentSyncState
 
     override val initialSyncDone: StateFlow<Boolean> =
-        accountStore.getAccountAsFlow().map { it?.syncBatchToken }
+        accountStore
+            .getAccountAsFlow()
+            .map { it?.syncBatchToken }
             .map { token -> token != null }
             .stateIn(coroutineScope, Eagerly, true)
 
     override val loginState: StateFlow<LoginState?> =
-        authenticationStore.getAuthenticationAsFlow().map { authentication ->
-            val logoutInfo = authentication?.logoutInfo
-            when {
-                logoutInfo == null -> LOGGED_IN
-                logoutInfo.isSoft -> LOGGED_OUT_SOFT
-                logoutInfo.isLocked -> LOCKED
-                else -> LOGGED_OUT
+        authenticationStore
+            .getAuthenticationAsFlow()
+            .map { authentication ->
+                val logoutInfo = authentication?.logoutInfo
+                when {
+                    logoutInfo == null -> LOGGED_IN
+                    logoutInfo.isSoft -> LOGGED_OUT_SOFT
+                    logoutInfo.isLocked -> LOCKED
+                    else -> LOGGED_OUT
+                }
             }
-        }.stateIn(coroutineScope, Eagerly, null)
+            .stateIn(coroutineScope, Eagerly, null)
 
     init {
         coroutineScope.launch {
@@ -557,9 +542,7 @@ class MatrixClientImpl internal constructor(
                         LOGGED_OUT -> {
                             log.info { "stop sync and delete all" }
                             stopSync()
-                            tm.writeTransaction {
-                                rootStore.deleteAll()
-                            }
+                            tm.writeTransaction { rootStore.deleteAll() }
                         }
 
                         LOCKED -> {
@@ -580,28 +563,35 @@ class MatrixClientImpl internal constructor(
             val eventTypesHash = di.get<EventContentSerializerMappings>().filterHash()
             if (filter == null || filter.eventTypesHash != eventTypesHash) {
                 log.info { "EventContentSerializerMappings changed, update filter" }
-                val newSyncFilterId = retry(
-                    onError = { error, delay -> log.warn(error) { "could not set filter, retry again in $delay" } }
-                ) {
-                    val filter = config.syncFilter.applyDefaultFilter()
-                    api.user.setFilter(userId, filter)
-                        .getOrThrow().also { log.debug { "set new filter for sync with id $it: $filter" } }
-                }
-                val newSyncOnceFilterId = retry(
-                    onError = { error, delay -> log.warn(error) { "could not set background filter, retry again in $delay" } }
-                ) {
-                    val filter = config.syncOnceFilter.applyDefaultFilter()
-                    api.user.setFilter(userId, filter)
-                        .getOrThrow().also { log.debug { "set new background filter for sync with id $it: $filter" } }
-                }
+                val newSyncFilterId =
+                    retry(
+                        onError = { error, delay -> log.warn(error) { "could not set filter, retry again in $delay" } }
+                    ) {
+                        val filter = config.syncFilter.applyDefaultFilter()
+                        api.user.setFilter(userId, filter).getOrThrow().also {
+                            log.debug { "set new filter for sync with id $it: $filter" }
+                        }
+                    }
+                val newSyncOnceFilterId =
+                    retry(
+                        onError = { error, delay ->
+                            log.warn(error) { "could not set background filter, retry again in $delay" }
+                        }
+                    ) {
+                        val filter = config.syncOnceFilter.applyDefaultFilter()
+                        api.user.setFilter(userId, filter).getOrThrow().also {
+                            log.debug { "set new background filter for sync with id $it: $filter" }
+                        }
+                    }
                 tm.writeTransaction {
                     accountStore.updateAccount {
                         it?.copy(
-                            filter = Account.Filter(
-                                syncFilterId = newSyncFilterId,
-                                syncOnceFilterId = newSyncOnceFilterId,
-                                eventTypesHash = eventTypesHash,
-                            )
+                            filter =
+                                Account.Filter(
+                                    syncFilterId = newSyncFilterId,
+                                    syncOnceFilterId = newSyncOnceFilterId,
+                                    eventTypesHash = eventTypesHash,
+                                )
                         )
                     }
                 }
@@ -614,41 +604,40 @@ class MatrixClientImpl internal constructor(
         internal fun EventContentSerializerMappings.filterHash(): String { // internal and companion for testing
             val allTypes =
                 globalAccountData.map { it.type } +
-                        roomAccountData.map { it.type } +
-                        ephemeral.map { it.type } +
-                        state.map { it.type } +
-                        message.map { it.type }
-            return allTypes
-                .sorted()
-                .joinToString()
-                .encodeToByteArray().toByteString()
-                .sha256()
-                .hex()
+                    roomAccountData.map { it.type } +
+                    ephemeral.map { it.type } +
+                    state.map { it.type } +
+                    message.map { it.type }
+            return allTypes.sorted().joinToString().encodeToByteArray().toByteString().sha256().hex()
         }
     }
 
     private fun Filters.applyDefaultFilter(): Filters {
         val mappings = di.get<EventContentSerializerMappings>()
         return copy(
-            accountData = (accountData ?: Filters.EventFilter()).copy(
-                types = mappings.globalAccountData.map { it.type }.toSet(),
-            ),
-            room = (room ?: Filters.RoomFilter()).copy(
-                accountData = (room?.accountData ?: Filters.RoomFilter.RoomEventFilter()).copy(
-                    types = mappings.roomAccountData.map { it.type }.toSet(),
+            accountData =
+                (accountData ?: Filters.EventFilter()).copy(types = mappings.globalAccountData.map { it.type }.toSet()),
+            room =
+                (room ?: Filters.RoomFilter()).copy(
+                    accountData =
+                        (room?.accountData ?: Filters.RoomFilter.RoomEventFilter()).copy(
+                            types = mappings.roomAccountData.map { it.type }.toSet()
+                        ),
+                    ephemeral =
+                        (room?.ephemeral ?: Filters.RoomFilter.RoomEventFilter()).copy(
+                            types = mappings.ephemeral.map { it.type }.toSet()
+                        ),
+                    state =
+                        (room?.state ?: Filters.RoomFilter.RoomEventFilter()).copy(
+                            lazyLoadMembers = true,
+                            types = mappings.state.map { it.type }.toSet(),
+                        ),
+                    timeline =
+                        (room?.timeline ?: Filters.RoomFilter.RoomEventFilter()).copy(
+                            types = (mappings.message + mappings.state).map { it.type }.toSet()
+                        ),
+                    includeLeave = config.deleteRooms !is DeleteRooms.OnLeave,
                 ),
-                ephemeral = (room?.ephemeral ?: Filters.RoomFilter.RoomEventFilter()).copy(
-                    types = mappings.ephemeral.map { it.type }.toSet(),
-                ),
-                state = (room?.state ?: Filters.RoomFilter.RoomEventFilter()).copy(
-                    lazyLoadMembers = true,
-                    types = mappings.state.map { it.type }.toSet(),
-                ),
-                timeline = (room?.timeline ?: Filters.RoomFilter.RoomEventFilter()).copy(
-                    types = (mappings.message + mappings.state).map { it.type }.toSet(),
-                ),
-                includeLeave = config.deleteRooms !is DeleteRooms.OnLeave,
-            )
         )
     }
 
@@ -657,22 +646,15 @@ class MatrixClientImpl internal constructor(
         return if (loginState.value == LOGGED_OUT_SOFT) {
             deleteAll()
             Result.success(Unit)
-        } else api.authentication.logout()
-            .mapCatching {
-                deleteAll()
-            }
+        } else api.authentication.logout().mapCatching { deleteAll() }
     }
 
     internal suspend fun deleteAll() {
-        tm.writeTransaction {
-            rootStore.deleteAll()
-        }
+        tm.writeTransaction { rootStore.deleteAll() }
         mediaStore.deleteAll()
     }
 
-    /**
-     * Be aware, that most StateFlows you got before will not be updated after calling this method.
-     */
+    /** Be aware, that most StateFlows you got before will not be updated after calling this method. */
     override suspend fun clearCache(): Result<Unit> = kotlin.runCatching {
         stopSync()
         tm.writeTransaction {
@@ -685,9 +667,7 @@ class MatrixClientImpl internal constructor(
 
     override suspend fun clearMediaCache(): Result<Unit> = kotlin.runCatching {
         stopSync()
-        tm.writeTransaction {
-            mediaCacheMappingStore.clearCache()
-        }
+        tm.writeTransaction { mediaCacheMappingStore.clearCache() }
         mediaStore.deleteAll()
         startSync()
     }
@@ -702,7 +682,7 @@ class MatrixClientImpl internal constructor(
     }
 
     override suspend fun syncOnce(presence: Presence?, timeout: Duration): Result<Unit> =
-        syncOnce(presence = presence, timeout = timeout) { }
+        syncOnce(presence = presence, timeout = timeout) {}
 
     override suspend fun <T> syncOnce(
         presence: Presence?,
@@ -714,7 +694,7 @@ class MatrixClientImpl internal constructor(
             filter = checkNotNull(accountStore.getAccount()?.filter?.syncOnceFilterId),
             setPresence = presence,
             timeout = timeout,
-            runOnce = runOnce
+            runOnce = runOnce,
         )
     }
 
@@ -749,25 +729,20 @@ class MatrixClientImpl internal constructor(
     override suspend fun deleteProfileField(key: ProfileField.Key<*>): Result<Unit> {
         val profileFieldsCapabilities = serverData.value?.capabilities?.capabilities?.profileFields
         return if (profileFieldsCapabilities != null) {
-            api.user.deleteProfileField(userId, key)
-                .map {
-                    tm.writeTransaction {
-                        accountStore.updateAccount {
-                            it?.copy(profile = (it.profile ?: Profile()) - key)
-                        }
-                    }
+            api.user.deleteProfileField(userId, key).map {
+                tm.writeTransaction {
+                    accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) }
                 }
+            }
         } else {
             // the old spec only allows "deleting" the displayname and avatar_url by emptying the String.
             when (key) {
                 ProfileField.DisplayName -> setProfileField(ProfileField.DisplayName(""))
                 ProfileField.AvatarUrl -> setProfileField(ProfileField.AvatarUrl(""))
-                else -> api.user.deleteProfileField(userId, key)
-                    .map {
+                else ->
+                    api.user.deleteProfileField(userId, key).map {
                         tm.writeTransaction {
-                            accountStore.updateAccount {
-                                it?.copy(profile = (it.profile ?: Profile()) - key)
-                            }
+                            accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) }
                         }
                     }
             }

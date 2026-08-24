@@ -40,7 +40,6 @@ object OlmLibraryWrapper : Library {
         }
     }
 
-
     external fun olm_inbound_group_session_size(): NativeSize
 
     external fun olm_inbound_group_session(memory: Pointer?): OlmInboundGroupSessionPointer?
@@ -56,7 +55,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_unpickle_inbound_group_session(
@@ -64,25 +63,25 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_init_inbound_group_session(
         session: OlmInboundGroupSessionPointer?,
         session_key: Pointer?,
-        session_key_length: NativeSize
+        session_key_length: NativeSize,
     ): NativeSize
 
     external fun olm_import_inbound_group_session(
         session: OlmInboundGroupSessionPointer?,
         session_key: Pointer?,
-        session_key_length: NativeSize
+        session_key_length: NativeSize,
     ): NativeSize
 
     external fun olm_group_decrypt_max_plaintext_length(
         session: OlmInboundGroupSessionPointer?,
         message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_group_decrypt(
@@ -91,7 +90,7 @@ object OlmLibraryWrapper : Library {
         message_length: NativeSize,
         plaintext: Pointer?,
         max_plaintext_length: NativeSize,
-        message_index: IntByReference?
+        message_index: IntByReference?,
     ): NativeSize
 
     external fun olm_inbound_group_session_id_length(session: OlmInboundGroupSessionPointer?): NativeSize
@@ -99,7 +98,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_inbound_group_session_id(
         session: OlmInboundGroupSessionPointer?,
         id: Pointer?,
-        id_length: NativeSize
+        id_length: NativeSize,
     ): NativeSize
 
     external fun olm_inbound_group_session_first_known_index(session: OlmInboundGroupSessionPointer?): Int
@@ -112,7 +111,7 @@ object OlmLibraryWrapper : Library {
         session: OlmInboundGroupSessionPointer?,
         key: Pointer?,
         key_length: NativeSize,
-        message_index: Int
+        message_index: Int,
     ): NativeSize
 
     external fun olm_outbound_group_session_size(): NativeSize
@@ -130,7 +129,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_unpickle_outbound_group_session(
@@ -138,7 +137,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_init_outbound_group_session_random_length(session: OlmOutboundGroupSessionPointer?): NativeSize
@@ -146,12 +145,12 @@ object OlmLibraryWrapper : Library {
     external fun olm_init_outbound_group_session(
         session: OlmOutboundGroupSessionPointer?,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
     external fun olm_group_encrypt_message_length(
         session: OlmOutboundGroupSessionPointer?,
-        plaintext_length: NativeSize
+        plaintext_length: NativeSize,
     ): NativeSize
 
     external fun olm_group_encrypt(
@@ -159,7 +158,7 @@ object OlmLibraryWrapper : Library {
         plaintext: Pointer?,
         plaintext_length: NativeSize,
         message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_outbound_group_session_id_length(session: OlmOutboundGroupSessionPointer?): NativeSize
@@ -167,7 +166,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_outbound_group_session_id(
         session: OlmOutboundGroupSessionPointer?,
         id: Pointer?,
-        id_length: NativeSize
+        id_length: NativeSize,
     ): NativeSize
 
     external fun olm_outbound_group_session_message_index(session: OlmOutboundGroupSessionPointer?): Int
@@ -177,14 +176,10 @@ object OlmLibraryWrapper : Library {
     external fun olm_outbound_group_session_key(
         session: OlmOutboundGroupSessionPointer?,
         key: Pointer?,
-        key_length: NativeSize
+        key_length: NativeSize,
     ): NativeSize
 
-    external fun olm_get_library_version(
-        major: IntByReference,
-        minor: IntByReference,
-        patch: IntByReference
-    )
+    external fun olm_get_library_version(major: IntByReference, minor: IntByReference, patch: IntByReference)
 
     external fun olm_account_size(): NativeSize
 
@@ -221,7 +216,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_pickle_session(
@@ -229,7 +224,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_unpickle_account(
@@ -237,7 +232,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_unpickle_session(
@@ -245,7 +240,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_create_account_random_length(account: OlmAccountPointer?): NativeSize
@@ -253,7 +248,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_create_account(
         account: OlmAccountPointer?,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
     external fun olm_account_identity_keys_length(account: OlmAccountPointer?): NativeSize
@@ -261,7 +256,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_account_identity_keys(
         account: OlmAccountPointer?,
         identity_keys: Pointer?,
-        identity_key_length: NativeSize
+        identity_key_length: NativeSize,
     ): NativeSize
 
     external fun olm_account_signature_length(account: OlmAccountPointer?): NativeSize
@@ -271,7 +266,7 @@ object OlmLibraryWrapper : Library {
         message: Pointer?,
         message_length: NativeSize,
         signature: Pointer?,
-        signature_length: NativeSize
+        signature_length: NativeSize,
     ): NativeSize
 
     external fun olm_account_one_time_keys_length(account: OlmAccountPointer?): NativeSize
@@ -279,7 +274,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_account_one_time_keys(
         account: OlmAccountPointer?,
         one_time_keys: Pointer?,
-        one_time_keys_length: NativeSize
+        one_time_keys_length: NativeSize,
     ): NativeSize
 
     external fun olm_account_mark_keys_as_published(account: OlmAccountPointer?): NativeSize
@@ -288,38 +283,32 @@ object OlmLibraryWrapper : Library {
 
     external fun olm_account_generate_one_time_keys_random_length(
         account: OlmAccountPointer?,
-        number_of_keys: NativeSize
+        number_of_keys: NativeSize,
     ): NativeSize
 
     external fun olm_account_generate_one_time_keys(
         account: OlmAccountPointer?,
         number_of_keys: NativeSize,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
-    external fun olm_account_generate_fallback_key_random_length(
-        account: OlmAccountPointer?
-    ): NativeSize
+    external fun olm_account_generate_fallback_key_random_length(account: OlmAccountPointer?): NativeSize
 
     external fun olm_account_generate_fallback_key(
         account: OlmAccountPointer?,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
-    external fun olm_account_forget_old_fallback_key(
-        account: OlmAccountPointer?
-    )
+    external fun olm_account_forget_old_fallback_key(account: OlmAccountPointer?)
 
-    external fun olm_account_unpublished_fallback_key_length(
-        account: OlmAccountPointer?
-    ): NativeSize
+    external fun olm_account_unpublished_fallback_key_length(account: OlmAccountPointer?): NativeSize
 
     external fun olm_account_unpublished_fallback_key(
         account: OlmAccountPointer?,
         fallback_key: Pointer?,
-        fallback_key_size: NativeSize
+        fallback_key_size: NativeSize,
     ): NativeSize
 
     external fun olm_create_outbound_session_random_length(session: OlmSessionPointer?): NativeSize
@@ -332,14 +321,14 @@ object OlmLibraryWrapper : Library {
         their_one_time_key: Pointer?,
         their_one_time_key_length: NativeSize,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
     external fun olm_create_inbound_session(
         session: OlmSessionPointer?,
         account: OlmAccountPointer?,
         one_time_key_message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_create_inbound_session_from(
@@ -348,29 +337,21 @@ object OlmLibraryWrapper : Library {
         their_identity_key: Pointer?,
         their_identity_key_length: NativeSize,
         one_time_key_message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_session_id_length(session: OlmSessionPointer?): NativeSize
 
-    external fun olm_session_id(
-        session: OlmSessionPointer?,
-        id: Pointer?,
-        id_length: NativeSize
-    ): NativeSize
+    external fun olm_session_id(session: OlmSessionPointer?, id: Pointer?, id_length: NativeSize): NativeSize
 
     external fun olm_session_has_received_message(session: OlmSessionPointer?): Int
 
-    external fun olm_session_describe(
-        session: OlmSessionPointer?,
-        buf: Pointer?,
-        buflen: NativeSize
-    )
+    external fun olm_session_describe(session: OlmSessionPointer?, buf: Pointer?, buflen: NativeSize)
 
     external fun olm_matches_inbound_session(
         session: OlmSessionPointer?,
         one_time_key_message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_matches_inbound_session_from(
@@ -378,7 +359,7 @@ object OlmLibraryWrapper : Library {
         their_identity_key: Pointer?,
         their_identity_key_length: NativeSize,
         one_time_key_message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_remove_one_time_keys(account: OlmAccountPointer?, session: OlmSessionPointer?): NativeSize
@@ -396,14 +377,14 @@ object OlmLibraryWrapper : Library {
         random: Pointer?,
         random_length: NativeSize,
         message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_decrypt_max_plaintext_length(
         session: OlmSessionPointer?,
         message_type: NativeSize,
         message: Pointer?,
-        message_length: NativeSize
+        message_length: NativeSize,
     ): NativeSize
 
     external fun olm_decrypt(
@@ -412,7 +393,7 @@ object OlmLibraryWrapper : Library {
         message: Pointer?,
         message_length: NativeSize,
         plaintext: Pointer?,
-        max_plaintext_length: NativeSize
+        max_plaintext_length: NativeSize,
     ): NativeSize
 
     external fun olm_sha256_length(utility: OlmUtilityPointer?): NativeSize
@@ -422,7 +403,7 @@ object OlmLibraryWrapper : Library {
         input: Pointer?,
         input_length: NativeSize,
         output: Pointer?,
-        output_length: NativeSize
+        output_length: NativeSize,
     ): NativeSize
 
     external fun olm_ed25519_verify(
@@ -432,7 +413,7 @@ object OlmLibraryWrapper : Library {
         message: Pointer?,
         message_length: NativeSize,
         signature: Pointer?,
-        signature_length: NativeSize
+        signature_length: NativeSize,
     ): NativeSize
 
     external fun olm_sas_last_error(sas: OlmSASPointer?): String?
@@ -445,24 +426,16 @@ object OlmLibraryWrapper : Library {
 
     external fun olm_create_sas_random_length(sas: OlmSASPointer?): NativeSize
 
-    external fun olm_create_sas(
-        sas: OlmSASPointer?,
-        random: Pointer?,
-        random_length: NativeSize
-    ): NativeSize
+    external fun olm_create_sas(sas: OlmSASPointer?, random: Pointer?, random_length: NativeSize): NativeSize
 
     external fun olm_sas_pubkey_length(sas: OlmSASPointer?): NativeSize
 
-    external fun olm_sas_get_pubkey(
-        sas: OlmSASPointer?,
-        pubkey: Pointer?,
-        pubkey_length: NativeSize
-    ): NativeSize
+    external fun olm_sas_get_pubkey(sas: OlmSASPointer?, pubkey: Pointer?, pubkey_length: NativeSize): NativeSize
 
     external fun olm_sas_set_their_key(
         sas: OlmSASPointer?,
         their_key: Pointer?,
-        their_key_length: NativeSize
+        their_key_length: NativeSize,
     ): NativeSize
 
     external fun olm_sas_is_their_key_set(sas: OlmSASPointer?): Int
@@ -472,7 +445,7 @@ object OlmLibraryWrapper : Library {
         info: Pointer?,
         info_length: NativeSize,
         output: Pointer?,
-        output_length: NativeSize
+        output_length: NativeSize,
     ): NativeSize
 
     external fun olm_sas_mac_length(sas: OlmSASPointer?): NativeSize
@@ -484,7 +457,7 @@ object OlmLibraryWrapper : Library {
         info: Pointer?,
         info_length: NativeSize,
         mac: Pointer?,
-        mac_length: NativeSize
+        mac_length: NativeSize,
     ): NativeSize
 
     external fun olm_sas_calculate_mac_fixed_base64(
@@ -494,7 +467,7 @@ object OlmLibraryWrapper : Library {
         info: Pointer?,
         info_length: NativeSize,
         mac: Pointer?,
-        mac_length: NativeSize
+        mac_length: NativeSize,
     ): NativeSize
 
     external fun olm_sas_calculate_mac_long_kdf(
@@ -504,7 +477,7 @@ object OlmLibraryWrapper : Library {
         info: Pointer?,
         info_length: NativeSize,
         mac: Pointer?,
-        mac_length: NativeSize
+        mac_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_encryption_size(): NativeSize
@@ -518,7 +491,7 @@ object OlmLibraryWrapper : Library {
     external fun olm_pk_encryption_set_recipient_key(
         encryption: OlmPkEncryptionPointer?,
         _key: Pointer?,
-        _key_length: NativeSize
+        _key_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_ciphertext_length(encryption: OlmPkEncryptionPointer?, plaintext_length: NativeSize): NativeSize
@@ -540,7 +513,7 @@ object OlmLibraryWrapper : Library {
         ephemeral_key: Pointer?,
         ephemeral_key_size: NativeSize,
         random: Pointer?,
-        random_length: NativeSize
+        random_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_decryption_size(): NativeSize
@@ -553,13 +526,12 @@ object OlmLibraryWrapper : Library {
 
     external fun olm_pk_private_key_length(): NativeSize
 
-
     external fun olm_pk_key_from_private(
         decryption: OlmPkDecryptionPointer?,
         pubkey: Pointer?,
         pubkey_length: NativeSize,
         privkey: Pointer?,
-        privkey_length: NativeSize
+        privkey_length: NativeSize,
     ): NativeSize
 
     external fun olm_pickle_pk_decryption_length(decryption: OlmPkDecryptionPointer?): NativeSize
@@ -569,7 +541,7 @@ object OlmLibraryWrapper : Library {
         key: Pointer?,
         key_length: NativeSize,
         pickled: Pointer?,
-        pickled_length: NativeSize
+        pickled_length: NativeSize,
     ): NativeSize
 
     external fun olm_unpickle_pk_decryption(
@@ -579,12 +551,12 @@ object OlmLibraryWrapper : Library {
         pickled: Pointer?,
         pickled_length: NativeSize,
         pubkey: Pointer?,
-        pubkey_length: NativeSize
+        pubkey_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_max_plaintext_length(
         decryption: OlmPkDecryptionPointer?,
-        cipherText_length: NativeSize
+        cipherText_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_decrypt(
@@ -596,13 +568,13 @@ object OlmLibraryWrapper : Library {
         cipherText: Pointer?,
         cipherText_length: NativeSize,
         plaintext: Pointer?,
-        max_plaintext_length: NativeSize
+        max_plaintext_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_get_private_key(
         decryption: OlmPkDecryptionPointer?,
         private_key: Pointer?,
-        private_key_length: NativeSize
+        private_key_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_signing_size(): NativeSize
@@ -618,7 +590,7 @@ object OlmLibraryWrapper : Library {
         pubkey: Pointer?,
         pubkey_length: NativeSize,
         seed: Pointer?,
-        seed_length: NativeSize
+        seed_length: NativeSize,
     ): NativeSize
 
     external fun olm_pk_signing_seed_length(): NativeSize
@@ -632,6 +604,6 @@ object OlmLibraryWrapper : Library {
         message: Pointer?,
         message_length: NativeSize,
         signature: Pointer?,
-        signature_length: NativeSize
+        signature_length: NativeSize,
     ): NativeSize
 }

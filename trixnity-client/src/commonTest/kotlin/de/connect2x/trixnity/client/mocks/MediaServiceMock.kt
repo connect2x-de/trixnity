@@ -7,9 +7,9 @@ import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
+import kotlin.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.time.Duration
 
 class MediaServiceMock : MediaService {
     override suspend fun getMedia(
@@ -47,11 +47,13 @@ class MediaServiceMock : MediaService {
     }
 
     val returnPrepareUploadMedia: MutableList<String> = mutableListOf()
+
     override suspend fun prepareUploadMedia(content: ByteArrayFlow, contentType: ContentType?): String {
         return returnPrepareUploadMedia.removeFirst()
     }
 
     val returnPrepareUploadEncryptedMedia: MutableList<EncryptedFile> = mutableListOf()
+
     override suspend fun prepareUploadEncryptedMedia(content: ByteArrayFlow): EncryptedFile {
         return returnPrepareUploadEncryptedMedia.removeFirst()
     }
@@ -63,10 +65,11 @@ class MediaServiceMock : MediaService {
     val uploadTimer = MutableStateFlow(Duration.ZERO)
     val uploadSizes = MutableStateFlow<ArrayList<Long>?>(null)
     var currentUploadSize = 0
+
     override suspend fun uploadMedia(
         cacheUri: String,
         progress: MutableStateFlow<FileTransferProgress?>?,
-        keepMediaInCache: Boolean
+        keepMediaInCache: Boolean,
     ): Result<String> {
         uploadMediaCalled.value = cacheUri
         val currentSize = uploadSizes.value?.getOrNull(currentUploadSize)

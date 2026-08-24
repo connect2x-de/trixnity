@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -11,9 +7,14 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3roomsroomidcontexteventid">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3roomsroomidcontexteventid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v3/rooms/{roomId}/context/{eventId}")
@@ -31,6 +32,6 @@ data class GetEventContext(
         @SerialName("event") val event: @Contextual RoomEvent<*>,
         @SerialName("events_before") val eventsBefore: List<@Contextual RoomEvent<*>>? = null,
         @SerialName("events_after") val eventsAfter: List<@Contextual RoomEvent<*>>? = null,
-        @SerialName("state") val state: List<@Contextual StateEvent<*>>? = null
+        @SerialName("state") val state: List<@Contextual StateEvent<*>>? = null,
     )
 }

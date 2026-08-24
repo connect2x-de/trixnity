@@ -8,13 +8,9 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
 
     val identityKeys: IdentityKeys
         get() = managedReachableScope {
-            val (ed25519, curve25519) =
-                withResult(NativePointerArray(2)) { AccountBindings.identityKeys(it, ptr) }
+            val (ed25519, curve25519) = withResult(NativePointerArray(2)) { AccountBindings.identityKeys(it, ptr) }
 
-            IdentityKeys(
-                Ed25519PublicKey(ed25519),
-                Curve25519PublicKey(curve25519),
-            )
+            IdentityKeys(Ed25519PublicKey(ed25519), Curve25519PublicKey(curve25519))
         }
 
     val ed25519Key: Ed25519PublicKey
@@ -31,8 +27,7 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
 
     val oneTimeKeys: Map<String, Curve25519PublicKey>
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { AccountBindings.oneTimeKeys(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { AccountBindings.oneTimeKeys(it, ptr) }
 
             if (size.intValue % 2 != 0) error("size must be divisible by 2, was: ${size.intValue}")
 
@@ -40,27 +35,21 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
                 .asPtrSequence()
                 .chunked(2)
                 .map { it[0] to it[1] }
-                .map { (keyIdPtr, keyPtr) ->
-                    keyIdPtr.toByteArray(11).decodeToString() to Curve25519PublicKey(keyPtr)
-                }
+                .map { (keyIdPtr, keyPtr) -> keyIdPtr.toByteArray(11).decodeToString() to Curve25519PublicKey(keyPtr) }
                 .toMap()
         }
 
     val fallbackKey: Pair<String, Curve25519PublicKey>?
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { AccountBindings.fallbackKey(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { AccountBindings.fallbackKey(it, ptr) }
 
-            if (size.intValue != 0 && size.intValue != 2)
-                error("size must be 0 or 2, was: ${size.intValue}")
+            if (size.intValue != 0 && size.intValue != 2) error("size must be 0 or 2, was: ${size.intValue}")
 
             ptr.toNativePointerArray(size.intValue)
                 .asPtrSequence()
                 .chunked(2)
                 .map { it[0] to it[1] }
-                .map { (keyIdPtr, keyPtr) ->
-                    keyIdPtr.toByteArray(11).decodeToString() to Curve25519PublicKey(keyPtr)
-                }
+                .map { (keyIdPtr, keyPtr) -> keyIdPtr.toByteArray(11).decodeToString() to Curve25519PublicKey(keyPtr) }
                 .firstOrNull()
         }
 
@@ -76,16 +65,14 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
         sessionConfig: OlmSessionConfig = OlmSessionConfig.v1(),
     ): Session =
         managedReachableScope(sessionConfig, identityKey, oneTimeKey) {
-            Session(
-                AccountBindings.createOutboundSession(
-                    ptr, sessionConfig.ptr, identityKey.ptr, oneTimeKey.ptr))
+            Session(AccountBindings.createOutboundSession(ptr, sessionConfig.ptr, identityKey.ptr, oneTimeKey.ptr))
         }
 
     private fun <I, T> createInboundSessionRaw(
         preKeyMessage: OlmMessage.PreKey,
         theirIdentityKey: Curve25519PublicKey,
         plaintext: (ByteArray) -> Plaintext<I>,
-        construct: (Plaintext<I>, Session) -> T
+        construct: (Plaintext<I>, Session) -> T,
     ): T =
         managedReachableScope(theirIdentityKey, preKeyMessage) {
             val result =
@@ -95,7 +82,8 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
                         ptr,
                         theirIdentityKey.ptr,
                         preKeyMessage.message.ptr,
-                        preKeyMessage.sessionKeys.ptr)
+                        preKeyMessage.sessionKeys.ptr,
+                    )
                 }
 
             if (result[0].intValue != 0)
@@ -112,7 +100,8 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
             preKeyMessage = preKeyMessage,
             theirIdentityKey = theirIdentityKey,
             plaintext = Plaintext.Bytes::of,
-            construct = ::InboundSessionCreationResult)
+            construct = ::InboundSessionCreationResult,
+        )
 
     fun createInboundSession(
         preKeyMessage: OlmMessage.PreKey.Text,
@@ -122,17 +111,13 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
             preKeyMessage = preKeyMessage,
             theirIdentityKey = theirIdentityKey,
             plaintext = Plaintext.Text::of,
-            construct = ::InboundSessionCreationResult)
+            construct = ::InboundSessionCreationResult,
+        )
 
-    fun generateOneTimeKeys(
-        count: Int,
-    ): OneTimeKeyGenerationResult = managedReachableScope {
+    fun generateOneTimeKeys(count: Int): OneTimeKeyGenerationResult = managedReachableScope {
         require(count > 0) { "count must be > 0, was: $count" }
 
-        val result =
-            withResult(NativePointerArray(4)) {
-                AccountBindings.generateOneTimeKeys(it, ptr, count)
-            }
+        val result = withResult(NativePointerArray(4)) { AccountBindings.generateOneTimeKeys(it, ptr, count) }
 
         val created = result[0].toNativePointerArray(result[1].intValue)
         val removed = result[2].toNativePointerArray(result[3].intValue)
@@ -144,24 +129,16 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
     }
 
     fun generateFallbackKey(): Curve25519PublicKey? = managedReachableScope {
-        AccountBindings.generateFallbackKey(ptr)
-            .takeIf { it != nullPtr }
-            ?.let(::Curve25519PublicKey)
+        AccountBindings.generateFallbackKey(ptr).takeIf { it != nullPtr }?.let(::Curve25519PublicKey)
     }
 
-    fun forgetFallbackKey(): Boolean = managedReachableScope {
-        AccountBindings.forgetFallbackKey(ptr)
-    }
+    fun forgetFallbackKey(): Boolean = managedReachableScope { AccountBindings.forgetFallbackKey(ptr) }
 
-    fun markKeysAsPublished(): Unit = managedReachableScope {
-        AccountBindings.markKeysSsPublished(ptr)
-    }
+    fun markKeysAsPublished(): Unit = managedReachableScope { AccountBindings.markKeysSsPublished(ptr) }
 
     fun pickle(pickleKey: PickleKey? = null): String = managedReachableScope {
         val (ptr, size) =
-            withResult(NativePointerArray(2)) {
-                AccountBindings.pickle(it, ptr, pickleKey.value.toInterop())
-            }
+            withResult(NativePointerArray(2)) { AccountBindings.pickle(it, ptr, pickleKey.value.toInterop()) }
 
         ptr.toByteArray(size.intValue).decodeToString()
     }
@@ -178,10 +155,7 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
         val ciphertext = result[1].toByteArray(result[2].intValue).decodeToString()
         val nonce = result[3].toByteArray(result[4].intValue).decodeToString()
 
-        DehydratedDevice(
-            ciphertext = ciphertext,
-            nonce = nonce,
-        )
+        DehydratedDevice(ciphertext = ciphertext, nonce = nonce)
     }
 
     companion object {
@@ -194,7 +168,11 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
             val result =
                 withResult(NativePointerArray(3)) {
                     AccountBindings.fromPickle(
-                        it, pickleBytes.toInterop(), pickleBytes.size, pickleKey.value.toInterop())
+                        it,
+                        pickleBytes.toInterop(),
+                        pickleBytes.size,
+                        pickleKey.value.toInterop(),
+                    )
                 }
 
             if (result[0].intValue != 0)
@@ -203,28 +181,27 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
             Account(result[1])
         }
 
-        fun fromDehydratedDevice(ciphertext: String, nonce: String, pickleKey: PickleKey): Account =
-            interopScope {
-                val ciphertextBytes = ciphertext.encodeToByteArray()
-                val nonceBytes = nonce.encodeToByteArray()
+        fun fromDehydratedDevice(ciphertext: String, nonce: String, pickleKey: PickleKey): Account = interopScope {
+            val ciphertextBytes = ciphertext.encodeToByteArray()
+            val nonceBytes = nonce.encodeToByteArray()
 
-                val result =
-                    withResult(NativePointerArray(3)) {
-                        AccountBindings.fromDehydratedDevice(
-                            it,
-                            ciphertextBytes.toInterop(),
-                            ciphertextBytes.size,
-                            nonceBytes.toInterop(),
-                            nonceBytes.size,
-                            pickleKey.value.toInterop())
-                    }
+            val result =
+                withResult(NativePointerArray(3)) {
+                    AccountBindings.fromDehydratedDevice(
+                        it,
+                        ciphertextBytes.toInterop(),
+                        ciphertextBytes.size,
+                        nonceBytes.toInterop(),
+                        nonceBytes.size,
+                        pickleKey.value.toInterop(),
+                    )
+                }
 
-                if (result[0].intValue != 0)
-                    throw VodozemacException(
-                        result[1].toByteArray(result[2].intValue).decodeToString())
+            if (result[0].intValue != 0)
+                throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
 
-                Account(result[1])
-            }
+            Account(result[1])
+        }
 
         fun fromLibolmPickle(pickle: String, pickleKey: String): Account = interopScope {
             val pickleBytes = pickle.encodeToByteArray()
@@ -237,7 +214,8 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
                         pickleBytes.toInterop(),
                         pickleBytes.size,
                         pickleKeyBytes.toInterop(),
-                        pickleKeyBytes.size)
+                        pickleKeyBytes.size,
+                    )
                 }
 
             if (result[0].intValue != 0)
@@ -252,10 +230,7 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
         val removed: List<Curve25519PublicKey>,
     )
 
-    class InboundSessionCreationResult<I>(
-        val plaintext: Plaintext<I>,
-        val session: Session,
-    ) {
+    class InboundSessionCreationResult<I>(val plaintext: Plaintext<I>, val session: Session) {
         operator fun component1(): I = plaintext.value
 
         operator fun component2(): Session = session
@@ -285,10 +260,7 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
 
     data class DehydratedDevice(val ciphertext: String, val nonce: String)
 
-    data class IdentityKeys(
-        val ed25519: Ed25519PublicKey,
-        val curve25519: Curve25519PublicKey,
-    ) : AutoCloseable {
+    data class IdentityKeys(val ed25519: Ed25519PublicKey, val curve25519: Curve25519PublicKey) : AutoCloseable {
         override fun close() {
             ed25519.close()
             curve25519.close()

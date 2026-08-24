@@ -114,10 +114,8 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ParentEventContent>("m.space.parent")
     stateOf<ChildEventContent>("m.space.child")
     stateOf<PolicyEventContent>("m.room.policy")
-    @OptIn(MSC4143::class)
-    stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContentSerializer())
-    @OptIn(MSC4143::class)
-    stateOf<RtcSlotEventContent>("m.rtc.slot", RtcSlotEventContentSerializer())
+    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContentSerializer())
+    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("m.rtc.slot", RtcSlotEventContentSerializer())
 
     ephemeralOf<PresenceEventContent>("m.presence")
     ephemeralOf<TypingEventContent>("m.typing")
@@ -148,8 +146,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     globalAccountDataOf<SelfSigningKeyEventContent>("m.cross_signing.self_signing")
     globalAccountDataOf<UserSigningKeyEventContent>("m.cross_signing.user_signing")
     globalAccountDataOf<MegolmBackupV1EventContent>("m.megolm_backup.v1")
-    @OptIn(MSC3814::class)
-    globalAccountDataOf<DehydratedDeviceEventContent>("org.matrix.msc3814")
+    @OptIn(MSC3814::class) globalAccountDataOf<DehydratedDeviceEventContent>("org.matrix.msc3814")
     globalAccountDataOf<IgnoredUserListEventContent>("m.ignored_user_list")
     globalAccountDataOf<RecentEmojiEventContent>("m.recent_emoji")
     globalAccountDataOf<InvitePermissionConfigEventContent>("m.invite_permission_config")
@@ -162,7 +159,9 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     blockOf(TopicContentBlock)
 }
 
-val EventContentSerializerMappings.Companion.default get() = eventContentSerializerMappingsDefault
+val EventContentSerializerMappings.Companion.default
+    get() = eventContentSerializerMappingsDefault
 
-fun EventContentSerializerMappings.Companion.default(customMappings: EventContentSerializerMappings): EventContentSerializerMappings =
-    EventContentSerializerMappings.default + customMappings
+fun EventContentSerializerMappings.Companion.default(
+    customMappings: EventContentSerializerMappings
+): EventContentSerializerMappings = EventContentSerializerMappings.default + customMappings

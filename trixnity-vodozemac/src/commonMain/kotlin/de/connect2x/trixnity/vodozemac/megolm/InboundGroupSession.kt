@@ -4,13 +4,11 @@ import de.connect2x.trixnity.vodozemac.*
 import de.connect2x.trixnity.vodozemac.bindings.megolm.InboundGroupSessionBindings
 import de.connect2x.trixnity.vodozemac.utils.*
 
-class InboundGroupSession internal constructor(ptr: NativePointer) :
-    Managed(ptr, InboundGroupSessionBindings::free) {
+class InboundGroupSession internal constructor(ptr: NativePointer) : Managed(ptr, InboundGroupSessionBindings::free) {
 
     val sessionId: String
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { InboundGroupSessionBindings.sessionId(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { InboundGroupSessionBindings.sessionId(it, ptr) }
 
             ptr.toByteArray(size.intValue).decodeToString()
         }
@@ -27,24 +25,17 @@ class InboundGroupSession internal constructor(ptr: NativePointer) :
     }
 
     fun merge(other: InboundGroupSession): InboundGroupSession? = managedReachableScope {
-        InboundGroupSessionBindings.merge(ptr, other.ptr)
-            .takeIf { it != nullPtr }
-            ?.let(::InboundGroupSession)
+        InboundGroupSessionBindings.merge(ptr, other.ptr).takeIf { it != nullPtr }?.let(::InboundGroupSession)
     }
 
-    fun advanceTo(index: Int): Int = managedReachableScope {
-        InboundGroupSessionBindings.advanceTo(ptr, index)
-    }
+    fun advanceTo(index: Int): Int = managedReachableScope { InboundGroupSessionBindings.advanceTo(ptr, index) }
 
     private fun <I, T> decryptRaw(
         message: MegolmMessage,
         plaintext: (ByteArray) -> Plaintext<I>,
-        construct: (Plaintext<I>, Int) -> T
+        construct: (Plaintext<I>, Int) -> T,
     ): T = managedReachableScope {
-        val result =
-            withResult(NativePointerArray(4)) {
-                InboundGroupSessionBindings.decrypt(it, ptr, message.ptr)
-            }
+        val result = withResult(NativePointerArray(4)) { InboundGroupSessionBindings.decrypt(it, ptr, message.ptr) }
 
         val plaintextOrError = result[1].toByteArray(result[2].intValue)
 
@@ -60,9 +51,7 @@ class InboundGroupSession internal constructor(ptr: NativePointer) :
         decryptRaw(message, Plaintext.Text::of, ::DecryptedMessage)
 
     fun exportAt(index: Int): ExportedSessionKey? = managedReachableScope {
-        InboundGroupSessionBindings.exportAt(ptr, index)
-            .takeIf { it != nullPtr }
-            ?.let(::ExportedSessionKey)
+        InboundGroupSessionBindings.exportAt(ptr, index).takeIf { it != nullPtr }?.let(::ExportedSessionKey)
     }
 
     fun exportAtFirstKnownIndex(): ExportedSessionKey = managedReachableScope {
@@ -82,15 +71,13 @@ class InboundGroupSession internal constructor(ptr: NativePointer) :
         operator fun invoke(
             sessionKey: SessionKey,
             sessionConfig: MegolmSessionConfig = MegolmSessionConfig.v1(),
-        ): InboundGroupSession =
-            InboundGroupSession(InboundGroupSessionBindings.new(sessionKey.ptr, sessionConfig.ptr))
+        ): InboundGroupSession = InboundGroupSession(InboundGroupSessionBindings.new(sessionKey.ptr, sessionConfig.ptr))
 
         fun import(
             sessionKey: ExportedSessionKey,
-            sessionConfig: MegolmSessionConfig = MegolmSessionConfig.v1()
+            sessionConfig: MegolmSessionConfig = MegolmSessionConfig.v1(),
         ): InboundGroupSession =
-            InboundGroupSession(
-                InboundGroupSessionBindings.import(sessionKey.ptr, sessionConfig.ptr))
+            InboundGroupSession(InboundGroupSessionBindings.import(sessionKey.ptr, sessionConfig.ptr))
 
         fun fromPickle(pickle: String, pickleKey: PickleKey? = null): InboundGroupSession {
             val pickleBytes = pickle.encodeToByteArray()
@@ -101,49 +88,45 @@ class InboundGroupSession internal constructor(ptr: NativePointer) :
                         result,
                         pickleBytes.toInterop(),
                         pickleBytes.size,
-                        pickleKey.value.toInterop())
+                        pickleKey.value.toInterop(),
+                    )
                 }
 
-            if (tag.intValue != 0)
-                throw VodozemacException(ptr.toByteArray(size.intValue).decodeToString())
+            if (tag.intValue != 0) throw VodozemacException(ptr.toByteArray(size.intValue).decodeToString())
 
             return InboundGroupSession(ptr)
         }
 
-        fun fromLibolmPickle(pickle: String, pickleKey: String): InboundGroupSession =
-            interopScope {
-                val pickleBytes = pickle.encodeToByteArray()
-                val pickleKeyBytes = pickleKey.encodeToByteArray()
+        fun fromLibolmPickle(pickle: String, pickleKey: String): InboundGroupSession = interopScope {
+            val pickleBytes = pickle.encodeToByteArray()
+            val pickleKeyBytes = pickleKey.encodeToByteArray()
 
-                val result =
-                    withResult(NativePointerArray(3)) {
-                        InboundGroupSessionBindings.fromLibolmPickle(
-                            it,
-                            pickleBytes.toInterop(),
-                            pickleBytes.size,
-                            pickleKeyBytes.toInterop(),
-                            pickleKeyBytes.size)
-                    }
+            val result =
+                withResult(NativePointerArray(3)) {
+                    InboundGroupSessionBindings.fromLibolmPickle(
+                        it,
+                        pickleBytes.toInterop(),
+                        pickleBytes.size,
+                        pickleKeyBytes.toInterop(),
+                        pickleKeyBytes.size,
+                    )
+                }
 
-                if (result[0].intValue != 0)
-                    throw VodozemacException(
-                        result[1].toByteArray(result[2].intValue).decodeToString())
+            if (result[0].intValue != 0)
+                throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
 
-                InboundGroupSession(result[1])
-            }
+            InboundGroupSession(result[1])
+        }
     }
 
     enum class SessionOrdering {
         EQUAL,
         BETTER,
         WORSE,
-        UNCONNECTED
+        UNCONNECTED,
     }
 
-    class DecryptedMessage<T>(
-        val plaintext: Plaintext<T>,
-        val messageIndex: Int,
-    ) {
+    class DecryptedMessage<T>(val plaintext: Plaintext<T>, val messageIndex: Int) {
         operator fun component1(): T = plaintext.value
 
         operator fun component2(): Int = messageIndex

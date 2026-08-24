@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 
 @Serializable
 data class GetRelationsResponse(

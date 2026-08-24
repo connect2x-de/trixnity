@@ -14,40 +14,23 @@ sealed interface IdentifierType {
     val name: String
 
     @Serializable
-    data class User(
-        @SerialName("user")
-        val user: String
-    ) : IdentifierType {
-        @SerialName("type")
-        override val name = "m.id.user"
+    data class User(@SerialName("user") val user: String) : IdentifierType {
+        @SerialName("type") override val name = "m.id.user"
     }
 
     @Serializable
-    data class Thirdparty(
-        @SerialName("medium")
-        val medium: String,
-        @SerialName("address")
-        val address: String
-    ) : IdentifierType {
-        @SerialName("type")
-        override val name = "m.id.thirdparty"
+    data class Thirdparty(@SerialName("medium") val medium: String, @SerialName("address") val address: String) :
+        IdentifierType {
+        @SerialName("type") override val name = "m.id.thirdparty"
     }
 
     @Serializable
-    data class Phone(
-        @SerialName("country")
-        val country: String,
-        @SerialName("phone")
-        val number: String
-    ) : IdentifierType {
-        @SerialName("type")
-        override val name = "m.id.phone"
+    data class Phone(@SerialName("country") val country: String, @SerialName("phone") val number: String) :
+        IdentifierType {
+        @SerialName("type") override val name = "m.id.phone"
     }
 
-    data class Unknown(
-        override val name: String,
-        val raw: JsonElement
-    ) : IdentifierType
+    data class Unknown(override val name: String, val raw: JsonElement) : IdentifierType
 
     object Serializer : KSerializer<IdentifierType> {
         override fun deserialize(decoder: Decoder): IdentifierType {

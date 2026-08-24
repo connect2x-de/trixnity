@@ -10,6 +10,8 @@ import de.connect2x.trixnity.utils.RetryFlowDelayConfig
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.http.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,8 +20,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
 import kotlinx.serialization.json.Json
-import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KClass
 
 private val log = Logger("de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient")
 
@@ -102,7 +102,8 @@ interface MatrixClientServerApiClientFactory {
 
 class MatrixClientServerApiClientImpl(
     private val authProvider: MatrixClientAuthProvider,
-    override val eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.default,
+    override val eventContentSerializerMappings: EventContentSerializerMappings =
+        EventContentSerializerMappings.default,
     override val json: Json = createMatrixEventJson(eventContentSerializerMappings),
     syncBatchTokenStore: SyncBatchTokenStore = SyncBatchTokenStore.inMemory(),
     syncErrorDelayConfig: RetryFlowDelayConfig = RetryFlowDelayConfig.sync,
@@ -133,20 +134,21 @@ class MatrixClientServerApiClientImpl(
         asUserId = asUserId,
         asDeviceId = asDeviceId,
         httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig
+        httpClientConfig = httpClientConfig,
     )
 
     override val baseUrl = authProvider.baseUrl
 
-    override val baseClient = MatrixClientServerApiBaseClient(
-        authProvider = authProvider,
-        eventContentSerializerMappings = eventContentSerializerMappings,
-        json = json,
-        asUserId = asUserId,
-        asDeviceId = asDeviceId,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig
-    )
+    override val baseClient =
+        MatrixClientServerApiBaseClient(
+            authProvider = authProvider,
+            eventContentSerializerMappings = eventContentSerializerMappings,
+            json = json,
+            asUserId = asUserId,
+            asDeviceId = asDeviceId,
+            httpClientEngine = httpClientEngine,
+            httpClientConfig = httpClientConfig,
+        )
 
     override val authProviderType: KClass<out MatrixClientAuthProvider> = authProvider::class
 
@@ -163,12 +165,13 @@ class MatrixClientServerApiClientImpl(
     override val admin: AdminApiClient = AdminApiClientImpl(baseClient)
     override val user = UserApiClientImpl(baseClient, eventContentSerializerMappings)
     override val room = RoomApiClientImpl(baseClient, eventContentSerializerMappings)
-    override val sync = SyncApiClientImpl(
-        baseClient = baseClient,
-        coroutineScope = coroutineScope,
-        syncBatchTokenStore = syncBatchTokenStore,
-        syncErrorDelayConfig = syncErrorDelayConfig,
-    )
+    override val sync =
+        SyncApiClientImpl(
+            baseClient = baseClient,
+            coroutineScope = coroutineScope,
+            syncBatchTokenStore = syncBatchTokenStore,
+            syncErrorDelayConfig = syncErrorDelayConfig,
+        )
     override val key = KeyApiClientImpl(baseClient, json)
     override val media = MediaApiClientImpl(baseClient)
     override val device = DeviceApiClientImpl(baseClient)

@@ -10,8 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.SerializationException
 import kotlin.test.Test
+import kotlinx.serialization.SerializationException
 
 class MatrixApiServerTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
@@ -20,9 +20,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
     fun shouldRespondMatrixServerExceptionOnMatrixServerException() = testApplication {
         application {
             matrixApiServer(json) {
-                get("/") {
-                    throw MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("not found"))
-                }
+                get("/") { throw MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("not found")) }
             }
         }
         val response = client.get("/")
@@ -33,13 +31,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldRespondMatrixServerExceptionOnSerializationException() = testApplication {
-        application {
-            matrixApiServer(json) {
-                get("/") {
-                    throw SerializationException("missing key")
-                }
-            }
-        }
+        application { matrixApiServer(json) { get("/") { throw SerializationException("missing key") } } }
         val response = client.get("/")
         response.body<String>() shouldBe """{"errcode":"M_BAD_JSON","error":"missing key"}"""
         response.contentType() shouldBe ContentType.Application.Json
@@ -48,13 +40,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldRespondMatrixServerExceptionOnAllOtherExceptions() = testApplication {
-        application {
-            matrixApiServer(json) {
-                get("/") {
-                    throw RuntimeException("something")
-                }
-            }
-        }
+        application { matrixApiServer(json) { get("/") { throw RuntimeException("something") } } }
         val response = client.get("/")
         response.body<String>() shouldBe """{"errcode":"M_UNKNOWN","error":"something"}"""
         response.contentType() shouldBe ContentType.Application.Json
@@ -63,13 +49,7 @@ class MatrixApiServerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldRespondMatrixServerExceptionWhenNoRouteFound() = testApplication {
-        application {
-            matrixApiServer(json) {
-                get("/") {
-                    throw RuntimeException("never call me")
-                }
-            }
-        }
+        application { matrixApiServer(json) { get("/") { throw RuntimeException("never call me") } } }
         val response = client.get("/test")
         response.status shouldBe HttpStatusCode.NotFound
         response.contentType() shouldBe ContentType.Application.Json

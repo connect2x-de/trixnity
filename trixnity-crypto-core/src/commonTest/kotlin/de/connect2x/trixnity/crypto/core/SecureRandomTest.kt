@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.crypto.core
 
-import io.kotest.matchers.shouldNotBe
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldNotBe
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFalse

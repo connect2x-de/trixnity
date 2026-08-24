@@ -61,25 +61,21 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = IncomingRoomKeyRequestEventHandler(
-        UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api,
-        OlmEventHandlerMock(),
-        olmEncryptionServiceMock,
-        accountStore,
-        keyStore,
-        olmStore,
-        driver,
-    ).apply {
-        startInCoroutineScope(testScope.backgroundScope)
-    }
+    private val cut =
+        IncomingRoomKeyRequestEventHandler(
+                UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+                api,
+                OlmEventHandlerMock(),
+                olmEncryptionServiceMock,
+                accountStore,
+                keyStore,
+                olmStore,
+                driver,
+            )
+            .apply { startInCoroutineScope(testScope.backgroundScope) }
 
-    private val encryptedEvent = ToDeviceEvent(
-        OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = Curve25519KeyValue("")
-        ), bob
-    )
+    private val encryptedEvent =
+        ToDeviceEvent(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")), bob)
 
     private var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
 
@@ -88,19 +84,20 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     RoomKeyRequestEventContent(
                         KeyRequestAction.REQUEST,
                         bobDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
                     ),
-                    bob, keysOf(), null, alice, keysOf()
-                )
+                    bob,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -112,19 +109,20 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     RoomKeyRequestEventContent(
                         KeyRequestAction.REQUEST,
                         aliceDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -136,32 +134,33 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     RoomKeyRequestEventContent(
                         KeyRequestAction.REQUEST,
                         aliceDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
-                    RoomKeyRequestEventContent(
-                        KeyRequestAction.REQUEST_CANCELLATION,
-                        aliceDevice,
-                        "requestId",
-                        null
-                    ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyRequestEventContent(KeyRequestAction.REQUEST_CANCELLATION, aliceDevice, "requestId", null),
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -196,37 +195,27 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     fun `processIncomingKeyRequests » not answer request with trust level Invalid reason`() =
         notAnswerRequest(KeySignatureTrustLevel.Invalid("reason"))
 
-
     private suspend fun handleEncryptedIncomingKeyRequestsSetup() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
                 )
             }
         }
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) { sendToDeviceEvents = it.messages }
         }
-        olmEncryptionServiceMock.returnEncryptOlm = Result.success(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("")
-            )
-        )
+        olmEncryptionServiceMock.returnEncryptOlm =
+            Result.success(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")))
         tm.writeTransaction {
             olmStore.updateInboundMegolmSession(sessionId, room) {
                 val outboundSession = driver.megolm.groupSession()
-                val inboundSession = driver.megolm.inboundGroupSession(
-                    sessionKey = outboundSession.sessionKey
-                )
+                val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
                 StoredInboundMegolmSession(
                     senderKey = senderKey.value,
@@ -245,24 +234,14 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
     private suspend fun processIncomingKeyRequestsSetup() {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) { sendToDeviceEvents = it.messages }
         }
-        olmEncryptionServiceMock.returnEncryptOlm = Result.success(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("")
-            )
-        )
+        olmEncryptionServiceMock.returnEncryptOlm =
+            Result.success(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")))
         tm.writeTransaction {
             olmStore.updateInboundMegolmSession(sessionId, room) {
                 val outboundSession = driver.megolm.groupSession()
-                val inboundSession = driver.megolm.inboundGroupSession(
-                    sessionKey = outboundSession.sessionKey
-                )
+                val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
                 StoredInboundMegolmSession(
                     senderKey = senderKey.value,
@@ -284,28 +263,30 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        returnedTrustLevel
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            returnedTrustLevel,
+                        )
                 )
             }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     RoomKeyRequestEventContent(
                         KeyRequestAction.REQUEST,
                         aliceDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -319,28 +300,30 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        returnedTrustLevel
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            returnedTrustLevel,
+                        )
                 )
             }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     RoomKeyRequestEventContent(
                         KeyRequestAction.REQUEST,
                         aliceDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()

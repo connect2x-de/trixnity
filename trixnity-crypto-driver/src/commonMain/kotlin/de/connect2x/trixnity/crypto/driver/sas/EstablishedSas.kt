@@ -7,7 +7,10 @@ interface EstablishedSas : AutoCloseable {
     val theirPublicKey: Curve25519PublicKey
 
     fun generateBytes(info: String): SasBytes
+
     fun calculateMac(input: String, info: String): Mac
+
     fun calculateMacInvalidBase64(input: String, info: String): String
+
     fun verifyMac(input: String, info: String, tag: Mac)
 }

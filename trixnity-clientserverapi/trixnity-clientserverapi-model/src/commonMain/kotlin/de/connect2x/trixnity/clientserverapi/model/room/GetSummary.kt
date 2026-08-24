@@ -1,8 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -12,9 +9,13 @@ import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
+import io.ktor.resources.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.16/client-server-api/#get_matrixclientv1room_summaryroomidoralias">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.16/client-server-api/#get_matrixclientv1room_summaryroomidoralias">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v1/room_summary/{roomIdOrRoomAliasId}")

@@ -23,11 +23,7 @@ kotlin {
                 implementation(sharedLibs.lognity.api)
             }
         }
-        jsMain {
-            dependencies {
-                implementation(libs.okio.nodefilesystem)
-            }
-        }
+        jsMain { dependencies { implementation(libs.okio.nodefilesystem) } }
         commonTest {
             dependencies {
                 implementation(projects.trixnityTestUtils)

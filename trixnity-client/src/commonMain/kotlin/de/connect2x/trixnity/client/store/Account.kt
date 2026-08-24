@@ -19,10 +19,5 @@ data class Account(
     val filter: Filter? = null,
     val profile: Profile? = null,
 ) {
-    @Serializable
-    data class Filter(
-        val syncFilterId: String,
-        val syncOnceFilterId: String,
-        val eventTypesHash: String,
-    )
+    @Serializable data class Filter(val syncFilterId: String, val syncOnceFilterId: String, val eventTypesHash: String)
 }

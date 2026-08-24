@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.core
 
-
-/**
- * @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/3814">MSC3814</a>
- */
+/** @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/3814">MSC3814</a> */
 @RequiresOptIn(message = "This API is experimental. It could change in the future without notice.")
 @Retention(AnnotationRetention.BINARY)
 @Target(
@@ -13,13 +10,11 @@ package de.connect2x.trixnity.core
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FUNCTION,
-    AnnotationTarget.TYPEALIAS
+    AnnotationTarget.TYPEALIAS,
 )
 annotation class MSC3814
 
-/**
- * @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/2448">MSC2448</a>
- */
+/** @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/2448">MSC2448</a> */
 @RequiresOptIn(message = "This API is experimental. It could change in the future without notice.")
 @Retention(AnnotationRetention.BINARY)
 @Target(
@@ -29,13 +24,11 @@ annotation class MSC3814
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FUNCTION,
-    AnnotationTarget.TYPEALIAS
+    AnnotationTarget.TYPEALIAS,
 )
 annotation class MSC2448
 
-/**
- * @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/4143">MSC4143</a>
- */
+/** @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/4143">MSC4143</a> */
 @RequiresOptIn(message = "This API is experimental. It could change in the future without notice.")
 @Retention(AnnotationRetention.BINARY)
 @Target(
@@ -45,13 +38,11 @@ annotation class MSC2448
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FUNCTION,
-    AnnotationTarget.TYPEALIAS
+    AnnotationTarget.TYPEALIAS,
 )
 annotation class MSC4143
 
-/**
- * @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/4354">MSC4354</a>
- */
+/** @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/4354">MSC4354</a> */
 @RequiresOptIn(message = "This API is experimental. It could change in the future without notice.")
 @Retention(AnnotationRetention.BINARY)
 @Target(

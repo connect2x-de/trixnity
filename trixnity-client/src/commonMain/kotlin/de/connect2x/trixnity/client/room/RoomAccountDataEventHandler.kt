@@ -18,14 +18,12 @@ class RoomAccountDataEventHandler(
 ) : EventHandler {
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        api.sync.subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setRoomAccountData)
+        api.sync
+            .subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setRoomAccountData)
             .unsubscribeOnCompletion(scope)
     }
 
     internal suspend fun setRoomAccountData(accountData: List<RoomAccountDataEvent<RoomAccountDataEventContent>>) {
-        if (accountData.isNotEmpty())
-            tm.writeTransaction {
-                accountData.forEach { roomAccountDataStore.save(it) }
-            }
+        if (accountData.isNotEmpty()) tm.writeTransaction { accountData.forEach { roomAccountDataStore.save(it) } }
     }
 }

@@ -29,11 +29,7 @@ kotlin {
     addNativeTargets()
     withAndroidLibrary("$group.vodozemac")
 
-    compilerOptions {
-        freeCompilerArgs.add(
-            "-Xexpect-actual-classes",
-        )
-    }
+    compilerOptions { freeCompilerArgs.add("-Xexpect-actual-classes") }
 
     sourceSets {
         configureEach {
@@ -41,9 +37,7 @@ kotlin {
             if (name == "wasmJsMain") languageSettings.optIn("kotlin.js.ExperimentalWasmJsInterop")
         }
 
-        commonMain.dependencies {
-            implementation(projects.trixnityVodozemac.trixnityVodozemacBinaries)
-        }
+        commonMain.dependencies { implementation(projects.trixnityVodozemac.trixnityVodozemacBinaries) }
         webMain.dependencies {
             implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
             implementation(sharedLibs.kotlin.browser)
@@ -58,10 +52,7 @@ kotlin {
 
 kotlin.targets.withType<KotlinNativeTarget> {
     compilerOptions { freeCompilerArgs.add("-opt-in=kotlin.native.SymbolNameIsInternal") }
-    val main by
-        compilations.getting {
-            defaultSourceSet.languageSettings.optIn("kotlin.native.SymbolNameIsInternal")
-        }
+    val main by compilations.getting { defaultSourceSet.languageSettings.optIn("kotlin.native.SymbolNameIsInternal") }
 }
 
 tasks.withType<Test> { outputs.cacheIf { false } }

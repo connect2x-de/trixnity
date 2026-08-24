@@ -1,5 +1,12 @@
 package de.connect2x.trixnity.clientserverapi.server
 
+import de.connect2x.trixnity.api.server.matrixApiServer
+import de.connect2x.trixnity.clientserverapi.model.media.*
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.*
 import dev.mokkery.answering.returns
 import dev.mokkery.matcher.any
@@ -13,16 +20,9 @@ import io.ktor.server.application.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.runBlocking
-import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.clientserverapi.model.media.*
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlinx.coroutines.runBlocking
 
 class MediaRoutesTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
@@ -36,16 +36,12 @@ class MediaRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                mediaApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { mediaApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -58,21 +54,20 @@ class MediaRoutesTest : TrixnityBaseTest() {
     @Test
     fun shouldGetMediaConfig() = testApplication {
         initCut()
-        everySuspend { handlerMock.getMediaConfig(any()) }
-            .returns(GetMediaConfig.Response(maxUploadSize = 50000000))
+        everySuspend { handlerMock.getMediaConfig(any()) }.returns(GetMediaConfig.Response(maxUploadSize = 50000000))
         val response = client.get("/_matrix/client/v1/media/config") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "m.upload.size":50000000
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getMediaConfig(any())
-        }
+        verifySuspend { handlerMock.getMediaConfig(any()) }
     }
 
     @Test
@@ -82,23 +77,23 @@ class MediaRoutesTest : TrixnityBaseTest() {
             .returns(
                 CreateMedia.Response(
                     contentUri = "mxc://example.com/AQwafuaFswefuhsfAFAgsw",
-                    unusedExpiresAt = 1647257217083
+                    unusedExpiresAt = 1647257217083,
                 )
             )
         val response = client.post("/_matrix/media/v1/create") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                     "content_uri": "mxc://example.com/AQwafuaFswefuhsfAFAgsw",
                     "unused_expires_at": 1647257217083
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.createMedia(any())
-        }
+        verifySuspend { handlerMock.createMedia(any()) }
     }
 
     @Test
@@ -106,30 +101,38 @@ class MediaRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.uploadMedia(any()) }
             .returns(UploadMedia.Response("mxc://example.com/AQwafuaFswefuhsfAFAgsw"))
-        val response = client.post("/_matrix/media/v3/upload?filename=testFile.txt") {
-            bearerAuth("token")
-            setBody(object : OutgoingContent.ReadChannelContent() {
-                override fun readFrom() = ByteReadChannel("test")
-                override val contentLength = 4L
-                override val contentType = ContentType.Text.Plain
-            })
-        }
+        val response =
+            client.post("/_matrix/media/v3/upload?filename=testFile.txt") {
+                bearerAuth("token")
+                setBody(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom() = ByteReadChannel("test")
+
+                        override val contentLength = 4L
+                        override val contentType = ContentType.Text.Plain
+                    }
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "content_uri":"mxc://example.com/AQwafuaFswefuhsfAFAgsw"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.uploadMedia(assert {
-                it.endpoint.filename shouldBe "testFile.txt"
-                it.requestBody.contentType shouldBe ContentType.Text.Plain
-                it.requestBody.contentLength shouldBe 4
-                runBlocking { it.requestBody.content.readUTF8Line() shouldBe "test" }
-            })
+            handlerMock.uploadMedia(
+                assert {
+                    it.endpoint.filename shouldBe "testFile.txt"
+                    it.requestBody.contentType shouldBe ContentType.Text.Plain
+                    it.requestBody.contentLength shouldBe 4
+                    runBlocking { it.requestBody.content.readUTF8Line() shouldBe "test" }
+                }
+            )
         }
     }
 
@@ -138,63 +141,77 @@ class MediaRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.uploadMedia(any()) }
             .returns(UploadMedia.Response("mxc://example.com/AQwafuaFswefuhsfAFAgsw"))
-        val response = client.post("/_matrix/media/v3/upload?filename=testFile.json") {
-            bearerAuth("token")
-            setBody(object : OutgoingContent.ReadChannelContent() {
-                override fun readFrom() = ByteReadChannel("{}")
-                override val contentLength = 2L
-                override val contentType = ContentType.Application.Json
-            })
-        }
+        val response =
+            client.post("/_matrix/media/v3/upload?filename=testFile.json") {
+                bearerAuth("token")
+                setBody(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom() = ByteReadChannel("{}")
+
+                        override val contentLength = 2L
+                        override val contentType = ContentType.Application.Json
+                    }
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "content_uri":"mxc://example.com/AQwafuaFswefuhsfAFAgsw"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.uploadMedia(assert {
-                it.endpoint.filename shouldBe "testFile.json"
-                it.requestBody.contentType shouldBe ContentType.Application.Json
-                it.requestBody.contentLength shouldBe 2
-                runBlocking { it.requestBody.content.readUTF8Line() shouldBe "{}" }
-            })
+            handlerMock.uploadMedia(
+                assert {
+                    it.endpoint.filename shouldBe "testFile.json"
+                    it.requestBody.contentType shouldBe ContentType.Application.Json
+                    it.requestBody.contentLength shouldBe 2
+                    runBlocking { it.requestBody.content.readUTF8Line() shouldBe "{}" }
+                }
+            )
         }
     }
 
     @Test
     fun shouldUploadMediaByContentUri() = testApplication {
         initCut()
-        everySuspend { handlerMock.uploadMediaByContentUri(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.uploadMediaByContentUri(any()) }.returns(Unit)
         val response =
             client.post("/_matrix/media/v3/upload/example.com/AQwafuaFswefuhsfAFAgsw?filename=testFile.txt") {
                 bearerAuth("token")
-                setBody(object : OutgoingContent.ReadChannelContent() {
-                    override fun readFrom() = ByteReadChannel("test")
-                    override val contentLength = 4L
-                    override val contentType = ContentType.Text.Plain
-                })
+                setBody(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom() = ByteReadChannel("test")
+
+                        override val contentLength = 4L
+                        override val contentType = ContentType.Text.Plain
+                    }
+                )
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.uploadMediaByContentUri(assert {
-                it.endpoint.serverName shouldBe "example.com"
-                it.endpoint.mediaId shouldBe "AQwafuaFswefuhsfAFAgsw"
-                it.endpoint.filename shouldBe "testFile.txt"
-                it.requestBody.contentType shouldBe ContentType.Text.Plain
-                it.requestBody.contentLength shouldBe 4
-                runBlocking { it.requestBody.content.readUTF8Line() shouldBe "test" }
-            })
+            handlerMock.uploadMediaByContentUri(
+                assert {
+                    it.endpoint.serverName shouldBe "example.com"
+                    it.endpoint.mediaId shouldBe "AQwafuaFswefuhsfAFAgsw"
+                    it.endpoint.filename shouldBe "testFile.txt"
+                    it.requestBody.contentType shouldBe ContentType.Text.Plain
+                    it.requestBody.contentLength shouldBe 4
+                    runBlocking { it.requestBody.content.readUTF8Line() shouldBe "test" }
+                }
+            )
         }
     }
 
@@ -207,7 +224,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
                     content = ByteReadChannel("test"),
                     contentLength = 4L,
                     contentType = ContentType.Text.Plain,
-                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.txt")
+                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.txt"),
                 )
             )
         val response =
@@ -222,10 +239,12 @@ class MediaRoutesTest : TrixnityBaseTest() {
             this.body<ByteReadChannel>().readUTF8Line() shouldBe "test"
         }
         verifySuspend {
-            handlerMock.downloadMedia(assert {
-                it.endpoint.serverName shouldBe "matrix.org:443"
-                it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
-            })
+            handlerMock.downloadMedia(
+                assert {
+                    it.endpoint.serverName shouldBe "matrix.org:443"
+                    it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
+                }
+            )
         }
     }
 
@@ -238,7 +257,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
                     content = ByteReadChannel("{}"),
                     contentLength = 2L,
                     contentType = ContentType.Application.Json,
-                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.json")
+                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.json"),
                 )
             )
         val response =
@@ -253,10 +272,12 @@ class MediaRoutesTest : TrixnityBaseTest() {
             this.body<ByteReadChannel>().readUTF8Line() shouldBe "{}"
         }
         verifySuspend {
-            handlerMock.downloadMedia(assert {
-                it.endpoint.serverName shouldBe "matrix.org:443"
-                it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
-            })
+            handlerMock.downloadMedia(
+                assert {
+                    it.endpoint.serverName shouldBe "matrix.org:443"
+                    it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
+                }
+            )
         }
     }
 
@@ -269,7 +290,7 @@ class MediaRoutesTest : TrixnityBaseTest() {
                     content = ByteReadChannel("test"),
                     contentLength = 4L,
                     contentType = ContentType.Text.Plain,
-                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.txt")
+                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.txt"),
                 )
             )
         val response =
@@ -284,11 +305,13 @@ class MediaRoutesTest : TrixnityBaseTest() {
             this.body<ByteReadChannel>().readUTF8Line() shouldBe "test"
         }
         verifySuspend {
-            handlerMock.downloadMediaWithFileName(assert {
-                it.endpoint.serverName shouldBe "matrix.org:443"
-                it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
-                it.endpoint.fileName shouldBe "testFile.txt"
-            })
+            handlerMock.downloadMediaWithFileName(
+                assert {
+                    it.endpoint.serverName shouldBe "matrix.org:443"
+                    it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
+                    it.endpoint.fileName shouldBe "testFile.txt"
+                }
+            )
         }
     }
 
@@ -301,12 +324,13 @@ class MediaRoutesTest : TrixnityBaseTest() {
                     content = ByteReadChannel("test"),
                     contentLength = 4L,
                     contentType = ContentType.Text.Plain,
-                    contentDisposition = ContentDisposition("attachment")
-                        .withParameter("filename", "testFile.txt")
+                    contentDisposition = ContentDisposition("attachment").withParameter("filename", "testFile.txt"),
                 )
             )
         val response =
-            client.get("/_matrix/client/v1/media/thumbnail/matrix.org:443/ascERGshawAWawugaAcauga?width=64&height=64&method=scale") {
+            client.get(
+                "/_matrix/client/v1/media/thumbnail/matrix.org:443/ascERGshawAWawugaAcauga?width=64&height=64&method=scale"
+            ) {
                 bearerAuth("token")
             }
         assertSoftly(response) {
@@ -317,13 +341,15 @@ class MediaRoutesTest : TrixnityBaseTest() {
             this.body<ByteReadChannel>().readUTF8Line() shouldBe "test"
         }
         verifySuspend {
-            handlerMock.downloadThumbnail(assert {
-                it.endpoint.serverName shouldBe "matrix.org:443"
-                it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
-                it.endpoint.width shouldBe 64
-                it.endpoint.height shouldBe 64
-                it.endpoint.method shouldBe ThumbnailResizingMethod.SCALE
-            })
+            handlerMock.downloadThumbnail(
+                assert {
+                    it.endpoint.serverName shouldBe "matrix.org:443"
+                    it.endpoint.mediaId shouldBe "ascERGshawAWawugaAcauga"
+                    it.endpoint.width shouldBe 64
+                    it.endpoint.height shouldBe 64
+                    it.endpoint.method shouldBe ThumbnailResizingMethod.SCALE
+                }
+            )
         }
     }
 
@@ -331,27 +357,20 @@ class MediaRoutesTest : TrixnityBaseTest() {
     fun shouldGetUrlPreview() = testApplication {
         initCut()
         everySuspend { handlerMock.getUrlPreview(any()) }
-            .returns(
-                GetUrlPreview.Response(
-                    size = 102400,
-                    imageUrl = "mxc://example.com/ascERGshawAWawugaAcauga"
-                )
-            )
+            .returns(GetUrlPreview.Response(size = 102400, imageUrl = "mxc://example.com/ascERGshawAWawugaAcauga"))
         val response = client.get("/_matrix/client/v1/media/preview_url?url=someUrl") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "matrix:image:size": 102400,
                   "og:image": "mxc://example.com/ascERGshawAWawugaAcauga"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getUrlPreview(assert {
-                it.endpoint.url shouldBe "someUrl"
-            })
-        }
+        verifySuspend { handlerMock.getUrlPreview(assert { it.endpoint.url shouldBe "someUrl" }) }
     }
 }

@@ -9,9 +9,15 @@ import de.connect2x.trixnity.crypto.driver.test.SessionTest
 import de.connect2x.trixnity.crypto.driver.test.UtilityTest
 
 class VodozemacAccountTest : AccountTest(VodozemacCryptoDriver)
+
 class VodozemacPkEncryptionTest : PkEncryptionTest(VodozemacCryptoDriver)
+
 class VodozemacPkDecryptionTest : PkDecryptionTest(VodozemacCryptoDriver)
+
 class VodozemacPkSigningTest : PkSigningTest(VodozemacCryptoDriver)
+
 class VodozemacSasTest : SasTest(VodozemacCryptoDriver)
+
 class VodozemacSessionsTest : SessionTest(VodozemacCryptoDriver)
+
 class VodozemacUtilityTest : UtilityTest(VodozemacCryptoDriver)

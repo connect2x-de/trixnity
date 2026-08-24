@@ -12,17 +12,16 @@ data class EventContentMediaMappings(val mappings: List<EventContentMediaMapping
 internal suspend fun EventContentMediaMappings.findAndCallUploaderOrFallback(
     uploadProgress: MutableStateFlow<FileTransferProgress?>,
     content: EventContent,
-    upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+    upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
 ): EventContent {
     val uploader =
-        mappings.find { it.kClass.isInstance(content) && it.uploader != null }?.uploader as? EventContentMediaUploader<EventContent>
-            ?: getFallbackEventContentMediaUploader()
+        mappings.find { it.kClass.isInstance(content) && it.uploader != null }?.uploader
+            as? EventContentMediaUploader<EventContent> ?: getFallbackEventContentMediaUploader()
 
     return uploader(uploadProgress, content, upload)
 }
 
 @Suppress("UNCHECKED_CAST")
 internal suspend fun EventContentMediaMappings.findAndCallUriExtractorOrFallback(content: EventContent): Set<String> =
-    (mappings.find { it.kClass.isInstance(content) && it.uriExtractor != null }?.uriExtractor as? EventContentUriExtractor<EventContent>
-        ?: getFallbackEventContentUriExtractor())(content)
-
+    (mappings.find { it.kClass.isInstance(content) && it.uriExtractor != null }?.uriExtractor
+        as? EventContentUriExtractor<EventContent> ?: getFallbackEventContentUriExtractor())(content)

@@ -15,9 +15,7 @@ class EventContentSerializerMappingsTest {
             messageOf<RoomMessageEventContent.TextBased.Text>("m.room.message")
             stateOf<MemberEventContent>("m.room.member")
         }
-        val mappings2 = EventContentSerializerMappings {
-            ephemeralOf<TypingEventContent>("m.typing")
-        }
+        val mappings2 = EventContentSerializerMappings { ephemeralOf<TypingEventContent>("m.typing") }
 
         val result = mappings1 + mappings2
 

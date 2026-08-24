@@ -9,9 +9,5 @@ fun String.trimToFlatJson() = this.trimIndent().lines().joinToString("") { it.re
 class TestRoomVersionStore(val roomVersion: String) : RoomVersionStore {
     override fun getRoomVersion(roomId: RoomId): String = roomVersion
 
-    override fun setRoomVersion(
-        pdu: PersistentDataUnit.PersistentStateDataUnit<*>,
-        roomVersion: String
-    ) {
-    }
+    override fun setRoomVersion(pdu: PersistentDataUnit.PersistentStateDataUnit<*>, roomVersion: String) {}
 }

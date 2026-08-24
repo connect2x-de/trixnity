@@ -43,16 +43,12 @@ class ServerRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                serverApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { serverApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -66,23 +62,18 @@ class ServerRoutesTest : TrixnityBaseTest() {
     fun shouldGetVersions() = testApplication {
         initCut()
         everySuspend { handlerMock.getVersions(any()) }
-            .returns(
-                GetVersions.Response(
-                    versions = emptyList(),
-                    unstableFeatures = mapOf()
-                )
-            )
+            .returns(GetVersions.Response(versions = emptyList(), unstableFeatures = mapOf()))
         val response = client.get("/_matrix/client/versions") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {"versions":[],"unstable_features":{}}
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getVersions(any())
-        }
+        verifySuspend { handlerMock.getVersions(any()) }
     }
 
     @Test
@@ -91,19 +82,16 @@ class ServerRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.getCapabilities(any()) }
             .returns(
                 GetCapabilities.Response(
-                    capabilities = Capabilities(
-                        setOf(
-                            Capability.ChangePassword(true),
-                            Capability.RoomVersions("5", mapOf())
-                        )
-                    )
+                    capabilities =
+                        Capabilities(setOf(Capability.ChangePassword(true), Capability.RoomVersions("5", mapOf())))
                 )
             )
         val response = client.get("/_matrix/client/v3/capabilities") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "capabilities": {
                     "m.change_password": {
@@ -115,11 +103,10 @@ class ServerRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getCapabilities(any())
-        }
+        verifySuspend { handlerMock.getCapabilities(any()) }
     }
 
     @Test
@@ -131,63 +118,73 @@ class ServerRoutesTest : TrixnityBaseTest() {
                     Search.Response.ResultCategories(
                         Search.Response.ResultCategories.RoomEventsResult(
                             count = 1224,
-                            groups = mapOf(
-                                "room_id" to mapOf(
-                                    "!qPewotXpIctQySfjSy:localhost" to Search.Response.ResultCategories.RoomEventsResult.GroupValue(
-                                        nextBatch = "BdgFsdfHSf-dsFD",
-                                        order = 1,
-                                        results = listOf("$144429830826TWwbB:localhost")
-                                    )
-                                )
-                            ),
+                            groups =
+                                mapOf(
+                                    "room_id" to
+                                        mapOf(
+                                            "!qPewotXpIctQySfjSy:localhost" to
+                                                Search.Response.ResultCategories.RoomEventsResult.GroupValue(
+                                                    nextBatch = "BdgFsdfHSf-dsFD",
+                                                    order = 1,
+                                                    results = listOf("$144429830826TWwbB:localhost"),
+                                                )
+                                        )
+                                ),
                             highlights = setOf("martians", "men"),
                             nextBatch = "5FdgFsd234dfgsdfFD",
-                            results = listOf(
-                                Search.Response.ResultCategories.RoomEventsResult.Results(
-                                    rank = 0.00424866,
-                                    result = MessageEvent(
-                                        RoomMessageEventContent.TextBased.Text("This is an example text message"),
-                                        id = EventId("$144429830826TWwbB:localhost"),
-                                        originTimestamp = 1432735824653,
-                                        roomId = RoomId("!qPewotXpIctQySfjSy:localhost"),
-                                        sender = UserId("@example:example.org")
+                            results =
+                                listOf(
+                                    Search.Response.ResultCategories.RoomEventsResult.Results(
+                                        rank = 0.00424866,
+                                        result =
+                                            MessageEvent(
+                                                RoomMessageEventContent.TextBased.Text(
+                                                    "This is an example text message"
+                                                ),
+                                                id = EventId("$144429830826TWwbB:localhost"),
+                                                originTimestamp = 1432735824653,
+                                                roomId = RoomId("!qPewotXpIctQySfjSy:localhost"),
+                                                sender = UserId("@example:example.org"),
+                                            ),
                                     )
-                                )
-                            )
+                                ),
                         )
                     )
                 )
             )
-        val response = client.post("/_matrix/client/v3/search") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "search_categories": {
-                    "room_events": {
-                      "groupings": {
-                        "group_by": [
-                          {
-                            "key": "room_id"
-                          }
-                        ]
-                      },
-                      "keys": [
-                        "content.body"
-                      ],
-                      "order_by": "recent",
-                      "search_term": "martians and men"
+        val response =
+            client.post("/_matrix/client/v3/search") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "search_categories": {
+                        "room_events": {
+                          "groupings": {
+                            "group_by": [
+                              {
+                                "key": "room_id"
+                              }
+                            ]
+                          },
+                          "keys": [
+                            "content.body"
+                          ],
+                          "order_by": "recent",
+                          "search_term": "martians and men"
+                        }
+                      }
                     }
-                  }
-                }
-            """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "search_categories": {
                     "room_events": {
@@ -227,27 +224,30 @@ class ServerRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.search(assert {
-                it.requestBody shouldBe Search.Request(
-                    Search.Request.Categories(
-                        Search.Request.Categories.RoomEventsCriteria(
-                            groupings = Search.Request.Categories.RoomEventsCriteria.Groupings(
-                                setOf(
-                                    Search.Request.Categories.RoomEventsCriteria.Groupings.Groups(
-                                        "room_id"
-                                    )
+            handlerMock.search(
+                assert {
+                    it.requestBody shouldBe
+                        Search.Request(
+                            Search.Request.Categories(
+                                Search.Request.Categories.RoomEventsCriteria(
+                                    groupings =
+                                        Search.Request.Categories.RoomEventsCriteria.Groupings(
+                                            setOf(
+                                                Search.Request.Categories.RoomEventsCriteria.Groupings.Groups("room_id")
+                                            )
+                                        ),
+                                    keys = setOf("content.body"),
+                                    orderBy = Search.Request.Categories.RoomEventsCriteria.Ordering.RECENT,
+                                    searchTerm = "martians and men",
                                 )
-                            ),
-                            keys = setOf("content.body"),
-                            orderBy = Search.Request.Categories.RoomEventsCriteria.Ordering.RECENT,
-                            searchTerm = "martians and men"
+                            )
                         )
-                    )
-                )
-            })
+                }
+            )
         }
     }
 }

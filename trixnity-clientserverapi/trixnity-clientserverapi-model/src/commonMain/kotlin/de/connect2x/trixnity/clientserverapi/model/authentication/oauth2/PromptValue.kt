@@ -29,7 +29,6 @@ sealed interface PromptValue {
                 else -> Unknown(value)
             }
 
-        override fun serialize(encoder: Encoder, value: PromptValue) =
-            encoder.encodeString(value.value)
+        override fun serialize(encoder: Encoder, value: PromptValue) = encoder.encodeString(value.value)
     }
 }

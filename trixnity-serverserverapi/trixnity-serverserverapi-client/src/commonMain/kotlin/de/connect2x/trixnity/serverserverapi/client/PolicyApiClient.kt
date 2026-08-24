@@ -7,15 +7,11 @@ import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.serverserverapi.model.policy.Sign
 
 interface PolicyApiClient {
-    /**
-     * @see [Sign]
-     */
+    /** @see [Sign] */
     suspend fun sign(pdu: Signed<PersistentDataUnit<*>, String>): Result<Signatures<String>>
 }
 
-class PolicyApiClientImpl(
-    private val baseClient: MatrixApiClient
-) : PolicyApiClient {
+class PolicyApiClientImpl(private val baseClient: MatrixApiClient) : PolicyApiClient {
     override suspend fun sign(pdu: Signed<PersistentDataUnit<*>, String>): Result<Signatures<String>> =
         baseClient.request(Sign, pdu)
 }

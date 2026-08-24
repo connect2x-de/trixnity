@@ -4,14 +4,15 @@ import de.connect2x.trixnity.core.model.events.EphemeralDataUnit
 import de.connect2x.trixnity.core.model.events.EphemeralDataUnitContent
 
 class EphemeralDataUnitSerializer(
-    ephemeralDataUnitContentSerializers: Set<EventContentSerializerMapping<EphemeralDataUnitContent>>,
-) : BaseEventSerializer<EphemeralDataUnitContent, EphemeralDataUnit<*>>(
-    "EphemeralDataUnit",
-    EventContentToEventSerializerMappings(
-        baseMapping = ephemeralDataUnitContentSerializers,
-        eventDeserializer = { EphemeralDataUnit.serializer(it.serializer) },
-        unknownEventSerializer = { EphemeralDataUnit.serializer(UnknownEventContentSerializer(it)) },
-        typeField = "edu_type",
-    ),
-    "edu_type"
-)
+    ephemeralDataUnitContentSerializers: Set<EventContentSerializerMapping<EphemeralDataUnitContent>>
+) :
+    BaseEventSerializer<EphemeralDataUnitContent, EphemeralDataUnit<*>>(
+        "EphemeralDataUnit",
+        EventContentToEventSerializerMappings(
+            baseMapping = ephemeralDataUnitContentSerializers,
+            eventDeserializer = { EphemeralDataUnit.serializer(it.serializer) },
+            unknownEventSerializer = { EphemeralDataUnit.serializer(UnknownEventContentSerializer(it)) },
+            typeField = "edu_type",
+        ),
+        "edu_type",
+    )

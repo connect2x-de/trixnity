@@ -17,8 +17,7 @@ import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession
 import de.connect2x.trixnity.vodozemac.olm.Account
 import de.connect2x.trixnity.vodozemac.olm.Session
 
-private val log =
-    Logger("de.connect2x.trixnity.client.cryptodriver.vodozemac.VodozemacRepositoryMigration")
+private val log = Logger("de.connect2x.trixnity.client.cryptodriver.vodozemac.VodozemacRepositoryMigration")
 
 data class VodozemacRepositoryMigration(
     val tm: StoreTransactionManager,
@@ -48,7 +47,12 @@ private suspend fun VodozemacRepositoryMigration.applyVodozemacMigrations() {
             migrationRepository.save(MIGRATION_NAME, MigrationVersion.V1.value)
         }
 
-        val account = accountRepository.get(1) ?: run { save(); return }
+        val account =
+            accountRepository.get(1)
+                ?: run {
+                    save()
+                    return
+                }
 
         val oldPickleKey = account.olmPickleKey ?: ""
         val newPickleKey = PickleKey.Companion(oldPickleKey.takeIf(String::isNotEmpty))
@@ -63,7 +67,6 @@ private suspend fun VodozemacRepositoryMigration.applyVodozemacMigrations() {
         olmSessionRepository.updatePickles(Session.Companion::migrate)
         outboundMegolmSessionRepository.updatePickles(GroupSession.Companion::migrate)
         inboundMegolmSessionRepository.updatePickles(InboundGroupSession.Companion::migrate)
-
 
         accountRepository.save(1, account.copy(olmPickleKey = newPickleKey?.base64))
 
@@ -88,42 +91,28 @@ context(transaction: StoreWriteTransaction)
 private suspend fun OlmSessionRepository.updatePickles(block: (String) -> String) {
     getAll()
         .asSequence()
-        .mapNotNull { sessions ->
-            sessions.firstOrNull()?.let { it.senderKey to sessions }
-        }
+        .mapNotNull { sessions -> sessions.firstOrNull()?.let { it.senderKey to sessions } }
         .forEach { (senderKey, sessions) ->
             save(
                 senderKey,
-                sessions.mapTo(HashSet(sessions.size)) { session -> session.copy(pickled = block(session.pickled)) }
+                sessions.mapTo(HashSet(sessions.size)) { session -> session.copy(pickled = block(session.pickled)) },
             )
         }
 }
 
 context(transaction: StoreWriteTransaction)
 private suspend fun OutboundMegolmSessionRepository.updatePickles(block: (String) -> String) {
-    getAll()
-        .asSequence()
-        .forEach { session ->
-            save(
-                session.roomId,
-                session.copy(pickled = block(session.pickled)),
-            )
-        }
+    getAll().asSequence().forEach { session -> save(session.roomId, session.copy(pickled = block(session.pickled))) }
 }
 
 context(transaction: StoreWriteTransaction)
 private suspend fun InboundMegolmSessionRepository.updatePickles(block: (String) -> String) {
-    getAll()
-        .asSequence()
-        .forEach { session ->
-            save(
-                InboundMegolmSessionRepositoryKey(
-                    sessionId = session.sessionId,
-                    roomId = session.roomId,
-                ),
-                session.copy(pickled = block(session.pickled))
-            )
-        }
+    getAll().asSequence().forEach { session ->
+        save(
+            InboundMegolmSessionRepositoryKey(sessionId = session.sessionId, roomId = session.roomId),
+            session.copy(pickled = block(session.pickled)),
+        )
+    }
 }
 
 private typealias PickleMigration = (oldPickle: String) -> String
@@ -144,43 +133,47 @@ private inline fun <T> pickleMigration(
 private fun Account.Companion.vodozemacMigration(
     oldPickleKey: String,
     newPickleKey: PickleKey? = null,
-): PickleMigration = pickleMigration(
-    name = "Account",
-    oldPickleKey = oldPickleKey,
-    newPickleKey = newPickleKey,
-    fromLibolmPickle = ::fromLibolmPickle,
-    intoPickle = Account::pickle
-)
+): PickleMigration =
+    pickleMigration(
+        name = "Account",
+        oldPickleKey = oldPickleKey,
+        newPickleKey = newPickleKey,
+        fromLibolmPickle = ::fromLibolmPickle,
+        intoPickle = Account::pickle,
+    )
 
 private fun Session.Companion.vodozemacMigration(
     oldPickleKey: String,
     newPickleKey: PickleKey? = null,
-): PickleMigration = pickleMigration(
-    name = "Session",
-    oldPickleKey = oldPickleKey,
-    newPickleKey = newPickleKey,
-    fromLibolmPickle = ::fromLibolmPickle,
-    intoPickle = Session::pickle
-)
+): PickleMigration =
+    pickleMigration(
+        name = "Session",
+        oldPickleKey = oldPickleKey,
+        newPickleKey = newPickleKey,
+        fromLibolmPickle = ::fromLibolmPickle,
+        intoPickle = Session::pickle,
+    )
 
 private fun GroupSession.Companion.vodozemacMigration(
     oldPickleKey: String,
     newPickleKey: PickleKey? = null,
-): PickleMigration = pickleMigration(
-    name = "GroupSession",
-    oldPickleKey = oldPickleKey,
-    newPickleKey = newPickleKey,
-    fromLibolmPickle = ::fromLibolmPickle,
-    intoPickle = GroupSession::pickle
-)
+): PickleMigration =
+    pickleMigration(
+        name = "GroupSession",
+        oldPickleKey = oldPickleKey,
+        newPickleKey = newPickleKey,
+        fromLibolmPickle = ::fromLibolmPickle,
+        intoPickle = GroupSession::pickle,
+    )
 
 private fun InboundGroupSession.Companion.vodozemacMigration(
     oldPickleKey: String,
     newPickleKey: PickleKey? = null,
-): PickleMigration = pickleMigration(
-    name = "InboundGroupSession",
-    oldPickleKey = oldPickleKey,
-    newPickleKey = newPickleKey,
-    fromLibolmPickle = ::fromLibolmPickle,
-    intoPickle = InboundGroupSession::pickle
-)
+): PickleMigration =
+    pickleMigration(
+        name = "InboundGroupSession",
+        oldPickleKey = oldPickleKey,
+        newPickleKey = newPickleKey,
+        fromLibolmPickle = ::fromLibolmPickle,
+        intoPickle = InboundGroupSession::pickle,
+    )

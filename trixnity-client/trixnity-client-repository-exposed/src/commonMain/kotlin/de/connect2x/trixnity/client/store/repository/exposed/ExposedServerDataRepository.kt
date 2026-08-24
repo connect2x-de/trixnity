@@ -20,9 +20,10 @@ internal object ExposedServerData : LongIdTable("server_data") {
 internal class ExposedServerDataRepository(private val json: Json) : ServerDataRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): ServerData? {
-        return ExposedServerData.selectAll().where { ExposedServerData.id eq key }.firstOrNull()?.let {
-            it[ExposedServerData.value].let { outdated -> json.decodeFromString<ServerData>(outdated) }
-        }
+        return ExposedServerData.selectAll()
+            .where { ExposedServerData.id eq key }
+            .firstOrNull()
+            ?.let { it[ExposedServerData.value].let { outdated -> json.decodeFromString<ServerData>(outdated) } }
     }
 
     context(transaction: WriteTransaction)

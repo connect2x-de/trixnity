@@ -8,9 +8,7 @@ kotlin {
     linuxX64()
     applyDefaultHierarchyTemplate()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-        }
+        all { languageSettings.optIn("kotlin.RequiresOptIn") }
         commonMain {
             dependencies {
                 api(projects.trixnityApiServer)

@@ -30,7 +30,7 @@ private external fun vodozemac_sas_mac_free(mac: NativePointer)
 @ExternalSymbolName("vodozemac_sas_mac_as_bytes")
 private external fun vodozemac_sas_mac_as_bytes(
     mac: NativePointer,
-    bytes_out: InteropPointer // must be 32 bytes
+    bytes_out: InteropPointer, // must be 32 bytes
 )
 
 @ModuleImport("vodozemac", "vodozemac_sas_mac_from_slice")

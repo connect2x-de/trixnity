@@ -8,12 +8,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
 import io.kotest.matchers.string.shouldNotBeBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmInboundGroupSessionTest : TrixnityBaseTest() {
 
-    private val sessionKey = "AgAAAAAwMTIzNDU2Nzg5QUJERUYwMTIzNDU2Nzg5QUJDREVGMDEyMzQ1Njc4OUFCREVGM" +
+    private val sessionKey =
+        "AgAAAAAwMTIzNDU2Nzg5QUJERUYwMTIzNDU2Nzg5QUJDREVGMDEyMzQ1Njc4OUFCREVGM" +
             "DEyMzQ1Njc4OUFCQ0RFRjAxMjM0NTY3ODlBQkRFRjAxMjM0NTY3ODlBQkNERUYwMTIzND" +
             "U2Nzg5QUJERUYwMTIzNDU2Nzg5QUJDREVGMDEyMw0bdg1BDq4Px/slBow06q8n/B9WBfw" +
             "WYyNOB8DlUmXGGwrFmaSb9bR/eY8xgERrxmP07hFmD9uqA2p8PMHdnV5ysmgufE6oLZ5+" +
@@ -65,8 +66,8 @@ class OlmInboundGroupSessionTest : TrixnityBaseTest() {
         freeAfter(OlmOutboundGroupSession.create()) { aliceOutboundSession ->
             val encryptedMessage = aliceOutboundSession.encrypt("Hello from Alice!")
             freeAfter(OlmInboundGroupSession.create(aliceOutboundSession.sessionKey)) { bobInboundSession ->
-                shouldThrow<OlmLibraryException> { bobInboundSession.decrypt(encryptedMessage) }
-                    .message shouldBe "UNKNOWN_MESSAGE_INDEX"
+                shouldThrow<OlmLibraryException> { bobInboundSession.decrypt(encryptedMessage) }.message shouldBe
+                    "UNKNOWN_MESSAGE_INDEX"
             }
         }
     }
@@ -78,26 +79,26 @@ class OlmInboundGroupSessionTest : TrixnityBaseTest() {
         val msgWithInvalidBase64 = "AwgANYTHINGf87ge45ge7gr*/rg5ganything4gr41rrgr4re55tanythingmcsXUkhDv0UePj922kgf+"
 
         freeAfter(OlmInboundGroupSession.create(sessionKey)) { inboundSession ->
-            shouldThrow<OlmLibraryException> {
-                inboundSession.decrypt(msgWithInvalidBase64)
-            }.message shouldBe "INVALID_BASE64"
+            shouldThrow<OlmLibraryException> { inboundSession.decrypt(msgWithInvalidBase64) }.message shouldBe
+                "INVALID_BASE64"
         }
     }
 
-
     @Test
     fun importExport() = runTest {
-        val encryptedMessage = "AwgAEhAcbh6UpbByoyZxufQ+h2B+8XHMjhR69G8F4+qjMaFlnIXusJZX3r8LnRORG9T3D" +
+        val encryptedMessage =
+            "AwgAEhAcbh6UpbByoyZxufQ+h2B+8XHMjhR69G8F4+qjMaFlnIXusJZX3r8LnRORG9T3D" +
                 "XFdbVuvIWrLyRfm4i8QRbe8VPwGRFG57B1CtmxanuP8bHtnnYqlwPsD"
-        val export = freeAfter(OlmInboundGroupSession.create(sessionKey)) { inboundSession ->
-            assertSoftly(inboundSession.decrypt(encryptedMessage)) {
-                message shouldBe "Message"
-                index shouldBe 0
+        val export =
+            freeAfter(OlmInboundGroupSession.create(sessionKey)) { inboundSession ->
+                assertSoftly(inboundSession.decrypt(encryptedMessage)) {
+                    message shouldBe "Message"
+                    index shouldBe 0
+                }
+                val firstKnownIndex = inboundSession.firstKnownIndex
+                firstKnownIndex shouldBeGreaterThanOrEqual 0
+                inboundSession.export(inboundSession.firstKnownIndex)
             }
-            val firstKnownIndex = inboundSession.firstKnownIndex
-            firstKnownIndex shouldBeGreaterThanOrEqual 0
-            inboundSession.export(inboundSession.firstKnownIndex)
-        }
         freeAfter(OlmInboundGroupSession.import(export)) { inboundSession ->
             assertSoftly(inboundSession.decrypt(encryptedMessage)) {
                 message shouldBe "Message"
@@ -108,7 +109,6 @@ class OlmInboundGroupSessionTest : TrixnityBaseTest() {
         }
     }
 
-
     @Test
     fun pickle() = runTest {
         freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
@@ -118,16 +118,15 @@ class OlmInboundGroupSessionTest : TrixnityBaseTest() {
 
     @Test
     fun pickleWithEmptyKey() = runTest {
-        freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
-            session.pickle(null) shouldNot beBlank()
-        }
+        freeAfter(OlmInboundGroupSession.create(sessionKey)) { session -> session.pickle(null) shouldNot beBlank() }
     }
 
     @Test
     fun unpickle() = runTest {
-        val pickle = freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
-            session.pickle("someKey") to session.sessionId
-        }
+        val pickle =
+            freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
+                session.pickle("someKey") to session.sessionId
+            }
         freeAfter(OlmInboundGroupSession.unpickle("someKey", pickle.first)) { session ->
             session.sessionId shouldBe pickle.second
         }
@@ -135,9 +134,10 @@ class OlmInboundGroupSessionTest : TrixnityBaseTest() {
 
     @Test
     fun unpickleWithEmptyKey() = runTest {
-        val pickle = freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
-            session.pickle(null) to session.sessionId
-        }
+        val pickle =
+            freeAfter(OlmInboundGroupSession.create(sessionKey)) { session ->
+                session.pickle(null) to session.sessionId
+            }
         freeAfter(OlmInboundGroupSession.unpickle(null, pickle.first)) { session ->
             session.sessionId shouldBe pickle.second
         }

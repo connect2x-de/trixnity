@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.sas
 
 import de.connect2x.trixnity.crypto.driver.keys.Curve25519PublicKey
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
 import de.connect2x.trixnity.crypto.driver.sas.Sas
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
 import de.connect2x.trixnity.vodozemac.sas.Sas as VodozemacSas
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 

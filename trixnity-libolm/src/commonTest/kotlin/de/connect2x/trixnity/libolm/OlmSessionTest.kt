@@ -3,8 +3,8 @@ package de.connect2x.trixnity.libolm
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmSessionTest {
 
@@ -29,7 +29,6 @@ class OlmSessionTest {
             decryptedMessage shouldBe "Hello bob , this is alice!"
         }
     }
-
 
     @Test
     fun encryptAfterOneTimeKey() = runTest {
@@ -107,8 +106,8 @@ class OlmSessionTest {
                     bobSession.decrypt(fromAlice2) shouldBe "from alice 2"
 
                     val fromBob1 = bobSession.encrypt("from bob 1")
-                    bobSession.encrypt("from bob 2")// lost
-                    bobSession.encrypt("from bob 3")// lost
+                    bobSession.encrypt("from bob 2") // lost
+                    bobSession.encrypt("from bob 3") // lost
                     val fromBob4 = bobSession.encrypt("from bob 4")
                     aliceSession.decrypt(fromBob4) shouldBe "from bob 4" // wrong order
                     aliceSession.decrypt(fromBob1) shouldBe "from bob 1"
@@ -116,7 +115,6 @@ class OlmSessionTest {
             }
         }
     }
-
 
     @Test
     fun sessionIdShouldBeSameOnBothEnds() = runTest {
@@ -147,13 +145,8 @@ class OlmSessionTest {
 
             freeAfter(OlmSession.createOutbound(aliceAccount, bobIdentityKey, bobOneTimeKey)) { aliceSession ->
                 val message = aliceSession.encrypt("Hello bob , this is alice!")
-                freeAfter(
-                    OlmSession.createInboundFrom(
-                        bobAccount,
-                        aliceIdentityKey,
-                        message.cipherText
-                    )
-                ) { bobSession ->
+                freeAfter(OlmSession.createInboundFrom(bobAccount, aliceIdentityKey, message.cipherText)) { bobSession
+                    ->
                     bobSession.matchesInboundSession(message.cipherText) shouldBe true
                     bobSession.matchesInboundSessionFrom(aliceIdentityKey, message.cipherText)
                 }
@@ -227,9 +220,7 @@ class OlmSessionTest {
                     sessionId = aliceSession.sessionId
                     aliceSession.pickle(null)
                 }
-            freeAfter(OlmSession.unpickle(null, pickle)) { aliceSession ->
-                aliceSession.sessionId shouldBe sessionId
-            }
+            freeAfter(OlmSession.unpickle(null, pickle)) { aliceSession -> aliceSession.sessionId shouldBe sessionId }
         }
     }
 }
