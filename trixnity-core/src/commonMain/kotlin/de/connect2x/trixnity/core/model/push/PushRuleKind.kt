@@ -5,18 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class PushRuleKind {
-    @SerialName("override")
-    OVERRIDE,
-
-    @SerialName("content")
-    CONTENT,
-
-    @SerialName("room")
-    ROOM,
-
-    @SerialName("sender")
-    SENDER,
-
-    @SerialName("underride")
-    UNDERRIDE,
+    @SerialName("override") OVERRIDE,
+    @SerialName("content") CONTENT,
+    @SerialName("room") ROOM,
+    @SerialName("sender") SENDER,
+    @SerialName("underride") UNDERRIDE,
 }

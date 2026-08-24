@@ -33,6 +33,11 @@ import io.ktor.http.*
 import io.ktor.http.ContentType.*
 import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.resources.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.fail
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,25 +48,16 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.fail
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
 
     private val baseUrl = Url("https://matrix.host")
     private val json = createMatrixEventJson()
     private val mappings = EventContentSerializerMappings.default
-    var onLogout: LogoutInfo? = null.also {
-        scheduleSetup { onLogout = null }
-    }
+    var onLogout: LogoutInfo? = null.also { scheduleSetup { onLogout = null } }
     private val classicAuthProviderStore =
         MatrixClientAuthProviderDataStore.inMemory(MatrixClientAuthProviderData.classic(baseUrl, "access")).apply {
-            scheduleSetup {
-                setAuthData(MatrixClientAuthProviderData.classic(baseUrl, "access"))
-            }
+            scheduleSetup { setAuthData(MatrixClientAuthProviderData.classic(baseUrl, "access")) }
         }
     private val classicAuthProvider =
         ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, { onLogout = it })
@@ -73,15 +69,9 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         @SerialName("pathParam") val pathParam: String,
         @SerialName("requestParam") val requestParam: String,
     ) : MatrixEndpoint<PostPath.Request, PostPath.Response> {
-        @Serializable
-        data class Request(
-            val includeDino: Boolean
-        )
+        @Serializable data class Request(val includeDino: Boolean)
 
-        @Serializable
-        data class Response(
-            val status: String
-        )
+        @Serializable data class Response(val status: String)
     }
 
     @Serializable
@@ -122,157 +112,167 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
 
     private val serverMetadata =
         """
-            {
-                "authorization_endpoint":"https://auth.matrix.host/_oauth2/authorize",
-                "code_challenge_methods_supported":["S256"],
-                "grant_types_supported":["refresh_token","authorization_code"],
-                "issuer":"https://auth.matrix.host",
-                "prompt_values_supported":["create"],
-                "registration_endpoint":"https://auth.matrix.host/_oauth2/registration",
-                "response_modes_supported":["query"],
-                "response_types_supported":["code"],
-                "revocation_endpoint":"https://auth.matrix.host/_oauth2/revoke",
-                "token_endpoint":"https://auth.matrix.host/_oauth2/token"
-            }
-        """.trimIndent()
+        {
+            "authorization_endpoint":"https://auth.matrix.host/_oauth2/authorize",
+            "code_challenge_methods_supported":["S256"],
+            "grant_types_supported":["refresh_token","authorization_code"],
+            "issuer":"https://auth.matrix.host",
+            "prompt_values_supported":["create"],
+            "registration_endpoint":"https://auth.matrix.host/_oauth2/registration",
+            "response_modes_supported":["query"],
+            "response_types_supported":["code"],
+            "revocation_endpoint":"https://auth.matrix.host/_oauth2/revoke",
+            "token_endpoint":"https://auth.matrix.host/_oauth2/token"
+        }
+        """
+            .trimIndent()
 
     @Test
     fun itShouldHaveAuthenticationTokenIncludedAndDoNormalRequest() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    request.url.fullPath shouldBe "/path/1?requestParam=2"
-                    request.url.host shouldBe "matrix.host"
-                    request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
-                    request.headers[HttpHeaders.Accept] shouldBe Application.Json.toString()
-                    request.method shouldBe Post
-                    request.body.toByteArray().decodeToString() shouldBe """{"includeDino":true}"""
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            request.url.fullPath shouldBe "/path/1?requestParam=2"
+                            request.url.host shouldBe "matrix.host"
+                            request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
+                            request.headers[HttpHeaders.Accept] shouldBe Application.Json.toString()
+                            request.method shouldBe Post
+                            request.body.toByteArray().decodeToString() shouldBe """{"includeDino":true}"""
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
     }
 
     @Test
     fun itShouldNotHaveAuthenticationTokenIncludedAndDoNormalRequest() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    request.headers[HttpHeaders.Authorization] shouldBe null
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            request.headers[HttpHeaders.Authorization] shouldBe null
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        cut.request(PostPathWithoutAuth("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPathWithoutAuth("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
     }
 
     @Test
     fun itShouldNotRetryWithTokenOnNever() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    request.headers[HttpHeaders.Authorization] shouldBe null
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.Unauthorized,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            request.headers[HttpHeaders.Authorization] shouldBe null
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.Unauthorized,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        val result = cut.request(PostPathWithDisabledAuth("1", "2"), PostPath.Request(true))
-            .exceptionOrNull()
-            .shouldBeInstanceOf<MatrixServerException>()
+        val result =
+            cut.request(PostPathWithDisabledAuth("1", "2"), PostPath.Request(true))
+                .exceptionOrNull()
+                .shouldBeInstanceOf<MatrixServerException>()
         result.statusCode shouldBe HttpStatusCode.Unauthorized
-        result.errorResponse.shouldBeInstanceOf<ErrorResponse.BadJson>().error shouldStartWith "response could not be parsed to ErrorResponse"
+        result.errorResponse.shouldBeInstanceOf<ErrorResponse.BadJson>().error shouldStartWith
+            "response could not be parsed to ErrorResponse"
     }
 
     @Test
     fun itShouldRetryWithToken() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    if (request.headers[HttpHeaders.Authorization] == "Bearer access") {
-                        respond(
-                            """{"status":"ok"}""",
-                            HttpStatusCode.OK,
-                            headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                        )
-                    } else {
-                        respond(
-                            """{"status":"not ok"}""",
-                            HttpStatusCode.Unauthorized,
-                            headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                        )
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            if (request.headers[HttpHeaders.Authorization] == "Bearer access") {
+                                respond(
+                                    """{"status":"ok"}""",
+                                    HttpStatusCode.OK,
+                                    headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                )
+                            } else {
+                                respond(
+                                    """{"status":"not ok"}""",
+                                    HttpStatusCode.Unauthorized,
+                                    headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                )
+                            }
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        cut.request(PostPathWithoutAuth("1", "2"), PostPath.Request(true))
-            .getOrThrow() shouldBe PostPath.Response("ok")
+        cut.request(PostPathWithoutAuth("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
     }
 
     @Test
     fun itShouldHaveOptionalAuthenticationTokenIncludedAndDoNormalRequest() = runTest {
         classicAuthProviderStore.setAuthData(null)
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    request.headers[HttpHeaders.Authorization] shouldBe null
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-                addHandler { request ->
-                    request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = ClassicMatrixClientAuthProvider(baseUrl, classicAuthProviderStore, {}),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            request.headers[HttpHeaders.Authorization] shouldBe null
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                        addHandler { request ->
+                            request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         cut.request(PostPathWithOptionalAuth("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+            PostPath.Response("ok")
 
         classicAuthProviderStore.setAuthData(MatrixClientAuthProviderData.classic(baseUrl, "access"))
 
         cut.request(PostPathWithOptionalAuth("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+            PostPath.Response("ok")
     }
 
     @Test
@@ -281,27 +281,27 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                refreshCalled = true
-                                request.body.toByteArray().decodeToString() shouldBe
-                                        "grant_type=refresh_token" +
-                                        "&refresh_token=refresh" +
-                                        "&client_id=clientId"
-                                respond(
-                                    """
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    refreshCalled = true
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        "grant_type=refresh_token" + "&refresh_token=refresh" + "&client_id=clientId"
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "token_type": "Bearer",
@@ -309,60 +309,64 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
 
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe true
@@ -373,68 +377,66 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     fun `Classic - should refresh token`() = runTest {
         var refreshCalled = false
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled = true
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled = true
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "expires_in_ms": 60000,
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe true
         onLogout shouldBe null
     }
@@ -445,85 +447,89 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                refreshCalled = true
-                                request.body.toByteArray().decodeToString() shouldBe
-                                        "grant_type=refresh_token" +
-                                        "&refresh_token=refresh" +
-                                        "&client_id=clientId"
-                                respond(
-                                    "{\"error\": \"invalid_grant\"}",
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    refreshCalled = true
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        "grant_type=refresh_token" + "&refresh_token=refresh" + "&client_id=clientId"
+                                    respond(
+                                        "{\"error\": \"invalid_grant\"}",
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
 
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        shouldThrow<ClientRequestException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }.response.status shouldBe HttpStatusCode.Unauthorized
+        shouldThrow<ClientRequestException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
+            .response
+            .status shouldBe HttpStatusCode.Unauthorized
         refreshCalled shouldBe true
         onLogout shouldBe LogoutInfo(isSoft = true, isLocked = false)
     }
@@ -532,69 +538,69 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     fun `Classic - should refresh token and logout`() = runTest {
         var refreshCalled = false
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled = true
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled = true
+                                    respond(
+                                        """
                                         {
                                           "errcode": "M_UNKNOWN_TOKEN",
                                           "error": "Soft logged out (access token expired)",
                                           "soft_logout": true
                                         }
-                                    """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }.errorResponse.shouldBeInstanceOf<ErrorResponse.UnknownToken>()
+        shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
+            .errorResponse
+            .shouldBeInstanceOf<ErrorResponse.UnknownToken>()
         refreshCalled shouldBe true
         onLogout shouldBe LogoutInfo(isSoft = true, isLocked = false)
     }
@@ -605,27 +611,27 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                refreshCalled = true
-                                request.body.toByteArray().decodeToString() shouldBe
-                                        "grant_type=refresh_token" +
-                                        "&refresh_token=refresh" +
-                                        "&client_id=clientId"
-                                respond(
-                                    """
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    refreshCalled = true
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        "grant_type=refresh_token" + "&refresh_token=refresh" + "&client_id=clientId"
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "token_type": "Bearer",
@@ -633,53 +639,57 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    respond(
+                                        """
                                         {
                                           "errcode": "M_UNKNOWN_TOKEN",
                                           "error": "Soft logged out (access token expired)",
                                           "soft_logout": true
                                         }
-                                    """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
+                            }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }.errorResponse.shouldBeInstanceOf<ErrorResponse.UnknownToken>()
+        shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
+            .errorResponse
+            .shouldBeInstanceOf<ErrorResponse.UnknownToken>()
         refreshCalled shouldBe true
         onLogout shouldBe null
     }
@@ -688,59 +698,58 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     fun `Classic - should refresh token and not logout`() = runTest {
         var refreshCalled = false
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled = true
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled = true
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "expires_in_ms": 60000,
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            respond(
-                                """
+                                "/path/1?requestParam=2" -> {
+                                    respond(
+                                        """
                                         {
                                           "errcode": "M_UNKNOWN_TOKEN",
                                           "error": "Soft logged out (access token expired)",
                                           "soft_logout": true
                                         }
-                                    """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
+                            }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }.errorResponse.shouldBeInstanceOf<ErrorResponse.UnknownToken>()
+        shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
+            .errorResponse
+            .shouldBeInstanceOf<ErrorResponse.UnknownToken>()
         refreshCalled shouldBe true
         onLogout shouldBe null
     }
@@ -751,28 +760,31 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh1"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh1",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                refreshCalled++
-                                request.body.toByteArray().decodeToString() shouldBe
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    refreshCalled++
+                                    request.body.toByteArray().decodeToString() shouldBe
                                         "grant_type=refresh_token" +
-                                        "&refresh_token=refresh$refreshCalled" +
-                                        "&client_id=clientId"
-                                when (refreshCalled) {
-                                    1 -> respond(
-                                        """
+                                            "&refresh_token=refresh$refreshCalled" +
+                                            "&client_id=clientId"
+                                    when (refreshCalled) {
+                                        1 ->
+                                            respond(
+                                                """
                                     {
                                         "access_token": "access1",
                                         "token_type": "Bearer",
@@ -780,12 +792,13 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                        HttpStatusCode.OK,
-                                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                    )
+                                                HttpStatusCode.OK,
+                                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                            )
 
-                                    else -> respond(
-                                        """
+                                        else ->
+                                            respond(
+                                                """
                                     {
                                         "access_token": "access2",
                                         "token_type": "Bearer",
@@ -793,90 +806,93 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                         "refresh_token": "refresh3"
                                     }
                                 """,
-                                        HttpStatusCode.OK,
-                                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                    )
+                                                HttpStatusCode.OK,
+                                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                            )
+                                    }
                                 }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access1"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access1"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                "/path/2?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access1") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access2"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        "/path/2?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access1") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access2"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            }
-                        }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe 1
-        cut.request(PostPath("2", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("2", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe 2
         onLogout shouldBe null
     }
@@ -885,107 +901,107 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     fun `Classic - should refresh token with old refresh token`() = runTest {
         var refreshCalled = 0
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled++
-                            when (refreshCalled) {
-                                1 -> respond(
-                                    """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled++
+                                    when (refreshCalled) {
+                                        1 ->
+                                            respond(
+                                                """
                                     {
                                         "access_token": "access1",
                                         "expires_in_ms": 60000
                                     }
                                 """,
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                                HttpStatusCode.OK,
+                                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                            )
 
-                                else -> respond(
-                                    """
+                                        else ->
+                                            respond(
+                                                """
                                     {
                                         "access_token": "access2",
                                         "expires_in_ms": 60000
                                     }
                                 """,
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                                HttpStatusCode.OK,
+                                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                            )
+                                    }
+                                }
+
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access1"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                "/path/2?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access1") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access2"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access1"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            }
-                        }
-
-                        "/path/2?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access1") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access2"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            }
-                        }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe 1
-        cut.request(PostPath("2", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                PostPath.Response("ok")
+        cut.request(PostPath("2", "2"), PostPath.Request(true)).getOrThrow() shouldBe PostPath.Response("ok")
         refreshCalled shouldBe 2
         onLogout shouldBe null
     }
@@ -995,74 +1011,73 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val refreshCalled = MutableStateFlow(false)
         val continueRefresh = MutableStateFlow(false)
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
         var refreshCount = 0
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled.value = true
-                            continueRefresh.first { it }
-                            refreshCount++
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled.value = true
+                                    continueRefresh.first { it }
+                                    refreshCount++
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "expires_in_ms": 60000,
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         coroutineScope {
             repeat(20) {
                 launch {
                     cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                            PostPath.Response("ok")
+                        PostPath.Response("ok")
                 }
             }
             refreshCalled.first { it }
@@ -1084,86 +1099,92 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                request.body.toByteArray().decodeToString() shouldBe
-                                        "grant_type=refresh_token" +
-                                        "&refresh_token=refresh" +
-                                        "&client_id=clientId"
-                                refreshCalled.value = true
-                                continueRefresh.first { it }
-                                refreshCount++
-                                respond(
-                                    """
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        "grant_type=refresh_token" + "&refresh_token=refresh" + "&client_id=clientId"
+                                    refreshCalled.value = true
+                                    continueRefresh.first { it }
+                                    refreshCount++
+                                    respond(
+                                        """
                                     {
                                         "error": "server_error"
                                     }
                                 """,
-                                    HttpStatusCode.InternalServerError,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                        HttpStatusCode.InternalServerError,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else fail("should never be called")
-                        }
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else fail("should never be called")
+                                }
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
+                            }
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         coroutineScope {
             repeat(20) {
                 launch {
                     cut.request(PostPath("1", "2"), PostPath.Request(true))
                         .exceptionOrNull()
-                        .shouldBeInstanceOf<ServerResponseException>().response.status shouldBe HttpStatusCode.InternalServerError
+                        .shouldBeInstanceOf<ServerResponseException>()
+                        .response
+                        .status shouldBe HttpStatusCode.InternalServerError
                 }
             }
             refreshCalled.first { it }
@@ -1181,64 +1202,64 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val refreshCalled = MutableStateFlow(false)
         val continueRefresh = MutableStateFlow(false)
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
         var refreshCount = 0
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled.value = true
-                            continueRefresh.first { it }
-                            refreshCount++
-                            respond(
-                                """{
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled.value = true
+                                    continueRefresh.first { it }
+                                    refreshCount++
+                                    respond(
+                                        """{
                                           "errcode": "INTERNAL_ERROR",
                                           "error": "boom"
                                         }""",
-                                HttpStatusCode.InternalServerError,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.InternalServerError,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else fail("should never be called")
-                        }
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else fail("should never be called")
+                                }
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
+                            }
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         coroutineScope {
             repeat(20) {
                 launch {
                     cut.request(PostPath("1", "2"), PostPath.Request(true))
-                        .exceptionOrNull().shouldBeInstanceOf<MatrixServerException>()
+                        .exceptionOrNull()
+                        .shouldBeInstanceOf<MatrixServerException>()
                 }
             }
             refreshCalled.first { it }
@@ -1260,33 +1281,33 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val oAuth2AuthProvider =
             OAuth2MatrixClientAuthProvider(
                 baseUrl = baseUrl,
-                store = MatrixClientAuthProviderDataStore.inMemory(
-                    MatrixClientAuthProviderData.oAuth2(
-                        baseUrl = baseUrl,
-                        clientId = "clientId",
-                        accessToken = "access_old",
-                        accessTokenExpiresInS = null,
-                        refreshToken = "refresh"
-                    )
-                ),
+                store =
+                    MatrixClientAuthProviderDataStore.inMemory(
+                        MatrixClientAuthProviderData.oAuth2(
+                            baseUrl = baseUrl,
+                            clientId = "clientId",
+                            accessToken = "access_old",
+                            accessTokenExpiresInS = null,
+                            refreshToken = "refresh",
+                        )
+                    ),
                 onLogout = { onLogout = it },
-                httpClientEngine = scopedMockEngine(false) {
-                    addHandler { request ->
-                        when (request.url.toString()) {
-                            "https://auth.matrix.host/_oauth2/token" -> {
-                                request.body.toByteArray().decodeToString() shouldBe
-                                        "grant_type=refresh_token" +
-                                        "&refresh_token=refresh" +
-                                        "&client_id=clientId"
-                                refreshCalled.value = true
-                                refreshCount += 1
-                                continueRefresh.first { it }
-                                if (refreshCount == 1) {
-                                    delay(Duration.INFINITE)
-                                    fail("should never be called")
-                                } else {
-                                    respond(
-                                        """
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.toString()) {
+                                "https://auth.matrix.host/_oauth2/token" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        "grant_type=refresh_token" + "&refresh_token=refresh" + "&client_id=clientId"
+                                    refreshCalled.value = true
+                                    refreshCount += 1
+                                    continueRefresh.first { it }
+                                    if (refreshCount == 1) {
+                                        delay(Duration.INFINITE)
+                                        fail("should never be called")
+                                    } else {
+                                        respond(
+                                            """
                                     {
                                         "access_token": "access",
                                         "token_type": "Bearer",
@@ -1294,70 +1315,72 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                        HttpStatusCode.OK,
-                                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                    )
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
                                 }
+
+                                "https://matrix.host/_matrix/client/v1/auth_metadata" ->
+                                    respond(
+                                        serverMetadata,
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
-
-                            "https://matrix.host/_matrix/client/v1/auth_metadata" -> respond(
-                                serverMetadata,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-
-                            else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                         }
-                    }
-                },
-                httpClientConfig = null
+                    },
+                httpClientConfig = null,
             )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = oAuth2AuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = oAuth2AuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         coroutineScope {
-            val firstCall = launch {
-                cut.request(PostPath("1", "2"), PostPath.Request(true))
-            }
+            val firstCall = launch { cut.request(PostPath("1", "2"), PostPath.Request(true)) }
             repeat(20) {
                 launch {
                     shouldNotThrowAny {
                         cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                                PostPath.Response("ok")
+                            PostPath.Response("ok")
                     }
                 }
             }
@@ -1381,83 +1404,80 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
         val refreshCalled = MutableStateFlow(false)
         val continueRefresh = MutableStateFlow(false)
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
         var refreshCount = 0
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled.value = true
-                            refreshCount++
-                            continueRefresh.first { it }
-                            if (refreshCount == 1) {
-                                delay(Duration.INFINITE)
-                                fail("should never be called")
-                            } else {
-                                respond(
-                                    """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled.value = true
+                                    refreshCount++
+                                    continueRefresh.first { it }
+                                    if (refreshCount == 1) {
+                                        delay(Duration.INFINITE)
+                                        fail("should never be called")
+                                    } else {
+                                        respond(
+                                            """
                                     {
                                         "access_token": "access",
                                         "expires_in_ms": 60000,
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
-
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            }
-                        }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         coroutineScope {
-            val firstCall = launch {
-                cut.request(PostPath("1", "2"), PostPath.Request(true))
-            }
+            val firstCall = launch { cut.request(PostPath("1", "2"), PostPath.Request(true)) }
             repeat(20) {
                 launch {
                     shouldNotThrowAny {
                         cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
-                                PostPath.Response("ok")
+                            PostPath.Response("ok")
                     }
                 }
             }
@@ -1478,64 +1498,66 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
 
     @Test
     fun itShouldCallOnLogout() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler {
-                    respond(
-                        """{
-                            "errcode": "M_UNKNOWN_TOKEN",
-                            "error": "Only unicorns accepted",
-                            "soft_logout": true
-                       }""".trimIndent(),
-                        HttpStatusCode.Unauthorized,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-        val error = shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler {
+                            respond(
+                                """
+                                {
+                                                            "errcode": "M_UNKNOWN_TOKEN",
+                                                            "error": "Only unicorns accepted",
+                                                            "soft_logout": true
+                                                       }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.Unauthorized,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
+        val error =
+            shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
         error.statusCode shouldBe HttpStatusCode.Unauthorized
-        assertEquals(
-            ErrorResponse.UnknownToken::class,
-            error.errorResponse::class
-        )
+        assertEquals(ErrorResponse.UnknownToken::class, error.errorResponse::class)
         error.errorResponse.error shouldBe "Only unicorns accepted"
         onLogout shouldBe LogoutInfo(isSoft = true, isLocked = false)
     }
 
     @Test
     fun itShouldCallOnLogoutOnLocked() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler {
-                    respond(
-                        """{
-                            "errcode": "M_USER_LOCKED",
-                            "error": "you are blocked",
-                            "soft_logout": true
-                       }""".trimIndent(),
-                        HttpStatusCode.Unauthorized,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-        val error = shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler {
+                            respond(
+                                """
+                                {
+                                                            "errcode": "M_USER_LOCKED",
+                                                            "error": "you are blocked",
+                                                            "soft_logout": true
+                                                       }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.Unauthorized,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
+        val error =
+            shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
         error.statusCode shouldBe HttpStatusCode.Unauthorized
-        assertEquals(
-            ErrorResponse.UserLocked::class,
-            error.errorResponse::class
-        )
+        assertEquals(ErrorResponse.UserLocked::class, error.errorResponse::class)
         error.errorResponse.error shouldBe "you are blocked"
         onLogout shouldBe LogoutInfo(isSoft = true, isLocked = true)
     }
@@ -1543,216 +1565,215 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     @Test
     fun itShouldCallOnLogoutWhenRefreshingToken() = runTest {
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    respond(
+                                        """
                                     {
                                         "errcode": "M_UNKNOWN_TOKEN",
                                         "error": "Only unicorns accepted",
                                         "soft_logout": true
                                     }
                                 """,
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            request.headers[HttpHeaders.Authorization] shouldBe "Bearer access_old"
-                            respond(
-                                """
+                                "/path/1?requestParam=2" -> {
+                                    request.headers[HttpHeaders.Authorization] shouldBe "Bearer access_old"
+                                    respond(
+                                        """
                                         {
                                           "errcode": "M_UNKNOWN_TOKEN",
                                           "error": "Soft logged out (access token expired)",
                                           "soft_logout": true
                                         }
-                                    """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
+                            }
                         }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
-
-        val error = shouldThrow<MatrixServerException> {
-            cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow()
-        }
+        val error =
+            shouldThrow<MatrixServerException> { cut.request(PostPath("1", "2"), PostPath.Request(true)).getOrThrow() }
         error.statusCode shouldBe HttpStatusCode.Unauthorized
-        assertEquals(
-            ErrorResponse.UnknownToken::class,
-            error.errorResponse::class
-        )
+        assertEquals(ErrorResponse.UnknownToken::class, error.errorResponse::class)
         error.errorResponse.error shouldBe "Only unicorns accepted"
         onLogout shouldBe LogoutInfo(isSoft = true, isLocked = false)
     }
 
     @Test
     fun uiaRequestShouldReturnSuccess() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler { request ->
-                    request.url.fullPath shouldBe "/path/1?requestParam=2"
-                    request.url.host shouldBe "matrix.host"
-                    request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
-                    request.headers[HttpHeaders.Accept] shouldBe Application.Json.toString()
-                    request.method shouldBe Post
-                    request.body.toByteArray().decodeToString() shouldBe """{"includeDino":true}"""
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            request.url.fullPath shouldBe "/path/1?requestParam=2"
+                            request.url.host shouldBe "matrix.host"
+                            request.headers[HttpHeaders.Authorization] shouldBe "Bearer access"
+                            request.headers[HttpHeaders.Accept] shouldBe Application.Json.toString()
+                            request.method shouldBe Post
+                            request.body.toByteArray().decodeToString() shouldBe """{"includeDino":true}"""
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true))
-            .getOrThrow() shouldBe UIA.Success(PostPath.Response("ok"))
+        cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow() shouldBe
+            UIA.Success(PostPath.Response("ok"))
     }
 
     @Test
     fun uiaRequestShouldReturnError() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler {
-                    respond(
-                        """{"errcode": "M_NOT_FOUND", "error": "not found"}""",
-                        HttpStatusCode.NotFound,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler {
+                            respond(
+                                """{"errcode": "M_NOT_FOUND", "error": "not found"}""",
+                                HttpStatusCode.NotFound,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        val error = shouldThrow<MatrixServerException> {
-            cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
-        }
+        val error =
+            shouldThrow<MatrixServerException> {
+                cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
+            }
         error.statusCode shouldBe HttpStatusCode.NotFound
-        assertEquals(
-            ErrorResponse.NotFound::class,
-            error.errorResponse::class
-        )
+        assertEquals(ErrorResponse.NotFound::class, error.errorResponse::class)
     }
 
     @Test
     fun uiaRequestShouldCallOnLogout() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler {
-                    respond(
-                        """{ 
-                                "errcode": "M_UNKNOWN_TOKEN",
-                                "error": "Only unicorns accepted",
-                                "soft_logout": true
-                            }""".trimIndent(),
-                        HttpStatusCode.Unauthorized,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler {
+                            respond(
+                                """
+                                { 
+                                                                "errcode": "M_UNKNOWN_TOKEN",
+                                                                "error": "Only unicorns accepted",
+                                                                "soft_logout": true
+                                                            }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.Unauthorized,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         val error =
-            cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).exceptionOrNull()
+            cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true))
+                .exceptionOrNull()
                 .shouldBeInstanceOf<MatrixServerException>()
-        assertEquals(
-            ErrorResponse.UnknownToken::class,
-            error.errorResponse::class
-        )
+        assertEquals(ErrorResponse.UnknownToken::class, error.errorResponse::class)
         onLogout shouldBe LogoutInfo(true, false)
     }
 
     @Test
     fun uiaRequestShouldRefresh() = runTest {
         classicAuthProviderStore.setAuthData(
-            MatrixClientAuthProviderData.classic(
-                baseUrl,
-                "access_old",
-                null,
-                "refresh"
-            )
+            MatrixClientAuthProviderData.classic(baseUrl, "access_old", null, "refresh")
         )
         var refreshCalled = false
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(withDefaultResponse = false) {
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/refresh" -> {
-                            request.body.toByteArray().decodeToString() shouldBe """{"refresh_token":"refresh"}"""
-                            refreshCalled = true
-                            respond(
-                                """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(withDefaultResponse = false) {
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/refresh" -> {
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """{"refresh_token":"refresh"}"""
+                                    refreshCalled = true
+                                    respond(
+                                        """
                                     {
                                         "access_token": "access",
                                         "expires_in_ms": 60000,
                                         "refresh_token": "refresh2"
                                     }
                                 """,
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        "/path/1?requestParam=2" -> {
-                            val authHeader = request.headers[HttpHeaders.Authorization]
-                            if (authHeader == "Bearer access_old") {
-                                respond(
-                                    """
-                                        {
-                                          "errcode": "M_UNKNOWN_TOKEN",
-                                          "error": "Soft logged out (access token expired)",
-                                          "soft_logout": true
-                                        }
-                                    """.trimIndent(),
-                                    HttpStatusCode.Unauthorized,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
-                            } else {
-                                authHeader shouldBe "Bearer access"
-                                respond(
-                                    """{"status":"ok"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                                )
+                                "/path/1?requestParam=2" -> {
+                                    val authHeader = request.headers[HttpHeaders.Authorization]
+                                    if (authHeader == "Bearer access_old") {
+                                        respond(
+                                            """
+                                            {
+                                              "errcode": "M_UNKNOWN_TOKEN",
+                                              "error": "Soft logged out (access token expired)",
+                                              "soft_logout": true
+                                            }
+                                            """
+                                                .trimIndent(),
+                                            HttpStatusCode.Unauthorized,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    } else {
+                                        authHeader shouldBe "Bearer access"
+                                        respond(
+                                            """{"status":"ok"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                        )
+                                    }
+                                }
+
+                                else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
                             }
                         }
-
-                        else -> respond("404 NOT_FOUND ${request.url}", HttpStatusCode.NotFound)
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
         refreshCalled shouldBe true
@@ -1761,28 +1782,35 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
 
     @Test
     fun uiaRequestShouldCallOnLogoutOnLock() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine {
-                addHandler {
-                    respond(
-                        """{ 
-                                "errcode": "M_USER_LOCKED",
-                                "error": "your are locked",
-                                "soft_logout": true
-                            }""".trimIndent(),
-                        HttpStatusCode.Unauthorized,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler {
+                            respond(
+                                """
+                                { 
+                                                                "errcode": "M_USER_LOCKED",
+                                                                "error": "your are locked",
+                                                                "soft_logout": true
+                                                            }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.Unauthorized,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         shouldThrow<MatrixServerException> {
-            cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
-        }.errorResponse.shouldBeInstanceOf<ErrorResponse.UserLocked>()
+                cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
+            }
+            .errorResponse
+            .shouldBeInstanceOf<ErrorResponse.UserLocked>()
         onLogout shouldBe LogoutInfo(true, true)
     }
 
@@ -1790,32 +1818,36 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
     fun uiaRequestShouldAuthenticate() = runTest {
         var requestCount = 0
         classicAuthProviderStore.setAuthData(MatrixClientAuthProviderData.classic(baseUrl, "access", null, "refresh"))
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (requestCount) {
-                        0 -> {
-                            requestCount++
-                            respond(
-                                """
-                                {
-                                  "flows":[
-                                    {
-                                      "stages":["we.are.so.smartly"]
-                                    }
-                                  ],
-                                  "session":"session1"
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (requestCount) {
+                                0 -> {
+                                    requestCount++
+                                    respond(
+                                        """
+                                        {
+                                          "flows":[
+                                            {
+                                              "stages":["we.are.so.smartly"]
+                                            }
+                                          ],
+                                          "session":"session1"
+                                        }
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
                                 }
-                            """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
 
-                        else -> {
-                            requestCount++
-                            request.body.toByteArray().decodeToString() shouldBe """
+                                else -> {
+                                    requestCount++
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """
                                 {
                                   "includeDino":true,
                                   "auth":{
@@ -1824,91 +1856,97 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                     "session":"session1"
                                   }
                                 }
-                                """.trimToFlatJson()
-                            respond(
-                                """{"status":"ok"}""",
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                """
+                                            .trimToFlatJson()
+                                    respond(
+                                        """{"status":"ok"}""",
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         val result = cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
         result.shouldBeInstanceOf<UIA.Step<*>>()
-        result.state shouldBe UIAState(
-            completed = listOf(),
-            flows = setOf(
-                UIAState.FlowInformation(listOf(AuthenticationType.Unknown("we.are.so.smartly"))),
-            ),
-            session = "session1"
-        )
-        result.authenticate(
-            AuthenticationRequest.Unknown(
-                JsonObject(mapOf("just_break_everything" to JsonPrimitive("NOT_USED"))),
-                AuthenticationType.Unknown("we.are.so.smartly")
+        result.state shouldBe
+            UIAState(
+                completed = listOf(),
+                flows = setOf(UIAState.FlowInformation(listOf(AuthenticationType.Unknown("we.are.so.smartly")))),
+                session = "session1",
             )
-        ).getOrThrow()
+        result
+            .authenticate(
+                AuthenticationRequest.Unknown(
+                    JsonObject(mapOf("just_break_everything" to JsonPrimitive("NOT_USED"))),
+                    AuthenticationType.Unknown("we.are.so.smartly"),
+                )
+            )
+            .getOrThrow()
         result.getFallbackUrl(AuthenticationType.Unknown("we.are.so.smartly")).toString() shouldBe
-                "https://matrix.host/_matrix/client/v3/auth/we.are.so.smartly/fallback/web?session=session1"
+            "https://matrix.host/_matrix/client/v3/auth/we.are.so.smartly/fallback/web?session=session1"
     }
 
     @Test
     fun uiaRequestShouldReturnStepAndAllowAuthenticate() = runTest {
         var requestCount = 0
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (requestCount) {
-                        0 -> {
-                            requestCount++
-                            respond(
-                                """
-                                {
-                                  "flows":[
-                                    {
-                                      "stages":["m.login.password"]
-                                    },
-                                    {
-                                      "stages":["m.login.sso","m.login.recaptcha"]
-                                    }
-                                  ],
-                                  "params": {
-                                      "example.type.baz": {
-                                          "example_key": "foobar"
-                                      },
-                                      "m.login.terms": {
-                                          "policies": {
-                                              "terms_of_service": {
-                                                  "version": "1.2",
-                                                  "en": {
-                                                      "name": "Terms of Service",
-                                                      "url": "https://example.org/somewhere/terms-1.2-en.html"
-                                                  },
-                                                  "fr": {
-                                                      "name": "Conditions d'utilisation",
-                                                      "url": "https://example.org/somewhere/terms-1.2-fr.html"
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (requestCount) {
+                                0 -> {
+                                    requestCount++
+                                    respond(
+                                        """
+                                        {
+                                          "flows":[
+                                            {
+                                              "stages":["m.login.password"]
+                                            },
+                                            {
+                                              "stages":["m.login.sso","m.login.recaptcha"]
+                                            }
+                                          ],
+                                          "params": {
+                                              "example.type.baz": {
+                                                  "example_key": "foobar"
+                                              },
+                                              "m.login.terms": {
+                                                  "policies": {
+                                                      "terms_of_service": {
+                                                          "version": "1.2",
+                                                          "en": {
+                                                              "name": "Terms of Service",
+                                                              "url": "https://example.org/somewhere/terms-1.2-en.html"
+                                                          },
+                                                          "fr": {
+                                                              "name": "Conditions d'utilisation",
+                                                              "url": "https://example.org/somewhere/terms-1.2-fr.html"
+                                                          }
+                                                      }
                                                   }
                                               }
-                                          }
-                                      }
-                                  },
-                                  "session":"session1"
+                                          },
+                                          "session":"session1"
+                                        }
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
                                 }
-                            """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
 
-                        else -> {
-                            requestCount++
-                            request.body.toByteArray().decodeToString() shouldBe """
+                                else -> {
+                                    requestCount++
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """
                                 {
                                   "includeDino":true,
                                   "auth":{
@@ -1921,116 +1959,131 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                     "session":"session1"
                                   }
                                 }
-                                """.trimToFlatJson()
-                            respond(
-                                """{"status":"ok"}""",
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                """
+                                            .trimToFlatJson()
+                                    respond(
+                                        """{"status":"ok"}""",
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
         val result = cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
         result.shouldBeInstanceOf<UIA.Step<*>>()
-        result.state shouldBe UIAState(
-            completed = listOf(),
-            flows = setOf(
-                UIAState.FlowInformation(listOf(AuthenticationType.Password)),
-                UIAState.FlowInformation(listOf(AuthenticationType.SSO, AuthenticationType.Recaptcha)),
-            ),
-            parameter = mapOf(
-                AuthenticationType.Unknown("example.type.baz") to UIAState.Parameter.Unknown(
-                    buildJsonObject {
-                        put("example_key", JsonPrimitive("foobar"))
-                    }
-                ),
-                AuthenticationType.TermsOfService to UIAState.Parameter.TermsOfService(
+        result.state shouldBe
+            UIAState(
+                completed = listOf(),
+                flows =
+                    setOf(
+                        UIAState.FlowInformation(listOf(AuthenticationType.Password)),
+                        UIAState.FlowInformation(listOf(AuthenticationType.SSO, AuthenticationType.Recaptcha)),
+                    ),
+                parameter =
                     mapOf(
-                        "terms_of_service" to UIAState.Parameter.TermsOfService.PolicyDefinition(
-                            "1.2", mapOf(
-                                "en" to UIAState.Parameter.TermsOfService.PolicyDefinition.PolicyTranslation(
-                                    "Terms of Service", "https://example.org/somewhere/terms-1.2-en.html"
-                                ),
-                                "fr" to UIAState.Parameter.TermsOfService.PolicyDefinition.PolicyTranslation(
-                                    "Conditions d'utilisation", "https://example.org/somewhere/terms-1.2-fr.html"
-                                ),
-                            )
-                        )
-                    )
-                )
-            ),
-            session = "session1"
-        )
-        result.authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password"))
-            .getOrThrow()
+                        AuthenticationType.Unknown("example.type.baz") to
+                            UIAState.Parameter.Unknown(buildJsonObject { put("example_key", JsonPrimitive("foobar")) }),
+                        AuthenticationType.TermsOfService to
+                            UIAState.Parameter.TermsOfService(
+                                mapOf(
+                                    "terms_of_service" to
+                                        UIAState.Parameter.TermsOfService.PolicyDefinition(
+                                            "1.2",
+                                            mapOf(
+                                                "en" to
+                                                    UIAState.Parameter.TermsOfService.PolicyDefinition
+                                                        .PolicyTranslation(
+                                                            "Terms of Service",
+                                                            "https://example.org/somewhere/terms-1.2-en.html",
+                                                        ),
+                                                "fr" to
+                                                    UIAState.Parameter.TermsOfService.PolicyDefinition
+                                                        .PolicyTranslation(
+                                                            "Conditions d'utilisation",
+                                                            "https://example.org/somewhere/terms-1.2-fr.html",
+                                                        ),
+                                            ),
+                                        )
+                                )
+                            ),
+                    ),
+                session = "session1",
+            )
+        result.authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password")).getOrThrow()
         result.getFallbackUrl(AuthenticationType.Password).toString() shouldBe
-                "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
+            "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
     }
 
     @Test
     fun uiaRequestShouldReturnErrorAndAllowAuthenticate() = runTest {
         var requestCount = 0
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    when (requestCount) {
-                        0 -> {
-                            requestCount++
-                            request.body.toByteArray().decodeToString() shouldBe """
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            when (requestCount) {
+                                0 -> {
+                                    requestCount++
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """
                                         {
                                           "includeDino":true
                                         }
-                                        """.trimToFlatJson()
-                            respond(
-                                """
+                                        """
+                                            .trimToFlatJson()
+                                    respond(
+                                        """
+                                        {
+                                          "errcode": "M_NOT_FOUND",
+                                          "error":"",
+                                          "flows":[
                                             {
-                                              "errcode": "M_NOT_FOUND",
-                                              "error":"",
-                                              "flows":[
-                                                {
-                                                  "stages":["m.login.password"]
-                                                },
-                                                {
-                                                  "stages":["m.login.sso","m.login.recaptcha"]
-                                                }
-                                              ],
-                                              "params": {
-                                                  "example.type.baz": {
-                                                      "example_key": "foobar"
-                                                  },
-                                                  "m.login.terms": {
-                                                      "policies": {
-                                                          "terms_of_service": {
-                                                              "version": "1.2",
-                                                              "en": {
-                                                                  "name": "Terms of Service",
-                                                                  "url": "https://example.org/somewhere/terms-1.2-en.html"
-                                                              },
-                                                              "fr": {
-                                                                  "name": "Conditions d'utilisation",
-                                                                  "url": "https://example.org/somewhere/terms-1.2-fr.html"
-                                                              }
+                                              "stages":["m.login.password"]
+                                            },
+                                            {
+                                              "stages":["m.login.sso","m.login.recaptcha"]
+                                            }
+                                          ],
+                                          "params": {
+                                              "example.type.baz": {
+                                                  "example_key": "foobar"
+                                              },
+                                              "m.login.terms": {
+                                                  "policies": {
+                                                      "terms_of_service": {
+                                                          "version": "1.2",
+                                                          "en": {
+                                                              "name": "Terms of Service",
+                                                              "url": "https://example.org/somewhere/terms-1.2-en.html"
+                                                          },
+                                                          "fr": {
+                                                              "name": "Conditions d'utilisation",
+                                                              "url": "https://example.org/somewhere/terms-1.2-fr.html"
                                                           }
                                                       }
                                                   }
-                                              },
-                                              "session":"session1"
-                                            }
-                                            """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                              }
+                                          },
+                                          "session":"session1"
+                                        }
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        1 -> {
-                            requestCount++
-                            request.body.toByteArray().decodeToString() shouldBe """
+                                1 -> {
+                                    requestCount++
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """
                                         {
                                           "includeDino":true,
                                           "auth":{
@@ -2043,51 +2096,54 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                             "session":"session1"
                                           }
                                         }
-                                        """.trimToFlatJson()
-                            respond(
-                                """
+                                        """
+                                            .trimToFlatJson()
+                                    respond(
+                                        """
+                                        {
+                                          "errcode": "M_NOT_FOUND",
+                                          "error":"",
+                                          "flows":[
                                             {
-                                              "errcode": "M_NOT_FOUND",
-                                              "error":"",
-                                              "flows":[
-                                                {
-                                                  "stages":["m.login.password"]
-                                                },
-                                                {
-                                                  "stages":["m.login.sso","m.login.recaptcha"]
-                                                }
-                                              ],
-                                              "params": {
-                                                  "example.type.baz": {
-                                                      "example_key": "foobar"
-                                                  },
-                                                  "m.login.terms": {
-                                                      "policies": {
-                                                          "terms_of_service": {
-                                                              "version": "1.2",
-                                                              "en": {
-                                                                  "name": "Terms of Service",
-                                                                  "url": "https://example.org/somewhere/terms-1.2-en.html"
-                                                              },
-                                                              "fr": {
-                                                                  "name": "Conditions d'utilisation",
-                                                                  "url": "https://example.org/somewhere/terms-1.2-fr.html"
-                                                              }
+                                              "stages":["m.login.password"]
+                                            },
+                                            {
+                                              "stages":["m.login.sso","m.login.recaptcha"]
+                                            }
+                                          ],
+                                          "params": {
+                                              "example.type.baz": {
+                                                  "example_key": "foobar"
+                                              },
+                                              "m.login.terms": {
+                                                  "policies": {
+                                                      "terms_of_service": {
+                                                          "version": "1.2",
+                                                          "en": {
+                                                              "name": "Terms of Service",
+                                                              "url": "https://example.org/somewhere/terms-1.2-en.html"
+                                                          },
+                                                          "fr": {
+                                                              "name": "Conditions d'utilisation",
+                                                              "url": "https://example.org/somewhere/terms-1.2-fr.html"
                                                           }
                                                       }
                                                   }
-                                              },
-                                              "session":"session1"
-                                            }
-                                            """.trimIndent(),
-                                HttpStatusCode.Unauthorized,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
-                        }
+                                              }
+                                          },
+                                          "session":"session1"
+                                        }
+                                        """
+                                            .trimIndent(),
+                                        HttpStatusCode.Unauthorized,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
 
-                        else -> {
-                            requestCount++
-                            request.body.toByteArray().decodeToString() shouldBe """
+                                else -> {
+                                    requestCount++
+                                    request.body.toByteArray().decodeToString() shouldBe
+                                        """
                                         {
                                           "includeDino":true,
                                           "auth":{
@@ -2100,92 +2156,102 @@ class MatrixClientServerApiBaseClientTest : TrixnityBaseTest() {
                                             "session":"session1"
                                           }
                                         }
-                                        """.trimToFlatJson()
-                            respond(
-                                """{"status":"ok"}""",
-                                HttpStatusCode.OK,
-                                headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                            )
+                                        """
+                                            .trimToFlatJson()
+                                    respond(
+                                        """{"status":"ok"}""",
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
-            },
-            json = json,
-            eventContentSerializerMappings = mappings,
-        )
+                    },
+                json = json,
+                eventContentSerializerMappings = mappings,
+            )
 
-        val expectedUIAState = UIAState(
-            completed = listOf(),
-            flows = setOf(
-                UIAState.FlowInformation(listOf(AuthenticationType.Password)),
-                UIAState.FlowInformation(listOf(AuthenticationType.SSO, AuthenticationType.Recaptcha)),
-            ),
-            parameter = mapOf(
-                AuthenticationType.Unknown("example.type.baz") to UIAState.Parameter.Unknown(
-                    buildJsonObject {
-                        put("example_key", JsonPrimitive("foobar"))
-                    }
-                ),
-                AuthenticationType.TermsOfService to UIAState.Parameter.TermsOfService(
+        val expectedUIAState =
+            UIAState(
+                completed = listOf(),
+                flows =
+                    setOf(
+                        UIAState.FlowInformation(listOf(AuthenticationType.Password)),
+                        UIAState.FlowInformation(listOf(AuthenticationType.SSO, AuthenticationType.Recaptcha)),
+                    ),
+                parameter =
                     mapOf(
-                        "terms_of_service" to UIAState.Parameter.TermsOfService.PolicyDefinition(
-                            "1.2", mapOf(
-                                "en" to UIAState.Parameter.TermsOfService.PolicyDefinition.PolicyTranslation(
-                                    "Terms of Service", "https://example.org/somewhere/terms-1.2-en.html"
-                                ),
-                                "fr" to UIAState.Parameter.TermsOfService.PolicyDefinition.PolicyTranslation(
-                                    "Conditions d'utilisation", "https://example.org/somewhere/terms-1.2-fr.html"
-                                ),
-                            )
-                        )
-                    )
-                )
-            ),
-            session = "session1"
-        )
-        val result1 = cut.uiaRequest(
-            PostPathWithUIA("1", "2"),
-            PostPath.Request(true)
-        ).getOrThrow()
+                        AuthenticationType.Unknown("example.type.baz") to
+                            UIAState.Parameter.Unknown(buildJsonObject { put("example_key", JsonPrimitive("foobar")) }),
+                        AuthenticationType.TermsOfService to
+                            UIAState.Parameter.TermsOfService(
+                                mapOf(
+                                    "terms_of_service" to
+                                        UIAState.Parameter.TermsOfService.PolicyDefinition(
+                                            "1.2",
+                                            mapOf(
+                                                "en" to
+                                                    UIAState.Parameter.TermsOfService.PolicyDefinition
+                                                        .PolicyTranslation(
+                                                            "Terms of Service",
+                                                            "https://example.org/somewhere/terms-1.2-en.html",
+                                                        ),
+                                                "fr" to
+                                                    UIAState.Parameter.TermsOfService.PolicyDefinition
+                                                        .PolicyTranslation(
+                                                            "Conditions d'utilisation",
+                                                            "https://example.org/somewhere/terms-1.2-fr.html",
+                                                        ),
+                                            ),
+                                        )
+                                )
+                            ),
+                    ),
+                session = "session1",
+            )
+        val result1 = cut.uiaRequest(PostPathWithUIA("1", "2"), PostPath.Request(true)).getOrThrow()
         result1.shouldBeInstanceOf<UIA.Error<*>>()
         result1.state shouldBe expectedUIAState
         result1.errorResponse shouldBe ErrorResponse.NotFound("")
         result1.getFallbackUrl(AuthenticationType.Password).toString() shouldBe
-                "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
-        val result2 = result1.authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password"))
-            .getOrThrow()
+            "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
+        val result2 =
+            result1
+                .authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password"))
+                .getOrThrow()
         result2.shouldBeInstanceOf<UIA.Error<*>>()
         result2.state shouldBe expectedUIAState
         result2.errorResponse shouldBe ErrorResponse.NotFound("")
         result2.getFallbackUrl(AuthenticationType.Password).toString() shouldBe
-                "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
-        result2.authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password"))
-            .getOrThrow()
+            "https://matrix.host/_matrix/client/v3/auth/m.login.password/fallback/web?session=session1"
+        result2.authenticate(AuthenticationRequest.Password(IdentifierType.User("username"), "password")).getOrThrow()
         requestCount shouldBe 3
     }
 
     @Test
     fun shouldAddAppserviceUserIdDeviceId() = runTest {
-        val cut = MatrixClientServerApiBaseClient(
-            authProvider = classicAuthProvider,
-            httpClientEngine = scopedMockEngine(false) {
-                addHandler { request ->
-                    request.url.parameters["user_id"] shouldBe "@user:server"
-                    request.url.parameters["device_id"] shouldBe "device"
-                    request.url.fullPath shouldBe "/path/path?requestParam=param&user_id=%40user%3Aserver&device_id=device"
-                    respond(
-                        """{"status":"ok"}""",
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, Application.Json.toString())
-                    )
-                }
-            },
-            json = json,
-            asUserId = UserId("@user:server"),
-            asDeviceId = "device",
-            eventContentSerializerMappings = mappings,
-        )
-        cut.request(PostPath("path", "param"), PostPath.Request(true))
-            .getOrThrow()
+        val cut =
+            MatrixClientServerApiBaseClient(
+                authProvider = classicAuthProvider,
+                httpClientEngine =
+                    scopedMockEngine(false) {
+                        addHandler { request ->
+                            request.url.parameters["user_id"] shouldBe "@user:server"
+                            request.url.parameters["device_id"] shouldBe "device"
+                            request.url.fullPath shouldBe
+                                "/path/path?requestParam=param&user_id=%40user%3Aserver&device_id=device"
+                            respond(
+                                """{"status":"ok"}""",
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+                json = json,
+                asUserId = UserId("@user:server"),
+                asDeviceId = "device",
+                eventContentSerializerMappings = mappings,
+            )
+        cut.request(PostPath("path", "param"), PostPath.Request(true)).getOrThrow()
     }
 }

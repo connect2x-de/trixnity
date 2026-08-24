@@ -60,6 +60,14 @@ import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.utils.KeyedMutex
 import de.connect2x.trixnity.utils.nextString
 import de.connect2x.trixnity.utils.retry
+import kotlin.reflect.KClass
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.INFINITE
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
@@ -86,30 +94,18 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.reflect.KClass
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.INFINITE
-import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 private val log = Logger("de.connect2x.trixnity.client.room.RoomService")
 
 interface RoomService {
     val usersTyping: StateFlow<Map<RoomId, TypingEventContent>>
-    suspend fun fillTimelineGaps(
-        roomId: RoomId,
-        startEventId: EventId,
-        limit: Long = 20
-    )
+
+    suspend fun fillTimelineGaps(roomId: RoomId, startEventId: EventId, limit: Long = 20)
 
     /**
-     * Returns the [TimelineEvent] and starts decryption. If it is not found locally, the algorithm will try to find
-     * the event by traversing the events from the end of the timeline (i.e. from the last sent event).
-     * This can include filling sync gaps from the server and thus might take a while.
-     * Please consider changing the [config].
+     * Returns the [TimelineEvent] and starts decryption. If it is not found locally, the algorithm will try to find the
+     * event by traversing the events from the end of the timeline (i.e. from the last sent event). This can include
+     * filling sync gaps from the server and thus might take a while. Please consider changing the [config].
      */
     fun getTimelineEvent(
         roomId: RoomId,
@@ -127,22 +123,19 @@ interface RoomService {
         config: GetTimelineEventConfig.() -> Unit = {},
     ): Flow<TimelineEvent?>?
 
-    fun getLastTimelineEvent(
-        roomId: RoomId,
-        config: GetTimelineEventConfig.() -> Unit = {},
-    ): Flow<Flow<TimelineEvent>?>
+    fun getLastTimelineEvent(roomId: RoomId, config: GetTimelineEventConfig.() -> Unit = {}): Flow<Flow<TimelineEvent>?>
 
     /**
-     * Returns a flow of timeline events wrapped in a flow. It emits, when there is a new timeline event. This flow
-     * only completes, when the start of the timeline is reached or [GetTimelineEventsConfig.minSize] and/or
+     * Returns a flow of timeline events wrapped in a flow. It emits, when there is a new timeline event. This flow only
+     * completes, when the start of the timeline is reached or [GetTimelineEventsConfig.minSize] and/or
      * [GetTimelineEventsConfig.maxSize] are set and reached.
      *
      * Consuming this flow directly needs proper understanding of how flows work. For example: if the client is offline
      * and there are 5 timeline events in store, but `take(10)` is used, then `toList()` will suspend.
      *
      * Consider using [GetTimelineEventsConfig.minSize] and [GetTimelineEventsConfig.maxSize] when consuming this flow
-     * directly (e.g. with `toList()`). This can work
-     * like paging through the timeline. It also completes the flow, which is not the case, when both parameters are null.
+     * directly (e.g. with `toList()`). This can work like paging through the timeline. It also completes the flow,
+     * which is not the case, when both parameters are null.
      */
     fun getTimelineEvents(
         roomId: RoomId,
@@ -164,29 +157,24 @@ interface RoomService {
     ): Flow<Flow<Flow<TimelineEvent>>?>
 
     /**
-     * Returns all timeline events from the moment this method is called. This also triggers decryption for each timeline event.
+     * Returns all timeline events from the moment this method is called. This also triggers decryption for each
+     * timeline event.
      *
-     * It is possible, that the matrix server does not send all timeline events.
-     * These gaps in the timeline are not filled automatically. Gap filling is available in
-     * [getTimelineEvents] and [getLastTimelineEvents].
+     * It is possible, that the matrix server does not send all timeline events. These gaps in the timeline are not
+     * filled automatically. Gap filling is available in [getTimelineEvents] and [getLastTimelineEvents].
      *
-     * @param syncResponseBufferSize the number of syncs that will be buffered. When set to 0, the sync will
-     * be suspended until all events from the current sync response are consumed. This could prevent decryption,
-     * because keys may be received in a later sync response.
+     * @param syncResponseBufferSize the number of syncs that will be buffered. When set to 0, the sync will be
+     *   suspended until all events from the current sync response are consumed. This could prevent decryption, because
+     *   keys may be received in a later sync response.
      */
     fun getTimelineEventsFromNowOn(
         decryptionTimeout: Duration = 30.seconds,
         syncResponseBufferSize: Int = 4,
     ): Flow<TimelineEvent>
 
-    fun getTimelineEvents(
-        response: Sync.Response,
-        decryptionTimeout: Duration = 30.seconds,
-    ): Flow<TimelineEvent>
+    fun getTimelineEvents(response: Sync.Response, decryptionTimeout: Duration = 30.seconds): Flow<TimelineEvent>
 
-    /**
-     * Returns a [Timeline] for a room.
-     */
+    /** Returns a [Timeline] for a room. */
     fun <T> getTimeline(
         onStateChange: suspend (TimelineStateChange<T>) -> Unit = {},
         transformer: suspend (Flow<TimelineEvent>) -> T,
@@ -223,14 +211,12 @@ interface RoomService {
 
     fun getDraftMessage(roomId: RoomId): Flow<RoomOutboxMessage<*>?>
 
-    /**
-     * Deletes all outbox messages from roomId that are drafts
-     */
+    /** Deletes all outbox messages from roomId that are drafts */
     suspend fun deleteDraftMessage(roomId: RoomId)
 
     /**
-     * A draft message is stored in the Outbox but never send. There can only ever be one draft message per room.
-     * This function is locked to not run concurrently
+     * A draft message is stored in the Outbox but never send. There can only ever be one draft message per room. This
+     * function is locked to not run concurrently
      */
     suspend fun setDraftMessage(
         roomId: RoomId,
@@ -246,10 +232,7 @@ interface RoomService {
         builder: suspend MessageBuilder.() -> Unit,
     ): String
 
-    suspend fun sendDraftMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean = true,
-    ): String?
+    suspend fun sendDraftMessage(roomId: RoomId, keepMediaInCache: Boolean = true): String?
 
     /**
      * Upgraded rooms ([Room.hasBeenReplaced]) should not be rendered.
@@ -260,9 +243,7 @@ interface RoomService {
 
     fun getById(roomId: RoomId): Flow<Room?>
 
-    /**
-     * If the room has [Membership.LEAVE], you can delete it locally.
-     */
+    /** If the room has [Membership.LEAVE], you can delete it locally. */
     suspend fun forgetRoom(roomId: RoomId, force: Boolean = false)
 
     fun <C : RoomAccountDataEventContent> getAccountData(
@@ -272,7 +253,9 @@ interface RoomService {
     ): Flow<C?>
 
     fun getOutbox(): Flow<List<Flow<RoomOutboxMessage<*>?>>>
+
     fun getOutbox(roomId: RoomId): Flow<List<Flow<RoomOutboxMessage<*>?>>>
+
     fun getOutbox(roomId: RoomId, transactionId: String): Flow<RoomOutboxMessage<*>?>
 
     fun <C : StateEventContent> getState(
@@ -321,31 +304,26 @@ class RoomServiceImpl(
     typingEventHandler: TypingEventHandler,
     private val currentSyncState: CurrentSyncState,
     private val scope: CoroutineScope,
-    private val eventContentMediaMappings: EventContentMediaMappings
+    private val eventContentMediaMappings: EventContentMediaMappings,
 ) : RoomService {
-    override val usersTyping: StateFlow<Map<RoomId, TypingEventContent>> =
-        typingEventHandler.usersTyping
+    override val usersTyping: StateFlow<Map<RoomId, TypingEventContent>> = typingEventHandler.usersTyping
 
-    override suspend fun fillTimelineGaps(
-        roomId: RoomId,
-        startEventId: EventId,
-        limit: Long
-    ) {
-        scope.async {
-            currentSyncState.retry(
-                onError = { error, delay -> log.warn(error) { "failed fill timeline gaps, try again in $delay" } },
-            ) {
-                timelineEventHandler.unsafeFillTimelineGaps(startEventId, roomId, limit)
-                    .getOrThrow()
+    override suspend fun fillTimelineGaps(roomId: RoomId, startEventId: EventId, limit: Long) {
+        scope
+            .async {
+                currentSyncState.retry(
+                    onError = { error, delay -> log.warn(error) { "failed fill timeline gaps, try again in $delay" } }
+                ) {
+                    timelineEventHandler.unsafeFillTimelineGaps(startEventId, roomId, limit).getOrThrow()
+                }
             }
-        }.await()
+            .await()
     }
 
-
     private fun TimelineEvent.canBeDecrypted(): Boolean =
-        this.event is MessageEvent
-                && this.event.isEncrypted
-                && (this.content == null || this.content.exceptionOrNull() is TimelineEventContentError.DecryptionTimeout)
+        this.event is MessageEvent &&
+            this.event.isEncrypted &&
+            (this.content == null || this.content.exceptionOrNull() is TimelineEventContentError.DecryptionTimeout)
 
     private val getTimelineEventFetchMutex = KeyedMutex<Pair<EventId, RoomId>>()
     private val getTimelineEventDecryptionMutex = KeyedMutex<Pair<EventId, RoomId>>()
@@ -354,33 +332,30 @@ class RoomServiceImpl(
     override fun getTimelineEvent(
         roomId: RoomId,
         eventId: EventId,
-        config: GetTimelineEventConfig.() -> Unit
+        config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?> {
         val cfg = GetTimelineEventConfig().apply(config).copy()
-        return roomTimelineStore.get(eventId, roomId)
+        return roomTimelineStore
+            .get(eventId, roomId)
             .flatMapLatest { timelineEvent ->
                 val event = timelineEvent?.event
                 if (cfg.allowReplaceContent && event is MessageEvent && event.content !is RedactedEventContent) {
-                    val replacedByFlow =
-                        getTimelineEventReplaceAggregation(roomId, eventId).map { it.replacedBy }
+                    val replacedByFlow = getTimelineEventReplaceAggregation(roomId, eventId).map { it.replacedBy }
                     replacedByFlow.flatMapLatest { replacedBy ->
                         if (replacedBy != null) {
-                            getTimelineEvent(roomId, replacedBy)
-                                .map { replacedByTimelineEvent ->
-                                    val newContent =
-                                        replacedByTimelineEvent?.content
-                                            ?.mapCatching { content ->
-                                                val newContent =
-                                                    if (content is MessageEventContent) {
-                                                        val relatesTo = content.relatesTo
-                                                        if (relatesTo is RelatesTo.Replace) relatesTo.newContent
-                                                        else null
-                                                    } else null
-                                                newContent?.copyWith(event.content.relatesTo)
-                                                    ?: throw TimelineEventContentError.NoContent
-                                            } ?: timelineEvent.content
-                                    timelineEvent.copy(content = newContent)
-                                }
+                            getTimelineEvent(roomId, replacedBy).map { replacedByTimelineEvent ->
+                                val newContent =
+                                    replacedByTimelineEvent?.content?.mapCatching { content ->
+                                        val newContent =
+                                            if (content is MessageEventContent) {
+                                                val relatesTo = content.relatesTo
+                                                if (relatesTo is RelatesTo.Replace) relatesTo.newContent else null
+                                            } else null
+                                        newContent?.copyWith(event.content.relatesTo)
+                                            ?: throw TimelineEventContentError.NoContent
+                                    } ?: timelineEvent.content
+                                timelineEvent.copy(content = newContent)
+                            }
                         } else flowOf(timelineEvent)
                     }
                 } else flowOf(timelineEvent)
@@ -393,21 +368,27 @@ class RoomServiceImpl(
                         getTimelineEventFetchMutex.withLock(eventId to roomId) {
                             val lastEventId = roomStore.get(roomId).first()?.lastEventId
                             if (lastEventId != null) {
-                                log.debug { "getTimelineEvent: cannot find TimelineEvent $eventId in store. we try to fetch it by filling some gaps." }
+                                log.debug {
+                                    "getTimelineEvent: cannot find TimelineEvent $eventId in store. we try to fetch it by filling some gaps."
+                                }
                                 getTimelineEvents(
-                                    startFrom = lastEventId,
-                                    roomId = roomId,
-                                    direction = BACKWARDS,
-                                    config = {
-                                        apply(cfg)
-                                        decryptionTimeout = ZERO
-                                    }
-                                ).map { it.first() }.firstOrNull { it.eventId == eventId }
+                                        startFrom = lastEventId,
+                                        roomId = roomId,
+                                        direction = BACKWARDS,
+                                        config = {
+                                            apply(cfg)
+                                            decryptionTimeout = ZERO
+                                        },
+                                    )
+                                    .map { it.first() }
+                                    .firstOrNull { it.eventId == eventId }
                                     .also { log.trace { "getTimelineEvent: found TimelineEvent $eventId" } }
                             } else null
                         }
                     }
-                    log.warn { "getTimelineEvent: could not find TimelineEvent $eventId in store or by fetching (timeout=${cfg.fetchTimeout})" }
+                    log.warn {
+                        "getTimelineEvent: could not find TimelineEvent $eventId in store or by fetching (timeout=${cfg.fetchTimeout})"
+                    }
                 } else {
                     val event = timelineEvent.event
                     if (cfg.decryptionTimeout > ZERO && timelineEvent.canBeDecrypted() && event is MessageEvent) {
@@ -416,21 +397,20 @@ class RoomServiceImpl(
                             try {
                                 withTimeout(cfg.decryptionTimeout) {
                                     getTimelineEventDecryptionMutex.withLock(timelineEvent.eventId to roomId) {
-                                        val decryptionResult =
-                                            roomEventEncryptionServices.decrypt(event)
+                                        val decryptionResult = roomEventEncryptionServices.decrypt(event)
                                         if (decryptionResult != null) {
                                             try {
                                                 Result.success(decryptionResult.getOrThrow())
                                             } catch (exception: Exception) {
-                                                log.trace { "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (${exception.message})" }
-                                                Result.failure(
-                                                    TimelineEventContentError.DecryptionError(
-                                                        exception
-                                                    )
-                                                )
+                                                log.trace {
+                                                    "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (${exception.message})"
+                                                }
+                                                Result.failure(TimelineEventContentError.DecryptionError(exception))
                                             }
                                         } else {
-                                            log.trace { "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (algorithm not supported)" }
+                                            log.trace {
+                                                "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (algorithm not supported)"
+                                            }
                                             Result.failure(TimelineEventContentError.DecryptionAlgorithmNotSupported)
                                         }
                                     }
@@ -443,80 +423,63 @@ class RoomServiceImpl(
                             log.trace { "getTimelineEvent: update decrypted TimelineEvent in store" }
                             fun updater(oldEvent: TimelineEvent?): TimelineEvent? =
                                 // we check here again, because an event could be redacted at the same time
-                                if (oldEvent?.canBeDecrypted() == true) timelineEvent.copy(content = decryptedEventContent)
+                                if (oldEvent?.canBeDecrypted() == true)
+                                    timelineEvent.copy(content = decryptedEventContent)
                                 else oldEvent
 
                             if (this@RoomServiceImpl.matrixClientConfig.storeTimelineEventContentUnencrypted) {
                                 tm.writeTransaction {
-                                    roomTimelineStore.update(
-                                        timelineEvent.eventId,
-                                        roomId,
-                                        ::updater
-                                    )
+                                    roomTimelineStore.update(timelineEvent.eventId, roomId, ::updater)
                                 }
                             } else {
                                 withCacheTransaction {
-                                    roomTimelineStore.updateCacheOnly(
-                                        timelineEvent.eventId,
-                                        roomId,
-                                        ::updater
-                                    )
+                                    roomTimelineStore.updateCacheOnly(timelineEvent.eventId, roomId, ::updater)
                                 }
                             }
-
                         } else {
                             emit(timelineEvent.copy(content = decryptedEventContent))
                         }
                     }
                 }
-            }.distinctUntilChanged()
+            }
+            .distinctUntilChanged()
     }
 
     override fun getPreviousTimelineEvent(
         event: TimelineEvent,
         config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?>? =
-        event.previousEventId?.let {
-            getTimelineEvent(
-                eventId = it,
-                roomId = event.roomId,
-                config = config,
-            )
-        }
+        event.previousEventId?.let { getTimelineEvent(eventId = it, roomId = event.roomId, config = config) }
 
     override fun getNextTimelineEvent(
         event: TimelineEvent,
         config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?>? =
-        event.nextEventId?.let {
-            getTimelineEvent(
-                eventId = it,
-                roomId = event.roomId,
-                config = config,
-            )
-        }
+        event.nextEventId?.let { getTimelineEvent(eventId = it, roomId = event.roomId, config = config) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getLastTimelineEvent(
         roomId: RoomId,
         config: GetTimelineEventConfig.() -> Unit,
     ): Flow<Flow<TimelineEvent>?> =
-        roomStore.get(roomId).transformLatest { room ->
-            coroutineScope {
-                if (room?.lastEventId != null) emit(
-                    getTimelineEvent(
-                        roomId = roomId,
-                        eventId = room.lastEventId,
-                        config = config
-                    ).filterNotNull()
-                )
-                else emit(null)
-                delay(INFINITE) // ensure, that the TimelineEvent does not get removed from cache
+        roomStore
+            .get(roomId)
+            .transformLatest { room ->
+                coroutineScope {
+                    if (room?.lastEventId != null)
+                        emit(
+                            getTimelineEvent(roomId = roomId, eventId = room.lastEventId, config = config)
+                                .filterNotNull()
+                        )
+                    else emit(null)
+                    delay(INFINITE) // ensure, that the TimelineEvent does not get removed from cache
+                }
             }
-        }.distinctUntilChanged()
+            .distinctUntilChanged()
 
     private interface FollowTimelineResult {
         data class Continue(val timelineEventFlow: Flow<TimelineEvent?>) : FollowTimelineResult
+
         object Stop : FollowTimelineResult
     }
 
@@ -527,288 +490,324 @@ class RoomServiceImpl(
         config: GetTimelineEventsConfig.() -> Unit,
     ): Flow<Flow<TimelineEvent>> =
         flow {
-            val cfg = GetTimelineEventsConfig().apply(config)
-            val minSize = cfg.minSize
-            val maxSize = cfg.maxSize
-            val loopDetectionEventIds = mutableListOf(startFrom)
-            fun TimelineEvent.needsFetchGap(): Boolean {
-                return gap != null && (gap.hasGapBoth && isLast.not() && isFirst.not()
-                        || direction == FORWARDS && gap.hasGapAfter && isLast.not()
-                        || direction == BACKWARDS && gap.hasGapBefore && isFirst.not())
-            }
-
-            var currentTimelineEventFlow: Flow<TimelineEvent> =
-                getTimelineEvent(roomId, startFrom) { apply(cfg) }.filterNotNull()
-            emit(currentTimelineEventFlow)
-            var size = 1
-            while (currentCoroutineContext().isActive) {
-                val followTimelineResult: FollowTimelineResult = currentTimelineEventFlow
-                    .transform { currentTimelineEvent ->
-                        val currentRoomId = currentTimelineEvent.roomId
-                        val currentEventId = currentTimelineEvent.eventId
-
-                        // check for room upgrades
-                        data class RoomEventIdPair(val eventId: EventId, val roomId: RoomId)
-
-                        val currentTimelineEventContent = currentTimelineEvent.event.content
-                        val predecessor: RoomEventIdPair? =
-                            if (direction == BACKWARDS && currentTimelineEvent.isFirst && currentTimelineEventContent is CreateEventContent) {
-                                val predecessorRoomId = currentTimelineEventContent.predecessor?.roomId
-                                if (predecessorRoomId != null) {
-                                    val tombstoneEventId = joinAndGetTombstone(
-                                        predecessorRoomId = predecessorRoomId,
-                                        predecessorRoom = getById(predecessorRoomId).first(),
-                                        sender = currentTimelineEvent.sender
-                                    )
-                                    if (tombstoneEventId != null) RoomEventIdPair(tombstoneEventId, predecessorRoomId)
-                                    else {
-                                        log.warn { "getTimelineEvents: found predecessor of room, but room or tombstone does not exist locally" }
-                                        null
-                                    }
-                                } else null
-                            } else null
-                        val successor: RoomEventIdPair? =
-                            if (direction == FORWARDS && (currentTimelineEvent.isLast || currentTimelineEventContent is TombstoneEventContent)) {
-                                val tombstone = getState<TombstoneEventContent>(currentRoomId).firstOrNull()
-                                if (tombstone != null) {
-                                    val replacementRoomId = tombstone.content.replacementRoom
-                                    val createEventId = joinAndGetCreate(
-                                        replacementRoomId = replacementRoomId,
-                                        replacementRoom = getById(replacementRoomId).first(),
-                                        sender = tombstone.sender
-                                    )
-                                    if (createEventId != null) RoomEventIdPair(createEventId, replacementRoomId)
-                                    else {
-                                        log.warn { "getTimelineEvents: found successor of room, but room does not exist locally" }
-                                        null
-                                    }
-                                } else {
-                                    null
-                                }
-                            } else null
-
-                        // check for break conditions
-                        log.trace { "getTimelineEvents: size=$size minSize=$minSize maxSize=$maxSize direction=${direction.name} predecessor=$predecessor successor=$successor currentTimelineEvent=${currentTimelineEvent.eventId}" }
-                        if (direction == BACKWARDS && currentTimelineEvent.isFirst && predecessor == null) {
-                            log.debug { "getTimelineEvents: reached start of timeline $currentRoomId" }
-                            emit(FollowTimelineResult.Stop)
-                        }
-                        if (minSize != null && size >= minSize
-                            && (currentTimelineEvent.needsFetchGap() || (direction == FORWARDS && currentTimelineEvent.isLast))
-                        ) {
-                            log.debug { "getTimelineEvents: found a gap and complete flow, because minSize reached" }
-                            emit(FollowTimelineResult.Stop)
-                        }
-                        if (maxSize != null && size >= maxSize) {
-                            log.debug { "getTimelineEvents: complete flow because maxSize reached" }
-                            emit(FollowTimelineResult.Stop)
-                        }
-
-                        if (currentTimelineEvent.needsFetchGap()) {
-                            log.debug { "getTimelineEvents: found ${currentTimelineEvent.gap} at $currentEventId" }
-                            fillTimelineGaps(currentRoomId, currentEventId, cfg.fetchSize)
-                        } else {
-                            val continueWith = when (direction) {
-                                BACKWARDS ->
-                                    if (predecessor == null) {
-                                        log.trace { "getTimelineEvents: continue with previous event of $currentEventId" }
-                                        getPreviousTimelineEvent(
-                                            event = currentTimelineEvent,
-                                            config = {
-                                                apply(cfg)
-                                                fetchTimeout = ZERO
-                                            }
-                                        )
-                                    } else {
-                                        log.trace { "getTimelineEvents: continue with predecessor ($predecessor) of $currentEventId" }
-                                        getTimelineEvent(
-                                            eventId = predecessor.eventId,
-                                            roomId = predecessor.roomId,
-                                            config = { apply(cfg) },
-                                        )
-                                    }
-
-                                FORWARDS ->
-                                    if (successor == null) {
-                                        log.trace { "getTimelineEvents: continue with next event of $currentEventId" }
-                                        getNextTimelineEvent(
-                                            event = currentTimelineEvent,
-                                            config = {
-                                                apply(cfg)
-                                                fetchTimeout = ZERO
-                                            }
-                                        )
-                                    } else {
-                                        log.trace { "getTimelineEvents: continue with successor ($successor) of $currentEventId" }
-                                        getTimelineEvent(
-                                            eventId = successor.eventId,
-                                            roomId = successor.roomId,
-                                            config = { apply(cfg) },
-                                        )
-                                    }
-                            }
-                            if (continueWith != null) {
-                                emit(FollowTimelineResult.Continue(continueWith))
-                            } else {
-                                log.debug { "getTimelineEvents: did not found any event to continue with at $currentEventId, wait for update" }
-                            }
-                        }
-                    }
-                    .first()
-
-                when (followTimelineResult) {
-                    is FollowTimelineResult.Continue -> {
-                        currentTimelineEventFlow =
-                            followTimelineResult.timelineEventFlow.filterNotNull()
-                    }
-
-                    is FollowTimelineResult.Stop -> break
+                val cfg = GetTimelineEventsConfig().apply(config)
+                val minSize = cfg.minSize
+                val maxSize = cfg.maxSize
+                val loopDetectionEventIds = mutableListOf(startFrom)
+                fun TimelineEvent.needsFetchGap(): Boolean {
+                    return gap != null &&
+                        (gap.hasGapBoth && isLast.not() && isFirst.not() ||
+                            direction == FORWARDS && gap.hasGapAfter && isLast.not() ||
+                            direction == BACKWARDS && gap.hasGapBefore && isFirst.not())
                 }
 
-                // check for loop
-                val continueTimelineEventId = currentTimelineEventFlow.first().eventId
-                if (loopDetectionEventIds.contains(continueTimelineEventId)) {
-                    val message =
-                        "Detected a loop in timeline generation. " +
+                var currentTimelineEventFlow: Flow<TimelineEvent> =
+                    getTimelineEvent(roomId, startFrom) { apply(cfg) }.filterNotNull()
+                emit(currentTimelineEventFlow)
+                var size = 1
+                while (currentCoroutineContext().isActive) {
+                    val followTimelineResult: FollowTimelineResult =
+                        currentTimelineEventFlow
+                            .transform { currentTimelineEvent ->
+                                val currentRoomId = currentTimelineEvent.roomId
+                                val currentEventId = currentTimelineEvent.eventId
+
+                                // check for room upgrades
+                                data class RoomEventIdPair(val eventId: EventId, val roomId: RoomId)
+
+                                val currentTimelineEventContent = currentTimelineEvent.event.content
+                                val predecessor: RoomEventIdPair? =
+                                    if (
+                                        direction == BACKWARDS &&
+                                            currentTimelineEvent.isFirst &&
+                                            currentTimelineEventContent is CreateEventContent
+                                    ) {
+                                        val predecessorRoomId = currentTimelineEventContent.predecessor?.roomId
+                                        if (predecessorRoomId != null) {
+                                            val tombstoneEventId =
+                                                joinAndGetTombstone(
+                                                    predecessorRoomId = predecessorRoomId,
+                                                    predecessorRoom = getById(predecessorRoomId).first(),
+                                                    sender = currentTimelineEvent.sender,
+                                                )
+                                            if (tombstoneEventId != null)
+                                                RoomEventIdPair(tombstoneEventId, predecessorRoomId)
+                                            else {
+                                                log.warn {
+                                                    "getTimelineEvents: found predecessor of room, but room or tombstone does not exist locally"
+                                                }
+                                                null
+                                            }
+                                        } else null
+                                    } else null
+                                val successor: RoomEventIdPair? =
+                                    if (
+                                        direction == FORWARDS &&
+                                            (currentTimelineEvent.isLast ||
+                                                currentTimelineEventContent is TombstoneEventContent)
+                                    ) {
+                                        val tombstone = getState<TombstoneEventContent>(currentRoomId).firstOrNull()
+                                        if (tombstone != null) {
+                                            val replacementRoomId = tombstone.content.replacementRoom
+                                            val createEventId =
+                                                joinAndGetCreate(
+                                                    replacementRoomId = replacementRoomId,
+                                                    replacementRoom = getById(replacementRoomId).first(),
+                                                    sender = tombstone.sender,
+                                                )
+                                            if (createEventId != null) RoomEventIdPair(createEventId, replacementRoomId)
+                                            else {
+                                                log.warn {
+                                                    "getTimelineEvents: found successor of room, but room does not exist locally"
+                                                }
+                                                null
+                                            }
+                                        } else {
+                                            null
+                                        }
+                                    } else null
+
+                                // check for break conditions
+                                log.trace {
+                                    "getTimelineEvents: size=$size minSize=$minSize maxSize=$maxSize direction=${direction.name} predecessor=$predecessor successor=$successor currentTimelineEvent=${currentTimelineEvent.eventId}"
+                                }
+                                if (direction == BACKWARDS && currentTimelineEvent.isFirst && predecessor == null) {
+                                    log.debug { "getTimelineEvents: reached start of timeline $currentRoomId" }
+                                    emit(FollowTimelineResult.Stop)
+                                }
+                                if (
+                                    minSize != null &&
+                                        size >= minSize &&
+                                        (currentTimelineEvent.needsFetchGap() ||
+                                            (direction == FORWARDS && currentTimelineEvent.isLast))
+                                ) {
+                                    log.debug {
+                                        "getTimelineEvents: found a gap and complete flow, because minSize reached"
+                                    }
+                                    emit(FollowTimelineResult.Stop)
+                                }
+                                if (maxSize != null && size >= maxSize) {
+                                    log.debug { "getTimelineEvents: complete flow because maxSize reached" }
+                                    emit(FollowTimelineResult.Stop)
+                                }
+
+                                if (currentTimelineEvent.needsFetchGap()) {
+                                    log.debug {
+                                        "getTimelineEvents: found ${currentTimelineEvent.gap} at $currentEventId"
+                                    }
+                                    fillTimelineGaps(currentRoomId, currentEventId, cfg.fetchSize)
+                                } else {
+                                    val continueWith =
+                                        when (direction) {
+                                            BACKWARDS ->
+                                                if (predecessor == null) {
+                                                    log.trace {
+                                                        "getTimelineEvents: continue with previous event of $currentEventId"
+                                                    }
+                                                    getPreviousTimelineEvent(
+                                                        event = currentTimelineEvent,
+                                                        config = {
+                                                            apply(cfg)
+                                                            fetchTimeout = ZERO
+                                                        },
+                                                    )
+                                                } else {
+                                                    log.trace {
+                                                        "getTimelineEvents: continue with predecessor ($predecessor) of $currentEventId"
+                                                    }
+                                                    getTimelineEvent(
+                                                        eventId = predecessor.eventId,
+                                                        roomId = predecessor.roomId,
+                                                        config = { apply(cfg) },
+                                                    )
+                                                }
+
+                                            FORWARDS ->
+                                                if (successor == null) {
+                                                    log.trace {
+                                                        "getTimelineEvents: continue with next event of $currentEventId"
+                                                    }
+                                                    getNextTimelineEvent(
+                                                        event = currentTimelineEvent,
+                                                        config = {
+                                                            apply(cfg)
+                                                            fetchTimeout = ZERO
+                                                        },
+                                                    )
+                                                } else {
+                                                    log.trace {
+                                                        "getTimelineEvents: continue with successor ($successor) of $currentEventId"
+                                                    }
+                                                    getTimelineEvent(
+                                                        eventId = successor.eventId,
+                                                        roomId = successor.roomId,
+                                                        config = { apply(cfg) },
+                                                    )
+                                                }
+                                        }
+                                    if (continueWith != null) {
+                                        emit(FollowTimelineResult.Continue(continueWith))
+                                    } else {
+                                        log.debug {
+                                            "getTimelineEvents: did not found any event to continue with at $currentEventId, wait for update"
+                                        }
+                                    }
+                                }
+                            }
+                            .first()
+
+                    when (followTimelineResult) {
+                        is FollowTimelineResult.Continue -> {
+                            currentTimelineEventFlow = followTimelineResult.timelineEventFlow.filterNotNull()
+                        }
+
+                        is FollowTimelineResult.Stop -> break
+                    }
+
+                    // check for loop
+                    val continueTimelineEventId = currentTimelineEventFlow.first().eventId
+                    if (loopDetectionEventIds.contains(continueTimelineEventId)) {
+                        val message =
+                            "Detected a loop in timeline generation. " +
                                 "This is a severe misbehavior and must be fixed in Trixnity!!! " +
                                 "Event $continueTimelineEventId has already been emitted in this flow (history=$loopDetectionEventIds)."
-                    log.error { message } // log even when a consumer don't catch the exception
-                    throw IllegalStateException(message)
-                } else loopDetectionEventIds.add(continueTimelineEventId)
+                        log.error { message } // log even when a consumer don't catch the exception
+                        throw IllegalStateException(message)
+                    } else loopDetectionEventIds.add(continueTimelineEventId)
 
-                log.trace { "getTimelineEvents: continue loop with $continueTimelineEventId" }
-                emit(currentTimelineEventFlow)
-                size++
+                    log.trace { "getTimelineEvents: continue loop with $continueTimelineEventId" }
+                    emit(currentTimelineEventFlow)
+                    size++
+                }
             }
-        }.buffer(0)
+            .buffer(0)
 
-    private suspend fun joinAndGetCreate(
-        replacementRoomId: RoomId,
-        replacementRoom: Room?,
-        sender: UserId
-    ): EventId? = when {
-        matrixClientConfig.autoJoinUpgradedRooms.not() -> {
-            getState<CreateEventContent>(replacementRoomId).first()?.idOrNull
-        }
+    private suspend fun joinAndGetCreate(replacementRoomId: RoomId, replacementRoom: Room?, sender: UserId): EventId? =
+        when {
+            matrixClientConfig.autoJoinUpgradedRooms.not() -> {
+                getState<CreateEventContent>(replacementRoomId).first()?.idOrNull
+            }
 
-        replacementRoom == null -> {
-            log.debug { "try join upgraded room via" }
-            retry(
-                onError = { error, delay -> log.warn(error) { "could not join upgraded room, retry again in $delay" } }
-            ) {
-                api.room.joinRoom(
-                    roomId = replacementRoomId,
-                    via = setOf(sender.domain)
-                ).fold(
-                    onSuccess = {
-                        getState<CreateEventContent>(replacementRoomId).filterNotNull()
-                            .first().idOrNull
-                    },
-                    onFailure = {
-                        if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
-                            null
-                        } else throw it
+            replacementRoom == null -> {
+                log.debug { "try join upgraded room via" }
+                retry(
+                    onError = { error, delay ->
+                        log.warn(error) { "could not join upgraded room, retry again in $delay" }
                     }
-                )
+                ) {
+                    api.room
+                        .joinRoom(roomId = replacementRoomId, via = setOf(sender.domain))
+                        .fold(
+                            onSuccess = {
+                                getState<CreateEventContent>(replacementRoomId).filterNotNull().first().idOrNull
+                            },
+                            onFailure = {
+                                if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                                    null
+                                } else throw it
+                            },
+                        )
+                }
+            }
+
+            replacementRoom.membership == Membership.INVITE -> {
+                log.debug { "try join upgraded room" }
+                retry(
+                    onError = { error, delay ->
+                        log.warn(error) { "could not join upgraded room, retry again in $delay" }
+                    }
+                ) {
+                    api.room
+                        .joinRoom(replacementRoomId)
+                        .fold(
+                            onSuccess = {
+                                getState<CreateEventContent>(replacementRoomId).filterNotNull().first().idOrNull
+                            },
+                            onFailure = {
+                                if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                                    null
+                                } else throw it
+                            },
+                        )
+                }
+            }
+
+            else -> {
+                getState<CreateEventContent>(replacementRoomId).first()?.idOrNull
             }
         }
-
-        replacementRoom.membership == Membership.INVITE -> {
-            log.debug { "try join upgraded room" }
-            retry(
-                onError = { error, delay -> log.warn(error) { "could not join upgraded room, retry again in $delay" } }
-            ) {
-                api.room.joinRoom(replacementRoomId)
-                    .fold(
-                        onSuccess = {
-                            getState<CreateEventContent>(replacementRoomId).filterNotNull()
-                                .first().idOrNull
-                        },
-                        onFailure = {
-                            if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
-                                null
-                            } else throw it
-                        }
-                    )
-            }
-        }
-
-        else -> {
-            getState<CreateEventContent>(replacementRoomId).first()?.idOrNull
-        }
-    }
 
     private suspend fun joinAndGetTombstone(
         predecessorRoomId: RoomId,
         predecessorRoom: Room?,
-        sender: UserId
-    ): EventId? = when {
-        matrixClientConfig.autoJoinUpgradedRooms.not() -> {
-            getState<TombstoneEventContent>(predecessorRoomId).first()?.idOrNull
-        }
+        sender: UserId,
+    ): EventId? =
+        when {
+            matrixClientConfig.autoJoinUpgradedRooms.not() -> {
+                getState<TombstoneEventContent>(predecessorRoomId).first()?.idOrNull
+            }
 
-        predecessorRoom == null -> {
-            log.debug { "try join upgraded room via" }
-            retry(
-                onError = { error, delay -> log.warn(error) { "could not join upgraded room, retry again in $delay" } }
-            ) {
-                api.room.joinRoom(
-                    roomId = predecessorRoomId,
-                    via = setOf(sender.domain)
-                ).fold(
-                    onSuccess = {
-                        getState<TombstoneEventContent>(predecessorRoomId).filterNotNull()
-                            .first().idOrNull
-                    },
-                    onFailure = {
-                        if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
-                            null
-                        } else throw it
+            predecessorRoom == null -> {
+                log.debug { "try join upgraded room via" }
+                retry(
+                    onError = { error, delay ->
+                        log.warn(error) { "could not join upgraded room, retry again in $delay" }
                     }
-                )
+                ) {
+                    api.room
+                        .joinRoom(roomId = predecessorRoomId, via = setOf(sender.domain))
+                        .fold(
+                            onSuccess = {
+                                getState<TombstoneEventContent>(predecessorRoomId).filterNotNull().first().idOrNull
+                            },
+                            onFailure = {
+                                if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                                    null
+                                } else throw it
+                            },
+                        )
+                }
+            }
+
+            predecessorRoom.membership == Membership.INVITE -> {
+                log.debug { "try join upgraded room" }
+                retry(
+                    onError = { error, delay ->
+                        log.warn(error) { "could not join upgraded room, retry again in $delay" }
+                    }
+                ) {
+                    api.room
+                        .joinRoom(predecessorRoomId)
+                        .fold(
+                            onSuccess = {
+                                getState<TombstoneEventContent>(predecessorRoomId).filterNotNull().first().idOrNull
+                            },
+                            onFailure = {
+                                if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
+                                    null
+                                } else throw it
+                            },
+                        )
+                }
+            }
+
+            else -> {
+                getState<TombstoneEventContent>(predecessorRoomId).first()?.idOrNull
             }
         }
-
-        predecessorRoom.membership == Membership.INVITE -> {
-            log.debug { "try join upgraded room" }
-            retry(
-                onError = { error, delay -> log.warn(error) { "could not join upgraded room, retry again in $delay" } }
-            ) {
-                api.room.joinRoom(predecessorRoomId)
-                    .fold(
-                        onSuccess = {
-                            getState<TombstoneEventContent>(predecessorRoomId).filterNotNull()
-                                .first().idOrNull
-                        },
-                        onFailure = {
-                            if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
-                                null
-                            } else throw it
-                        }
-                    )
-            }
-        }
-
-        else -> {
-            getState<TombstoneEventContent>(predecessorRoomId).first()?.idOrNull
-        }
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getLastTimelineEvents(
         roomId: RoomId,
         config: GetTimelineEventsConfig.() -> Unit,
     ): Flow<Flow<Flow<TimelineEvent>>?> =
-        roomStore.get(roomId)
+        roomStore
+            .get(roomId)
             .mapLatest { it?.lastEventId }
             .distinctUntilChanged()
             .mapLatest {
-                if (it != null) getTimelineEvents(
-                    startFrom = it,
-                    roomId = roomId,
-                    direction = BACKWARDS,
-                    config = config,
-                )
+                if (it != null)
+                    getTimelineEvents(startFrom = it, roomId = roomId, direction = BACKWARDS, config = config)
                 else null
             }
 
@@ -817,30 +816,24 @@ class RoomServiceImpl(
         decryptionTimeout: Duration,
         syncResponseBufferSize: Int,
     ): Flow<TimelineEvent> =
-        api.sync.subscribeAsFlow(Priority.AFTER_DEFAULT).map { it.syncResponse }
+        api.sync
+            .subscribeAsFlow(Priority.AFTER_DEFAULT)
+            .map { it.syncResponse }
             .buffer(syncResponseBufferSize)
             .flatMapConcat { getTimelineEvents(it, decryptionTimeout) }
 
-    override fun getTimelineEvents(
-        response: Sync.Response,
-        decryptionTimeout: Duration,
-    ): Flow<TimelineEvent> {
+    override fun getTimelineEvents(response: Sync.Response, decryptionTimeout: Duration): Flow<TimelineEvent> {
         val timelineEvents =
             response.room?.join?.values?.flatMap { it.timeline?.events.orEmpty() }.orEmpty() +
-                    response.room?.leave?.values?.flatMap { it.timeline?.events.orEmpty() }
-                        .orEmpty()
+                response.room?.leave?.values?.flatMap { it.timeline?.events.orEmpty() }.orEmpty()
 
         return flow {
             coroutineScope {
-                timelineEvents.map {
-                    async {
-                        getTimelineEvent(it.roomId, it.id) {
-                            this.decryptionTimeout = decryptionTimeout
-                        }
+                timelineEvents
+                    .map { async { getTimelineEvent(it.roomId, it.id) { this.decryptionTimeout = decryptionTimeout } } }
+                    .forEach { deferredTimelineEvent ->
+                        emit(deferredTimelineEvent.await().filterNotNull().first { it.content != null })
                     }
-                }.forEach { deferredTimelineEvent ->
-                    emit(deferredTimelineEvent.await().filterNotNull().first { it.content != null })
-                }
             }
         }
     }
@@ -848,19 +841,13 @@ class RoomServiceImpl(
     override fun <T> getTimeline(
         onStateChange: suspend (TimelineStateChange<T>) -> Unit,
         transformer: suspend (Flow<TimelineEvent>) -> T,
-    ): Timeline<T> =
-        TimelineImpl(
-            roomService = this,
-            onStateChange = onStateChange,
-            transformer = transformer,
-        )
+    ): Timeline<T> = TimelineImpl(roomService = this, onStateChange = onStateChange, transformer = transformer)
 
     override fun getTimelineEventRelations(
         roomId: RoomId,
         eventId: EventId,
         relationType: RelationType,
-    ): Flow<Map<EventId, Flow<TimelineEventRelation?>>?> =
-        roomTimelineStore.getRelations(eventId, roomId, relationType)
+    ): Flow<Map<EventId, Flow<TimelineEventRelation?>>?> = roomTimelineStore.getRelations(eventId, roomId, relationType)
 
     private suspend fun setOutboxMessage(
         roomId: RoomId,
@@ -902,7 +889,7 @@ class RoomServiceImpl(
         roomId: RoomId,
         keepMediaInCache: Boolean,
         stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String =
         setOutboxMessage(
             roomId = roomId,
@@ -910,7 +897,7 @@ class RoomServiceImpl(
             builder = builder,
             isDraft = false,
             createdAt = clock.now(),
-            stickyDuration = stickyDuration
+            stickyDuration = stickyDuration,
         )
 
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
@@ -931,56 +918,48 @@ class RoomServiceImpl(
     }
 
     override suspend fun retrySendMessage(roomId: RoomId, transactionId: String) {
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(roomId, transactionId) { it?.copy(sendError = null) }
-        }
+        tm.writeTransaction { roomOutboxMessageStore.update(roomId, transactionId) { it?.copy(sendError = null) } }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getDraftMessage(roomId: RoomId): Flow<RoomOutboxMessage<*>?> {
         val currentDrafts: Flow<Map<RoomId, Flow<RoomOutboxMessage<*>?>>> =
             roomOutboxMessageStore.getAll().map { outbox ->
-                outbox.entries.groupBy(
-                    keySelector = { it.key.roomId },
-                    valueTransform = { it.value }
-                ).mapValues { (_, value) ->
-                    combine(value) {
-                        it.firstOrNull { outboxMessage ->
-                            outboxMessage?.isDraft == true
-                        }
-                    }
+                outbox.entries.groupBy(keySelector = { it.key.roomId }, valueTransform = { it.value }).mapValues {
+                    (_, value) ->
+                    combine(value) { it.firstOrNull { outboxMessage -> outboxMessage?.isDraft == true } }
                 }
             }
 
-        return currentDrafts.flatMapLatest {
-            it.getOrElse(roomId) { flowOf(null) }
-        }
+        return currentDrafts.flatMapLatest { it.getOrElse(roomId) { flowOf(null) } }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun deleteDraftMessage(roomId: RoomId) {
-        val draftMessages = roomOutboxMessageStore.getAll().flatMapLatest { outbox ->
-            val outboxEventsForThisRoom = outbox.filterKeys { it.roomId == roomId }.values
-            if (outboxEventsForThisRoom.isEmpty()) {
-                flowOf(emptyList())
-            } else {
-                combine(outboxEventsForThisRoom) {
-                    it.filter { message -> message?.isDraft == true }
+        val draftMessages =
+            roomOutboxMessageStore
+                .getAll()
+                .flatMapLatest { outbox ->
+                    val outboxEventsForThisRoom = outbox.filterKeys { it.roomId == roomId }.values
+                    if (outboxEventsForThisRoom.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        combine(outboxEventsForThisRoom) { it.filter { message -> message?.isDraft == true } }
+                    }
                 }
-            }
-        }.first().filterNotNull()
+                .first()
+                .filterNotNull()
         if (draftMessages.isNotEmpty()) {
-            draftMessages.forEach {
-                cancelSendMessage(roomId, it.transactionId)
-            }
+            draftMessages.forEach { cancelSendMessage(roomId, it.transactionId) }
         }
     }
 
     private val draftMutex = KeyedMutex<RoomId>()
+
     override suspend fun setDraftMessage(
         roomId: RoomId,
         keepMediaInCache: Boolean,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String = setDraftMessage(roomId, keepMediaInCache, null, builder)
 
     @MSC4354
@@ -988,7 +967,7 @@ class RoomServiceImpl(
         roomId: RoomId,
         keepMediaInCache: Boolean,
         stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String =
         draftMutex.withLock(roomId) {
             val draftMessage = getDraftMessage(roomId).first()
@@ -1010,10 +989,7 @@ class RoomServiceImpl(
             return null
         }
         tm.writeTransaction {
-            roomOutboxMessageStore.update(
-                roomId,
-                draftMessage.transactionId
-            ) { it?.copy(isDraft = false) }
+            roomOutboxMessageStore.update(roomId, draftMessage.transactionId) { it?.copy(isDraft = false) }
         }
         return draftMessage.transactionId
     }
@@ -1024,16 +1000,14 @@ class RoomServiceImpl(
         return roomStore.get(roomId)
     }
 
-    override suspend fun forgetRoom(roomId: RoomId, force: Boolean) =
-        forgetRoomService(roomId, force)
+    override suspend fun forgetRoom(roomId: RoomId, force: Boolean) = forgetRoomService(roomId, force)
 
     override fun <C : RoomAccountDataEventContent> getAccountData(
         roomId: RoomId,
         eventContentClass: KClass<C>,
         key: String,
     ): Flow<C?> {
-        return roomAccountDataStore.get(roomId, eventContentClass, key)
-            .map { it?.content }
+        return roomAccountDataStore.get(roomId, eventContentClass, key).map { it?.content }
     }
 
     private data class OutboxMessageDataWrapper(
@@ -1044,54 +1018,47 @@ class RoomServiceImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getOutbox(): Flow<List<Flow<RoomOutboxMessage<*>?>>> =
-        roomOutboxMessageStore.getAll().flatMapLatest { outbox ->
-            if (outbox.isEmpty()) flowOf(emptyList())
-            else {
-                val innerFlowsWithCreatedAt =
-                    outbox.values.map { entry ->
-                        entry.map {
-                            OutboxMessageDataWrapper(
-                                entry,
-                                it?.createdAt,
-                                it?.isDraft
-                            )
+        roomOutboxMessageStore
+            .getAll()
+            .flatMapLatest { outbox ->
+                if (outbox.isEmpty()) flowOf(emptyList())
+                else {
+                    val innerFlowsWithCreatedAt =
+                        outbox.values.map { entry ->
+                            entry.map { OutboxMessageDataWrapper(entry, it?.createdAt, it?.isDraft) }
                         }
+                    combine(innerFlowsWithCreatedAt) { innerFlowsWithCreatedAtArray ->
+                        innerFlowsWithCreatedAtArray
+                            .mapNotNull { entry -> entry.createdAt?.let { entry } }
+                            .sortedBy { it.createdAt }
+                            .filter { it.isDraft == false }
+                            .map { it.entry }
                     }
-                combine(innerFlowsWithCreatedAt) { innerFlowsWithCreatedAtArray ->
-                    innerFlowsWithCreatedAtArray
-                        .mapNotNull { entry -> entry.createdAt?.let { entry } }
-                        .sortedBy { it.createdAt }
-                        .filter { it.isDraft == false }
-                        .map { it.entry }
                 }
             }
-        }.distinctUntilChanged()
+            .distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getOutbox(roomId: RoomId): Flow<List<Flow<RoomOutboxMessage<*>?>>> =
-        roomOutboxMessageStore.getAll().flatMapLatest { outbox ->
-            val roomOutbox = outbox.filterKeys { it.roomId == roomId }.values
-            if (roomOutbox.isEmpty()) flowOf(emptyList())
-            else {
-                val innerFlowsWithCreatedAt =
-                    roomOutbox.map { entry ->
-                        entry.map {
-                            OutboxMessageDataWrapper(
-                                entry,
-                                it?.createdAt,
-                                it?.isDraft
-                            )
-                        }
+        roomOutboxMessageStore
+            .getAll()
+            .flatMapLatest { outbox ->
+                val roomOutbox = outbox.filterKeys { it.roomId == roomId }.values
+                if (roomOutbox.isEmpty()) flowOf(emptyList())
+                else {
+                    val innerFlowsWithCreatedAt = roomOutbox.map { entry ->
+                        entry.map { OutboxMessageDataWrapper(entry, it?.createdAt, it?.isDraft) }
                     }
-                combine(innerFlowsWithCreatedAt) { innerFlowsWithCreatedAtArray ->
-                    innerFlowsWithCreatedAtArray
-                        .mapNotNull { entry -> entry.createdAt?.let { entry } }
-                        .sortedBy { it.createdAt }
-                        .filter { it.isDraft == false }
-                        .map { it.entry }
+                    combine(innerFlowsWithCreatedAt) { innerFlowsWithCreatedAtArray ->
+                        innerFlowsWithCreatedAtArray
+                            .mapNotNull { entry -> entry.createdAt?.let { entry } }
+                            .sortedBy { it.createdAt }
+                            .filter { it.isDraft == false }
+                            .map { it.entry }
+                    }
                 }
             }
-        }.distinctUntilChanged()
+            .distinctUntilChanged()
 
     override fun getOutbox(roomId: RoomId, transactionId: String): Flow<RoomOutboxMessage<*>?> =
         roomOutboxMessageStore.get(roomId, transactionId)
@@ -1124,7 +1091,6 @@ class RoomServiceImpl(
         roomId: RoomId,
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return stickyEventStore.get(roomId, eventContentClass)
-            .map { it.mapValues { it.value.map { it?.event } } }
+        return stickyEventStore.get(roomId, eventContentClass).map { it.mapValues { it.value.map { it?.event } } }
     }
 }

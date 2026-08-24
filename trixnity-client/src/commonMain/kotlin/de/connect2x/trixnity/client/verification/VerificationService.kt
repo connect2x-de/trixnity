@@ -49,6 +49,8 @@ import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.utils.nextString
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -70,8 +72,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private val log = Logger("de.connect2x.trixnity.client.verification.VerificationService")
 
@@ -82,12 +82,10 @@ interface VerificationService {
 
     suspend fun createDeviceVerificationRequest(
         theirUserId: UserId,
-        theirDeviceIds: Set<String>
+        theirDeviceIds: Set<String>,
     ): Result<ActiveDeviceVerification>
 
-    suspend fun createUserVerificationRequest(
-        theirUserId: UserId
-    ): Result<ActiveUserVerification>
+    suspend fun createUserVerificationRequest(theirUserId: UserId): Result<ActiveUserVerification>
 
     /**
      * Possible states include:
@@ -97,31 +95,27 @@ interface VerificationService {
      * * [SelfVerificationMethods.CrossSigningEnabled]
      */
     sealed interface SelfVerificationMethods {
-        /**
-         * We don't have enough information yet to calculated available methods (e.g. waiting for the first sync).
-         */
+        /** We don't have enough information yet to calculated available methods (e.g. waiting for the first sync). */
         data class PreconditionsNotMet(val reasons: Set<Reason>) : SelfVerificationMethods {
             interface Reason {
                 data object SyncNotRunning : Reason
+
                 data object DeviceKeysNotFetchedYet : Reason
+
                 data object CrossSigningKeysNotFetchedYet : Reason
             }
         }
 
         /**
-         * Cross signing can be bootstrapped.
-         * Bootstrapping can be done with [KeyService::bootstrapCrossSigning][de.connect2x.trixnity.client.key.KeyServiceImpl.bootstrapCrossSigning].
+         * Cross signing can be bootstrapped. Bootstrapping can be done with
+         * [KeyService::bootstrapCrossSigning][de.connect2x.trixnity.client.key.KeyServiceImpl.bootstrapCrossSigning].
          */
         data object NoCrossSigningEnabled : SelfVerificationMethods
 
-        /**
-         * No self verification needed.
-         */
+        /** No self verification needed. */
         data object AlreadyCrossSigned : SelfVerificationMethods
 
-        /**
-         * If empty: no other device & no key backup -> consider new bootstrapping of cross signing
-         */
+        /** If empty: no other device & no key backup -> consider new bootstrapping of cross signing */
         data class CrossSigningEnabled(val methods: Set<SelfVerificationMethod>) : SelfVerificationMethods
     }
 
@@ -129,16 +123,11 @@ interface VerificationService {
 
     @Deprecated(
         "use eventId instead",
-        ReplaceWith("getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)")
+        ReplaceWith("getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)"),
     )
-    suspend fun getActiveUserVerification(
-        timelineEvent: TimelineEvent,
-    ): ActiveUserVerification?
+    suspend fun getActiveUserVerification(timelineEvent: TimelineEvent): ActiveUserVerification?
 
-    suspend fun getActiveUserVerification(
-        roomId: RoomId,
-        eventId: EventId,
-    ): ActiveUserVerification?
+    suspend fun getActiveUserVerification(roomId: RoomId, eventId: EventId): ActiveUserVerification?
 }
 
 class VerificationServiceImpl(
@@ -167,10 +156,8 @@ class VerificationServiceImpl(
     private val supportedMethods: Set<VerificationMethod> = setOf(Sas)
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        api.sync.subscribeContent(subscriber = ::handleDeviceVerificationRequestEvents)
-            .unsubscribeOnCompletion(scope)
-        olmEventHandler.subscribe(::handleOlmDecryptedDeviceVerificationRequestEvents)
-            .unsubscribeOnCompletion(scope)
+        api.sync.subscribeContent(subscriber = ::handleDeviceVerificationRequestEvents).unsubscribeOnCompletion(scope)
+        olmEventHandler.subscribe(::handleOlmDecryptedDeviceVerificationRequestEvents).unsubscribeOnCompletion(scope)
         // we use UNDISPATCHED because we want to ensure, that collect is called immediately
         scope.launch(start = UNDISPATCHED) {
             _activeUserVerifications.collect { startLifecycleOfActiveVerifications(it, this) }
@@ -180,7 +167,9 @@ class VerificationServiceImpl(
         }
     }
 
-    private suspend fun handleDeviceVerificationRequestEvents(event: ClientEvent<VerificationRequestToDeviceEventContent>) {
+    private suspend fun handleDeviceVerificationRequestEvents(
+        event: ClientEvent<VerificationRequestToDeviceEventContent>
+    ) {
         val content = event.content
         when (event) {
             is ToDeviceEvent -> {
@@ -189,24 +178,6 @@ class VerificationServiceImpl(
                     if (_activeDeviceVerification.value != null) {
                         log.info { "already have an active device verification -> cancelling new verification request" }
                         ActiveDeviceVerificationImpl(
-                            request = event.content,
-                            requestIsOurs = false,
-                            ownUserId = ownUserId,
-                            ownDeviceId = ownDeviceId,
-                            theirUserId = event.sender,
-                            theirDeviceId = content.fromDevice,
-                            supportedMethods = supportedMethods,
-                            api = api,
-                            olmEventHandler = olmEventHandler,
-                            olmEncryptionService = olmEncryptionService,
-                            keyStore = keyStore,
-                            keyTrust = keyTrustService,
-                            clock = clock,
-                            driver = driver,
-                        ).cancel()
-                    } else {
-                        _activeDeviceVerification.getAndUpdate {
-                            ActiveDeviceVerificationImpl(
                                 request = event.content,
                                 requestIsOurs = false,
                                 ownUserId = ownUserId,
@@ -217,19 +188,43 @@ class VerificationServiceImpl(
                                 api = api,
                                 olmEventHandler = olmEventHandler,
                                 olmEncryptionService = olmEncryptionService,
-                                keyTrust = keyTrustService,
                                 keyStore = keyStore,
+                                keyTrust = keyTrustService,
                                 clock = clock,
                                 driver = driver,
                             )
-                        }?.cancel()
+                            .cancel()
+                    } else {
+                        _activeDeviceVerification
+                            .getAndUpdate {
+                                ActiveDeviceVerificationImpl(
+                                    request = event.content,
+                                    requestIsOurs = false,
+                                    ownUserId = ownUserId,
+                                    ownDeviceId = ownDeviceId,
+                                    theirUserId = event.sender,
+                                    theirDeviceId = content.fromDevice,
+                                    supportedMethods = supportedMethods,
+                                    api = api,
+                                    olmEventHandler = olmEventHandler,
+                                    olmEncryptionService = olmEncryptionService,
+                                    keyTrust = keyTrustService,
+                                    keyStore = keyStore,
+                                    clock = clock,
+                                    driver = driver,
+                                )
+                            }
+                            ?.cancel()
                     }
                 } else {
                     log.warn { "Received device verification request that is not active anymore: $event" }
                 }
             }
 
-            else -> log.warn { "got new device verification request with an event type ${event::class.simpleName}, that we did not expected" }
+            else ->
+                log.warn {
+                    "got new device verification request with an event type ${event::class.simpleName}, that we did not expected"
+                }
         }
     }
 
@@ -241,21 +236,22 @@ class VerificationServiceImpl(
                     if (_activeDeviceVerification.value != null) {
                         log.info { "already have an active device verification -> cancelling new verification request" }
                         ActiveDeviceVerificationImpl(
-                            request = content,
-                            requestIsOurs = false,
-                            ownUserId = ownUserId,
-                            ownDeviceId = ownDeviceId,
-                            theirUserId = event.decrypted.sender,
-                            theirDeviceId = content.fromDevice,
-                            supportedMethods = supportedMethods,
-                            api = api,
-                            olmEventHandler = olmEventHandler,
-                            olmEncryptionService = olmEncryptionService,
-                            keyTrust = keyTrustService,
-                            keyStore = keyStore,
-                            clock = clock,
-                            driver = driver,
-                        ).cancel("already have an active device verification")
+                                request = content,
+                                requestIsOurs = false,
+                                ownUserId = ownUserId,
+                                ownDeviceId = ownDeviceId,
+                                theirUserId = event.decrypted.sender,
+                                theirDeviceId = content.fromDevice,
+                                supportedMethods = supportedMethods,
+                                api = api,
+                                olmEventHandler = olmEventHandler,
+                                olmEncryptionService = olmEncryptionService,
+                                keyTrust = keyTrustService,
+                                keyStore = keyStore,
+                                clock = clock,
+                                driver = driver,
+                            )
+                            .cancel("already have an active device verification")
                     } else {
                         _activeDeviceVerification.value =
                             ActiveDeviceVerificationImpl(
@@ -284,7 +280,7 @@ class VerificationServiceImpl(
 
     private suspend fun startLifecycleOfActiveVerifications(
         verifications: List<ActiveVerificationImpl>,
-        scope: CoroutineScope
+        scope: CoroutineScope,
     ) {
         verifications.forEach { verification ->
             val started = verification.startLifecycle(scope)
@@ -309,85 +305,95 @@ class VerificationServiceImpl(
 
     override suspend fun createDeviceVerificationRequest(
         theirUserId: UserId,
-        theirDeviceIds: Set<String>
+        theirDeviceIds: Set<String>,
     ): Result<ActiveDeviceVerification> = kotlin.runCatching {
         log.info { "create new device verification request to $theirUserId ($theirDeviceIds)" }
-        val request = VerificationRequestToDeviceEventContent(
-            ownDeviceId, supportedMethods, clock.now().toEpochMilliseconds(), SecureRandom.nextString(22)
-        )
+        val request =
+            VerificationRequestToDeviceEventContent(
+                ownDeviceId,
+                supportedMethods,
+                clock.now().toEpochMilliseconds(),
+                SecureRandom.nextString(22),
+            )
         val encryptedRequests =
-            olmEncryptionService.encryptOlm(request, theirDeviceIds.map { theirUserId to it }.toSet())
+            olmEncryptionService
+                .encryptOlm(request, theirDeviceIds.map { theirUserId to it }.toSet())
                 .mapValues { it.value.getOrNull() ?: request }
-                .entries.groupBy { it.key.first }
+                .entries
+                .groupBy { it.key.first }
                 .mapValues { it.value.associate { it.key.second to it.value } }
         api.user.sendToDevice(encryptedRequests).getOrThrow()
         ActiveDeviceVerificationImpl(
-            request = request,
-            requestIsOurs = true,
-            ownUserId = ownUserId,
-            ownDeviceId = ownDeviceId,
-            theirUserId = theirUserId,
-            theirDeviceIds = theirDeviceIds.toSet(),
-            supportedMethods = supportedMethods,
-            api = api,
-            olmEventHandler = olmEventHandler,
-            olmEncryptionService = olmEncryptionService,
-            keyTrust = keyTrustService,
-            keyStore = keyStore,
-            clock = clock,
-            driver = driver,
-        ).also { newDeviceVerification ->
-            _activeDeviceVerification.getAndUpdate { newDeviceVerification }?.cancel()
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun createUserVerificationRequest(
-        theirUserId: UserId
-    ): Result<ActiveUserVerification> = kotlin.runCatching {
-        coroutineScope {
-            log.info { "create new user verification request to $theirUserId" }
-            val request = VerificationRequest(ownDeviceId, theirUserId, supportedMethods)
-            val roomId =
-                globalAccountDataStore.get<DirectEventContent>().first()?.content?.mappings?.get(theirUserId)
-                    ?.firstOrNull {
-                        userService.getById(it, theirUserId).firstOrNull()
-                            ?.let { it.membership == Membership.JOIN } ?: false
-                    }
-                    ?: api.room.createRoom(
-                        invite = setOf(theirUserId),
-                        isDirect = true,
-                        preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE,
-                        initialState = listOf(InitialStateEvent(EncryptionEventContent(), stateKey = "")),
-                    ).getOrThrow()
-            log.info { "put user verification into room $roomId" }
-            val transactionId = roomService.sendMessage(roomId) {
-                content(request)
-            }
-            val eventId = roomService.getOutbox(roomId, transactionId)
-                .mapNotNull { it?.eventId }
-                .first()
-
-            ActiveUserVerificationImpl(
                 request = request,
-                requestIsFromOurOwn = true,
-                requestEventId = eventId,
-                requestTimestamp = clock.now().toEpochMilliseconds(),
+                requestIsOurs = true,
                 ownUserId = ownUserId,
                 ownDeviceId = ownDeviceId,
                 theirUserId = theirUserId,
-                theirInitialDeviceId = null,
-                roomId = roomId,
+                theirDeviceIds = theirDeviceIds.toSet(),
                 supportedMethods = supportedMethods,
-                json = api.json,
-                keyStore = keyStore,
-                room = roomService,
+                api = api,
+                olmEventHandler = olmEventHandler,
+                olmEncryptionService = olmEncryptionService,
                 keyTrust = keyTrustService,
+                keyStore = keyStore,
                 clock = clock,
                 driver = driver,
-            ).also { auv -> _activeUserVerifications.update { it + auv } }
-        }
+            )
+            .also { newDeviceVerification ->
+                _activeDeviceVerification.getAndUpdate { newDeviceVerification }?.cancel()
+            }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override suspend fun createUserVerificationRequest(theirUserId: UserId): Result<ActiveUserVerification> =
+        kotlin.runCatching {
+            coroutineScope {
+                log.info { "create new user verification request to $theirUserId" }
+                val request = VerificationRequest(ownDeviceId, theirUserId, supportedMethods)
+                val roomId =
+                    globalAccountDataStore
+                        .get<DirectEventContent>()
+                        .first()
+                        ?.content
+                        ?.mappings
+                        ?.get(theirUserId)
+                        ?.firstOrNull {
+                            userService.getById(it, theirUserId).firstOrNull()?.let { it.membership == Membership.JOIN }
+                                ?: false
+                        }
+                        ?: api.room
+                            .createRoom(
+                                invite = setOf(theirUserId),
+                                isDirect = true,
+                                preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE,
+                                initialState = listOf(InitialStateEvent(EncryptionEventContent(), stateKey = "")),
+                            )
+                            .getOrThrow()
+                log.info { "put user verification into room $roomId" }
+                val transactionId = roomService.sendMessage(roomId) { content(request) }
+                val eventId = roomService.getOutbox(roomId, transactionId).mapNotNull { it?.eventId }.first()
+
+                ActiveUserVerificationImpl(
+                        request = request,
+                        requestIsFromOurOwn = true,
+                        requestEventId = eventId,
+                        requestTimestamp = clock.now().toEpochMilliseconds(),
+                        ownUserId = ownUserId,
+                        ownDeviceId = ownDeviceId,
+                        theirUserId = theirUserId,
+                        theirInitialDeviceId = null,
+                        roomId = roomId,
+                        supportedMethods = supportedMethods,
+                        json = api.json,
+                        keyStore = keyStore,
+                        room = roomService,
+                        keyTrust = keyTrustService,
+                        clock = clock,
+                        driver = driver,
+                    )
+                    .also { auv -> _activeUserVerifications.update { it + auv } }
+            }
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getSelfVerificationMethods(): Flow<SelfVerificationMethods> {
@@ -396,15 +402,13 @@ class VerificationServiceImpl(
             currentSyncState,
             keyStore.getCrossSigningKeys(ownUserId),
             keyStore.getDeviceKeys(ownUserId),
-            globalAccountDataStore.get<DefaultSecretKeyEventContent>()
-                .transformLatest { event ->
-                    event?.content?.key?.let {
-                        emitAll(globalAccountDataStore.get<SecretKeyEventContent>(it))
-                    } ?: run {
+            globalAccountDataStore.get<DefaultSecretKeyEventContent>().transformLatest { event ->
+                event?.content?.key?.let { emitAll(globalAccountDataStore.get<SecretKeyEventContent>(it)) }
+                    ?: run {
                         log.debug { "no default secret key found" }
                         emit(null)
                     }
-                },
+            },
         ) { bootstrapRunning, currentSyncState, crossSigningKeys, deviceKeys, defaultKey ->
             log.trace {
                 """
@@ -414,7 +418,8 @@ class VerificationServiceImpl(
                          crossSigningKeys=$crossSigningKeys
                          deviceKeys=$deviceKeys
                          defaultKey=$defaultKey
-                """.trimIndent()
+                """
+                    .trimIndent()
             }
             // preconditions: sync running, login was successful and we are not yet cross-signed
             if (currentSyncState != SyncState.RUNNING || deviceKeys == null || crossSigningKeys == null)
@@ -422,19 +427,24 @@ class VerificationServiceImpl(
                     setOfNotNull(
                         if (currentSyncState != SyncState.RUNNING) PreconditionsNotMet.Reason.SyncNotRunning else null,
                         if (deviceKeys == null) PreconditionsNotMet.Reason.DeviceKeysNotFetchedYet else null,
-                        if (crossSigningKeys == null) PreconditionsNotMet.Reason.CrossSigningKeysNotFetchedYet else null
+                        if (crossSigningKeys == null) PreconditionsNotMet.Reason.CrossSigningKeysNotFetchedYet else null,
                     )
                 )
             val ownTrustLevel = deviceKeys[ownDeviceId]?.trustLevel
-            if (ownTrustLevel == KeySignatureTrustLevel.CrossSigned(true)) return@combine SelfVerificationMethods.AlreadyCrossSigned
+            if (ownTrustLevel == KeySignatureTrustLevel.CrossSigned(true))
+                return@combine SelfVerificationMethods.AlreadyCrossSigned
 
             // we need bootstrapping if this is the first device or bootstrapping is in progress
             if (crossSigningKeys.isEmpty()) return@combine SelfVerificationMethods.NoCrossSigningEnabled
             if (bootstrapRunning) return@combine SelfVerificationMethods.NoCrossSigningEnabled
 
-            val sendToDevices = deviceKeys
-                .filterValues { it.trustLevel is KeySignatureTrustLevel.CrossSigned && @OptIn(MSC3814::class) it.value.signed.dehydrated != true }
-                .keys - ownDeviceId
+            val sendToDevices =
+                deviceKeys
+                    .filterValues {
+                        it.trustLevel is KeySignatureTrustLevel.CrossSigned &&
+                            @OptIn(MSC3814::class) it.value.signed.dehydrated != true
+                    }
+                    .keys - ownDeviceId
 
             val deviceVerificationMethod =
                 if (sendToDevices.isNotEmpty())
@@ -442,42 +452,46 @@ class VerificationServiceImpl(
                         SelfVerificationMethod.CrossSignedDeviceVerification(
                             ownUserId,
                             sendToDevices.toSet(),
-                            createDeviceVerificationRequestStable
+                            createDeviceVerificationRequestStable,
                         )
                     )
                 else setOf()
 
-            val recoveryKeyMethods = when (val content = defaultKey?.content) {
-                is AesHmacSha2Key -> when (content.passphrase) {
-                    is AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2 ->
-                        setOf(
-                            SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(
-                                keySecretService,
-                                keyTrustService,
-                                defaultKey.key,
-                                content
-                            ),
-                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                                keySecretService,
-                                keyTrustService,
-                                defaultKey.key,
-                                content
-                            )
-                        )
+            val recoveryKeyMethods =
+                when (val content = defaultKey?.content) {
+                    is AesHmacSha2Key ->
+                        when (content.passphrase) {
+                            is AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2 ->
+                                setOf(
+                                    SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(
+                                        keySecretService,
+                                        keyTrustService,
+                                        defaultKey.key,
+                                        content,
+                                    ),
+                                    SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                                        keySecretService,
+                                        keyTrustService,
+                                        defaultKey.key,
+                                        content,
+                                    ),
+                                )
 
-                    is AesHmacSha2Key.SecretStorageKeyPassphrase.Unknown, null ->
-                        setOf(
-                            SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                                keySecretService,
-                                keyTrustService,
-                                defaultKey.key,
-                                content
-                            )
-                        )
+                            is AesHmacSha2Key.SecretStorageKeyPassphrase.Unknown,
+                            null ->
+                                setOf(
+                                    SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                                        keySecretService,
+                                        keyTrustService,
+                                        defaultKey.key,
+                                        content,
+                                    )
+                                )
+                        }
+
+                    is SecretKeyEventContent.Unknown,
+                    null -> setOf()
                 }
-
-                is SecretKeyEventContent.Unknown, null -> setOf()
-            }
 
             return@combine SelfVerificationMethods.CrossSigningEnabled(recoveryKeyMethods + deviceVerificationMethod)
         }
@@ -487,20 +501,18 @@ class VerificationServiceImpl(
 
     @Deprecated(
         "use eventId instead",
-        replaceWith = ReplaceWith("getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)")
+        replaceWith = ReplaceWith("getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)"),
     )
-    override suspend fun getActiveUserVerification(
-        timelineEvent: TimelineEvent,
-    ): ActiveUserVerification? = getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)
+    override suspend fun getActiveUserVerification(timelineEvent: TimelineEvent): ActiveUserVerification? =
+        getActiveUserVerification(timelineEvent.roomId, timelineEvent.eventId)
 
-    override suspend fun getActiveUserVerification(
-        roomId: RoomId,
-        eventId: EventId,
-    ): ActiveUserVerification? {
+    override suspend fun getActiveUserVerification(roomId: RoomId, eventId: EventId): ActiveUserVerification? {
         val timelineEvent =
             withTimeoutOrNull(6.seconds) {
-                roomService.getTimelineEvent(roomId, eventId) { decryptionTimeout = 5.seconds }
-                    .filter { it?.content != null }.first()
+                roomService
+                    .getTimelineEvent(roomId, eventId) { decryptionTimeout = 5.seconds }
+                    .filter { it?.content != null }
+                    .first()
             } ?: return null
         val request = timelineEvent.content?.getOrNull() as? VerificationRequest ?: return null
         return if (isVerificationRequestActive(timelineEvent.event.originTimestamp, clock)) {
@@ -512,23 +524,24 @@ class VerificationServiceImpl(
                     val sender = timelineEvent.event.sender
                     if (sender != ownUserId && request.to == ownUserId) {
                         ActiveUserVerificationImpl(
-                            request = request,
-                            requestIsFromOurOwn = false,
-                            requestEventId = eventId,
-                            requestTimestamp = timelineEvent.event.originTimestamp,
-                            ownUserId = ownUserId,
-                            ownDeviceId = ownDeviceId,
-                            theirUserId = sender,
-                            theirInitialDeviceId = request.fromDevice,
-                            roomId = roomId,
-                            supportedMethods = supportedMethods,
-                            json = api.json,
-                            keyStore = keyStore,
-                            room = roomService,
-                            keyTrust = keyTrustService,
-                            clock = clock,
-                            driver = driver,
-                        ).also { auv -> _activeUserVerifications.update { it + auv } }
+                                request = request,
+                                requestIsFromOurOwn = false,
+                                requestEventId = eventId,
+                                requestTimestamp = timelineEvent.event.originTimestamp,
+                                ownUserId = ownUserId,
+                                ownDeviceId = ownDeviceId,
+                                theirUserId = sender,
+                                theirInitialDeviceId = request.fromDevice,
+                                roomId = roomId,
+                                supportedMethods = supportedMethods,
+                                json = api.json,
+                                keyStore = keyStore,
+                                room = roomService,
+                                keyTrust = keyTrustService,
+                                clock = clock,
+                                driver = driver,
+                            )
+                            .also { auv -> _activeUserVerifications.update { it + auv } }
                     } else null
                 }
             }

@@ -34,10 +34,10 @@ import de.connect2x.trixnity.utils.encodeUnpaddedBase64
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 @OptIn(MSC3814::class)
 class KeySecretServiceTest : TrixnityBaseTest() {
@@ -50,49 +50,40 @@ class KeySecretServiceTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = KeySecretServiceImpl(
-        json = json,
-        keyStore = keyStore,
-        globalAccountDataStore = globalAccountDataStore,
-        tm = tm,
-        api = api,
-        userInfo = UserInfo(userId, "device", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true }
-    )
+    private val cut =
+        KeySecretServiceImpl(
+            json = json,
+            keyStore = keyStore,
+            globalAccountDataStore = globalAccountDataStore,
+            tm = tm,
+            api = api,
+            userInfo = UserInfo(userId, "device", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true },
+        )
 
     @Test
     fun `decryptOrCreateMissingSecrets » decrypt missing secrets and update secure store`() = runTest {
-        val existingPrivateKeys = mapOf(
-            M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key2"
-            ),
-            M_MEGOLM_BACKUP_V1 to StoredSecret(
-                GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key3"
+        val existingPrivateKeys =
+            mapOf(
+                M_CROSS_SIGNING_SELF_SIGNING to
+                    StoredSecret(GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key2"),
+                M_MEGOLM_BACKUP_V1 to StoredSecret(GlobalAccountDataEvent(SelfSigningKeyEventContent(mapOf())), "key3"),
             )
-        )
-        tm.writeTransaction {
-            keyStore.updateSecrets { existingPrivateKeys }
-        }
+        tm.writeTransaction { keyStore.updateSecrets { existingPrivateKeys } }
 
         val key = Random.nextBytes(32)
         val secret = Random.nextBytes(32).encodeUnpaddedBase64()
-        val encryptedData = encryptAesHmacSha2(
-            content = secret.encodeToByteArray(),
-            key = key,
-            name = "m.cross_signing.user_signing"
-        ).convert()
+        val encryptedData =
+            encryptAesHmacSha2(content = secret.encodeToByteArray(), key = key, name = "m.cross_signing.user_signing")
+                .convert()
 
-        val event = GlobalAccountDataEvent(
-            UserSigningKeyEventContent(mapOf("KEY" to json.encodeToJsonElement(encryptedData)))
-        )
-        tm.writeTransaction {
-            globalAccountDataStore.save(event)
-        }
+        val event =
+            GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf("KEY" to json.encodeToJsonElement(encryptedData))))
+        tm.writeTransaction { globalAccountDataStore.save(event) }
 
         cut.decryptOrCreateMissingSecrets(key, "KEY", SecretKeyEventContent.AesHmacSha2Key())
-        keyStore.getSecrets() shouldBe existingPrivateKeys + mapOf(
-            M_CROSS_SIGNING_USER_SIGNING to StoredSecret(event, secret),
-        )
+        keyStore.getSecrets() shouldBe
+            existingPrivateKeys + mapOf(M_CROSS_SIGNING_USER_SIGNING to StoredSecret(event, secret))
     }
 
     @Test
@@ -100,11 +91,7 @@ class KeySecretServiceTest : TrixnityBaseTest() {
         val key = Random.nextBytes(32)
         var setAccountData: GlobalAccountDataEventContent? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SetGlobalAccountData(userId, "org.matrix.msc3814"),
-            ) {
-                setAccountData = it
-            }
+            matrixJsonEndpoint(SetGlobalAccountData(userId, "org.matrix.msc3814")) { setAccountData = it }
         }
 
         cut.decryptOrCreateMissingSecrets(key, "KEY", SecretKeyEventContent.AesHmacSha2Key())
@@ -114,11 +101,10 @@ class KeySecretServiceTest : TrixnityBaseTest() {
         storedSecret.event.content shouldBe dehydratedDeviceEventContent
         val storedSecretPrivateKeys = storedSecret.decryptedPrivateKey
         val encryptedData =
-            json.decodeFromJsonElement<AesHmacSha2EncryptedData>(dehydratedDeviceEventContent.encrypted["KEY"].shouldNotBeNull())
-        decryptAesHmacSha2(
-            content = encryptedData.convert(),
-            key = key,
-            name = M_DEHYDRATED_DEVICE.id
-        ).decodeToString() shouldBe storedSecretPrivateKeys
+            json.decodeFromJsonElement<AesHmacSha2EncryptedData>(
+                dehydratedDeviceEventContent.encrypted["KEY"].shouldNotBeNull()
+            )
+        decryptAesHmacSha2(content = encryptedData.convert(), key = key, name = M_DEHYDRATED_DEVICE.id)
+            .decodeToString() shouldBe storedSecretPrivateKeys
     }
 }

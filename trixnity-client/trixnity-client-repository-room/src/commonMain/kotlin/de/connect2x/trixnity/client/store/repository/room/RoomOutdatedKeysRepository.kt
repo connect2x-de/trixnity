@@ -12,52 +12,33 @@ import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.json.Json
 
-@Entity(tableName = "OutdatedKeys")
-data class RoomOutdatedKeys(
-    @PrimaryKey val id: Long,
-    val value: String,
-)
+@Entity(tableName = "OutdatedKeys") data class RoomOutdatedKeys(@PrimaryKey val id: Long, val value: String)
 
 @Dao
 interface OutdatedKeysDao {
-    @Query("SELECT * FROM OutdatedKeys WHERE id = :id LIMIT 1")
-    suspend fun get(id: Long): RoomOutdatedKeys?
+    @Query("SELECT * FROM OutdatedKeys WHERE id = :id LIMIT 1") suspend fun get(id: Long): RoomOutdatedKeys?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomOutdatedKeys)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomOutdatedKeys)
 
-    @Query("DELETE FROM OutdatedKeys WHERE id = :id")
-    suspend fun delete(id: Long)
+    @Query("DELETE FROM OutdatedKeys WHERE id = :id") suspend fun delete(id: Long)
 
-    @Query("DELETE FROM OutdatedKeys")
-    suspend fun deleteAll()
+    @Query("DELETE FROM OutdatedKeys") suspend fun deleteAll()
 }
 
-internal class RoomOutdatedKeysRepository(
-    db: TrixnityRoomDatabase,
-    private val json: Json,
-) : OutdatedKeysRepository {
+internal class RoomOutdatedKeysRepository(db: TrixnityRoomDatabase, private val json: Json) : OutdatedKeysRepository {
     private val dao = db.outdatedKeys()
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): Set<UserId>? =
-        dao.get(key)
-            ?.let { entity -> json.decodeFromString(entity.value) }
+        dao.get(key)?.let { entity -> json.decodeFromString(entity.value) }
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: Long, value: Set<UserId>) =
-        dao.insert(
-            RoomOutdatedKeys(
-                id = key,
-                value = json.encodeToString(value),
-            )
-        )
+        dao.insert(RoomOutdatedKeys(id = key, value = json.encodeToString(value)))
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: Long) =
-        dao.delete(key)
+    override suspend fun delete(key: Long) = dao.delete(key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

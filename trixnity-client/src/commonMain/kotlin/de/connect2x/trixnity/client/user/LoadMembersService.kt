@@ -37,46 +37,56 @@ class LoadMembersServiceImpl(
     private val scope: CoroutineScope,
 ) : LoadMembersService {
     private val currentlyLoadingMembers = MutableStateFlow<Map<RoomId, Lazy<Job>>>(mapOf())
-    override suspend fun invoke(roomId: RoomId, wait: Boolean) {
-        val loadMembersJob = currentlyLoadingMembers.updateAndGet { jobs ->
-            if (jobs.containsKey(roomId)) jobs
-            else jobs + (roomId to lazy {
-                scope.async {
-                    currentSyncState.retry(
-                        onError = { error, delay -> log.warn(error) { "failed loading members, try again in $delay" } },
-                    ) {
-                        val room = roomStore.get(roomId).filterNotNull().first()
 
-                        if (!room.membersLoaded) {
-                            log.debug { "load members of room $roomId" }
-                            try {
-                                val memberEvents =
-                                    api.room.getMembers(
-                                        roomId = roomId,
-                                        notMembership = Membership.LEAVE
-                                    ).getOrThrow()
-                                memberEvents.chunked(50).forEach { chunk ->
-                                    lazyMemberEventHandlers.forEach {
-                                        it.handleLazyMemberEvents(chunk)
+    override suspend fun invoke(roomId: RoomId, wait: Boolean) {
+        val loadMembersJob =
+            currentlyLoadingMembers
+                .updateAndGet { jobs ->
+                    if (jobs.containsKey(roomId)) jobs
+                    else
+                        jobs +
+                            (roomId to
+                                lazy {
+                                    scope.async {
+                                        currentSyncState.retry(
+                                            onError = { error, delay ->
+                                                log.warn(error) { "failed loading members, try again in $delay" }
+                                            }
+                                        ) {
+                                            val room = roomStore.get(roomId).filterNotNull().first()
+
+                                            if (!room.membersLoaded) {
+                                                log.debug { "load members of room $roomId" }
+                                                try {
+                                                    val memberEvents =
+                                                        api.room
+                                                            .getMembers(
+                                                                roomId = roomId,
+                                                                notMembership = Membership.LEAVE,
+                                                            )
+                                                            .getOrThrow()
+                                                    memberEvents.chunked(50).forEach { chunk ->
+                                                        lazyMemberEventHandlers.forEach {
+                                                            it.handleLazyMemberEvents(chunk)
+                                                        }
+                                                        // TODO is there a nicer way? Maybe some sort of merged
+                                                        // EventEmitter (including lazy members)
+                                                        api.sync.emit(SyncEvents(Sync.Response(""), chunk))
+                                                        yield()
+                                                    }
+                                                    tm.writeTransaction {
+                                                        roomStore.update(roomId) { it?.copy(membersLoaded = true) }
+                                                    }
+                                                } catch (matrixServerException: MatrixServerException) {
+                                                    log.warn(matrixServerException) { "aborted loading members" }
+                                                }
+                                            }
+                                        }
+                                        currentlyLoadingMembers.update { it - roomId }
                                     }
-                                    // TODO is there a nicer way? Maybe some sort of merged EventEmitter (including lazy members)
-                                    api.sync.emit(SyncEvents(Sync.Response(""), chunk))
-                                    yield()
-                                }
-                                tm.writeTransaction {
-                                    roomStore.update(roomId) { it?.copy(membersLoaded = true) }
-                                }
-                            } catch (matrixServerException: MatrixServerException) {
-                                log.warn(matrixServerException) { "aborted loading members" }
-                            }
-                        }
-                    }
-                    currentlyLoadingMembers.update { it - roomId }
-                }
-            })
-        }[roomId]
+                                })
+                }[roomId]
         checkNotNull(loadMembersJob)
-        if (wait) loadMembersJob.value.join()
-        else loadMembersJob.value // just start the coroutine
+        if (wait) loadMembersJob.value.join() else loadMembersJob.value // just start the coroutine
     }
 }

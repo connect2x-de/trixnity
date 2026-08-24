@@ -11,8 +11,6 @@ object LibOlmGroupSessionFactory : GroupSessionFactory {
     override fun fromPickle(pickle: String, pickleKey: PickleKey?): LibOlmGroupSession {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
-        return LibOlmGroupSession(
-            OlmOutboundGroupSession.unpickle(pickleKey?.inner, pickle)
-        )
+        return LibOlmGroupSession(OlmOutboundGroupSession.unpickle(pickleKey?.inner, pickle))
     }
 }

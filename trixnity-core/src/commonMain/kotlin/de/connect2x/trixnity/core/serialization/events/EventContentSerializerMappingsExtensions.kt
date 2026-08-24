@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import kotlinx.serialization.KSerializer
 import de.connect2x.trixnity.core.model.events.*
 import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
+import kotlinx.serialization.KSerializer
 
-class UnsupportedEventContentTypeException(eventType: KClass<*>) : IllegalArgumentException(
-    "Event content type $eventType is not supported. If it is a custom type, you should register it!"
-)
+class UnsupportedEventContentTypeException(eventType: KClass<*>) :
+    IllegalArgumentException(
+        "Event content type $eventType is not supported. If it is a custom type, you should register it!"
+    )
 
 @JvmName("messageEventContentSerializerFromType")
 fun Set<MessageEventContentSerializerMapping>.contentSerializer(
@@ -15,8 +16,9 @@ fun Set<MessageEventContentSerializerMapping>.contentSerializer(
     content: MessageEventContent? = null,
 ): KSerializer<MessageEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type == it.type }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<MessageEventContent>)
+    else
+        firstOrNull { type == it.type }?.serializer
+            ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<MessageEventContent>)
 
 @JvmName("stateEventContentSerializerFromType")
 fun Set<StateEventContentSerializerMapping>.contentSerializer(
@@ -24,8 +26,9 @@ fun Set<StateEventContentSerializerMapping>.contentSerializer(
     content: StateEventContent? = null,
 ): KSerializer<StateEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type == it.type }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<StateEventContent>)
+    else
+        firstOrNull { type == it.type }?.serializer
+            ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<StateEventContent>)
 
 @JvmName("ephemeralEventContentSerializerFromType")
 fun Set<EventContentSerializerMapping<EphemeralEventContent>>.contentSerializer(
@@ -33,8 +36,9 @@ fun Set<EventContentSerializerMapping<EphemeralEventContent>>.contentSerializer(
     content: EphemeralEventContent? = null,
 ): KSerializer<EphemeralEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type == it.type }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<EphemeralEventContent>)
+    else
+        firstOrNull { type == it.type }?.serializer
+            ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<EphemeralEventContent>)
 
 @JvmName("ephemeralDataUnitContentSerializerFromType")
 fun Set<EventContentSerializerMapping<EphemeralDataUnitContent>>.contentSerializer(
@@ -42,8 +46,10 @@ fun Set<EventContentSerializerMapping<EphemeralDataUnitContent>>.contentSerializ
     content: EphemeralDataUnitContent? = null,
 ): KSerializer<EphemeralDataUnitContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type == it.type }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<EphemeralDataUnitContent>)
+    else
+        firstOrNull { type == it.type }?.serializer
+            ?: @Suppress("UNCHECKED_CAST")
+            (UnknownEventContentSerializer(type) as KSerializer<EphemeralDataUnitContent>)
 
 @JvmName("toDeviceEventContentSerializerFromType")
 fun Set<EventContentSerializerMapping<ToDeviceEventContent>>.contentSerializer(
@@ -51,8 +57,9 @@ fun Set<EventContentSerializerMapping<ToDeviceEventContent>>.contentSerializer(
     content: ToDeviceEventContent? = null,
 ): KSerializer<ToDeviceEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type == it.type }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<ToDeviceEventContent>)
+    else
+        firstOrNull { type == it.type }?.serializer
+            ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<ToDeviceEventContent>)
 
 @JvmName("roomAccountDataEventContentSerializerFromType")
 fun Set<EventContentSerializerMapping<RoomAccountDataEventContent>>.contentSerializer(
@@ -60,8 +67,10 @@ fun Set<EventContentSerializerMapping<RoomAccountDataEventContent>>.contentSeria
     content: RoomAccountDataEventContent? = null,
 ): KSerializer<RoomAccountDataEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type.startsWith(it.type) }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<RoomAccountDataEventContent>)
+    else
+        firstOrNull { type.startsWith(it.type) }?.serializer
+            ?: @Suppress("UNCHECKED_CAST")
+            (UnknownEventContentSerializer(type) as KSerializer<RoomAccountDataEventContent>)
 
 @JvmName("globalAccountDataEventContentSerializerFromType")
 fun Set<EventContentSerializerMapping<GlobalAccountDataEventContent>>.contentSerializer(
@@ -69,25 +78,30 @@ fun Set<EventContentSerializerMapping<GlobalAccountDataEventContent>>.contentSer
     content: GlobalAccountDataEventContent? = null,
 ): KSerializer<GlobalAccountDataEventContent> =
     if (content != null) contentSerializer(content)
-    else firstOrNull { type.startsWith(it.type.removeSuffix("*")) }?.serializer
-        ?: @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(type) as KSerializer<GlobalAccountDataEventContent>)
+    else
+        firstOrNull { type.startsWith(it.type.removeSuffix("*")) }?.serializer
+            ?: @Suppress("UNCHECKED_CAST")
+            (UnknownEventContentSerializer(type) as KSerializer<GlobalAccountDataEventContent>)
 
 @JvmName("contentSerializerFromContent")
 fun <T : EventContent> Set<EventContentSerializerMapping<T>>.contentSerializer(content: T): KSerializer<T> =
     when (content) {
-        is UnknownEventContent -> @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(content.eventType) as KSerializer<T>)
-        is RedactedEventContent -> @Suppress("UNCHECKED_CAST") (RedactedEventContentSerializer(content.eventType) as KSerializer<T>)
+        is UnknownEventContent ->
+            @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(content.eventType) as KSerializer<T>)
+        is RedactedEventContent ->
+            @Suppress("UNCHECKED_CAST") (RedactedEventContentSerializer(content.eventType) as KSerializer<T>)
 
-        else -> find { it.kClass.isInstance(content) }?.serializer
-            ?: throw UnsupportedEventContentTypeException(content::class)
+        else ->
+            find { it.kClass.isInstance(content) }?.serializer
+                ?: throw UnsupportedEventContentTypeException(content::class)
     }
 
 fun Set<EventContentSerializerMapping<*>>.contentType(content: EventContent): String =
     when (content) {
         is UnknownEventContent -> content.eventType
         is RedactedEventContent -> content.eventType
-        else -> find { it.kClass.isInstance(content) }?.type
-            ?: throw UnsupportedEventContentTypeException(content::class)
+        else ->
+            find { it.kClass.isInstance(content) }?.type ?: throw UnsupportedEventContentTypeException(content::class)
     }
 
 fun Set<EventContentSerializerMapping<*>>.contentType(eventContentClass: KClass<out EventContent>): String =

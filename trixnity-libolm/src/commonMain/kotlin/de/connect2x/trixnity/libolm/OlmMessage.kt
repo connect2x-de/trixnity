@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.libolm
 
-data class OlmMessage(
-    val cipherText: String,
-    val type: OlmMessageType
-) {
+data class OlmMessage(val cipherText: String, val type: OlmMessageType) {
     enum class OlmMessageType(val value: Int) { // TODO use it from trixnity-core!
         INITIAL_PRE_KEY(0),
         ORDINARY(1);

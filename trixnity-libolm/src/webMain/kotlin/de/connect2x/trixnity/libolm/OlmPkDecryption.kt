@@ -1,14 +1,12 @@
 package de.connect2x.trixnity.libolm
 
-import js.typedarrays.toByteArray
-import js.typedarrays.toUint8Array
 import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import js.typedarrays.toByteArray
+import js.typedarrays.toUint8Array
 
-actual class OlmPkDecryption private constructor(
-    internal actual val ptr: OlmPkDecryptionPointer,
-    actual val publicKey: String
-) : WantsToBeFree {
+actual class OlmPkDecryption
+private constructor(internal actual val ptr: OlmPkDecryptionPointer, actual val publicKey: String) : WantsToBeFree {
     actual companion object {
         actual fun create(privateKey: String?): OlmPkDecryption {
             val ptr: PkDecryption = rethrow { PkDecryption() }
@@ -31,6 +29,7 @@ actual class OlmPkDecryption private constructor(
 
     actual fun pickle(key: String?): String = rethrow { ptr.pickle(key ?: "") }
 
-    actual fun decrypt(message: OlmPkMessage): String =
-        rethrow { ptr.decrypt(message.ephemeralKey, message.mac, message.cipherText) }
+    actual fun decrypt(message: OlmPkMessage): String = rethrow {
+        ptr.decrypt(message.ephemeralKey, message.mac, message.cipherText)
+    }
 }

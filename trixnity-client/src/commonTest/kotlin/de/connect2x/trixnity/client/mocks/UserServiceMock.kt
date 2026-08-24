@@ -1,8 +1,5 @@
 package de.connect2x.trixnity.client.mocks
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.UserPresence
@@ -17,9 +14,13 @@ import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import kotlin.reflect.KClass
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 
 class UserServiceMock : UserService {
     val loadMembersCalled = MutableStateFlow<RoomId?>(null)
+
     override suspend fun loadMembers(roomId: RoomId, wait: Boolean) {
         loadMembersCalled.value = roomId
     }
@@ -29,6 +30,7 @@ class UserServiceMock : UserService {
     }
 
     val roomUsers: MutableMap<Pair<UserId, RoomId>, Flow<RoomUser?>> = mutableMapOf()
+
     override fun getById(roomId: RoomId, userId: UserId): Flow<RoomUser?> {
         return roomUsers[userId to roomId] ?: flowOf(null)
     }
@@ -41,31 +43,19 @@ class UserServiceMock : UserService {
         throw NotImplementedError()
     }
 
-    override fun canKickUser(
-        roomId: RoomId,
-        userId: UserId
-    ): Flow<Boolean> {
+    override fun canKickUser(roomId: RoomId, userId: UserId): Flow<Boolean> {
         throw NotImplementedError()
     }
 
-    override fun canBanUser(
-        roomId: RoomId,
-        userId: UserId
-    ): Flow<Boolean> {
+    override fun canBanUser(roomId: RoomId, userId: UserId): Flow<Boolean> {
         throw NotImplementedError()
     }
 
-    override fun canUnbanUser(
-        roomId: RoomId,
-        userId: UserId
-    ): Flow<Boolean> {
+    override fun canUnbanUser(roomId: RoomId, userId: UserId): Flow<Boolean> {
         throw NotImplementedError()
     }
 
-    override fun canInviteUser(
-        roomId: RoomId,
-        userId: UserId
-    ): Flow<Boolean> {
+    override fun canInviteUser(roomId: RoomId, userId: UserId): Flow<Boolean> {
         throw NotImplementedError()
     }
 
@@ -78,13 +68,13 @@ class UserServiceMock : UserService {
     }
 
     val canSendEvent = mutableMapOf<Pair<RoomId, KClass<out RoomEventContent>>, Flow<Boolean>>()
+
     override fun canSendEvent(roomId: RoomId, eventClass: KClass<out RoomEventContent>): Flow<Boolean> {
         return canSendEvent[roomId to eventClass] ?: MutableStateFlow(true)
     }
 
     override fun canSendEvent(roomId: RoomId, eventContent: RoomEventContent): Flow<Boolean> {
-        return canSendEvent.entries.find { it.key.first == roomId && it.key.second.isInstance(eventContent) }
-            ?.value
+        return canSendEvent.entries.find { it.key.first == roomId && it.key.second.isInstance(eventContent) }?.value
             ?: MutableStateFlow(true)
     }
 
@@ -95,15 +85,12 @@ class UserServiceMock : UserService {
     override fun getPowerLevel(
         userId: UserId,
         createEvent: ClientEvent.StateBaseEvent<CreateEventContent>,
-        powerLevelsEventContent: PowerLevelsEventContent?
+        powerLevelsEventContent: PowerLevelsEventContent?,
     ): PowerLevel {
         throw NotImplementedError()
     }
 
-    override fun canSetPowerLevelToMax(
-        roomId: RoomId,
-        userId: UserId
-    ): Flow<PowerLevel.User?> {
+    override fun canSetPowerLevelToMax(roomId: RoomId, userId: UserId): Flow<PowerLevel.User?> {
         throw NotImplementedError()
     }
 

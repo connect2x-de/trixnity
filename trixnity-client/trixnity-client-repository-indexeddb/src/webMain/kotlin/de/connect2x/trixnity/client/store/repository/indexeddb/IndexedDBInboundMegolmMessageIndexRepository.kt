@@ -1,24 +1,24 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 
-internal class IndexedDBInboundMegolmMessageIndexRepository(
-    json: Json,
-) : InboundMegolmMessageIndexRepository,
+internal class IndexedDBInboundMegolmMessageIndexRepository(json: Json) :
+    InboundMegolmMessageIndexRepository,
     IndexedDBFullRepository<InboundMegolmMessageIndexRepositoryKey, StoredInboundMegolmMessageIndex>(
         objectStoreName = objectStoreName,
         keySerializer = { arrayOf(it.roomId.full, it.sessionId, it.messageIndex.toString()) },
         valueSerializer = serializer(),
-        json = json
+        json = json,
     ) {
     companion object {
         const val objectStoreName = "inbound_megolm_message_index"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1) createIndexedDBMinimalStoreRepository(database, objectStoreName)
         }

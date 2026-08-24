@@ -1,23 +1,24 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.POST
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
+import io.ktor.resources.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#post_matrixfederationv1get_missing_eventsroomid">matrix spec</a>
+ * @see <a
+ *   href="https://spec.matrix.org/v1.10/server-server-api/#post_matrixfederationv1get_missing_eventsroomid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/federation/v1/get_missing_events/{roomId}")
 @HttpMethod(POST)
-class GetMissingEvents(
-    @SerialName("roomId") val roomId: RoomId,
-) : MatrixEndpoint<GetMissingEvents.Request, PduTransaction> {
+class GetMissingEvents(@SerialName("roomId") val roomId: RoomId) :
+    MatrixEndpoint<GetMissingEvents.Request, PduTransaction> {
     @Serializable
     data class Request(
         @SerialName("earliest_events") val earliestEvents: List<EventId>,

@@ -21,9 +21,10 @@ internal object ExposedSecrets : LongIdTable("secrets") {
 internal class ExposedSecretsRepository(private val json: Json) : SecretsRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): Map<SecretType, StoredSecret>? {
-        return ExposedSecrets.selectAll().where { ExposedSecrets.id eq key }.firstOrNull()?.let {
-            it[ExposedSecrets.value].let { outdated -> json.decodeFromString(outdated) }
-        }
+        return ExposedSecrets.selectAll()
+            .where { ExposedSecrets.id eq key }
+            .firstOrNull()
+            ?.let { it[ExposedSecrets.value].let { outdated -> json.decodeFromString(outdated) } }
     }
 
     context(transaction: WriteTransaction)

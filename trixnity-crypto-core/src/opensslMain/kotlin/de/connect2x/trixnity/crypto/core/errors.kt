@@ -22,15 +22,16 @@ internal fun checkError(result: Int): Int {
 private fun errorMessage(result: Int): String {
     val message = buildString {
         var code = ERR_get_error()
-        if (code.toInt() != 0) do {
-            val message = memScoped {
-                val buffer = allocArray<ByteVar>(256)
-                ERR_error_string(code, buffer)?.toKString()
-            }
-            append(message)
-            code = ERR_get_error()
-            if (code.toInt() != 0) append(", ")
-        } while (code.toInt() != 0)
+        if (code.toInt() != 0)
+            do {
+                val message = memScoped {
+                    val buffer = allocArray<ByteVar>(256)
+                    ERR_error_string(code, buffer)?.toKString()
+                }
+                append(message)
+                code = ERR_get_error()
+                if (code.toInt() != 0) append(", ")
+            } while (code.toInt() != 0)
     }
     return "OPENSSL failure: $message (result: $result)"
 }

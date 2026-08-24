@@ -69,16 +69,12 @@ class AuthRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                authenticationApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { authenticationApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -91,62 +87,60 @@ class AuthRoutesTest : TrixnityBaseTest() {
     @Test
     fun shouldGetWhoami() = testApplication {
         initCut()
-        everySuspend { handlerMock.whoAmI(any()) }
-            .returns(WhoAmI.Response(UserId("user", "server"), "ABCDEF", false))
+        everySuspend { handlerMock.whoAmI(any()) }.returns(WhoAmI.Response(UserId("user", "server"), "ABCDEF", false))
         val response = client.get("/_matrix/client/v3/account/whoami") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"user_id":"@user:server","device_id":"ABCDEF","is_guest":false}"""
         }
-        verifySuspend {
-            handlerMock.whoAmI(any())
-        }
+        verifySuspend { handlerMock.whoAmI(any()) }
     }
 
     @Test
     fun shouldIsRegistrationTokenValid() = testApplication {
         initCut()
-        everySuspend { handlerMock.isRegistrationTokenValid(any()) }
-            .returns(IsRegistrationTokenValid.Response(true))
+        everySuspend { handlerMock.isRegistrationTokenValid(any()) }.returns(IsRegistrationTokenValid.Response(true))
         val response = client.get("/_matrix/client/v1/register/m.login.registration_token/validity?token=token")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                           "valid": true
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.isRegistrationTokenValid(assert { it.endpoint.token shouldBe "token" })
-        }
+        verifySuspend { handlerMock.isRegistrationTokenValid(assert { it.endpoint.token shouldBe "token" }) }
     }
 
     @Test
     fun shouldGetOAuth2Metadata() = testApplication {
         initCut()
-        val serverMetadata = ServerMetadata(
-            issuer = Url("https://auth.matrix.host"),
-            authorizationEndpoint = Url("https://auth.matrix.host/_oauth2/authorize"),
-            registrationEndpoint = Url("https://auth.matrix.host/_oauth2/registration"),
-            revocationEndpoint = Url("https://auth.matrix.host/_oauth2/revoke"),
-            tokenEndpoint = Url("https://auth.matrix.host/_oauth2/token"),
-            codeChallengeMethodsSupported = setOf(CodeChallengeMethod.S256),
-            responseTypesSupported = setOf(ResponseType.Code),
-            responseModesSupported = setOf(ResponseMode.Query),
-            promptValuesSupported = setOf(PromptValue.Create),
-            grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode)
-        )
+        val serverMetadata =
+            ServerMetadata(
+                issuer = Url("https://auth.matrix.host"),
+                authorizationEndpoint = Url("https://auth.matrix.host/_oauth2/authorize"),
+                registrationEndpoint = Url("https://auth.matrix.host/_oauth2/registration"),
+                revocationEndpoint = Url("https://auth.matrix.host/_oauth2/revoke"),
+                tokenEndpoint = Url("https://auth.matrix.host/_oauth2/token"),
+                codeChallengeMethodsSupported = setOf(CodeChallengeMethod.S256),
+                responseTypesSupported = setOf(ResponseType.Code),
+                responseModesSupported = setOf(ResponseMode.Query),
+                promptValuesSupported = setOf(PromptValue.Create),
+                grantTypesSupported = setOf(GrantType.RefreshToken, GrantType.AuthorizationCode),
+            )
 
         everySuspend { handlerMock.getOAuth2ServerMetadata(any()) }.returns(serverMetadata)
         val response = client.get("/_matrix/client/v1/auth_metadata")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                     "authorization_endpoint":"https://auth.matrix.host/_oauth2/authorize",
                     "code_challenge_methods_supported":["S256"],
@@ -159,29 +153,29 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     "revocation_endpoint":"https://auth.matrix.host/_oauth2/revoke",
                     "token_endpoint":"https://auth.matrix.host/_oauth2/token"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
     }
 
     @Test
     fun shouldIsUsernameAvailable() = testApplication {
         initCut()
-        everySuspend { handlerMock.isUsernameAvailable(any()) }
-            .returns(IsUsernameAvailable.Response(true))
+        everySuspend { handlerMock.isUsernameAvailable(any()) }.returns(IsUsernameAvailable.Response(true))
         val response = client.get("/_matrix/client/v3/register/available?username=user")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                           "available": true
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.isUsernameAvailable(assert { it.endpoint.username shouldBe "user" })
-        }
+        verifySuspend { handlerMock.isUsernameAvailable(assert { it.endpoint.username shouldBe "user" }) }
     }
 
     @Test
@@ -191,13 +185,14 @@ class AuthRoutesTest : TrixnityBaseTest() {
             .returns(
                 GetEmailRequestTokenForPassword.Response(
                     sessionId = "123abc",
-                    submitUrl = "https://example.org/path/to/submitToken"
+                    submitUrl = "https://example.org/path/to/submitToken",
                 )
             )
-        val response = client.post("/_matrix/client/v3/account/password/email/requestToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/account/password/email/requestToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "client_secret": "monkeys_are_GREAT",
                       "email": "foo@example.com",
@@ -205,30 +200,36 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "next_link": "https://example.org/congratulations.html",
                       "send_attempt": 1
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "sid": "123abc",
                   "submit_url": "https://example.org/path/to/submitToken"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.getEmailRequestTokenForPassword(assert {
-                it.requestBody shouldBe GetEmailRequestTokenForPassword.Request(
-                    clientSecret = "monkeys_are_GREAT",
-                    email = "foo@example.com",
-                    idServer = "id.example.com",
-                    nextLink = "https://example.org/congratulations.html",
-                    sendAttempt = 1
-                )
-            })
+            handlerMock.getEmailRequestTokenForPassword(
+                assert {
+                    it.requestBody shouldBe
+                        GetEmailRequestTokenForPassword.Request(
+                            clientSecret = "monkeys_are_GREAT",
+                            email = "foo@example.com",
+                            idServer = "id.example.com",
+                            nextLink = "https://example.org/congratulations.html",
+                            sendAttempt = 1,
+                        )
+                }
+            )
         }
     }
 
@@ -239,13 +240,14 @@ class AuthRoutesTest : TrixnityBaseTest() {
             .returns(
                 GetEmailRequestTokenForRegistration.Response(
                     sessionId = "123abc",
-                    submitUrl = "https://example.org/path/to/submitToken"
+                    submitUrl = "https://example.org/path/to/submitToken",
                 )
             )
-        val response = client.post("/_matrix/client/v3/register/email/requestToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/register/email/requestToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "client_secret": "monkeys_are_GREAT",
                       "email": "foo@example.com",
@@ -253,30 +255,36 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "next_link": "https://example.org/congratulations.html",
                       "send_attempt": 1
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "sid": "123abc",
                   "submit_url": "https://example.org/path/to/submitToken"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.getEmailRequestTokenForRegistration(assert {
-                it.requestBody shouldBe GetEmailRequestTokenForRegistration.Request(
-                    clientSecret = "monkeys_are_GREAT",
-                    email = "foo@example.com",
-                    idServer = "id.example.com",
-                    nextLink = "https://example.org/congratulations.html",
-                    sendAttempt = 1
-                )
-            })
+            handlerMock.getEmailRequestTokenForRegistration(
+                assert {
+                    it.requestBody shouldBe
+                        GetEmailRequestTokenForRegistration.Request(
+                            clientSecret = "monkeys_are_GREAT",
+                            email = "foo@example.com",
+                            idServer = "id.example.com",
+                            nextLink = "https://example.org/congratulations.html",
+                            sendAttempt = 1,
+                        )
+                }
+            )
         }
     }
 
@@ -287,13 +295,14 @@ class AuthRoutesTest : TrixnityBaseTest() {
             .returns(
                 GetMsisdnRequestTokenForPassword.Response(
                     sessionId = "123abc",
-                    submitUrl = "https://example.org/path/to/submitToken"
+                    submitUrl = "https://example.org/path/to/submitToken",
                 )
             )
-        val response = client.post("/_matrix/client/v3/account/password/msisdn/requestToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/account/password/msisdn/requestToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "client_secret": "monkeys_are_GREAT",
                       "country": "GB",
@@ -302,31 +311,37 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "phone_number": "07700900001",
                       "send_attempt": 1
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "sid": "123abc",
                   "submit_url": "https://example.org/path/to/submitToken"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.getMsisdnRequestTokenForPassword(assert {
-                it.requestBody shouldBe GetMsisdnRequestTokenForPassword.Request(
-                    clientSecret = "monkeys_are_GREAT",
-                    country = "GB",
-                    idServer = "id.example.com",
-                    nextLink = "https://example.org/congratulations.html",
-                    phoneNumber = "07700900001",
-                    sendAttempt = 1
-                )
-            })
+            handlerMock.getMsisdnRequestTokenForPassword(
+                assert {
+                    it.requestBody shouldBe
+                        GetMsisdnRequestTokenForPassword.Request(
+                            clientSecret = "monkeys_are_GREAT",
+                            country = "GB",
+                            idServer = "id.example.com",
+                            nextLink = "https://example.org/congratulations.html",
+                            phoneNumber = "07700900001",
+                            sendAttempt = 1,
+                        )
+                }
+            )
         }
     }
 
@@ -337,13 +352,14 @@ class AuthRoutesTest : TrixnityBaseTest() {
             .returns(
                 GetMsisdnRequestTokenForRegistration.Response(
                     sessionId = "123abc",
-                    submitUrl = "https://example.org/path/to/submitToken"
+                    submitUrl = "https://example.org/path/to/submitToken",
                 )
             )
-        val response = client.post("/_matrix/client/v3/register/msisdn/requestToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/register/msisdn/requestToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "client_secret": "monkeys_are_GREAT",
                       "country": "GB",
@@ -352,31 +368,37 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "phone_number": "07700900001",
                       "send_attempt": 1
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "sid": "123abc",
                   "submit_url": "https://example.org/path/to/submitToken"
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.getMsisdnRequestTokenForRegistration(assert {
-                it.requestBody shouldBe GetMsisdnRequestTokenForRegistration.Request(
-                    clientSecret = "monkeys_are_GREAT",
-                    country = "GB",
-                    idServer = "id.example.com",
-                    nextLink = "https://example.org/congratulations.html",
-                    phoneNumber = "07700900001",
-                    sendAttempt = 1
-                )
-            })
+            handlerMock.getMsisdnRequestTokenForRegistration(
+                assert {
+                    it.requestBody shouldBe
+                        GetMsisdnRequestTokenForRegistration.Request(
+                            clientSecret = "monkeys_are_GREAT",
+                            country = "GB",
+                            idServer = "id.example.com",
+                            nextLink = "https://example.org/congratulations.html",
+                            phoneNumber = "07700900001",
+                            sendAttempt = 1,
+                        )
+                }
+            )
         }
     }
 
@@ -385,10 +407,11 @@ class AuthRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.register(any()) }
             .returns(ResponseWithUIA.Success(Register.Response(UserId("user", "server"))))
-        val response = client.post("/_matrix/client/v3/register?kind=user") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/register?kind=user") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "username":"someUsername",
                       "password":"somePassword",
@@ -396,9 +419,10 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "initial_device_display_name":"someInitialDeviceDisplayName",
                       "inhibit_login":true
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -406,16 +430,19 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.register(assert {
-                it.endpoint.kind shouldBe AccountType.USER
-                it.requestBody.request shouldBe Register.Request(
-                    username = "someUsername",
-                    password = "somePassword",
-                    deviceId = "someDeviceId",
-                    inhibitLogin = true,
-                    initialDeviceDisplayName = "someInitialDeviceDisplayName"
-                )
-            })
+            handlerMock.register(
+                assert {
+                    it.endpoint.kind shouldBe AccountType.USER
+                    it.requestBody.request shouldBe
+                        Register.Request(
+                            username = "someUsername",
+                            password = "somePassword",
+                            deviceId = "someDeviceId",
+                            inhibitLogin = true,
+                            initialDeviceDisplayName = "someInitialDeviceDisplayName",
+                        )
+                }
+            )
         }
     }
 
@@ -427,12 +454,7 @@ class AuthRoutesTest : TrixnityBaseTest() {
                 GetLoginTypes.Response(
                     setOf(
                         LoginType.SSO(
-                            setOf(
-                                LoginType.SSO.IdentityProvider(
-                                    id = "oidc-keycloak",
-                                    name = "FridaysForFuture",
-                                )
-                            )
+                            setOf(LoginType.SSO.IdentityProvider(id = "oidc-keycloak", name = "FridaysForFuture"))
                         ),
                         LoginType.Token(),
                         LoginType.Password,
@@ -443,7 +465,8 @@ class AuthRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "flows":[
                     {
@@ -463,11 +486,10 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     }
                   ]
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getLoginTypes(any())
-        }
+        verifySuspend { handlerMock.getLoginTypes(any()) }
     }
 
     @Test
@@ -479,16 +501,18 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     userId = UserId("@cheeky_monkey:matrix.org"),
                     accessToken = "abc123",
                     deviceId = "GHTYAJCE",
-                    discoveryInformation = DiscoveryInformation(
-                        DiscoveryInformation.HomeserverInformation("https://example.org"),
-                        DiscoveryInformation.IdentityServerInformation("https://id.example.org")
-                    )
+                    discoveryInformation =
+                        DiscoveryInformation(
+                            DiscoveryInformation.HomeserverInformation("https://example.org"),
+                            DiscoveryInformation.IdentityServerInformation("https://id.example.org"),
+                        ),
                 )
             )
-        val response = client.post("/_matrix/client/v3/login") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/login") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "type":"m.login.password",
                       "identifier":{
@@ -498,13 +522,15 @@ class AuthRoutesTest : TrixnityBaseTest() {
                       "password":"ilovebananas",
                       "initial_device_display_name":"Jungle Phone"
                     }
-                """.trim()
-            )
-        }
+                """
+                        .trim()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "user_id":"@cheeky_monkey:matrix.org",
                   "access_token":"abc123",
@@ -518,26 +544,29 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     }
                   }
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.login(assert {
-                it.requestBody shouldBe Login.Request(
-                    type = LoginType.Password.name,
-                    identifier = IdentifierType.User("cheeky_monkey"),
-                    password = "ilovebananas",
-                    initialDeviceDisplayName = "Jungle Phone"
-                )
-            })
+            handlerMock.login(
+                assert {
+                    it.requestBody shouldBe
+                        Login.Request(
+                            type = LoginType.Password.name,
+                            identifier = IdentifierType.User("cheeky_monkey"),
+                            password = "ilovebananas",
+                            initialDeviceDisplayName = "Jungle Phone",
+                        )
+                }
+            )
         }
     }
 
     @Test
     fun shouldLogout() = testApplication {
         initCut()
-        everySuspend { handlerMock.logout(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.logout(any()) }.returns(Unit)
         val response = client.post("/_matrix/client/v3/logout") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
@@ -545,16 +574,13 @@ class AuthRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
 
-        verifySuspend {
-            handlerMock.logout(any())
-        }
+        verifySuspend { handlerMock.logout(any()) }
     }
 
     @Test
     fun shouldLogoutAll() = testApplication {
         initCut()
-        everySuspend { handlerMock.logoutAll(any()) }
-            .returns(Unit)
+        everySuspend { handlerMock.logoutAll(any()) }.returns(Unit)
         val response = client.post("/_matrix/client/v3/logout/all") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
@@ -562,9 +588,7 @@ class AuthRoutesTest : TrixnityBaseTest() {
             this.body<String>() shouldBe "{}"
         }
 
-        verifySuspend {
-            handlerMock.logoutAll(any())
-        }
+        verifySuspend { handlerMock.logoutAll(any()) }
     }
 
     @Test
@@ -572,11 +596,12 @@ class AuthRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.deactivateAccount(any()) }
             .returns(ResponseWithUIA.Success(DeactivateAccount.Response(IdServerUnbindResult.SUCCESS)))
-        val response = client.post("/_matrix/client/v3/account/deactivate") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody("""{"id_server":"id.host"}""")
-        }
+        val response =
+            client.post("/_matrix/client/v3/account/deactivate") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody("""{"id_server":"id.host"}""")
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -584,22 +609,22 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.deactivateAccount(assert {
-                it.requestBody shouldBe RequestWithUIA(DeactivateAccount.Request("id.host"), null)
-            })
+            handlerMock.deactivateAccount(
+                assert { it.requestBody shouldBe RequestWithUIA(DeactivateAccount.Request("id.host"), null) }
+            )
         }
     }
 
     @Test
     fun shouldChangePassword() = testApplication {
         initCut()
-        everySuspend { handlerMock.changePassword(any()) }
-            .returns(ResponseWithUIA.Success(Unit))
-        val response = client.post("/_matrix/client/v3/account/password") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody("""{"new_password":"newPassword","logout_devices":false}""")
-        }
+        everySuspend { handlerMock.changePassword(any()) }.returns(ResponseWithUIA.Success(Unit))
+        val response =
+            client.post("/_matrix/client/v3/account/password") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody("""{"new_password":"newPassword","logout_devices":false}""")
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -607,9 +632,9 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.changePassword(assert {
-                it.requestBody shouldBe RequestWithUIA(ChangePassword.Request("newPassword", false), null)
-            })
+            handlerMock.changePassword(
+                assert { it.requestBody shouldBe RequestWithUIA(ChangePassword.Request("newPassword", false), null) }
+            )
         }
     }
 
@@ -624,7 +649,7 @@ class AuthRoutesTest : TrixnityBaseTest() {
                             addedAt = 1535336848756,
                             address = "monkey@banana.island",
                             medium = Medium.EMAIL,
-                            validatedAt = 1535176800000
+                            validatedAt = 1535176800000,
                         )
                     )
                 )
@@ -633,7 +658,8 @@ class AuthRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "threepids": [
                     {
@@ -644,31 +670,31 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     }
                   ]
                 }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
-        verifySuspend {
-            handlerMock.getThirdPartyIdentifiers(any())
-        }
+        verifySuspend { handlerMock.getThirdPartyIdentifiers(any()) }
     }
 
     @Test
     fun shouldAddThirdPartyIdentifiers() = testApplication {
         initCut()
-        everySuspend { handlerMock.addThirdPartyIdentifiers(any()) }
-            .returns(ResponseWithUIA.Success(Unit))
-        val response = client.post("/_matrix/client/v3/account/3pid/add") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "client_secret": "d0nt-T3ll",
-                  "sid": "abc123987"
-                }
-            """.trimIndent()
-            )
-        }
+        everySuspend { handlerMock.addThirdPartyIdentifiers(any()) }.returns(ResponseWithUIA.Success(Unit))
+        val response =
+            client.post("/_matrix/client/v3/account/3pid/add") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "client_secret": "d0nt-T3ll",
+                      "sid": "abc123987"
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -676,31 +702,32 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.addThirdPartyIdentifiers(assert {
-                it.requestBody.request shouldBe AddThirdPartyIdentifiers.Request("d0nt-T3ll", "abc123987")
-            })
+            handlerMock.addThirdPartyIdentifiers(
+                assert { it.requestBody.request shouldBe AddThirdPartyIdentifiers.Request("d0nt-T3ll", "abc123987") }
+            )
         }
     }
 
     @Test
     fun shouldBindThirdPartyIdentifiers() = testApplication {
         initCut()
-        everySuspend { handlerMock.bindThirdPartyIdentifiers(any()) }
-            .returns(Unit)
-        val response = client.post("/_matrix/client/v3/account/3pid/bind") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "client_secret": "d0nt-T3ll",
-                  "id_access_token": "abc123_OpaqueString",
-                  "id_server": "example.org",
-                  "sid": "abc123987"
-                }
-            """.trimIndent()
-            )
-        }
+        everySuspend { handlerMock.bindThirdPartyIdentifiers(any()) }.returns(Unit)
+        val response =
+            client.post("/_matrix/client/v3/account/3pid/bind") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "client_secret": "d0nt-T3ll",
+                      "id_access_token": "abc123_OpaqueString",
+                      "id_server": "example.org",
+                      "sid": "abc123987"
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -708,14 +735,17 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.bindThirdPartyIdentifiers(assert {
-                it.requestBody shouldBe BindThirdPartyIdentifiers.Request(
-                    clientSecret = "d0nt-T3ll",
-                    idAccessToken = "abc123_OpaqueString",
-                    idServer = "example.org",
-                    sessionId = "abc123987"
-                )
-            })
+            handlerMock.bindThirdPartyIdentifiers(
+                assert {
+                    it.requestBody shouldBe
+                        BindThirdPartyIdentifiers.Request(
+                            clientSecret = "d0nt-T3ll",
+                            idAccessToken = "abc123_OpaqueString",
+                            idServer = "example.org",
+                            sessionId = "abc123987",
+                        )
+                }
+            )
         }
     }
 
@@ -724,19 +754,21 @@ class AuthRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.deleteThirdPartyIdentifiers(any()) }
             .returns(DeleteThirdPartyIdentifiers.Response(IdServerUnbindResult.SUCCESS))
-        val response = client.post("/_matrix/client/v3/account/3pid/delete") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "address": "example@example.org",
-                  "id_server": "example.org",
-                  "medium": "email"
-                }
-            """.trimIndent()
-            )
-        }
+        val response =
+            client.post("/_matrix/client/v3/account/3pid/delete") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "address": "example@example.org",
+                      "id_server": "example.org",
+                      "medium": "email"
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -744,13 +776,16 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.deleteThirdPartyIdentifiers(assert {
-                it.requestBody shouldBe DeleteThirdPartyIdentifiers.Request(
-                    address = "example@example.org",
-                    idServer = "example.org",
-                    medium = Medium.EMAIL
-                )
-            })
+            handlerMock.deleteThirdPartyIdentifiers(
+                assert {
+                    it.requestBody shouldBe
+                        DeleteThirdPartyIdentifiers.Request(
+                            address = "example@example.org",
+                            idServer = "example.org",
+                            medium = Medium.EMAIL,
+                        )
+                }
+            )
         }
     }
 
@@ -759,19 +794,21 @@ class AuthRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.unbindThirdPartyIdentifiers(any()) }
             .returns(UnbindThirdPartyIdentifiers.Response(IdServerUnbindResult.SUCCESS))
-        val response = client.post("/_matrix/client/v3/account/3pid/unbind") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "address": "example@example.org",
-                  "id_server": "example.org",
-                  "medium": "email"
-                }
-            """.trimIndent()
-            )
-        }
+        val response =
+            client.post("/_matrix/client/v3/account/3pid/unbind") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "address": "example@example.org",
+                      "id_server": "example.org",
+                      "medium": "email"
+                    }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
@@ -779,13 +816,16 @@ class AuthRoutesTest : TrixnityBaseTest() {
         }
 
         verifySuspend {
-            handlerMock.unbindThirdPartyIdentifiers(assert {
-                it.requestBody shouldBe UnbindThirdPartyIdentifiers.Request(
-                    address = "example@example.org",
-                    idServer = "example.org",
-                    medium = Medium.EMAIL
-                )
-            })
+            handlerMock.unbindThirdPartyIdentifiers(
+                assert {
+                    it.requestBody shouldBe
+                        UnbindThirdPartyIdentifiers.Request(
+                            address = "example@example.org",
+                            idServer = "example.org",
+                            medium = Medium.EMAIL,
+                        )
+                }
+            )
         }
     }
 
@@ -800,25 +840,24 @@ class AuthRoutesTest : TrixnityBaseTest() {
                     matrixServerName = "example.com",
                 )
             )
-        val response =
-            client.post("/_matrix/client/v3/user/@user:server/openid/request_token") { bearerAuth("token") }
+        val response = client.post("/_matrix/client/v3/user/@user:server/openid/request_token") { bearerAuth("token") }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                  "access_token": "SomeT0kenHere",
                  "expires_in": 3600,
                  "matrix_server_name": "example.com",
                  "token_type": "Bearer"
                }
-            """.trimToFlatJson()
+            """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.getOIDCRequestToken(assert {
-                it.endpoint.userId shouldBe UserId("user", "server")
-            })
+            handlerMock.getOIDCRequestToken(assert { it.endpoint.userId shouldBe UserId("user", "server") })
         }
     }
 
@@ -830,37 +869,37 @@ class AuthRoutesTest : TrixnityBaseTest() {
                 Refresh.Response(
                     accessToken = "a_new_token",
                     accessTokenExpiresInMs = 60_000,
-                    refreshToken = "another_new_token"
+                    refreshToken = "another_new_token",
                 )
             )
-        val response = client.post("/_matrix/client/v3/refresh") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/client/v3/refresh") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "refresh_token":"some_token"
                     }
-                """.trim()
-            )
-        }
+                """
+                        .trim()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "access_token":"a_new_token",
                   "expires_in_ms":60000,
                   "refresh_token":"another_new_token"
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
 
         verifySuspend {
-            handlerMock.refresh(assert {
-                it.requestBody shouldBe Refresh.Request(
-                    refreshToken = "some_token"
-                )
-            })
+            handlerMock.refresh(assert { it.requestBody shouldBe Refresh.Request(refreshToken = "some_token") })
         }
     }
 
@@ -868,29 +907,19 @@ class AuthRoutesTest : TrixnityBaseTest() {
     fun shouldGetToken() = testApplication {
         initCut()
         everySuspend { handlerMock.getToken(any()) }
-            .returns(
-                ResponseWithUIA.Success(
-                    GetToken.Response(
-                        loginToken = "<opaque string>",
-                        expiresInMs = 120000
-                    )
-                )
-            )
-        val response = client.post("/_matrix/client/v1/login/get_token") {
-            bearerAuth("token")
-            contentType(ContentType.Application.Json)
-            setBody("{}")
-        }
+            .returns(ResponseWithUIA.Success(GetToken.Response(loginToken = "<opaque string>", expiresInMs = 120000)))
+        val response =
+            client.post("/_matrix/client/v1/login/get_token") {
+                bearerAuth("token")
+                contentType(ContentType.Application.Json)
+                setBody("{}")
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
             this.body<String>() shouldBe """{"login_token":"<opaque string>","expires_in_ms":120000}"""
         }
 
-        verifySuspend {
-            handlerMock.getToken(assert {
-                it.requestBody shouldBe RequestWithUIA(Unit, null)
-            })
-        }
+        verifySuspend { handlerMock.getToken(assert { it.requestBody shouldBe RequestWithUIA(Unit, null) }) }
     }
 }

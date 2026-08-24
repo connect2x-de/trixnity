@@ -15,4 +15,3 @@ value class LibOlmCurve25519PublicKey(internal val inner: String) : Curve25519Pu
 
     override fun close() {}
 }
-

@@ -16,12 +16,8 @@ internal object PkEncryptionBindings {
 
     fun fromKey(key: NativePointer): NativePointer = vodozemac_pk_encryption_from_key(key)
 
-    fun encrypt(
-        result: InteropPointer,
-        pk: NativePointer,
-        message: InteropPointer,
-        messageSize: Int
-    ) = vodozemac_pk_encryption_encrypt(result, pk, message, messageSize)
+    fun encrypt(result: InteropPointer, pk: NativePointer, message: InteropPointer, messageSize: Int) =
+        vodozemac_pk_encryption_encrypt(result, pk, message, messageSize)
 
     fun free(pk: NativePointer) = vodozemac_pk_encryption_free(pk)
 }
@@ -36,7 +32,7 @@ private external fun vodozemac_pk_encryption_encrypt(
     result: InteropPointer,
     pk: NativePointer,
     message: InteropPointer,
-    message_size: Int
+    message_size: Int,
 )
 
 @ModuleImport("vodozemac", "vodozemac_pk_encryption_free")

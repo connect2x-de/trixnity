@@ -59,6 +59,7 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.test.Test
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -66,7 +67,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
 
 @OptIn(MSC3814::class)
 class KeyServiceTest : TrixnityBaseTest() {
@@ -87,19 +87,20 @@ class KeyServiceTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = KeyServiceImpl(
-        userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        keyStore = keyStore,
-        olmCryptoStore = olmCryptoStore,
-        globalAccountDataStore = globalAccountDataStore,
-        tm = tm,
-        roomService = roomServiceMock,
-        signService = signServiceMock,
-        keyTrustService = keyTrustServiceMock,
-        api = api,
-        matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true },
-        driver = driver,
-    )
+    private val cut =
+        KeyServiceImpl(
+            userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            keyStore = keyStore,
+            olmCryptoStore = olmCryptoStore,
+            globalAccountDataStore = globalAccountDataStore,
+            tm = tm,
+            roomService = roomServiceMock,
+            signService = signServiceMock,
+            keyTrustService = keyTrustServiceMock,
+            api = api,
+            matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true },
+            driver = driver,
+        )
 
     private var secretKeyEventContentCalled = false
     private var capturedPassphrase: AesHmacSha2Key.SecretStorageKeyPassphrase? = null
@@ -114,25 +115,19 @@ class KeyServiceTest : TrixnityBaseTest() {
 
     init {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "m.secret_storage.key.*"),
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.secret_storage.key.*")) {
                 it.shouldBeInstanceOf<AesHmacSha2Key>()
                 it.iv shouldNot beEmpty()
                 it.mac shouldNot beEmpty()
                 capturedPassphrase = it.passphrase
                 secretKeyEventContentCalled = true
             }
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "m.secret_storage.default_key")
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.secret_storage.default_key")) {
                 it.shouldBeInstanceOf<DefaultSecretKeyEventContent>()
                 it.key.length shouldBeGreaterThan 10
                 defaultSecretKeyEventContentCalled = true
             }
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "m.cross_signing.master")
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.cross_signing.master")) {
                 it.shouldBeInstanceOf<MasterKeyEventContent>()
                 val encrypted = it.encrypted.values.first()
                 encrypted.shouldBeInstanceOf<JsonObject>()
@@ -140,9 +135,7 @@ class KeyServiceTest : TrixnityBaseTest() {
                 encrypted["mac"].shouldBeInstanceOf<JsonPrimitive>().content shouldNot beEmpty()
                 masterKeyEventContentCalled = true
             }
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "m.cross_signing.user_signing")
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.cross_signing.user_signing")) {
                 it.shouldBeInstanceOf<UserSigningKeyEventContent>()
                 val encrypted = it.encrypted.values.first()
                 encrypted.shouldBeInstanceOf<JsonObject>()
@@ -150,9 +143,7 @@ class KeyServiceTest : TrixnityBaseTest() {
                 encrypted["mac"].shouldBeInstanceOf<JsonPrimitive>().content shouldNot beEmpty()
                 userSigningKeyEventContentCalled = true
             }
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "m.cross_signing.self_signing")
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.cross_signing.self_signing")) {
                 it.shouldBeInstanceOf<SelfSigningKeyEventContent>()
                 val encrypted = it.encrypted.values.first()
                 encrypted.shouldBeInstanceOf<JsonObject>()
@@ -160,9 +151,7 @@ class KeyServiceTest : TrixnityBaseTest() {
                 encrypted["mac"].shouldBeInstanceOf<JsonPrimitive>().content shouldNot beEmpty()
                 selfSigningKeyEventContentCalled = true
             }
-            matrixJsonEndpoint(
-                SetGlobalAccountData(alice, "org.matrix.msc3814")
-            ) {
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "org.matrix.msc3814")) {
                 it.shouldBeInstanceOf<DehydratedDeviceEventContent>()
                 val encrypted = it.encrypted.values.first()
                 encrypted.shouldBeInstanceOf<JsonObject>()
@@ -170,29 +159,23 @@ class KeyServiceTest : TrixnityBaseTest() {
                 encrypted["mac"].shouldBeInstanceOf<JsonPrimitive>().content shouldNot beEmpty()
                 dehydratedDeviceEventContentCalled = true
             }
-            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.megolm_backup.v1")) {
-                keyBackupEventContentCalled = true
-            }
+            matrixJsonEndpoint(SetGlobalAccountData(alice, "m.megolm_backup.v1")) { keyBackupEventContentCalled = true }
             apiConfig.endpoints {
                 matrixJsonEndpoint(SetRoomKeyBackupVersion) {
                     setRoomKeyBackupVersionCalled = true
                     it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
                     it.authData.publicKey.value shouldNot beEmpty()
-                    it.authData.signatures[alice]?.keys shouldBe setOf(
-                        Ed25519Key(aliceDevice, "s1"),
-                        Key.of(driver.key.ed25519SecretKey().use { it.publicKey })
-                    )
+                    it.authData.signatures[alice]?.keys shouldBe
+                        setOf(Ed25519Key(aliceDevice, "s1"), Key.of(driver.key.ed25519SecretKey().use { it.publicKey }))
                     it.version shouldBe null
                     SetRoomKeyBackupVersion.Response("1")
                 }
                 matrixJsonEndpoint(GetRoomKeyBackupVersionByVersion("1")) {
                     GetRoomKeysBackupVersionResponse.V1(
-                        authData = RoomKeyBackupV1AuthData(
-                            publicKey = Curve25519KeyValue("keyBackupPublicKey"),
-                        ),
+                        authData = RoomKeyBackupV1AuthData(publicKey = Curve25519KeyValue("keyBackupPublicKey")),
                         count = 1,
                         etag = "etag",
-                        version = "1"
+                        version = "1",
                     )
                 }
             }
@@ -212,25 +195,26 @@ class KeyServiceTest : TrixnityBaseTest() {
                         StoredCrossSigningKeys(
                             SignedCrossSigningKeys(
                                 CrossSigningKeys(
-                                    alice, setOf(CrossSigningKeysUsage.MasterKey), keysOf(
-                                        Ed25519Key("A_MSK", "A_MSK")
-                                    )
-                                ), mapOf()
-                            ), Valid(false)
+                                    alice,
+                                    setOf(CrossSigningKeysUsage.MasterKey),
+                                    keysOf(Ed25519Key("A_MSK", "A_MSK")),
+                                ),
+                                mapOf(),
+                            ),
+                            Valid(false),
                         )
                     )
                 }
                 keyStore.updateDeviceKeys(alice) {
                     mapOf(
-                        aliceDevice to StoredDeviceKeys(
-                            SignedDeviceKeys(
-                                DeviceKeys(
-                                    alice, aliceDevice, setOf(),
-                                    keysOf(Ed25519Key(aliceDevice, "dev"))
-                                ), mapOf()
-                            ),
-                            Valid(false)
-                        )
+                        aliceDevice to
+                            StoredDeviceKeys(
+                                SignedDeviceKeys(
+                                    DeviceKeys(alice, aliceDevice, setOf(), keysOf(Ed25519Key(aliceDevice, "dev"))),
+                                    mapOf(),
+                                ),
+                                Valid(false),
+                            )
                     )
                 }
             }
@@ -253,9 +237,7 @@ class KeyServiceTest : TrixnityBaseTest() {
         backgroundScope.launch {
             while (currentCoroutineContext().isActive) {
                 keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-                tm.writeTransaction {
-                    keyStore.updateOutdatedKeys { setOf() }
-                }
+                tm.writeTransaction { keyStore.updateOutdatedKeys { setOf() } }
             }
         }
         backgroundScope.launch {
@@ -263,15 +245,14 @@ class KeyServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(alice) {
                     mapOf(
-                        aliceDevice to StoredDeviceKeys(
-                            SignedDeviceKeys(
-                                DeviceKeys(
-                                    alice, aliceDevice, setOf(),
-                                    keysOf(Ed25519Key(aliceDevice, "dev"))
-                                ), mapOf()
-                            ),
-                            KeySignatureTrustLevel.CrossSigned(true)
-                        )
+                        aliceDevice to
+                            StoredDeviceKeys(
+                                SignedDeviceKeys(
+                                    DeviceKeys(alice, aliceDevice, setOf(), keysOf(Ed25519Key(aliceDevice, "dev"))),
+                                    mapOf(),
+                                ),
+                                KeySignatureTrustLevel.CrossSigned(true),
+                            )
                     )
                 }
             }
@@ -282,16 +263,10 @@ class KeyServiceTest : TrixnityBaseTest() {
             this.recoveryKey shouldNot beEmpty()
             this.result.getOrThrow() shouldBe UIA.Success(Unit)
         }
-        keyTrustServiceMock.trustAndSignKeysCalled.value shouldBe (setOf(
-            Ed25519Key("A_MSK", "A_MSK"),
-            Ed25519Key(aliceDevice, "dev")
-        ) to alice)
-        keyStore.getSecrets().keys shouldBe setOf(
-            M_CROSS_SIGNING_SELF_SIGNING,
-            M_CROSS_SIGNING_USER_SIGNING,
-            M_DEHYDRATED_DEVICE,
-            M_MEGOLM_BACKUP_V1,
-        )
+        keyTrustServiceMock.trustAndSignKeysCalled.value shouldBe
+            (setOf(Ed25519Key("A_MSK", "A_MSK"), Ed25519Key(aliceDevice, "dev")) to alice)
+        keyStore.getSecrets().keys shouldBe
+            setOf(M_CROSS_SIGNING_SELF_SIGNING, M_CROSS_SIGNING_USER_SIGNING, M_DEHYDRATED_DEVICE, M_MEGOLM_BACKUP_V1)
         secretKeyEventContentCalled shouldBe true
         capturedPassphrase shouldBe null
         defaultSecretKeyEventContentCalled shouldBe true
@@ -309,9 +284,7 @@ class KeyServiceTest : TrixnityBaseTest() {
         backgroundScope.launch {
             while (currentCoroutineContext().isActive) {
                 keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
-                tm.writeTransaction {
-                    keyStore.updateOutdatedKeys { setOf() }
-                }
+                tm.writeTransaction { keyStore.updateOutdatedKeys { setOf() } }
             }
         }
         backgroundScope.launch {
@@ -319,15 +292,14 @@ class KeyServiceTest : TrixnityBaseTest() {
             tm.writeTransaction {
                 keyStore.updateDeviceKeys(alice) {
                     mapOf(
-                        aliceDevice to StoredDeviceKeys(
-                            SignedDeviceKeys(
-                                DeviceKeys(
-                                    alice, aliceDevice, setOf(),
-                                    keysOf(Ed25519Key(aliceDevice, "dev"))
-                                ), mapOf()
-                            ),
-                            KeySignatureTrustLevel.CrossSigned(true)
-                        )
+                        aliceDevice to
+                            StoredDeviceKeys(
+                                SignedDeviceKeys(
+                                    DeviceKeys(alice, aliceDevice, setOf(), keysOf(Ed25519Key(aliceDevice, "dev"))),
+                                    mapOf(),
+                                ),
+                                KeySignatureTrustLevel.CrossSigned(true),
+                            )
                     )
                 }
             }
@@ -337,16 +309,10 @@ class KeyServiceTest : TrixnityBaseTest() {
             this.recoveryKey shouldNot beEmpty()
             this.result shouldBe Result.success(UIA.Success(Unit))
         }
-        keyTrustServiceMock.trustAndSignKeysCalled.value shouldBe (setOf(
-            Ed25519Key("A_MSK", "A_MSK"),
-            Ed25519Key(aliceDevice, "dev")
-        ) to alice)
-        keyStore.getSecrets().keys shouldBe setOf(
-            M_CROSS_SIGNING_SELF_SIGNING,
-            M_CROSS_SIGNING_USER_SIGNING,
-            M_MEGOLM_BACKUP_V1,
-            M_DEHYDRATED_DEVICE,
-        )
+        keyTrustServiceMock.trustAndSignKeysCalled.value shouldBe
+            (setOf(Ed25519Key("A_MSK", "A_MSK"), Ed25519Key(aliceDevice, "dev")) to alice)
+        keyStore.getSecrets().keys shouldBe
+            setOf(M_CROSS_SIGNING_SELF_SIGNING, M_CROSS_SIGNING_USER_SIGNING, M_MEGOLM_BACKUP_V1, M_DEHYDRATED_DEVICE)
         secretKeyEventContentCalled shouldBe true
         capturedPassphrase.shouldBeInstanceOf<AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2>()
         defaultSecretKeyEventContentCalled shouldBe true
@@ -358,6 +324,4 @@ class KeyServiceTest : TrixnityBaseTest() {
         dehydratedDeviceEventContentCalled shouldBe true
         setCrossSigningKeysCalled shouldBe true
     }
-
-
 }

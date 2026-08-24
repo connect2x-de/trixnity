@@ -49,9 +49,7 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
         module {
             single { database }
             single(createdAtStart = true) {
-                get<CoroutineScope>().coroutineContext.job.invokeOnCompletion {
-                    database.close()
-                }
+                get<CoroutineScope>().coroutineContext.job.invokeOnCompletion { database.close() }
             }
 
             singleOf(::RoomStoreTransactionManager) { bind<StoreTransactionManager>() }
@@ -87,7 +85,6 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
             singleOf(::RoomNotificationStateRepository) { bind<NotificationStateRepository>() }
             singleOf(::RoomNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
             singleOf(::RoomMigrationRepository) { bind<MigrationRepository>() }
-            @OptIn(MSC4354::class)
-            singleOf(::RoomStickyEventRepository) { bind<StickyEventRepository>() }
+            @OptIn(MSC4354::class) singleOf(::RoomStickyEventRepository) { bind<StickyEventRepository>() }
         }
     }

@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.apache2
+import de.connect2x.conventions.applyKtfmt
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
@@ -11,11 +12,11 @@ import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.setProjectInfo
 import de.connect2x.conventions.updateAbiFilesFromReportZip
 import de.connect2x.conventions.withVersionSuffix
+import java.time.ZonedDateTime
 import kotlinx.kover.gradle.plugin.KoverGradlePlugin
 import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.dokka.gradle.DokkaPlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import java.time.ZonedDateTime
 
 plugins {
     alias(sharedLibs.plugins.c2xConventions)
@@ -23,6 +24,7 @@ plugins {
     alias(sharedLibs.plugins.dokka)
     alias(sharedLibs.plugins.mavenPublish) apply false
     alias(sharedLibs.plugins.kotlinx.kover)
+    alias(sharedLibs.plugins.ktfmt) apply false
 
     alias(libs.plugins.download) apply false
 
@@ -37,6 +39,10 @@ plugins {
 
 updateAbiFilesFromReportZip()
 
+applyKtfmt()
+
+tasks.named { it == "ktfmtCheck" }.configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
+
 allprojects {
     group = "de.connect2x.trixnity"
     version = withVersionSuffix(rootProject.libs.versions.trixnity)
@@ -46,9 +52,7 @@ allprojects {
 
 subprojects {
     plugins.withId(PluginIds.KOTLIN_MULTIPLATFORM) {
-        extensions.configure<KotlinMultiplatformExtension> {
-            defaultCompilerOptions()
-        }
+        extensions.configure<KotlinMultiplatformExtension> { defaultCompilerOptions() }
     }
 
     if (!project.name.startsWith("trixnity-") || !buildFile.exists()) return@subprojects
@@ -56,6 +60,7 @@ subprojects {
     apply<MavenPublishPlugin>()
     apply<DokkaPlugin>()
     apply<KoverGradlePlugin>()
+    applyKtfmt()
 
     defaultPublishing()
 
@@ -97,43 +102,47 @@ val opensslBinariesZipDir =
 val olmBinariesDirs = TrixnityOlmBinariesDirs(project, libs.versions.trixnityOlmBinaries.get())
 val opensslBinariesDirs = TrixnityOpensslBinariesDirs(project, libs.versions.trixnityOpensslBinaries.get())
 
-val downloadOlmBinaries by tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
-    src("https://gitlab.com/api/v4/projects/46553592/packages/generic/build/v${libs.versions.trixnityOlmBinaries.get()}/build.zip")
-    dest(olmBinariesZipDir)
-    overwrite(false)
-}
-
-val downloadOpensslBinaries by tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
-    src("https://gitlab.com/api/v4/projects/57407788/packages/generic/build/v${libs.versions.trixnityOpensslBinaries.get()}/build.zip")
-    dest(opensslBinariesZipDir)
-    overwrite(false)
-}
-
-val extractOlmBinaries by tasks.registering(Copy::class) {
-    from(zipTree(olmBinariesZipDir)) {
-        include("build/**")
-        eachFile {
-            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-        }
+val downloadOlmBinaries by
+    tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
+        src(
+            "https://gitlab.com/api/v4/projects/46553592/packages/generic/build/v${libs.versions.trixnityOlmBinaries.get()}/build.zip"
+        )
+        dest(olmBinariesZipDir)
+        overwrite(false)
     }
-    into(olmBinariesDirs.root)
-    outputs.cacheIf { true }
-    inputs.files(downloadOlmBinaries)
-    dependsOn(downloadOlmBinaries)
-}
 
-val extractOpensslBinaries by tasks.registering(Copy::class) {
-    from(zipTree(opensslBinariesZipDir)) {
-        include("build/**")
-        eachFile {
-            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
-        }
+val downloadOpensslBinaries by
+    tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
+        src(
+            "https://gitlab.com/api/v4/projects/57407788/packages/generic/build/v${libs.versions.trixnityOpensslBinaries.get()}/build.zip"
+        )
+        dest(opensslBinariesZipDir)
+        overwrite(false)
     }
-    into(opensslBinariesDirs.root)
-    outputs.cacheIf { true }
-    inputs.files(downloadOpensslBinaries)
-    dependsOn(downloadOpensslBinaries)
-}
+
+val extractOlmBinaries by
+    tasks.registering(Copy::class) {
+        from(zipTree(olmBinariesZipDir)) {
+            include("build/**")
+            eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
+        }
+        into(olmBinariesDirs.root)
+        outputs.cacheIf { true }
+        inputs.files(downloadOlmBinaries)
+        dependsOn(downloadOlmBinaries)
+    }
+
+val extractOpensslBinaries by
+    tasks.registering(Copy::class) {
+        from(zipTree(opensslBinariesZipDir)) {
+            include("build/**")
+            eachFile { relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray()) }
+        }
+        into(opensslBinariesDirs.root)
+        outputs.cacheIf { true }
+        inputs.files(downloadOpensslBinaries)
+        dependsOn(downloadOpensslBinaries)
+    }
 
 val trixnityBinaries by tasks.registering {
     dependsOn(extractOlmBinaries)
@@ -172,13 +181,13 @@ dependencies {
     dokka(projects.trixnityClient.trixnityClientCryptodriverVodozemac)
 }
 
-
-val dokkaHtmlToWebsite by tasks.registering(Copy::class) {
-    from(layout.buildDirectory.dir("dokka/html"))
-    into(layout.projectDirectory.dir("website/static/api"))
-    outputs.cacheIf { true }
-    dependsOn(":dokkaGenerate")
-}
+val dokkaHtmlToWebsite by
+    tasks.registering(Copy::class) {
+        from(layout.buildDirectory.dir("dokka/html"))
+        into(layout.projectDirectory.dir("website/static/api"))
+        outputs.cacheIf { true }
+        dependsOn(":dokkaGenerate")
+    }
 
 registerCoverageTask()
 
@@ -187,8 +196,7 @@ kover {
         fun DependencyHandler.addSubProjectsWithKoverAsDependency(project: Project) {
             for (subProject in project.subprojects) {
                 subProject.afterEvaluate {
-                    if (subProject.plugins.hasPlugin("org.jetbrains.kotlinx.kover"))
-                        kover(subProject)
+                    if (subProject.plugins.hasPlugin("org.jetbrains.kotlinx.kover")) kover(subProject)
                 }
                 addSubProjectsWithKoverAsDependency(subProject)
             }
@@ -196,9 +204,5 @@ kover {
 
         addSubProjectsWithKoverAsDependency(project)
     }
-    reports {
-        filters {
-            includes.classes("de.connect2x.trixnity.*")
-        }
-    }
+    reports { filters { includes.classes("de.connect2x.trixnity.*") } }
 }

@@ -6,11 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PolicyEventContent(
-    @SerialName("public_keys")
-    val publicKeys: Keys,
-    @SerialName("via")
-    val via: String,
-) : StateEventContent {
+data class PolicyEventContent(@SerialName("public_keys") val publicKeys: Keys, @SerialName("via") val via: String) :
+    StateEventContent {
     override val externalUrl = null
 }

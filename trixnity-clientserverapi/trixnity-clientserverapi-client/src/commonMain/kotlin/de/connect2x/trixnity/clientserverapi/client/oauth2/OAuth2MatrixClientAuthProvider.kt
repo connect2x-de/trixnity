@@ -30,25 +30,24 @@ class OAuth2MatrixClientAuthProvider(
     private val onLogout: suspend (LogoutInfo) -> Unit,
     private val httpClientEngine: HttpClientEngine?,
     private val httpClientConfig: (HttpClientConfig<*>.() -> Unit)?,
-) : BearerClientAuthProvider<OAuth2MatrixClientAuthProviderData>(
-    store = store,
-    onLogout = onLogout
-) {
+) : BearerClientAuthProvider<OAuth2MatrixClientAuthProviderData>(store = store, onLogout = onLogout) {
 
-    private val getServerMetadata = object {
-        private var cachedValue: ServerMetadata? = null
-        suspend operator fun invoke() = cachedValue ?: run {
-            MatrixClientServerApiClientImpl(
-                baseUrl = baseUrl,
-                httpClientEngine = httpClientEngine,
-                httpClientConfig = httpClientConfig
-            ).use {
-                it.authentication.getOAuth2ServerMetadata().getOrThrow()
-            }.also {
-                cachedValue = it
-            }
+    private val getServerMetadata =
+        object {
+            private var cachedValue: ServerMetadata? = null
+
+            suspend operator fun invoke() =
+                cachedValue
+                    ?: run {
+                        MatrixClientServerApiClientImpl(
+                                baseUrl = baseUrl,
+                                httpClientEngine = httpClientEngine,
+                                httpClientConfig = httpClientConfig,
+                            )
+                            .use { it.authentication.getOAuth2ServerMetadata().getOrThrow() }
+                            .also { cachedValue = it }
+                    }
         }
-    }
 
     private suspend inline fun <T> withOAuth2Client(block: (OAuth2ApiClient) -> T): T =
         OAuth2ApiClient(getServerMetadata(), httpClientEngine, httpClientConfig).use { block(it) }
@@ -59,38 +58,38 @@ class OAuth2MatrixClientAuthProvider(
             withOAuth2Client { oAuth2ApiClient ->
                 oAuth2ApiClient.revokeToken(
                     token = it.refreshToken ?: it.accessToken,
-                    tokenTypeHint = if (it.refreshToken != null) TokenTypeHint.RefreshToken else TokenTypeHint.AccessToken,
-                    clientId = it.clientId
+                    tokenTypeHint =
+                        if (it.refreshToken != null) TokenTypeHint.RefreshToken else TokenTypeHint.AccessToken,
+                    clientId = it.clientId,
                 )
             }
         } ?: Result.failure(IllegalStateException("No tokens stored"))
 
     override suspend fun refreshTokens(
         bearerTokens: OAuth2MatrixClientAuthProviderData,
-        httpClient: HttpClient
+        httpClient: HttpClient,
     ): OAuth2MatrixClientAuthProviderData {
         val refreshToken = bearerTokens.refreshToken ?: return bearerTokens
-        withOAuth2Client { oAuth2ApiClient ->
-            oAuth2ApiClient.getRefreshToken(refreshToken, bearerTokens.clientId)
-        }.fold(
-            onSuccess = { refreshResponse ->
-                return OAuth2MatrixClientAuthProviderData(
-                    baseUrl = bearerTokens.baseUrl,
-                    accessToken = refreshResponse.accessToken,
-                    accessTokenExpiresInS = refreshResponse.expiresIn,
-                    refreshToken = refreshResponse.refreshToken ?: refreshToken,
-                    clientId = bearerTokens.clientId,
-                    scope = refreshResponse.scope,
-                )
-            },
-            onFailure = { errorResponse ->
-                if (errorResponse is ClientRequestException) {
-                    log.info { "could not refresh token, therefore call onLogout (unknown token)" }
-                    onLogout(LogoutInfo(isSoft = true, isLocked = false))
-                }
-                throw errorResponse
-            }
-        )
+        withOAuth2Client { oAuth2ApiClient -> oAuth2ApiClient.getRefreshToken(refreshToken, bearerTokens.clientId) }
+            .fold(
+                onSuccess = { refreshResponse ->
+                    return OAuth2MatrixClientAuthProviderData(
+                        baseUrl = bearerTokens.baseUrl,
+                        accessToken = refreshResponse.accessToken,
+                        accessTokenExpiresInS = refreshResponse.expiresIn,
+                        refreshToken = refreshResponse.refreshToken ?: refreshToken,
+                        clientId = bearerTokens.clientId,
+                        scope = refreshResponse.scope,
+                    )
+                },
+                onFailure = { errorResponse ->
+                    if (errorResponse is ClientRequestException) {
+                        log.info { "could not refresh token, therefore call onLogout (unknown token)" }
+                        onLogout(LogoutInfo(isSoft = true, isLocked = false))
+                    }
+                    throw errorResponse
+                },
+            )
     }
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean =
@@ -110,14 +109,15 @@ fun MatrixClientAuthProviderData.Companion.oAuth2(
     accessTokenExpiresInS: Long? = null,
     refreshToken: String? = null,
     scope: Set<Scope>? = null,
-): OAuth2MatrixClientAuthProviderData = OAuth2MatrixClientAuthProviderData(
-    baseUrl = baseUrl,
-    accessToken = accessToken,
-    accessTokenExpiresInS = accessTokenExpiresInS,
-    refreshToken = refreshToken,
-    clientId = clientId,
-    scope = scope,
-)
+): OAuth2MatrixClientAuthProviderData =
+    OAuth2MatrixClientAuthProviderData(
+        baseUrl = baseUrl,
+        accessToken = accessToken,
+        accessTokenExpiresInS = accessTokenExpiresInS,
+        refreshToken = refreshToken,
+        clientId = clientId,
+        scope = scope,
+    )
 
 fun MatrixClientAuthProviderData.Companion.oAuth2AuthorizationCodeLogin(
     baseUrl: Url,
@@ -134,22 +134,23 @@ fun MatrixClientAuthProviderData.Companion.oAuth2AuthorizationCodeLogin(
     loginHint: String? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-): OAuth2AuthorizationCodeLoginFlow = OAuth2AuthorizationCodeLoginFlowImpl(
-    baseUrl = baseUrl,
-    applicationType = applicationType,
-    clientUri = clientUri,
-    redirectUri = redirectUri,
-    responseMode = responseMode,
-    clientName = clientName,
-    logoUri = logoUri,
-    policyUri = policyUri,
-    tosUri = tosUri,
-    promptValue = promptValue,
-    initialState = initialState,
-    loginHint = loginHint,
-    httpClientEngine = httpClientEngine,
-    httpClientConfig = httpClientConfig,
-)
+): OAuth2AuthorizationCodeLoginFlow =
+    OAuth2AuthorizationCodeLoginFlowImpl(
+        baseUrl = baseUrl,
+        applicationType = applicationType,
+        clientUri = clientUri,
+        redirectUri = redirectUri,
+        responseMode = responseMode,
+        clientName = clientName,
+        logoUri = logoUri,
+        policyUri = policyUri,
+        tosUri = tosUri,
+        promptValue = promptValue,
+        initialState = initialState,
+        loginHint = loginHint,
+        httpClientEngine = httpClientEngine,
+        httpClientConfig = httpClientConfig,
+    )
 
 @Deprecated("use oAuth2AuthorizationCodeLogin instead")
 fun MatrixClientAuthProviderData.Companion.oAuth2Login(
@@ -167,22 +168,23 @@ fun MatrixClientAuthProviderData.Companion.oAuth2Login(
     loginHint: String? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-): OAuth2AuthorizationCodeLoginFlow = oAuth2AuthorizationCodeLogin(
-    baseUrl = baseUrl,
-    applicationType = applicationType,
-    clientUri = clientUri,
-    redirectUri = redirectUri,
-    responseMode = responseMode,
-    clientName = clientName,
-    logoUri = logoUri,
-    policyUri = policyUri,
-    tosUri = tosUri,
-    promptValue = promptValue,
-    initialState = initialState,
-    loginHint = loginHint,
-    httpClientEngine = httpClientEngine,
-    httpClientConfig = httpClientConfig,
-)
+): OAuth2AuthorizationCodeLoginFlow =
+    oAuth2AuthorizationCodeLogin(
+        baseUrl = baseUrl,
+        applicationType = applicationType,
+        clientUri = clientUri,
+        redirectUri = redirectUri,
+        responseMode = responseMode,
+        clientName = clientName,
+        logoUri = logoUri,
+        policyUri = policyUri,
+        tosUri = tosUri,
+        promptValue = promptValue,
+        initialState = initialState,
+        loginHint = loginHint,
+        httpClientEngine = httpClientEngine,
+        httpClientConfig = httpClientConfig,
+    )
 
 fun MatrixClientAuthProviderData.Companion.oAuth2DeviceAuthorizationLogin(
     baseUrl: Url,
@@ -195,18 +197,19 @@ fun MatrixClientAuthProviderData.Companion.oAuth2DeviceAuthorizationLogin(
     tosUri: LocalizedField<String>? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
-): OAuth2DeviceAuthorizationLoginFlow = OAuth2DeviceAuthorizationLoginFlowImpl(
-    baseUrl = baseUrl,
-    applicationType = applicationType,
-    clientUri = clientUri,
-    redirectUri = redirectUri,
-    clientName = clientName,
-    logoUri = logoUri,
-    policyUri = policyUri,
-    tosUri = tosUri,
-    httpClientEngine = httpClientEngine,
-    httpClientConfig = httpClientConfig,
-)
+): OAuth2DeviceAuthorizationLoginFlow =
+    OAuth2DeviceAuthorizationLoginFlowImpl(
+        baseUrl = baseUrl,
+        applicationType = applicationType,
+        clientUri = clientUri,
+        redirectUri = redirectUri,
+        clientName = clientName,
+        logoUri = logoUri,
+        policyUri = policyUri,
+        tosUri = tosUri,
+        httpClientEngine = httpClientEngine,
+        httpClientConfig = httpClientConfig,
+    )
 
 @Serializable
 data class OAuth2MatrixClientAuthProviderData(
@@ -219,24 +222,26 @@ data class OAuth2MatrixClientAuthProviderData(
 ) : MatrixClientAuthProviderData, BearerTokens {
     override fun toString(): String =
         "OAuth2MatrixAuthProviderData(" +
-                "accessToken=${accessToken.tokenHash()}, " +
-                "accessTokenExpiresInMs=$accessTokenExpiresInS," +
-                "refreshToken=${refreshToken?.tokenHash()}, " +
-                "clientId=$clientId" +
-                "scope=$scope" +
-                ")"
+            "accessToken=${accessToken.tokenHash()}, " +
+            "accessTokenExpiresInMs=$accessTokenExpiresInS," +
+            "refreshToken=${refreshToken?.tokenHash()}, " +
+            "clientId=$clientId" +
+            "scope=$scope" +
+            ")"
 
     private fun String.tokenHash() = "<hash:" + encodeToByteArray().toByteString().sha256().hex().take(6) + ">"
+
     override fun createAuthProvider(
         store: MatrixClientAuthProviderDataStore,
         onLogout: suspend (LogoutInfo) -> Unit,
         httpClientEngine: HttpClientEngine?,
-        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
-    ): MatrixClientAuthProvider = OAuth2MatrixClientAuthProvider(
-        baseUrl = baseUrl,
-        store = store,
-        onLogout = onLogout,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig
-    )
+        httpClientConfig: (HttpClientConfig<*>.() -> Unit)?,
+    ): MatrixClientAuthProvider =
+        OAuth2MatrixClientAuthProvider(
+            baseUrl = baseUrl,
+            store = store,
+            onLogout = onLogout,
+            httpClientEngine = httpClientEngine,
+            httpClientConfig = httpClientConfig,
+        )
 }

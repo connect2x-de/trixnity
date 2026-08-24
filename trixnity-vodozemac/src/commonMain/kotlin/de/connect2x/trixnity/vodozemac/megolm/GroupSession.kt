@@ -5,13 +5,11 @@ import de.connect2x.trixnity.vodozemac.bindings.megolm.GroupSessionBindings
 import de.connect2x.trixnity.vodozemac.utils.*
 import de.connect2x.trixnity.vodozemac.utils.interopScope
 
-class GroupSession internal constructor(ptr: NativePointer) :
-    Managed(ptr, GroupSessionBindings::free) {
+class GroupSession internal constructor(ptr: NativePointer) : Managed(ptr, GroupSessionBindings::free) {
 
     val sessionId: String
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { GroupSessionBindings.sessionId(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { GroupSessionBindings.sessionId(it, ptr) }
             ptr.toByteArray(size.intValue).decodeToString()
         }
 
@@ -19,38 +17,29 @@ class GroupSession internal constructor(ptr: NativePointer) :
         get() = managedReachableScope { GroupSessionBindings.messageIndex(ptr) }
 
     val sessionConfig: MegolmSessionConfig
-        get() = managedReachableScope {
-            MegolmSessionConfig(GroupSessionBindings.sessionConfig(ptr))
-        }
+        get() = managedReachableScope { MegolmSessionConfig(GroupSessionBindings.sessionConfig(ptr)) }
 
     val sessionKey: SessionKey
         get() = managedReachableScope { SessionKey(GroupSessionBindings.sessionKey(ptr)) }
 
-    private fun <T : MegolmMessage> encryptRaw(
-        plaintext: ByteArray,
-        construct: (NativePointer) -> T
-    ): T = managedReachableScope {
-        construct(GroupSessionBindings.encrypt(ptr, plaintext.toInterop(), plaintext.size))
-    }
+    private fun <T : MegolmMessage> encryptRaw(plaintext: ByteArray, construct: (NativePointer) -> T): T =
+        managedReachableScope {
+            construct(GroupSessionBindings.encrypt(ptr, plaintext.toInterop(), plaintext.size))
+        }
 
-    fun encrypt(plaintext: ByteArray): MegolmMessage.Bytes =
-        encryptRaw(plaintext, MegolmMessage::Bytes)
+    fun encrypt(plaintext: ByteArray): MegolmMessage.Bytes = encryptRaw(plaintext, MegolmMessage::Bytes)
 
-    fun encrypt(plaintext: String): MegolmMessage.Text =
-        encryptRaw(plaintext.encodeToByteArray(), MegolmMessage::Text)
+    fun encrypt(plaintext: String): MegolmMessage.Text = encryptRaw(plaintext.encodeToByteArray(), MegolmMessage::Text)
 
     fun pickle(pickleKey: PickleKey? = null): String = managedReachableScope {
         val (ptr, size) =
-            withResult(NativePointerArray(2)) {
-                GroupSessionBindings.pickle(it, ptr, pickleKey.value.toInterop())
-            }
+            withResult(NativePointerArray(2)) { GroupSessionBindings.pickle(it, ptr, pickleKey.value.toInterop()) }
         ptr.toByteArray(size.intValue).decodeToString()
     }
 
     companion object {
-        operator fun invoke(
-            sessionConfig: MegolmSessionConfig = MegolmSessionConfig.v1()
-        ): GroupSession = GroupSession(GroupSessionBindings.new(sessionConfig.ptr))
+        operator fun invoke(sessionConfig: MegolmSessionConfig = MegolmSessionConfig.v1()): GroupSession =
+            GroupSession(GroupSessionBindings.new(sessionConfig.ptr))
 
         fun fromPickle(pickle: String, pickleKey: PickleKey? = null): GroupSession = interopScope {
             val pickleBytes = pickle.encodeToByteArray()
@@ -65,8 +54,7 @@ class GroupSession internal constructor(ptr: NativePointer) :
                     )
                 }
 
-            if (tag.intValue != 0)
-                throw VodozemacException(ptr.toByteArray(size.intValue).decodeToString())
+            if (tag.intValue != 0) throw VodozemacException(ptr.toByteArray(size.intValue).decodeToString())
 
             GroupSession(ptr)
         }
@@ -82,7 +70,8 @@ class GroupSession internal constructor(ptr: NativePointer) :
                         pickleBytes.toInterop(),
                         pickleBytes.size,
                         pickleKeyBytes.toInterop(),
-                        pickleKeyBytes.size)
+                        pickleKeyBytes.size,
+                    )
                 }
 
             if (result[0].intValue != 0)

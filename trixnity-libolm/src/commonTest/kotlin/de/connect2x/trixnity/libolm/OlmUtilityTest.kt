@@ -4,8 +4,8 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmUtilityTest {
 
@@ -25,8 +25,9 @@ class OlmUtilityTest {
         freeAfter(OlmAccount.create(), OlmUtility.create()) { account, utility ->
             val badSignature = "Bad signature Bad signature Bad signature.."
             shouldThrow<OlmLibraryException> {
-                utility.verifyEd25519(account.identityKeys.ed25519, message, badSignature)
-            }.message shouldBe "BAD_MESSAGE_MAC"
+                    utility.verifyEd25519(account.identityKeys.ed25519, message, badSignature)
+                }
+                .message shouldBe "BAD_MESSAGE_MAC"
         }
     }
 
@@ -35,9 +36,8 @@ class OlmUtilityTest {
         freeAfter(OlmAccount.create(), OlmUtility.create()) { account, utility ->
             val messageSignature = account.sign(message)
             val badSizeFingerPrintKey = account.identityKeys.ed25519.substring(account.identityKeys.ed25519.length / 2)
-            shouldThrow<OlmLibraryException> {
-                utility.verifyEd25519(badSizeFingerPrintKey, message, messageSignature)
-            }.message shouldBe "INVALID_BASE64"
+            shouldThrow<OlmLibraryException> { utility.verifyEd25519(badSizeFingerPrintKey, message, messageSignature) }
+                .message shouldBe "INVALID_BASE64"
         }
     }
 

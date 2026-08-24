@@ -1,15 +1,13 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.sas
 
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
-import de.connect2x.trixnity.crypto.driver.sas.Mac
 import de.connect2x.trixnity.crypto.driver.sas.EstablishedSas
-import kotlin.jvm.JvmInline
+import de.connect2x.trixnity.crypto.driver.sas.Mac
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
 import de.connect2x.trixnity.vodozemac.sas.EstablishedSas as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
-value class VodozemacEstablishedSas(
-    val inner: Inner,
-) : EstablishedSas {
+value class VodozemacEstablishedSas(val inner: Inner) : EstablishedSas {
 
     override val ourPublicKey: VodozemacCurve25519PublicKey
         get() = VodozemacCurve25519PublicKey(inner.ourPublicKey)
@@ -19,8 +17,7 @@ value class VodozemacEstablishedSas(
 
     override fun generateBytes(info: String): VodozemacSasBytes = VodozemacSasBytes(inner.generateBytes(info))
 
-    override fun calculateMac(input: String, info: String): VodozemacMac =
-        VodozemacMac(inner.calculateMac(input, info))
+    override fun calculateMac(input: String, info: String): VodozemacMac = VodozemacMac(inner.calculateMac(input, info))
 
     override fun calculateMacInvalidBase64(input: String, info: String): String =
         inner.calculateMacInvalidBase64(input, info)

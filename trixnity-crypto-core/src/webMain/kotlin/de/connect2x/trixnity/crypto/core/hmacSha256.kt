@@ -13,21 +13,19 @@ import web.crypto.*
 actual suspend fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray {
     return if (PlatformUtils.IS_BROWSER) {
         val crypto = crypto.subtle
-        val hmacKey = crypto.importKey(
-            format = KeyFormat.raw,
-            keyData = key.fastToUint8Array(),
-            algorithm = unsafeJso<HmacImportParams> {
-                name = "HMAC"
-                hash = AlgorithmIdentifier("SHA-256")
-            },
-            extractable = false,
-            keyUsages = jsArrayOf(KeyUsage.sign)
-        )
-        crypto.sign(
-            algorithm = "HMAC",
-            key = hmacKey,
-            data = data.fastToUint8Array()
-        ).toByteArray()
+        val hmacKey =
+            crypto.importKey(
+                format = KeyFormat.raw,
+                keyData = key.fastToUint8Array(),
+                algorithm =
+                    unsafeJso<HmacImportParams> {
+                        name = "HMAC"
+                        hash = AlgorithmIdentifier("SHA-256")
+                    },
+                extractable = false,
+                keyUsages = jsArrayOf(KeyUsage.sign),
+            )
+        crypto.sign(algorithm = "HMAC", key = hmacKey, data = data.fastToUint8Array()).toByteArray()
     } else {
         val hmac = createHmac(algorithm = "sha256", key = key.toUint8Array())
         hmac.update(data.toUint8Array())

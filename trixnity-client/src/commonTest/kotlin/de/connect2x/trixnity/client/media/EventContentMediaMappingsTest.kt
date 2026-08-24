@@ -12,42 +12,29 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Fi
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class EventContentMediaMappingsTest : TrixnityBaseTest() {
-    val defaults = EventContentMediaMappings(
-        listOf(
-            of<FileBased.Audio>(
-                uploader = null,
-                uriExtractor = null
-            ),
-            of<FileBased.Audio>(
-                uploader = AudioUploader(),
-                uriExtractor = AudioExtractor()
-            ),
-            of<FileBased.File>(
-                uploader = FileUploader(),
-                uriExtractor = FileExtractor()
-            ),
-            of<FileBased.File>(
-                uploader = FileUploader2(),
-                uriExtractor = FileExtractor2()
-            ),
-            of<FileBased.Image>(
-                uploader = null,
-                uriExtractor = null
+    val defaults =
+        EventContentMediaMappings(
+            listOf(
+                of<FileBased.Audio>(uploader = null, uriExtractor = null),
+                of<FileBased.Audio>(uploader = AudioUploader(), uriExtractor = AudioExtractor()),
+                of<FileBased.File>(uploader = FileUploader(), uriExtractor = FileExtractor()),
+                of<FileBased.File>(uploader = FileUploader2(), uriExtractor = FileExtractor2()),
+                of<FileBased.Image>(uploader = null, uriExtractor = null),
             )
         )
-    )
 
     val uploadProgress: MutableStateFlow<FileTransferProgress?> = MutableStateFlow(null)
     val upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String =
-        { _, _ -> "" }
+        { _, _ ->
+            ""
+        }
 
     @Test
     fun `runs first found uploader matching the type`() = runTest {
-
         val content: RoomMessageEventContent = FileBased.File("")
 
         val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
@@ -59,7 +46,6 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     @Test
     fun `runs fallback when no mapping matches the type`() = runTest {
-
         val content: RoomMessageEventContent =
             RoomMessageEventContent.TextBased.Text("What do you think about Cneoridium dumosum (Nuttall) Hooker F.?")
 
@@ -72,7 +58,6 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     @Test
     fun `ignores mappings without extractor or uploader as null`() = runTest {
-
         val content: RoomMessageEventContent = FileBased.Image("dinonuggers")
 
         val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
@@ -84,7 +69,6 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     @Test
     fun `runs the first nonnull result from matching mappings`() = runTest {
-
         val content: RoomMessageEventContent = FileBased.Audio("Blue-footed booby screeching")
 
         val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
@@ -96,19 +80,13 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     @Test
     fun `runs supertype mapping if it comes before subtype`() = runTest {
-
-        val defaults2 = EventContentMediaMappings(
-            listOf(
-                of<FileBased>(
-                    uploader = FileBasedUploader(),
-                    uriExtractor = FileBasedExtractor()
-                ),
-                of<FileBased.File>(
-                    uploader = FileUploader(),
-                    uriExtractor = FileExtractor()
-                ),
+        val defaults2 =
+            EventContentMediaMappings(
+                listOf(
+                    of<FileBased>(uploader = FileBasedUploader(), uriExtractor = FileBasedExtractor()),
+                    of<FileBased.File>(uploader = FileUploader(), uriExtractor = FileExtractor()),
+                )
             )
-        )
 
         val content: FileBased.File = FileBased.File("")
 
@@ -121,19 +99,13 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     @Test
     fun `runs subtype mapping if it comes before supertype`() = runTest {
-
-        val defaults2 = EventContentMediaMappings(
-            listOf(
-                of<FileBased.File>(
-                    uploader = FileUploader(),
-                    uriExtractor = FileExtractor()
-                ),
-                of<FileBased>(
-                    uploader = FileBasedUploader(),
-                    uriExtractor = FileBasedExtractor()
-                ),
+        val defaults2 =
+            EventContentMediaMappings(
+                listOf(
+                    of<FileBased.File>(uploader = FileUploader(), uriExtractor = FileExtractor()),
+                    of<FileBased>(uploader = FileBasedUploader(), uriExtractor = FileBasedExtractor()),
+                )
             )
-        )
 
         val content: FileBased.File = FileBased.File("")
 
@@ -148,7 +120,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         override suspend fun invoke(
             uploadProgress: MutableStateFlow<FileTransferProgress?>,
             content: FileBased.File,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
         ): FileBased.File {
             return FileBased.File("1")
         }
@@ -158,7 +130,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         override suspend fun invoke(
             uploadProgress: MutableStateFlow<FileTransferProgress?>,
             content: FileBased.File,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
         ): FileBased.File {
             return FileBased.File("2")
         }
@@ -168,7 +140,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         override suspend fun invoke(
             uploadProgress: MutableStateFlow<FileTransferProgress?>,
             content: FileBased.Audio,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
         ): FileBased.Audio {
             return FileBased.Audio("1")
         }
@@ -178,40 +150,32 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         override suspend fun invoke(
             uploadProgress: MutableStateFlow<FileTransferProgress?>,
             content: FileBased,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String
+            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
         ): FileBased {
             return FileBased.Video("1")
         }
     }
 
     private class FileExtractor : EventContentUriExtractor<FileBased.File> {
-        override suspend fun invoke(
-            content: FileBased.File,
-        ): Set<String> {
+        override suspend fun invoke(content: FileBased.File): Set<String> {
             return setOf("File1")
         }
     }
 
     private class FileExtractor2 : EventContentUriExtractor<FileBased.File> {
-        override suspend fun invoke(
-            content: FileBased.File,
-        ): Set<String> {
+        override suspend fun invoke(content: FileBased.File): Set<String> {
             return setOf("File2")
         }
     }
 
     private class AudioExtractor : EventContentUriExtractor<FileBased.Audio> {
-        override suspend fun invoke(
-            content: FileBased.Audio,
-        ): Set<String> {
+        override suspend fun invoke(content: FileBased.Audio): Set<String> {
             return setOf("Audio1")
         }
     }
 
     private class FileBasedExtractor : EventContentUriExtractor<FileBased> {
-        override suspend fun invoke(
-            content: FileBased,
-        ): Set<String> {
+        override suspend fun invoke(content: FileBased): Set<String> {
             return setOf("FileBased1")
         }
     }

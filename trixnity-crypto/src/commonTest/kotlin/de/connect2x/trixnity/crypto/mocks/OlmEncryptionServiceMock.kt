@@ -13,25 +13,28 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
     override suspend fun encryptOlm(
         content: EventContent,
         recipientUserId: UserId,
-        recipientDeviceId: String
-    ): Result<OlmEncryptedToDeviceEventContent> =
-        checkNotNull(encryptOlm[recipientUserId to recipientDeviceId])
+        recipientDeviceId: String,
+    ): Result<OlmEncryptedToDeviceEventContent> = checkNotNull(encryptOlm[recipientUserId to recipientDeviceId])
 
     var encryptOlmRecipients: Set<Pair<UserId, String>> = emptySet()
+
     override suspend fun encryptOlm(
         content: EventContent,
-        recipients: Set<Pair<UserId, String>>
+        recipients: Set<Pair<UserId, String>>,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> {
         encryptOlmRecipients = recipients
         return encryptOlm
     }
 
     var recoverOlm: Result<OlmEncryptedToDeviceEventContent?>? = null
-    override suspend fun recoverOlm(olmRecovery: OlmEncryptionService.OlmRecovery): Result<OlmEncryptedToDeviceEventContent?> =
-        checkNotNull(recoverOlm)
 
+    override suspend fun recoverOlm(
+        olmRecovery: OlmEncryptionService.OlmRecovery
+    ): Result<OlmEncryptedToDeviceEventContent?> = checkNotNull(recoverOlm)
 
     var decryptOlm = mutableListOf<Result<PlaintextOlmEvent<*>>>()
-    override suspend fun decryptOlm(event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>): Result<PlaintextOlmEvent<*>> =
-        decryptOlm.removeFirst()
+
+    override suspend fun decryptOlm(
+        event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>
+    ): Result<PlaintextOlmEvent<*>> = decryptOlm.removeFirst()
 }

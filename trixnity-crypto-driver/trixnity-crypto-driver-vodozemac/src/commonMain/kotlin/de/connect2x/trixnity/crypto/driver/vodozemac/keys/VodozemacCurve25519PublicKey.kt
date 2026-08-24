@@ -15,4 +15,3 @@ value class VodozemacCurve25519PublicKey(val inner: Inner) : Curve25519PublicKey
 
     override fun close() = inner.close()
 }
-

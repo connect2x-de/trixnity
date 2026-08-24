@@ -14,6 +14,4 @@ value class LibOlmSessionKey(internal val inner: String) : SessionKey {
         get() = base64.decodeUnpaddedBase64Bytes()
 
     override fun close() {}
-
 }
-

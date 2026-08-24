@@ -10,53 +10,54 @@ import androidx.room.TypeConverters
 import androidx.room.migration.AutoMigrationSpec
 
 @Database(
-    entities = [
-        RoomAccount::class,
-        RoomAuthentication::class,
-        RoomServerData::class,
-        RoomCrossSigningKeys::class,
-        RoomDeviceKeys::class,
-        RoomGlobalAccountData::class,
-        RoomInboundMegolmMessageIndex::class,
-        RoomInboundMegolmSession::class,
-        RoomKeyChainLink::class,
-        RoomKeyVerificationState::class,
-        RoomMediaCacheMapping::class,
-        RoomOlmAccount::class,
-        RoomOlmForgetFallbackKeyAfter::class,
-        RoomOlmSession::class,
-        RoomOutboundMegolmSession::class,
-        RoomOutdatedKeys::class,
-        RoomRoomAccountData::class,
-        RoomRoomKeyRequest::class,
-        RoomRoomOutboxMessage::class,
-        RoomRoom::class,
-        RoomRoomState::class,
-        RoomRoomUser::class,
-        RoomUserPresence::class,
-        RoomRoomUserReceipts::class,
-        RoomSecretKeyRequest::class,
-        RoomSecrets::class,
-        RoomTimelineEventRelation::class,
-        RoomTimelineEvent::class,
-        RoomNotification::class,
-        RoomNotificationState::class,
-        RoomNotificationUpdate::class,
-        RoomMigration::class,
-        RoomStickyEvent::class,
-    ],
+    entities =
+        [
+            RoomAccount::class,
+            RoomAuthentication::class,
+            RoomServerData::class,
+            RoomCrossSigningKeys::class,
+            RoomDeviceKeys::class,
+            RoomGlobalAccountData::class,
+            RoomInboundMegolmMessageIndex::class,
+            RoomInboundMegolmSession::class,
+            RoomKeyChainLink::class,
+            RoomKeyVerificationState::class,
+            RoomMediaCacheMapping::class,
+            RoomOlmAccount::class,
+            RoomOlmForgetFallbackKeyAfter::class,
+            RoomOlmSession::class,
+            RoomOutboundMegolmSession::class,
+            RoomOutdatedKeys::class,
+            RoomRoomAccountData::class,
+            RoomRoomKeyRequest::class,
+            RoomRoomOutboxMessage::class,
+            RoomRoom::class,
+            RoomRoomState::class,
+            RoomRoomUser::class,
+            RoomUserPresence::class,
+            RoomRoomUserReceipts::class,
+            RoomSecretKeyRequest::class,
+            RoomSecrets::class,
+            RoomTimelineEventRelation::class,
+            RoomTimelineEvent::class,
+            RoomNotification::class,
+            RoomNotificationState::class,
+            RoomNotificationUpdate::class,
+            RoomMigration::class,
+            RoomStickyEvent::class,
+        ],
     version = 9, // tick this value when any entity classes change
-    autoMigrations = [
-        AutoMigration(from = 3, to = 4),
-        AutoMigration(from = 4, to = 5),
-        AutoMigration(from = 5, to = 6),
-        AutoMigration(from = 6, to = 7, spec = TrixnityRoomDatabase.Delete6to7MigrationSpec::class),
-        AutoMigration(from = 7, to = 8, spec = TrixnityRoomDatabase.Delete7to8MigrationSpec::class),
-        AutoMigration(from = 8, to = 9),
-    ],
+    autoMigrations =
+        [
+            AutoMigration(from = 3, to = 4),
+            AutoMigration(from = 4, to = 5),
+            AutoMigration(from = 5, to = 6),
+            AutoMigration(from = 6, to = 7, spec = TrixnityRoomDatabase.Delete6to7MigrationSpec::class),
+            AutoMigration(from = 7, to = 8, spec = TrixnityRoomDatabase.Delete7to8MigrationSpec::class),
+            AutoMigration(from = 8, to = 9),
+        ],
     exportSchema = true,
 )
-
 @TypeConverters(
     EventIdConverter::class,
     InstantConverter::class,
@@ -68,65 +69,79 @@ import androidx.room.migration.AutoMigrationSpec
 @ConstructedBy(TrixnityRoomDatabaseConstructor::class)
 abstract class TrixnityRoomDatabase : RoomDatabase() {
     abstract fun account(): AccountDao
+
     abstract fun authentication(): AuthenticationDao
+
     abstract fun serverData(): ServerDataDao
+
     abstract fun crossSigningKeys(): CrossSigningKeysDao
+
     abstract fun deviceKeys(): DeviceKeysDao
+
     abstract fun globalAccountData(): GlobalAccountDataDao
+
     abstract fun inboundMegolmMessageIndex(): InboundMegolmMessageIndexDao
+
     abstract fun inboundMegolmSession(): InboundMegolmSessionDao
+
     abstract fun keyChainLink(): KeyChainLinkDao
+
     abstract fun keyVerificationState(): KeyVerificationStateDao
+
     abstract fun mediaCacheMapping(): MediaCacheMappingDao
+
     abstract fun olmAccount(): OlmAccountDao
+
     abstract fun olmForgetFallbackKeyAfter(): OlmForgetFallbackKeyAfterDao
+
     abstract fun olmSession(): OlmSessionDao
+
     abstract fun outboundMegolmSession(): OutboundMegolmSessionDao
+
     abstract fun outdatedKeys(): OutdatedKeysDao
+
     abstract fun roomAccountData(): RoomAccountDataDao
+
     abstract fun roomKeyRequest(): RoomKeyRequestDao
+
     abstract fun roomOutboxMessage(): RoomOutboxMessageDao
+
     abstract fun room(): RoomRoomDao
+
     abstract fun roomState(): RoomStateDao
+
     abstract fun roomUser(): RoomUserDao
+
     abstract fun roomUserReceipts(): RoomUserReceiptsDao
+
     abstract fun secretKeyRequest(): SecretKeyRequestDao
+
     abstract fun secrets(): SecretsDao
+
     abstract fun timelineEventRelation(): TimelineEventRelationDao
+
     abstract fun timelineEvent(): TimelineEventDao
+
     abstract fun userPresence(): UserPresenceDao
+
     abstract fun notification(): NotificationDao
+
     abstract fun notificationState(): NotificationStateDao
+
     abstract fun notificationUpdate(): NotificationUpdateDao
+
     abstract fun migration(): MigrationDao
+
     abstract fun stickyRoomEvent(): StickyEventDao
 
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "oauth2Login"
-    )
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "oauth2ClientId"
-    )
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "displayName"
-    )
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "avatarUrl"
-    )
+    @DeleteColumn(tableName = "Account", columnName = "oauth2Login")
+    @DeleteColumn(tableName = "Account", columnName = "oauth2ClientId")
+    @DeleteColumn(tableName = "Account", columnName = "displayName")
+    @DeleteColumn(tableName = "Account", columnName = "avatarUrl")
     class Delete6to7MigrationSpec : AutoMigrationSpec
 
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "filterId"
-    )
-    @DeleteColumn(
-        tableName = "Account",
-        columnName = "backgroundFilterId"
-    )
+    @DeleteColumn(tableName = "Account", columnName = "filterId")
+    @DeleteColumn(tableName = "Account", columnName = "backgroundFilterId")
     class Delete7to8MigrationSpec : AutoMigrationSpec
 }
 

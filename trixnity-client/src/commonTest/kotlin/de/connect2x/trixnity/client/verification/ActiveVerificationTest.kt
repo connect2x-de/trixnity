@@ -1,11 +1,5 @@
 package de.connect2x.trixnity.client.verification
 
-import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.store.KeyStore
@@ -23,7 +17,13 @@ import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlin.test.Test
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 
 class ActiveVerificationTest : TrixnityBaseTest() {
 
@@ -37,15 +37,8 @@ class ActiveVerificationTest : TrixnityBaseTest() {
     private val sendVerificationStepFlow = MutableSharedFlow<VerificationStep>(replay = 10)
 
     private val keyStore = getInMemoryKeyStore()
-    private val cut = TestActiveVerification(
-        VerificationRequestToDeviceEventContent(
-            bobDevice,
-            setOf(Sas),
-            1234,
-            "t"
-        ),
-        keyStore
-    )
+    private val cut =
+        TestActiveVerification(VerificationRequestToDeviceEventContent(bobDevice, setOf(Sas), 1234, "t"), keyStore)
 
     @Test
     fun `startLifecycle » start lifecycle once`() = runTest {
@@ -56,8 +49,7 @@ class ActiveVerificationTest : TrixnityBaseTest() {
 
     @Test
     fun `cancel » send user cancel event content`() = runTest {
-        val expectedCancelEvent =
-            VerificationCancelEventContent(Code.User, "user cancelled verification", null, "t")
+        val expectedCancelEvent = VerificationCancelEventContent(Code.User, "user cancelled verification", null, "t")
         cut.cancel()
         sendVerificationStepFlow.first() shouldBe expectedCancelEvent
         cut.state.value shouldBe Cancel(expectedCancelEvent, true)
@@ -65,11 +57,7 @@ class ActiveVerificationTest : TrixnityBaseTest() {
 
     @Test
     fun `handleVerificationStep » step is from foreign user » cancel`() = runTest {
-        cut.handleStep(
-            VerificationReadyEventContent("FFFFFF", setOf(), null, "t"),
-            UserId("f", "server"),
-            false
-        )
+        cut.handleStep(VerificationReadyEventContent("FFFFFF", setOf(), null, "t"), UserId("f", "server"), false)
         sendVerificationStepFlow.first().shouldBeInstanceOf<VerificationCancelEventContent>()
     }
 
@@ -102,12 +90,11 @@ class ActiveVerificationTest : TrixnityBaseTest() {
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             )
         )
 
@@ -118,16 +105,13 @@ class ActiveVerificationTest : TrixnityBaseTest() {
     @Test
     fun `handleVerificationStep » current state is OwnRequest or TheirRequest » handle VerificationReadyEventContent when OwnRequest`() =
         runTest {
-            val cut = TestActiveVerification(
-                VerificationRequestToDeviceEventContent(aliceDevice, setOf(Sas), 1234, "t"),
-                keyStore
-            )
+            val cut =
+                TestActiveVerification(
+                    VerificationRequestToDeviceEventContent(aliceDevice, setOf(Sas), 1234, "t"),
+                    keyStore,
+                )
             cut.state.value.shouldBeInstanceOf<OwnRequest>()
-            cut.handleStep(
-                VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"),
-                bob,
-                false
-            )
+            cut.handleStep(VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"), bob, false)
             val state = cut.state.value
             state.shouldBeInstanceOf<Ready>()
             state.methods shouldBe setOf(Sas)
@@ -141,7 +125,7 @@ class ActiveVerificationTest : TrixnityBaseTest() {
             cut.handleStep(
                 VerificationReadyEventContent(aliceDevice, setOf(Sas, Unknown("u")), null, "t"),
                 alice,
-                false
+                false,
             )
             val state = cut.state.value
             state.shouldBeInstanceOf<Ready>()
@@ -157,25 +141,25 @@ class ActiveVerificationTest : TrixnityBaseTest() {
 
     @Test
     fun `handleVerificationStep » current state is Ready » cancel unexpected message VerificationDoneEventContent`() =
-        checkNotAllowedStateChange(
-            VerificationDoneEventContent(null, "t"),
-            ::currentStateIsReadySetup,
-        )
+        checkNotAllowedStateChange(VerificationDoneEventContent(null, "t"), ::currentStateIsReadySetup)
 
     @Test
     fun `handleVerificationStep » current state is Ready » handle VerificationStartEventContent`() =
         runTest(setup = { currentStateIsReadySetup() }) {
-            val step = SasStartEventContent(
-                bobDevice,
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            )
+            val step =
+                SasStartEventContent(
+                    bobDevice,
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                )
             cut.handleStep(step, bob, false)
             val state = cut.state.value
             state.shouldBeInstanceOf<Start>()
@@ -192,36 +176,43 @@ class ActiveVerificationTest : TrixnityBaseTest() {
     fun `handleVerificationStep » current state is Start » cancel unexpected message VerificationReadyEventContent`() =
         checkNotAllowedStateChange(
             VerificationReadyEventContent(bobDevice, setOf(), null, "t"),
-            ::currentStateIsStartSetup
+            ::currentStateIsStartSetup,
         )
 
     @Test
     fun `handleVerificationStep » current state is Start » handle VerificationStartEventContent » keep event from lexicographically smaller user ID`() =
         runTest(setup = { currentStateIsStartSetup() }) {
-            val step = SasStartEventContent(
-                aliceDevice,
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            )
+            val step =
+                SasStartEventContent(
+                    aliceDevice,
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                )
             cut.handleStep(step, alice, true)
             cut.handleStep(
                 SasStartEventContent(
                     bobDevice,
                     hashes = setOf(SasHash.Sha256),
                     keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                    messageAuthenticationCodes = setOf(
-                        SasMessageAuthenticationCode.HkdfHmacSha256,
-                        SasMessageAuthenticationCode.HkdfHmacSha256V2
-                    ),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
                     shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                    relatesTo = null, transactionId = "t"
-                ), bob, false
+                    relatesTo = null,
+                    transactionId = "t",
+                ),
+                bob,
+                false,
             )
             val state = cut.state.value
             state.shouldBeInstanceOf<Start>()
@@ -242,13 +233,17 @@ class ActiveVerificationTest : TrixnityBaseTest() {
                     "CCCCCC",
                     hashes = setOf(SasHash.Sha256),
                     keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                    messageAuthenticationCodes = setOf(
-                        SasMessageAuthenticationCode.HkdfHmacSha256,
-                        SasMessageAuthenticationCode.HkdfHmacSha256V2
-                    ),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
                     shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                    relatesTo = null, transactionId = "t"
-                ), bob, false
+                    relatesTo = null,
+                    transactionId = "t",
+                ),
+                bob,
+                false,
             )
             val state = cut.state.value
             state.shouldBeInstanceOf<Start>()
@@ -258,33 +253,39 @@ class ActiveVerificationTest : TrixnityBaseTest() {
             method.shouldBeInstanceOf<ActiveSasVerificationMethod>()
             val subState = method.state.value
             subState.shouldBeInstanceOf<TheirSasStart>()
-            subState.content shouldBe SasStartEventContent(
-                bobDevice,
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            )
+            subState.content shouldBe
+                SasStartEventContent(
+                    bobDevice,
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                )
         }
 
     @Test
     fun `handleVerificationStep » current state is Start » handle VerificationStartEventContent » override event from lexicographically smaller user ID`() =
         runTest(setup = { currentStateIsStartSetup() }) {
-            val step = SasStartEventContent(
-                aliceDevice,
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            )
+            val step =
+                SasStartEventContent(
+                    aliceDevice,
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                )
             cut.handleStep(step, alice, true)
             val state = cut.state.value
             state.shouldBeInstanceOf<Start>()
@@ -300,17 +301,20 @@ class ActiveVerificationTest : TrixnityBaseTest() {
     @Test
     fun `handleVerificationStep » current state is Start » handle VerificationStartEventContent » override event from lexicographically smaller deviceId`() =
         runTest(setup = { currentStateIsStartSetup() }) {
-            val step = SasStartEventContent(
-                "AAABBB", // do NOT confuse with AAAAAA from alice, but be before BBBBBB lexicographically
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            )
+            val step =
+                SasStartEventContent(
+                    "AAABBB", // do NOT confuse with AAAAAA from alice, but be before BBBBBB lexicographically
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes =
+                        setOf(
+                            SasMessageAuthenticationCode.HkdfHmacSha256,
+                            SasMessageAuthenticationCode.HkdfHmacSha256V2,
+                        ),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                )
             cut.handleStep(step, bob, false)
             val state = cut.state.value
             state.shouldBeInstanceOf<Start>()
@@ -347,12 +351,11 @@ class ActiveVerificationTest : TrixnityBaseTest() {
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
             ::currentStateIsWaitForDoneSetup,
         )
@@ -370,7 +373,7 @@ class ActiveVerificationTest : TrixnityBaseTest() {
     fun `handleVerificationStep » current state is Done » cancel unexpected message VerificationReadyEventContent`() =
         checkNotAllowedStateChange(
             VerificationReadyEventContent(bobDevice, setOf(), null, "t"),
-            ::currentStateIsDoneSetup
+            ::currentStateIsDoneSetup,
         )
 
     @Test
@@ -380,28 +383,24 @@ class ActiveVerificationTest : TrixnityBaseTest() {
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsDoneSetup
+            ::currentStateIsDoneSetup,
         )
 
     @Test
     fun `handleVerificationStep » current state is Done » cancel unexpected message VerificationDoneEventContent`() =
-        checkNotAllowedStateChange(
-            VerificationDoneEventContent(null, "t"),
-            ::currentStateIsDoneSetup
-        )
+        checkNotAllowedStateChange(VerificationDoneEventContent(null, "t"), ::currentStateIsDoneSetup)
 
     @Test
     fun `handleVerificationStep » current state is Cancel » cancel unexpected message VerificationReadyEventContent`() =
         checkNotAllowedStateChange(
             VerificationReadyEventContent(bobDevice, setOf(), null, "t"),
-            ::currentStateIsCancelSetup
+            ::currentStateIsCancelSetup,
         )
 
     @Test
@@ -411,22 +410,18 @@ class ActiveVerificationTest : TrixnityBaseTest() {
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsCancelSetup
+            ::currentStateIsCancelSetup,
         )
 
     @Test
     fun `handleVerificationStep » current state is Cancel » cancel unexpected message VerificationDoneEventContent`() =
-        checkNotAllowedStateChange(
-            VerificationDoneEventContent(null, "t"),
-            ::currentStateIsCancelSetup
-        )
+        checkNotAllowedStateChange(VerificationDoneEventContent(null, "t"), ::currentStateIsCancelSetup)
 
     @Test
     fun `handleVerificationStep » current state is Cancel » not send multiple cancel events`() =
@@ -438,94 +433,79 @@ class ActiveVerificationTest : TrixnityBaseTest() {
             sendVerificationStepFlow.replayCache.shouldBeEmpty()
         }
 
-    private fun checkNotAllowedStateChange(
-        step: VerificationStep,
-        setup: suspend () -> Unit = {},
-    ) = runTest(setup = { setup() }) {
-        val stateBefore = cut.state.value
-        cut.handleStep(step, bob, false)
-        val state = cut.state.value
-        state.shouldBeInstanceOf<Cancel>()
-        state.content.code shouldBe Code.UnexpectedMessage
-        if (stateBefore !is Cancel) {
-            val result = sendVerificationStepFlow.first()
-            result.shouldBeInstanceOf<VerificationCancelEventContent>()
-            result.code shouldBe Code.UnexpectedMessage
+    private fun checkNotAllowedStateChange(step: VerificationStep, setup: suspend () -> Unit = {}) =
+        runTest(setup = { setup() }) {
+            val stateBefore = cut.state.value
+            cut.handleStep(step, bob, false)
+            val state = cut.state.value
+            state.shouldBeInstanceOf<Cancel>()
+            state.content.code shouldBe Code.UnexpectedMessage
+            if (stateBefore !is Cancel) {
+                val result = sendVerificationStepFlow.first()
+                result.shouldBeInstanceOf<VerificationCancelEventContent>()
+                result.code shouldBe Code.UnexpectedMessage
+            }
         }
-    }
 
     private suspend fun currentStateIsStartSetup() {
-        cut.handleStep(
-            VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"),
-            bob,
-            false
-        )
+        cut.handleStep(VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"), bob, false)
         cut.handleStep(
             SasStartEventContent(
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), bob, false
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            bob,
+            false,
         )
         cut.state.value.shouldBeInstanceOf<Start>()
     }
 
     private suspend fun currentStateIsReadySetup() {
-        cut.handleStep(
-            VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"),
-            bob,
-            false
-        )
+        cut.handleStep(VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"), bob, false)
         cut.state.value.shouldBeInstanceOf<Ready>()
     }
 
     private suspend fun currentStateIsWaitForDoneSetup() {
-        cut.handleStep(
-            VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"),
-            bob,
-            false
-        )
+        cut.handleStep(VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"), bob, false)
         cut.handleStep(
             SasStartEventContent(
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), bob, false
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            bob,
+            false,
         )
         cut.handleStep(VerificationDoneEventContent(null, "t"), bob, false)
         cut.state.value.shouldBeInstanceOf<WaitForDone>()
     }
 
     private suspend fun currentStateIsDoneSetup() {
-        cut.handleStep(
-            VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"),
-            bob,
-            false
-        )
+        cut.handleStep(VerificationReadyEventContent(bobDevice, setOf(Sas, Unknown("u")), null, "t"), bob, false)
         cut.handleStep(
             SasStartEventContent(
                 bobDevice,
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                    SasMessageAuthenticationCode.HkdfHmacSha256V2
-                ),
+                messageAuthenticationCodes =
+                    setOf(SasMessageAuthenticationCode.HkdfHmacSha256, SasMessageAuthenticationCode.HkdfHmacSha256V2),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), bob, false
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            bob,
+            false,
         )
         cut.handleStep(VerificationDoneEventContent(null, "t"), bob, false)
         cut.handleStep(VerificationDoneEventContent(null, "t"), alice, true)

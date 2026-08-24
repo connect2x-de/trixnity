@@ -65,9 +65,7 @@ internal external class FinalizationRegistry(cleanup: (JsReference<FinalizationT
     fun unregister(obj: JsReference<Managed>)
 }
 
-private val registry = FinalizationRegistry { thunk: JsReference<FinalizationThunk> ->
-    thunk.get().clean()
-}
+private val registry = FinalizationRegistry { thunk: JsReference<FinalizationThunk> -> thunk.get().clean() }
 
 internal actual fun register(managed: Managed, thunk: FinalizationThunk) {
     registry.register(managed.toJsReference(), thunk.toJsReference())

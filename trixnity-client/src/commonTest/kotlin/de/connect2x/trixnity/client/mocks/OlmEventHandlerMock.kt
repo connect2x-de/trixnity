@@ -11,8 +11,6 @@ class OlmEventHandlerMock : OlmEventHandler {
 
     override fun subscribe(eventSubscriber: DecryptedOlmEventSubscriber): Unsubscriber {
         eventSubscribers.update { it + eventSubscriber }
-        return {
-            eventSubscribers.update { it - eventSubscriber }
-        }
+        return { eventSubscribers.update { it - eventSubscriber } }
     }
 }

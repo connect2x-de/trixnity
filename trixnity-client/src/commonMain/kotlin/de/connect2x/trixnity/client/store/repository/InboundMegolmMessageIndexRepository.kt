@@ -9,8 +9,4 @@ interface InboundMegolmMessageIndexRepository :
         key.roomId.full + key.sessionId + key.messageIndex
 }
 
-data class InboundMegolmMessageIndexRepositoryKey(
-    val sessionId: String,
-    val roomId: RoomId,
-    val messageIndex: Long
-)
+data class InboundMegolmMessageIndexRepositoryKey(val sessionId: String, val roomId: RoomId, val messageIndex: Long)

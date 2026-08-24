@@ -123,6 +123,16 @@ check:abi:
     - ./gradlew internalDumpKotlinAbi --stacktrace
     - ./gradlew checkLegacyAbi --stacktrace
 
+check:formatting:
+  stage: check
+  interruptible: true
+  tags: [ "c2x","shell","small" ]
+  needs: [ ]
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew ktfmtCheck --stacktrace
+
 test:unit:mac:
   stage: test
   interruptible: true

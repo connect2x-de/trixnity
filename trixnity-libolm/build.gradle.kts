@@ -27,78 +27,55 @@ class OlmNativeTarget(
     val libPath: File = olmBinariesDirs.binStatic.resolve(target.name).resolve("libolm.a")
 }
 
-val olmNativeTargetList = listOf(
-    OlmNativeTarget(
-        target = KonanTarget.LINUX_X64,
-        createTarget = { linuxX64() },
-    ),
-    OlmNativeTarget(
-        target = KonanTarget.MACOS_ARM64,
-        createTarget = { macosArm64() },
-    ),
-    OlmNativeTarget(
-        target = KonanTarget.MINGW_X64,
-        createTarget = { mingwX64() },
-    ),
-    OlmNativeTarget(
-        target = KonanTarget.IOS_SIMULATOR_ARM64,
-        createTarget = { iosSimulatorArm64() },
-    ),
-    OlmNativeTarget(
-        target = KonanTarget.IOS_ARM64,
-        createTarget = { iosArm64() },
-    ),
-)
+val olmNativeTargetList =
+    listOf(
+        OlmNativeTarget(target = KonanTarget.LINUX_X64, createTarget = { linuxX64() }),
+        OlmNativeTarget(target = KonanTarget.MACOS_ARM64, createTarget = { macosArm64() }),
+        OlmNativeTarget(target = KonanTarget.MINGW_X64, createTarget = { mingwX64() }),
+        OlmNativeTarget(target = KonanTarget.IOS_SIMULATOR_ARM64, createTarget = { iosSimulatorArm64() }),
+        OlmNativeTarget(target = KonanTarget.IOS_ARM64, createTarget = { iosArm64() }),
+    )
 
-val installOlmToJvmResources by tasks.registering(Copy::class) {
-    group = "olm"
-    from(olmBinariesDirs.binShared)
-    include("*/libolm.so", "*/olm.dll", "*/libolm.dylib")
-    into(layout.buildDirectory.dir("processedResources/jvm/main"))
-    dependsOn(trixnityBinariesTask)
-}
+val installOlmToJvmResources by
+    tasks.registering(Copy::class) {
+        group = "olm"
+        from(olmBinariesDirs.binShared)
+        include("*/libolm.so", "*/olm.dll", "*/libolm.dylib")
+        into(layout.buildDirectory.dir("processedResources/jvm/main"))
+        dependsOn(trixnityBinariesTask)
+    }
 
-tasks.withType<ProcessResources> {
-    dependsOn(installOlmToJvmResources)
-}
+tasks.withType<ProcessResources> { dependsOn(installOlmToJvmResources) }
 
-tasks.withType<ExternalNativeCleanTask> {
-    enabled = false
-}
+tasks.withType<ExternalNativeCleanTask> { enabled = false }
 
-tasks.withType<ExternalNativeBuildTask> {
-    dependsOn(trixnityBinariesTask)
-}
+tasks.withType<ExternalNativeBuildTask> { dependsOn(trixnityBinariesTask) }
 
 android {
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    sourceSets.getByName("main") {
-        jniLibs.srcDirs(olmBinariesDirs.binSharedAndroid)
-    }
+    defaultConfig { testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+    sourceSets.getByName("main") { jniLibs.srcDirs(olmBinariesDirs.binSharedAndroid) }
 }
+
 tasks.withType(com.android.build.gradle.tasks.MergeSourceSetFolders::class).configureEach {
     if (name.contains("jni", true)) {
         dependsOn(trixnityBinariesTask)
     }
 }
 
-val desktopOlmLibs by tasks.registering(Jar::class) {
-    dependsOn(trixnityBinariesTask)
+val desktopOlmLibs by
+    tasks.registering(Jar::class) {
+        dependsOn(trixnityBinariesTask)
 
-    from(olmBinariesDirs.binShared)
-    archiveBaseName = "trixnity-olm-desktop-libs"
-    destinationDirectory = layout.buildDirectory.dir("tmp")
-}
+        from(olmBinariesDirs.binShared)
+        archiveBaseName = "trixnity-olm-desktop-libs"
+        destinationDirectory = layout.buildDirectory.dir("tmp")
+    }
 
 kotlin {
     addJvmTarget()
     addAndroidTarget()
     addWebTarget(rootDir)
-    withAndroidLibrary("$group.libolm") {
-        instrumentedTestVariant.sourceSetTree = KotlinSourceSetTree.test
-    }
+    withAndroidLibrary("$group.libolm") { instrumentedTestVariant.sourceSetTree = KotlinSourceSetTree.test }
 
     applyDefaultHierarchyTemplate {
         common {
@@ -116,9 +93,7 @@ kotlin {
         }
     }
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
+    compilerOptions { freeCompilerArgs.add("-Xexpect-actual-classes") }
 
     olmNativeTargetList.forEach { target ->
         target.createTarget(this).apply {
@@ -128,16 +103,12 @@ kotlin {
                         val libolm by creating {
                             packageName("org.matrix.olm")
                             includeDirs(olmBinariesDirs.headers)
-                            tasks.named(interopProcessingTaskName) {
-                                dependsOn(trixnityBinariesTask)
-                            }
+                            tasks.named(interopProcessingTaskName) { dependsOn(trixnityBinariesTask) }
                         }
                     }
                 }
             }
-            compilerOptions {
-                freeCompilerArgs.addAll(listOf("-include-binary", target.libPath.absolutePath))
-            }
+            compilerOptions { freeCompilerArgs.addAll(listOf("-include-binary", target.libPath.absolutePath)) }
         }
     }
 
@@ -157,47 +128,27 @@ kotlin {
             }
         }
         // TODO: proper kotlin multiplatform variant of using jna
-        val jnaMain by getting {
-            dependencies {
-                compileOnly(sharedLibs.jna)
-            }
-        }
-        androidMain {
-            dependencies {
-                implementation(sharedLibs.jna.asProvider().asAAR())
-            }
-        }
-        jvmMain {
-            dependencies {
-                implementation(sharedLibs.jna.asProvider().asJar())
-            }
-        }
+        val jnaMain by getting { dependencies { compileOnly(sharedLibs.jna) } }
+        androidMain { dependencies { implementation(sharedLibs.jna.asProvider().asAAR()) } }
+        jvmMain { dependencies { implementation(sharedLibs.jna.asProvider().asJar()) } }
         webMain {
             dependencies {
                 implementation(
                     npm(
                         "trixnity-olm-wrapper",
-                        "https://gitlab.com/api/v4/projects/46553592/packages/generic/build/v${libs.versions.trixnityOlmBinaries.get()}/trixnity-olm-wrapper.tgz"
+                        "https://gitlab.com/api/v4/projects/46553592/packages/generic/build/v${libs.versions.trixnityOlmBinaries.get()}/trixnity-olm-wrapper.tgz",
                     )
                 )
             }
         }
-        commonTest {
-            dependencies {
-                implementation(projects.trixnityTestUtils)
-            }
-        }
+        commonTest { dependencies { implementation(projects.trixnityTestUtils) } }
         androidUnitTest {
             dependencies {
                 implementation(files(desktopOlmLibs))
                 implementation(sharedLibs.jna.asProvider().asJar())
             }
         }
-        androidInstrumentedTest {
-            dependencies {
-                implementation(sharedLibs.androidx.testRunner)
-            }
-        }
+        androidInstrumentedTest { dependencies { implementation(sharedLibs.androidx.testRunner) } }
     }
 }
 

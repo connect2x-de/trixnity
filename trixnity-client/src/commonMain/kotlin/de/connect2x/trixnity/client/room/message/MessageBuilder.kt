@@ -10,11 +10,7 @@ import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.utils.TrixnityDsl
 
-data class ContentBuilderInfo(
-    val relatesTo: RelatesTo?,
-    val mentions: Mentions?,
-    val newContentMentions: Mentions?
-)
+data class ContentBuilderInfo(val relatesTo: RelatesTo?, val mentions: Mentions?, val newContentMentions: Mentions?)
 
 typealias ContentBuilder = suspend ContentBuilderInfo.() -> MessageEventContent?
 
@@ -23,13 +19,11 @@ class MessageBuilder(
     val roomId: RoomId,
     val roomService: RoomService,
     val mediaService: MediaService,
-    val ownUserId: UserId
+    val ownUserId: UserId,
 ) {
     var contentBuilder: ContentBuilder = { null }
 
-    /**
-     * This allows to set a [contentBuilder], that does not consider [RelatesTo] or [Mentions].
-     */
+    /** This allows to set a [contentBuilder], that does not consider [RelatesTo] or [Mentions]. */
     fun content(content: MessageEventContent) {
         contentBuilder = { content }
     }
@@ -47,15 +41,18 @@ class MessageBuilder(
 
         when (relatesTo) {
             is RelatesTo.Replace -> {
-                val oldMentions = roomService.getTimelineEventWithContentAndTimeout(roomId, relatesTo.eventId)
-                    .content?.getOrNull()?.let {
-                        if (it is MessageEventContent) it.mentions else null
-                    }
+                val oldMentions =
+                    roomService
+                        .getTimelineEventWithContentAndTimeout(roomId, relatesTo.eventId)
+                        .content
+                        ?.getOrNull()
+                        ?.let { if (it is MessageEventContent) it.mentions else null }
                 if (mentions != null) {
-                    addedMentions = Mentions(
-                        users = (mentions.users.orEmpty() - oldMentions?.users.orEmpty()).ifEmpty { null },
-                        room = if (mentions.room == oldMentions?.room) null else mentions.room
-                    )
+                    addedMentions =
+                        Mentions(
+                            users = (mentions.users.orEmpty() - oldMentions?.users.orEmpty()).ifEmpty { null },
+                            room = if (mentions.room == oldMentions?.room) null else mentions.room,
+                        )
                     newContentMentions = mentions
                 }
             }
@@ -74,7 +71,7 @@ data class RoomMessageBuilderInfo(
     val format: String?,
     val formattedBody: String?,
     val relatesTo: RelatesTo?,
-    val mentions: Mentions?
+    val mentions: Mentions?,
 )
 
 fun MessageBuilder.roomMessageBuilder(
@@ -85,27 +82,31 @@ fun MessageBuilder.roomMessageBuilder(
 ) {
     contentBuilder = {
         when (relatesTo) {
-            is RelatesTo.Replace -> builder(
-                RoomMessageBuilderInfo(
-                    body = "* $body",
-                    format = format,
-                    formattedBody = formattedBody?.let { "* $it" },
-                    relatesTo = relatesTo.copy(
-                        newContent = builder(
-                            RoomMessageBuilderInfo(
-                                body = body,
-                                format = format,
-                                formattedBody = formattedBody,
-                                relatesTo = null,
-                                mentions = newContentMentions,
-                            )
-                        )
-                    ),
-                    mentions = mentions,
+            is RelatesTo.Replace ->
+                builder(
+                    RoomMessageBuilderInfo(
+                        body = "* $body",
+                        format = format,
+                        formattedBody = formattedBody?.let { "* $it" },
+                        relatesTo =
+                            relatesTo.copy(
+                                newContent =
+                                    builder(
+                                        RoomMessageBuilderInfo(
+                                            body = body,
+                                            format = format,
+                                            formattedBody = formattedBody,
+                                            relatesTo = null,
+                                            mentions = newContentMentions,
+                                        )
+                                    )
+                            ),
+                        mentions = mentions,
+                    )
                 )
-            )
 
-            is RelatesTo.Reply, is RelatesTo.Thread -> {
+            is RelatesTo.Reply,
+            is RelatesTo.Thread -> {
                 builder(
                     RoomMessageBuilderInfo(
                         body = body,
@@ -117,15 +118,16 @@ fun MessageBuilder.roomMessageBuilder(
                 )
             }
 
-            else -> builder(
-                RoomMessageBuilderInfo(
-                    body = body,
-                    format = format,
-                    formattedBody = formattedBody,
-                    relatesTo = relatesTo,
-                    mentions = mentions,
+            else ->
+                builder(
+                    RoomMessageBuilderInfo(
+                        body = body,
+                        format = format,
+                        formattedBody = formattedBody,
+                        relatesTo = relatesTo,
+                        mentions = mentions,
+                    )
                 )
-            )
         }
     }
 }

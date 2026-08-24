@@ -29,19 +29,22 @@ internal object ExposedTimelineEventRelation : Table("room_timeline_event_relati
 internal class ExposedTimelineEventRelationRepository : TimelineEventRelationRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: TimelineEventRelationKey): Map<EventId, TimelineEventRelation> {
-        return ExposedTimelineEventRelation.selectAll().where {
-            ExposedTimelineEventRelation.relatedEventId.eq(firstKey.relatedEventId.full) and
+        return ExposedTimelineEventRelation.selectAll()
+            .where {
+                ExposedTimelineEventRelation.relatedEventId.eq(firstKey.relatedEventId.full) and
                     ExposedTimelineEventRelation.roomId.eq(firstKey.roomId.full) and
                     ExposedTimelineEventRelation.relationType.eq(firstKey.relationType.name)
-        }.associate {
-            val eventId = EventId(it[ExposedTimelineEventRelation.eventId])
-            eventId to TimelineEventRelation(
-                roomId = RoomId(it[ExposedTimelineEventRelation.roomId]),
-                eventId = eventId,
-                relationType = RelationType.of(it[ExposedTimelineEventRelation.relationType]),
-                relatedEventId = EventId(it[ExposedTimelineEventRelation.relatedEventId]),
-            )
-        }
+            }
+            .associate {
+                val eventId = EventId(it[ExposedTimelineEventRelation.eventId])
+                eventId to
+                    TimelineEventRelation(
+                        roomId = RoomId(it[ExposedTimelineEventRelation.roomId]),
+                        eventId = eventId,
+                        relationType = RelationType.of(it[ExposedTimelineEventRelation.relationType]),
+                        relatedEventId = EventId(it[ExposedTimelineEventRelation.relatedEventId]),
+                    )
+            }
     }
 
     context(transaction: WriteTransaction)
@@ -50,31 +53,27 @@ internal class ExposedTimelineEventRelationRepository : TimelineEventRelationRep
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun get(
-        firstKey: TimelineEventRelationKey,
-        secondKey: EventId
-    ): TimelineEventRelation? {
-        return ExposedTimelineEventRelation.selectAll().where {
-            ExposedTimelineEventRelation.relatedEventId.eq(firstKey.relatedEventId.full) and
+    override suspend fun get(firstKey: TimelineEventRelationKey, secondKey: EventId): TimelineEventRelation? {
+        return ExposedTimelineEventRelation.selectAll()
+            .where {
+                ExposedTimelineEventRelation.relatedEventId.eq(firstKey.relatedEventId.full) and
                     ExposedTimelineEventRelation.roomId.eq(firstKey.roomId.full) and
                     ExposedTimelineEventRelation.relationType.eq(firstKey.relationType.name) and
                     ExposedTimelineEventRelation.eventId.eq(secondKey.full)
-        }.firstOrNull()?.let {
-            TimelineEventRelation(
-                roomId = RoomId(it[ExposedTimelineEventRelation.roomId]),
-                eventId = EventId(it[ExposedTimelineEventRelation.eventId]),
-                relationType = RelationType.of(it[ExposedTimelineEventRelation.relationType]),
-                relatedEventId = EventId(it[ExposedTimelineEventRelation.relatedEventId]),
-            )
-        }
+            }
+            .firstOrNull()
+            ?.let {
+                TimelineEventRelation(
+                    roomId = RoomId(it[ExposedTimelineEventRelation.roomId]),
+                    eventId = EventId(it[ExposedTimelineEventRelation.eventId]),
+                    relationType = RelationType.of(it[ExposedTimelineEventRelation.relationType]),
+                    relatedEventId = EventId(it[ExposedTimelineEventRelation.relatedEventId]),
+                )
+            }
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        firstKey: TimelineEventRelationKey,
-        secondKey: EventId,
-        value: TimelineEventRelation
-    ) {
+    override suspend fun save(firstKey: TimelineEventRelationKey, secondKey: EventId, value: TimelineEventRelation) {
         ExposedTimelineEventRelation.upsert {
             it[ExposedTimelineEventRelation.eventId] = value.eventId.full
             it[ExposedTimelineEventRelation.roomId] = value.roomId.full
@@ -87,9 +86,9 @@ internal class ExposedTimelineEventRelationRepository : TimelineEventRelationRep
     override suspend fun delete(firstKey: TimelineEventRelationKey, secondKey: EventId) {
         ExposedTimelineEventRelation.deleteWhere {
             relatedEventId.eq(firstKey.relatedEventId.full) and
-                    roomId.eq(firstKey.roomId.full) and
-                    relationType.eq(firstKey.relationType.name) and
-                    eventId.eq(secondKey.full)
+                roomId.eq(firstKey.roomId.full) and
+                relationType.eq(firstKey.relationType.name) and
+                eventId.eq(secondKey.full)
         }
     }
 

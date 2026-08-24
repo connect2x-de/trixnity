@@ -12,8 +12,7 @@ class SessionKey internal constructor(ptr: NativePointer) : Managed(ptr, Session
 
     val bytes: ByteArray
         get() = managedReachableScope {
-            val (ptr, size) =
-                withResult(NativePointerArray(2)) { SessionKeyBindings.toBytes(it, ptr) }
+            val (ptr, size) = withResult(NativePointerArray(2)) { SessionKeyBindings.toBytes(it, ptr) }
 
             ptr.toByteArray(size.intValue)
         }
@@ -24,12 +23,9 @@ class SessionKey internal constructor(ptr: NativePointer) : Managed(ptr, Session
     companion object {
         operator fun invoke(bytes: ByteArray): SessionKey = interopScope {
             val (tag, ptrOrErr, errSize) =
-                withResult(NativePointerArray(3)) {
-                    SessionKeyBindings.fromBytes(it, bytes.toInterop(), bytes.size)
-                }
+                withResult(NativePointerArray(3)) { SessionKeyBindings.fromBytes(it, bytes.toInterop(), bytes.size) }
 
-            if (tag.intValue != 0)
-                throw VodozemacException(ptrOrErr.toByteArray(errSize.intValue).decodeToString())
+            if (tag.intValue != 0) throw VodozemacException(ptrOrErr.toByteArray(errSize.intValue).decodeToString())
 
             SessionKey(ptrOrErr)
         }

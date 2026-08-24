@@ -14,7 +14,4 @@ value class LibOlmExportedSessionKey(internal val inner: String) : ExportedSessi
         get() = base64.decodeUnpaddedBase64Bytes()
 
     override fun close() {}
-
 }
-
-

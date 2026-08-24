@@ -10,7 +10,4 @@ interface RoomAccountDataRepository :
         firstKey.roomId.full + firstKey.type + secondKey
 }
 
-data class RoomAccountDataRepositoryKey(
-    val roomId: RoomId,
-    val type: String,
-)
+data class RoomAccountDataRepositoryKey(val roomId: RoomId, val type: String)

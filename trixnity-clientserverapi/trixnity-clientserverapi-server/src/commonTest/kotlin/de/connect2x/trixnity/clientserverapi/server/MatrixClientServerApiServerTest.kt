@@ -37,13 +37,10 @@ class MatrixClientServerApiServerTest : TrixnityBaseTest() {
             matrixClientServerApiServer(
                 accessTokenAuthenticationFunction = {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ),
-                        null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
-                },
+                }
             ) {
                 matrixClientServerApiServerRoutes(
                     adminApiHandler = adminApiHandlerMock,
@@ -65,19 +62,21 @@ class MatrixClientServerApiServerTest : TrixnityBaseTest() {
 
     @BeforeTest
     fun beforeTest() {
-        val mocks = listOf(
-            appserviceApiHandlerMock,
-            authenticationApiHandlerMock,
-            discoveryApiHandlerMock,
-            deviceApiHandlerMock,
-            keyApiHandlerMock,
-            mediaApiHandlerMock,
-            pushApiHandlerMock,
-            roomApiHandlerMock,
-            serverApiHandlerMock,
-            syncApiHandlerMock,
-            userApiHandlerMock,
-        ).toTypedArray()
+        val mocks =
+            listOf(
+                    appserviceApiHandlerMock,
+                    authenticationApiHandlerMock,
+                    discoveryApiHandlerMock,
+                    deviceApiHandlerMock,
+                    keyApiHandlerMock,
+                    mediaApiHandlerMock,
+                    pushApiHandlerMock,
+                    roomApiHandlerMock,
+                    serverApiHandlerMock,
+                    syncApiHandlerMock,
+                    userApiHandlerMock,
+                )
+                .toTypedArray()
         resetAnswers(*mocks)
         resetCalls(*mocks)
     }
@@ -85,10 +84,11 @@ class MatrixClientServerApiServerTest : TrixnityBaseTest() {
     @Test
     fun shouldAllowDiscoverCORSHeader() = testApplication {
         initCut()
-        val response = client.options("/_matrix/client/v3/joined_rooms") {
-            header(Origin, "https://localhost:2424")
-            header(AccessControlRequestMethod, "GET")
-        }
+        val response =
+            client.options("/_matrix/client/v3/joined_rooms") {
+                header(Origin, "https://localhost:2424")
+                header(AccessControlRequestMethod, "GET")
+            }
         assertSoftly(response) {
             status shouldBe OK
             headers[AccessControlAllowOrigin] shouldBe "*"

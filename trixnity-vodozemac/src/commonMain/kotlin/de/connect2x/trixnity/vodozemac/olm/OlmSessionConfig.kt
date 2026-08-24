@@ -5,8 +5,7 @@ import de.connect2x.trixnity.vodozemac.utils.Managed
 import de.connect2x.trixnity.vodozemac.utils.NativePointer
 import de.connect2x.trixnity.vodozemac.utils.managedReachableScope
 
-class OlmSessionConfig internal constructor(ptr: NativePointer) :
-    Managed(ptr, SessionConfigBindings::free) {
+class OlmSessionConfig internal constructor(ptr: NativePointer) : Managed(ptr, SessionConfigBindings::free) {
 
     val version: Version
         get() = managedReachableScope {
@@ -31,6 +30,6 @@ class OlmSessionConfig internal constructor(ptr: NativePointer) :
 
     enum class Version {
         VERSION_1,
-        VERSION_2
+        VERSION_2,
     }
 }

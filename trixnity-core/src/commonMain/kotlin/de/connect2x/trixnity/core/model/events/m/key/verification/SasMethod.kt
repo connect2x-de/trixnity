@@ -23,8 +23,7 @@ sealed interface SasMethod {
     data class Unknown(override val name: String) : SasMethod
 
     class Serializer : KSerializer<SasMethod> {
-        override val descriptor: SerialDescriptor =
-            PrimitiveSerialDescriptor("SasMethod", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SasMethod", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): SasMethod =
             when (val name = decoder.decodeString()) {
@@ -33,7 +32,6 @@ sealed interface SasMethod {
                 else -> Unknown(name)
             }
 
-        override fun serialize(encoder: Encoder, value: SasMethod) =
-            encoder.encodeString(value.name)
+        override fun serialize(encoder: Encoder, value: SasMethod) = encoder.encodeString(value.name)
     }
 }

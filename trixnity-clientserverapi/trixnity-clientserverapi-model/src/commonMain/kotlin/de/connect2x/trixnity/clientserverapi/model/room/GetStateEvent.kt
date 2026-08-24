@@ -1,12 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -15,10 +8,19 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.contentSerializer
+import io.ktor.resources.*
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 
 /**
- * @see <a href="https://spec.matrix.org/v1.16/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey">matrix spec</a>
+ * @see <a
+ *   href="https://spec.matrix.org/v1.16/client-server-api/#get_matrixclientv3roomsroomidstateeventtypestatekey">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v3/rooms/{roomId}/state/{type}/{stateKey?}")
@@ -33,7 +35,7 @@ data class GetStateEvent(
     override fun responseSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: Response?
+        value: Response?,
     ): KSerializer<Response> =
         Response.Serializer(
             format ?: Format.CONTENT,
@@ -43,19 +45,14 @@ data class GetStateEvent(
 
     @Serializable
     enum class Format {
-        @SerialName("event")
-        EVENT,
-
-        @SerialName("content")
-        CONTENT
+        @SerialName("event") EVENT,
+        @SerialName("content") CONTENT,
     }
 
     interface Response {
-        @JvmInline
-        value class Event(val value: @Contextual ClientEvent.StateBaseEvent<*>) : Response
+        @JvmInline value class Event(val value: @Contextual ClientEvent.StateBaseEvent<*>) : Response
 
-        @JvmInline
-        value class Content(val value: StateEventContent) : Response
+        @JvmInline value class Content(val value: StateEventContent) : Response
 
         class Serializer(
             private val format: Format,

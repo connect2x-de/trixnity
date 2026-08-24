@@ -11,33 +11,23 @@ import de.connect2x.trixnity.libolm.OlmLibraryException
 
 object LibOlmInboundGroupSessionFactory : InboundGroupSessionFactory {
 
-    override fun invoke(
-        sessionKey: SessionKey,
-    ): LibOlmInboundGroupSession {
+    override fun invoke(sessionKey: SessionKey): LibOlmInboundGroupSession {
         require(sessionKey is LibOlmSessionKey)
 
-        return LibOlmInboundGroupSession(
-            OlmInboundGroupSession.create(sessionKey.inner)
-        )
+        return LibOlmInboundGroupSession(OlmInboundGroupSession.create(sessionKey.inner))
     }
 
-    override fun import(
-        sessionKey: ExportedSessionKey,
-    ): LibOlmInboundGroupSession {
+    override fun import(sessionKey: ExportedSessionKey): LibOlmInboundGroupSession {
         require(sessionKey is LibOlmExportedSessionKey)
 
-        return LibOlmInboundGroupSession(
-            OlmInboundGroupSession.import(sessionKey.inner)
-        )
+        return LibOlmInboundGroupSession(OlmInboundGroupSession.import(sessionKey.inner))
     }
 
     override fun fromPickle(pickle: String, pickleKey: PickleKey?): LibOlmInboundGroupSession {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
         try {
-            return LibOlmInboundGroupSession(
-                OlmInboundGroupSession.unpickle(pickleKey?.inner, pickle)
-            )
+            return LibOlmInboundGroupSession(OlmInboundGroupSession.unpickle(pickleKey?.inner, pickle))
         } catch (e: OlmLibraryException) {
             throw CryptoDriverException(e)
         }

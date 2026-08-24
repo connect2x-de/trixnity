@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 internal fun Route.serverApiRoutes(
     handler: ServerApiHandler,
     json: Json,
-    contentMappings: EventContentSerializerMappings
+    contentMappings: EventContentSerializerMappings,
 ) {
     matrixEndpoint(json, contentMappings, handler::getVersions)
     matrixEndpoint(json, contentMappings, handler::getCapabilities)

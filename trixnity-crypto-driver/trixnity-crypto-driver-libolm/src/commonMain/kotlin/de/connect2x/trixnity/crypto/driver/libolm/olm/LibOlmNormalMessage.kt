@@ -5,9 +5,7 @@ import de.connect2x.trixnity.utils.decodeUnpaddedBase64Bytes
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class LibOlmNormalMessage(
-    private val inner: String
-) : Message.Normal {
+value class LibOlmNormalMessage(private val inner: String) : Message.Normal {
 
     override val base64: String
         get() = inner

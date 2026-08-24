@@ -1,16 +1,14 @@
 package de.connect2x.trixnity.core.serialization
 
+import de.connect2x.trixnity.core.serialization.events.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.overwriteWith
 import kotlinx.serialization.modules.plus
-import de.connect2x.trixnity.core.serialization.events.*
 
 @OptIn(ExperimentalSerializationApi::class)
-private fun createMatrixJson(
-    module: SerializersModule
-) = Json {
+private fun createMatrixJson(module: SerializersModule) = Json {
     classDiscriminator = "IfYouSeeThatSomethingIsWrongWithSerialization"
     ignoreUnknownKeys = true
     encodeDefaults = true
@@ -31,10 +29,7 @@ fun createMatrixDataUnitJson(
     eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.defaultDataUnit,
     customModule: SerializersModule? = null,
 ): Json {
-    val modules = createMatrixDataUnitSerializersModule(
-        eventContentSerializerMappings,
-        roomVersionStore
-    )
+    val modules = createMatrixDataUnitSerializersModule(eventContentSerializerMappings, roomVersionStore)
     return createMatrixJson(if (customModule != null) modules + customModule else modules)
 }
 
@@ -43,12 +38,8 @@ fun createMatrixEventAndDataUnitJson(
     eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.defaultDataUnit,
     customModule: SerializersModule? = null,
 ): Json {
-    val modules = createMatrixEventSerializersModule(eventContentSerializerMappings)
-        .overwriteWith(
-            createMatrixDataUnitSerializersModule(
-                eventContentSerializerMappings,
-                roomVersionStore
-            )
-        )
+    val modules =
+        createMatrixEventSerializersModule(eventContentSerializerMappings)
+            .overwriteWith(createMatrixDataUnitSerializersModule(eventContentSerializerMappings, roomVersionStore))
     return createMatrixJson(if (customModule != null) modules + customModule else modules)
 }

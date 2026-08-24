@@ -1,12 +1,5 @@
 package de.connect2x.trixnity.client.room.message
 
-import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType.Audio.OGG
-import io.ktor.http.ContentType.Image.PNG
-import io.ktor.http.ContentType.Video.MP4
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import de.connect2x.trixnity.client.mocks.MediaServiceMock
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.store.Room
@@ -22,7 +15,14 @@ import de.connect2x.trixnity.core.model.events.m.room.*
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.matchers.shouldBe
+import io.ktor.http.ContentType.Audio.OGG
+import io.ktor.http.ContentType.Image.PNG
+import io.ktor.http.ContentType.Video.MP4
+import io.ktor.utils.io.core.*
 import kotlin.test.Test
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 
 class MessageBuilderTest : TrixnityBaseTest() {
 
@@ -31,32 +31,36 @@ class MessageBuilderTest : TrixnityBaseTest() {
     private val unencryptedRoom = RoomId("!unencryptedRoom:server")
 
     private val mediaService = MediaServiceMock()
-    private val roomService = RoomServiceMock().apply {
-        rooms.value = mapOf(
-            encryptedRoom to MutableStateFlow(Room(encryptedRoom, encrypted = true)),
-            unencryptedRoom to MutableStateFlow(Room(unencryptedRoom)),
-        )
-        returnGetTimelineEvent = flowOf(
-            TimelineEvent(
-                event = MessageEvent(
-                    RoomMessageEventContent.TextBased.Text(
-                        """
-                            dino
-                            unicorn
-                        """.trimIndent()
-                    ),
-                    EventId("dino"),
-                    UserId("sender", "server"),
-                    RoomId("!room:server"),
-                    1234
-                ),
-                gap = null,
-                nextEventId = null,
-                previousEventId = null,
-            )
-        )
-    }
-
+    private val roomService =
+        RoomServiceMock().apply {
+            rooms.value =
+                mapOf(
+                    encryptedRoom to MutableStateFlow(Room(encryptedRoom, encrypted = true)),
+                    unencryptedRoom to MutableStateFlow(Room(unencryptedRoom)),
+                )
+            returnGetTimelineEvent =
+                flowOf(
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                RoomMessageEventContent.TextBased.Text(
+                                    """
+                                    dino
+                                    unicorn
+                                    """
+                                        .trimIndent()
+                                ),
+                                EventId("dino"),
+                                UserId("sender", "server"),
+                                RoomId("!room:server"),
+                                1234,
+                            ),
+                        gap = null,
+                        nextEventId = null,
+                        previousEventId = null,
+                    )
+                )
+        }
 
     @Test
     fun `build » call builder and return content`() = runTest {
@@ -107,7 +111,6 @@ class MessageBuilderTest : TrixnityBaseTest() {
         } shouldBe replyEventContent
     }
 
-
     private val threadEventContent = RoomMessageEventContent.TextBased.Text("")
 
     @Test
@@ -154,14 +157,12 @@ class MessageBuilderTest : TrixnityBaseTest() {
         } shouldBe threadEventContent
     }
 
-
     @Test
     fun `react » react`() = runTest {
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             react(EventId("bla"), "👍")
         } shouldBe ReactionEventContent(RelatesTo.Annotation(EventId("bla"), "👍"))
     }
-
 
     private val mentionsEventContent = RoomMessageEventContent.TextBased.Text("")
 
@@ -179,9 +180,8 @@ class MessageBuilderTest : TrixnityBaseTest() {
 
     @Test
     fun `mentions » replace old mention`() = runTest {
-        roomService.returnGetTimelineEvent = flowOf(
-            timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1"), UserId("2"))))
-        )
+        roomService.returnGetTimelineEvent =
+            flowOf(timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1"), UserId("2")))))
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             mentions(users = setOf(UserId("1"), UserId("3")), room = true)
             replace(EventId("bla"))
@@ -195,9 +195,8 @@ class MessageBuilderTest : TrixnityBaseTest() {
 
     @Test
     fun `mentions » add mention on reply`() = runTest {
-        roomService.returnGetTimelineEvent = flowOf(
-            timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1"))))
-        )
+        roomService.returnGetTimelineEvent =
+            flowOf(timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1")))))
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             mentions(users = setOf(UserId("2")), room = true)
             reply(EventId("bla"), null)
@@ -211,9 +210,8 @@ class MessageBuilderTest : TrixnityBaseTest() {
 
     @Test
     fun `mentions » remove own mention`() = runTest {
-        roomService.returnGetTimelineEvent = flowOf(
-            timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1"))))
-        )
+        roomService.returnGetTimelineEvent =
+            flowOf(timelineEvent(EventId("bla"), mentions = Mentions(setOf(UserId("1")))))
         MessageBuilder(encryptedRoom, roomService, mediaService, UserId("sender", "server")).build {
             mentions(users = setOf(UserId("2"), UserId("sender", "server")), room = true)
             reply(EventId("bla"), null)
@@ -237,42 +235,32 @@ class MessageBuilderTest : TrixnityBaseTest() {
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             replace(timelineEvent(EventId("bla")))
             text(body = "body", format = "format", formattedBody = "formatted_body")
-        } shouldBe RoomMessageEventContent.TextBased.Text(
-            "* body",
-            "format",
-            "* formatted_body",
-            RelatesTo.Replace(
-                EventId("bla"),
-                RoomMessageEventContent.TextBased.Text("body", "format", "formatted_body", mentions = Mentions()),
-            ),
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.TextBased.Text(
+                "* body",
+                "format",
+                "* formatted_body",
+                RelatesTo.Replace(
+                    EventId("bla"),
+                    RoomMessageEventContent.TextBased.Text("body", "format", "formatted_body", mentions = Mentions()),
+                ),
+                mentions = Mentions(),
+            )
     }
 
     @Test
     fun `text » notice » create notice`() = runTest {
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             notice(body = "body", format = "format", formattedBody = "formatted_body")
-        } shouldBe RoomMessageEventContent.TextBased.Notice(
-            "body",
-            "format",
-            "formatted_body",
-            mentions = Mentions()
-        )
+        } shouldBe RoomMessageEventContent.TextBased.Notice("body", "format", "formatted_body", mentions = Mentions())
     }
 
     @Test
     fun `emote » create emote`() = runTest {
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             emote(body = "body", format = "format", formattedBody = "formatted_body")
-        } shouldBe RoomMessageEventContent.TextBased.Emote(
-            "body",
-            "format",
-            "formatted_body",
-            mentions = Mentions()
-        )
+        } shouldBe RoomMessageEventContent.TextBased.Emote("body", "format", "formatted_body", mentions = Mentions())
     }
-
 
     @Test
     fun `image » create image and thumbnail`() = runTest {
@@ -291,15 +279,15 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 height = 1024,
                 width = 1024,
                 thumbnail = "fake_thumbnail".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Image(
-            "body", info = ImageInfo(
-                1024, 1024, "image/png", 10, "thumbnailCacheUrl", null,
-                thumbnailInfo,
-            ), url = "mediaCacheUrl",
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Image(
+                "body",
+                info = ImageInfo(1024, 1024, "image/png", 10, "thumbnailCacheUrl", null, thumbnailInfo),
+                url = "mediaCacheUrl",
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -321,17 +309,17 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 height = 1024,
                 width = 1024,
                 thumbnail = "fake_thumbnaul".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Image(
-            "body", info = ImageInfo(
-                1024, 1024, "image/png", 10, null, encryptedThumbnail,
-                thumbnailInfo,
-            ), url = null, file = encryptedFile,
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Image(
+                "body",
+                info = ImageInfo(1024, 1024, "image/png", 10, null, encryptedThumbnail, thumbnailInfo),
+                url = null,
+                file = encryptedFile,
+                mentions = Mentions(),
+            )
     }
-
 
     @Test
     fun `file » create file and thumbnail`() = runTest {
@@ -348,14 +336,16 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 type = PNG,
                 size = 9,
                 thumbnail = "fake_thumbnaul".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.File(
-            "body", fileName = "filename", info = FileInfo(
-                "image/png", 9, "thumbnailCacheUrl", null, thumbnailInfo,
-            ), url = "mediaCacheUrl",
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.File(
+                "body",
+                fileName = "filename",
+                info = FileInfo("image/png", 9, "thumbnailCacheUrl", null, thumbnailInfo),
+                url = "mediaCacheUrl",
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -375,14 +365,17 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 type = PNG,
                 size = 9,
                 thumbnail = "fake_thumbnaul".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.File(
-            "body", fileName = "filename", info = FileInfo(
-                "image/png", 9, null, encryptedThumbnail, thumbnailInfo,
-            ), url = null, file = encryptedFile,
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.File(
+                "body",
+                fileName = "filename",
+                info = FileInfo("image/png", 9, null, encryptedThumbnail, thumbnailInfo),
+                url = null,
+                file = encryptedFile,
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -403,15 +396,15 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 width = 1024,
                 duration = 1024,
                 thumbnail = "fake_thumbnaul".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Video(
-            "body", info = VideoInfo(
-                1024, 1024, 1024, "video/mp4", 10, "thumbnailCacheUrl", null,
-                thumbnailInfo,
-            ), url = "mediaCacheUrl",
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Video(
+                "body",
+                info = VideoInfo(1024, 1024, 1024, "video/mp4", 10, "thumbnailCacheUrl", null, thumbnailInfo),
+                url = "mediaCacheUrl",
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -434,15 +427,16 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 width = 1024,
                 duration = 1024,
                 thumbnail = "fake_thumbnaul".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo
+                thumbnailInfo = thumbnailInfo,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Video(
-            "body", info = VideoInfo(
-                1024, 1024, 1024, "video/mp4", 10, null, encryptedThumbnail,
-                thumbnailInfo,
-            ), url = null, file = encryptedFile,
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Video(
+                "body",
+                info = VideoInfo(1024, 1024, 1024, "video/mp4", 10, null, encryptedThumbnail, thumbnailInfo),
+                url = null,
+                file = encryptedFile,
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -457,12 +451,15 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 fileName = null,
                 type = OGG,
                 size = 10,
-                duration = 1024
+                duration = 1024,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Audio(
-            "body", info = AudioInfo(1024, "audio/ogg", 10), url = "mediaCacheUrl",
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Audio(
+                "body",
+                info = AudioInfo(1024, "audio/ogg", 10),
+                url = "mediaCacheUrl",
+                mentions = Mentions(),
+            )
     }
 
     @Test
@@ -478,26 +475,30 @@ class MessageBuilderTest : TrixnityBaseTest() {
                 fileName = null,
                 type = OGG,
                 size = 10,
-                duration = 1024
+                duration = 1024,
             )
-        } shouldBe RoomMessageEventContent.FileBased.Audio(
-            "body", info = AudioInfo(1024, "audio/ogg", 10), url = null, file = encryptedFile,
-            mentions = Mentions()
-        )
+        } shouldBe
+            RoomMessageEventContent.FileBased.Audio(
+                "body",
+                info = AudioInfo(1024, "audio/ogg", 10),
+                url = null,
+                file = encryptedFile,
+                mentions = Mentions(),
+            )
     }
-
 
     private fun timelineEvent(eventId: EventId, relatesTo: RelatesTo? = null, mentions: Mentions? = null) =
         TimelineEvent(
-            event = MessageEvent(
-                content = RoomMessageEventContent.TextBased.Text("hi", relatesTo = relatesTo, mentions = mentions),
-                id = eventId,
-                sender = UserId("sender", "server"),
-                roomId = RoomId("!room:server"),
-                originTimestamp = 24,
-            ),
+            event =
+                MessageEvent(
+                    content = RoomMessageEventContent.TextBased.Text("hi", relatesTo = relatesTo, mentions = mentions),
+                    id = eventId,
+                    sender = UserId("sender", "server"),
+                    roomId = RoomId("!room:server"),
+                    originTimestamp = 24,
+                ),
             previousEventId = null,
             nextEventId = null,
-            gap = null
+            gap = null,
         )
 }

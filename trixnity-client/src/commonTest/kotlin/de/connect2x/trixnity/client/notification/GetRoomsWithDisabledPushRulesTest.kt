@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.client.notification
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.push.PushAction
 import de.connect2x.trixnity.core.model.push.PushCondition
 import de.connect2x.trixnity.core.model.push.PushRule
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
@@ -18,9 +18,7 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room")
-                    )
+                    conditions = setOf(PushCondition.EventMatch("room_id", "!room")),
                 )
             )
         ) shouldBe emptySet()
@@ -35,9 +33,7 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(PushAction.Notify),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room1")
-                    )
+                    conditions = setOf(PushCondition.EventMatch("room_id", "!room1")),
                 )
             )
         ) shouldBe emptySet()
@@ -52,10 +48,8 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room1"),
-                        PushCondition.RoomMemberCount("1")
-                    )
+                    conditions =
+                        setOf(PushCondition.EventMatch("room_id", "!room1"), PushCondition.RoomMemberCount("1")),
                 )
             )
         ) shouldBe emptySet()
@@ -70,7 +64,7 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf()
+                    conditions = setOf(),
                 )
             )
         ) shouldBe emptySet()
@@ -85,9 +79,7 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.RoomMemberCount("1")
-                    )
+                    conditions = setOf(PushCondition.RoomMemberCount("1")),
                 )
             )
         ) shouldBe emptySet()
@@ -102,9 +94,7 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.EventMatch("dino", "!room1"),
-                    )
+                    conditions = setOf(PushCondition.EventMatch("dino", "!room1")),
                 )
             )
         ) shouldBe emptySet()
@@ -119,28 +109,22 @@ class GetRoomsWithDisabledPushRulesTest : TrixnityBaseTest() {
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room1")
-                    )
+                    conditions = setOf(PushCondition.EventMatch("room_id", "!room1")),
                 ),
                 PushRule.Override(
                     ruleId = "rule",
                     default = false,
                     enabled = true,
                     actions = setOf(),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room2")
-                    )
+                    conditions = setOf(PushCondition.EventMatch("room_id", "!room2")),
                 ),
                 PushRule.Override(
                     ruleId = "rule",
                     default = false,
                     enabled = true,
                     actions = setOf(PushAction.Notify),
-                    conditions = setOf(
-                        PushCondition.EventMatch("room_id", "!room3")
-                    )
-                )
+                    conditions = setOf(PushCondition.EventMatch("room_id", "!room3")),
+                ),
             )
         ) shouldBe setOf(RoomId("!room1"), RoomId("!room2"))
     }

@@ -14,6 +14,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancelChildren
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
-import kotlin.time.Duration.Companion.minutes
 
 private val log = Logger("de.connect2x.trixnity.client.user.ProfileEventHandler")
 
@@ -33,7 +33,7 @@ class ProfileEventHandler(
     private val accountStore: AccountStore,
     private val tm: StoreTransactionManager,
     private val userInfo: UserInfo,
-    private val currentSyncState: CurrentSyncState
+    private val currentSyncState: CurrentSyncState,
 ) : EventHandler {
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
@@ -55,28 +55,25 @@ class ProfileEventHandler(
     @OptIn(FlowPreview::class)
     internal suspend fun updateProfile() {
         currentSyncState.retryLoop(
-            onError = { error, delay -> log.warn(error) { "failed retrieve current profile, try again in $delay" } },
+            onError = { error, delay -> log.warn(error) { "failed retrieve current profile, try again in $delay" } }
         ) {
             coroutineScope {
                 select {
+                    launch { delay(repeatDelay) }.onJoin {}
                     launch {
-                        delay(repeatDelay)
-                    }.onJoin {}
-                    launch {
-                        suggestProfileUpdate.first { it }
-                        suggestProfileUpdate.value = false
-                    }.onJoin {}
+                            suggestProfileUpdate.first { it }
+                            suggestProfileUpdate.value = false
+                        }
+                        .onJoin {}
                 }
                 currentCoroutineContext().cancelChildren()
             }
-            api.user.getProfile(userInfo.userId)
+            api.user
+                .getProfile(userInfo.userId)
                 .onSuccess { profile ->
-                    tm.writeTransaction {
-                        accountStore.updateAccount { account ->
-                            account?.copy(profile = profile)
-                        }
-                    }
-                }.getOrThrow()
+                    tm.writeTransaction { accountStore.updateAccount { account -> account?.copy(profile = profile) } }
+                }
+                .getOrThrow()
         }
     }
 }

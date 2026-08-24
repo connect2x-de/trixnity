@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.utils
 
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.time.measureTime
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import kotlin.test.Test
-import kotlin.time.measureTime
 
 class ConcurrentTest : TrixnityBaseTest() {
     @Test
@@ -22,12 +22,8 @@ class ConcurrentTest : TrixnityBaseTest() {
     @Test
     fun throwExceptionsOnLeak() = runTest {
         val cut = concurrentMutableList<Int>()
-        shouldThrow<IllegalArgumentException> {
-            cut.write { this }
-        }
-        shouldThrow<IllegalArgumentException> {
-            cut.read { this }
-        }
+        shouldThrow<IllegalArgumentException> { cut.write { this } }
+        shouldThrow<IllegalArgumentException> { cut.read { this } }
     }
 
     @Test
@@ -55,19 +51,13 @@ class ConcurrentTest : TrixnityBaseTest() {
             val readTime = async {
                 measureTime {
                     coroutineScope {
-                        repeat(parallel) {
-                            launch {
-                                repeat(readOperations / parallel) {
-                                    cut.read { toSet() }
-                                }
-                            }
-                        }
+                        repeat(parallel) { launch { repeat(readOperations / parallel) { cut.read { toSet() } } } }
                     }
                 }
             }
             println(
                 "writeTime=${writeTime.await()} (${writeTime.await() / writeOperations}/operation), " +
-                        "readTime=${readTime.await()} (${readTime.await() / readOperations}/operation)"
+                    "readTime=${readTime.await()} (${readTime.await() / readOperations}/operation)"
             )
             cut.read { toList() }.sorted() shouldBe List(writeOperations) { it }
         }

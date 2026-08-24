@@ -9,7 +9,6 @@ import kotlinx.serialization.descriptors.buildSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-
 @Serializable(with = Scope.Serializer::class)
 sealed interface Scope {
     val value: String
@@ -36,7 +35,8 @@ sealed interface Scope {
             val value = decoder.decodeString().lowercase()
             return when {
                 value == MatrixClientApi.value -> MatrixClientApi
-                value.startsWith(MatrixClientDevice.PREFIX) -> MatrixClientDevice(value.removePrefix(MatrixClientDevice.PREFIX))
+                value.startsWith(MatrixClientDevice.PREFIX) ->
+                    MatrixClientDevice(value.removePrefix(MatrixClientDevice.PREFIX))
                 else -> Unknown(value)
             }
         }

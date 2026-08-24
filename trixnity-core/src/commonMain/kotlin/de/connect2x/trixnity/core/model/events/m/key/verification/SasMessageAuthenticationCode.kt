@@ -33,7 +33,6 @@ sealed interface SasMessageAuthenticationCode {
                 else -> Unknown(name)
             }
 
-        override fun serialize(encoder: Encoder, value: SasMessageAuthenticationCode) =
-            encoder.encodeString(value.name)
+        override fun serialize(encoder: Encoder, value: SasMessageAuthenticationCode) = encoder.encodeString(value.name)
     }
 }

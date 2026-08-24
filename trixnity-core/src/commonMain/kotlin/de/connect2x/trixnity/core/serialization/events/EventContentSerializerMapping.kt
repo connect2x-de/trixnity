@@ -3,8 +3,8 @@ package de.connect2x.trixnity.core.serialization.events
 import de.connect2x.trixnity.core.model.events.EventContent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
-import kotlinx.serialization.KSerializer
 import kotlin.reflect.KClass
+import kotlinx.serialization.KSerializer
 
 interface EventContentSerializerMapping<C : EventContent> {
     val type: String
@@ -18,8 +18,7 @@ class EventContentSerializerMappingImpl<C : EventContent>(
     serializer: KSerializer<out C>,
 ) : EventContentSerializerMapping<C> {
     override val serializer: KSerializer<C> =
-        @Suppress("UNCHECKED_CAST")
-        EventContentSerializer(type, serializer as KSerializer<C>)
+        @Suppress("UNCHECKED_CAST") EventContentSerializer(type, serializer as KSerializer<C>)
 
     override fun toString(): String =
         "EventContentSerializerMapping(type=$type, kClass=$kClass, serializer=$serializer)"

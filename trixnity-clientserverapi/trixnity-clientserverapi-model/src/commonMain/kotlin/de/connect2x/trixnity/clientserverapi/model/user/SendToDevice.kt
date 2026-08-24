@@ -1,5 +1,12 @@
 package de.connect2x.trixnity.clientserverapi.model.user
 
+import de.connect2x.trixnity.core.HttpMethod
+import de.connect2x.trixnity.core.HttpMethodType.PUT
+import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentSerializer
 import io.ktor.resources.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -14,68 +21,51 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
-import de.connect2x.trixnity.core.HttpMethod
-import de.connect2x.trixnity.core.HttpMethodType.PUT
-import de.connect2x.trixnity.core.MatrixEndpoint
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.contentSerializer
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3sendtodeviceeventtypetxnid">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3sendtodeviceeventtypetxnid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v3/sendToDevice/{type}/{txnId}")
 @HttpMethod(PUT)
-data class SendToDevice(
-    @SerialName("type") val type: String,
-    @SerialName("txnId") val txnId: String,
-) : MatrixEndpoint<SendToDevice.Request, Unit> {
+data class SendToDevice(@SerialName("type") val type: String, @SerialName("txnId") val txnId: String) :
+    MatrixEndpoint<SendToDevice.Request, Unit> {
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: Request?
+        value: Request?,
     ): KSerializer<Request> {
         val baseSerializer =
             mappings.toDevice.contentSerializer(type, value?.messages?.values?.firstOrNull()?.values?.firstOrNull())
         return Request.Serializer(baseSerializer)
     }
 
-    data class Request(
-        val messages: Map<UserId, Map<String, ToDeviceEventContent>>
-    ) {
-        class Serializer(baseSerializer: KSerializer<ToDeviceEventContent>) :
-            KSerializer<Request> {
+    data class Request(val messages: Map<UserId, Map<String, ToDeviceEventContent>>) {
+        class Serializer(baseSerializer: KSerializer<ToDeviceEventContent>) : KSerializer<Request> {
             override val descriptor = buildClassSerialDescriptor("Request")
 
-            private val messagesSerializer = MapSerializer(
-                UserId.serializer(),
-                MapSerializer(String.serializer(), baseSerializer)
-            )
+            private val messagesSerializer =
+                MapSerializer(UserId.serializer(), MapSerializer(String.serializer(), baseSerializer))
 
             override fun deserialize(decoder: Decoder): Request {
                 require(decoder is JsonDecoder)
                 val jsonObject = decoder.decodeJsonElement()
                 if (jsonObject !is JsonObject) throw SerializationException("send to device request was no object")
                 val messages = jsonObject["messages"]
-                if (messages !is JsonObject) throw SerializationException("send to device request messages was no object")
-                return Request(
-                    decoder.json.decodeFromJsonElement(messagesSerializer, messages)
-                )
+                if (messages !is JsonObject)
+                    throw SerializationException("send to device request messages was no object")
+                return Request(decoder.json.decodeFromJsonElement(messagesSerializer, messages))
             }
 
             override fun serialize(encoder: Encoder, value: Request) {
                 require(encoder is JsonEncoder)
                 encoder.encodeJsonElement(
                     JsonObject(
-                        mapOf(
-                            "messages" to encoder.json.encodeToJsonElement(messagesSerializer, value.messages)
-                        )
+                        mapOf("messages" to encoder.json.encodeToJsonElement(messagesSerializer, value.messages))
                     )
                 )
             }
-
         }
     }
 }

@@ -23,9 +23,8 @@ internal object ExposedKeyChainLink : Table("key_chain_link") {
     val signedUserId = varchar("signed_user_id", length = 128)
     val signedKeyId = varchar("signed_key_id", length = 128)
     val signedKeyValue = varchar("signed_key_value", length = 128)
-    override val primaryKey = PrimaryKey(
-        signingUserId, signingKeyId, signingKeyValue, signedUserId, signedKeyId, signedKeyValue
-    )
+    override val primaryKey =
+        PrimaryKey(signingUserId, signingKeyId, signingKeyValue, signedUserId, signedKeyId, signedKeyValue)
 }
 
 internal class ExposedKeyChainLinkRepository : KeyChainLinkRepository {
@@ -43,32 +42,31 @@ internal class ExposedKeyChainLinkRepository : KeyChainLinkRepository {
 
     context(transaction: ReadTransaction)
     override suspend fun getBySigningKey(signingUserId: UserId, signingKey: Key.Ed25519Key): Set<KeyChainLink> {
-        return ExposedKeyChainLink.selectAll().where {
-            ExposedKeyChainLink.signingUserId.eq(signingUserId.full) and
+        return ExposedKeyChainLink.selectAll()
+            .where {
+                ExposedKeyChainLink.signingUserId.eq(signingUserId.full) and
                     ExposedKeyChainLink.signingKeyId.eq(signingKey.id ?: "") and
                     ExposedKeyChainLink.signingKeyValue.eq(signingKey.value.value)
-        }.map {
-            KeyChainLink(
-                signingUserId = UserId(it[ExposedKeyChainLink.signingUserId]),
-                signingKey = Key.Ed25519Key(
-                    it[ExposedKeyChainLink.signingKeyId],
-                    it[ExposedKeyChainLink.signingKeyValue]
-                ),
-                signedUserId = UserId(it[ExposedKeyChainLink.signedUserId]),
-                signedKey = Key.Ed25519Key(
-                    it[ExposedKeyChainLink.signedKeyId],
-                    it[ExposedKeyChainLink.signedKeyValue]
-                ),
-            )
-        }.toSet()
+            }
+            .map {
+                KeyChainLink(
+                    signingUserId = UserId(it[ExposedKeyChainLink.signingUserId]),
+                    signingKey =
+                        Key.Ed25519Key(it[ExposedKeyChainLink.signingKeyId], it[ExposedKeyChainLink.signingKeyValue]),
+                    signedUserId = UserId(it[ExposedKeyChainLink.signedUserId]),
+                    signedKey =
+                        Key.Ed25519Key(it[ExposedKeyChainLink.signedKeyId], it[ExposedKeyChainLink.signedKeyValue]),
+                )
+            }
+            .toSet()
     }
 
     context(transaction: WriteTransaction)
     override suspend fun deleteBySignedKey(signedUserId: UserId, signedKey: Key.Ed25519Key) {
         ExposedKeyChainLink.deleteWhere {
             ExposedKeyChainLink.signedUserId.eq(signedUserId.full) and
-                    signedKeyId.eq(signedKey.id ?: "") and
-                    signedKeyValue.eq(signedKey.value.value)
+                signedKeyId.eq(signedKey.id ?: "") and
+                signedKeyValue.eq(signedKey.value.value)
         }
     }
 

@@ -33,19 +33,20 @@ fun createCryptoModule() = module {
     singleOf(::OlmEncryptionServiceImpl) { bind<OlmEncryptionService>() }
     singleOf(::MegolmEncryptionServiceImpl) { bind<MegolmEncryptionService>() }
     single<OlmEventHandler> {
-        OlmEventHandlerImpl(
-            userInfo = get(),
-            eventEmitter = get<MatrixClientServerApiClient>().sync,
-            olmKeysChangeEmitter = get(),
-            signService = get(),
-            olmEncryptionService = get(),
-            requestHandler = get(),
-            store = get(),
-            clock = get(),
-            driver = get()
-        )
-    }.apply {
-        bind<EventHandler>()
-        named<OlmEventHandler>()
-    }
+            OlmEventHandlerImpl(
+                userInfo = get(),
+                eventEmitter = get<MatrixClientServerApiClient>().sync,
+                olmKeysChangeEmitter = get(),
+                signService = get(),
+                olmEncryptionService = get(),
+                requestHandler = get(),
+                store = get(),
+                clock = get(),
+                driver = get(),
+            )
+        }
+        .apply {
+            bind<EventHandler>()
+            named<OlmEventHandler>()
+        }
 }

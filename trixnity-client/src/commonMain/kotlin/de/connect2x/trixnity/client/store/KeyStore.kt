@@ -19,6 +19,9 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.valueOrNull
 import de.connect2x.trixnity.crypto.SecretType
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -26,9 +29,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Clock
-import kotlin.time.Duration
 
 private val log = Logger("de.connect2x.trixnity.client.store.KeyStore")
 
@@ -49,56 +49,71 @@ class KeyStore(
 ) : Store {
     private val outdatedKeysCache =
         MinimalRepositoryObservableCache(
-            repository = outdatedKeysRepository,
-            tm = tm,
-            cacheScope = storeScope,
-            clock = clock,
-            expireDuration = Duration.INFINITE
-        ).also(statisticCollector::addCache)
+                repository = outdatedKeysRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = Duration.INFINITE,
+            )
+            .also(statisticCollector::addCache)
     private val secretsCache =
         MinimalRepositoryObservableCache(
-            repository = secretsRepository,
-            tm = tm,
-            cacheScope = storeScope,
-            clock = clock,
-            expireDuration = Duration.INFINITE
-        ).also(statisticCollector::addCache)
+                repository = secretsRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = Duration.INFINITE,
+            )
+            .also(statisticCollector::addCache)
     private val deviceKeysCache =
         MinimalRepositoryObservableCache(
-            repository = deviceKeysRepository,
-            tm = tm,
-            cacheScope = storeScope,
-            clock = clock,
-            expireDuration = config.cacheExpireDurations.deviceKeys
-        ).also(statisticCollector::addCache)
-    private val crossSigningKeysCache = MinimalRepositoryObservableCache(
-        repository = crossSigningKeysRepository,
-        tm = tm,
-        cacheScope = storeScope,
-        clock = clock,
-        expireDuration = config.cacheExpireDurations.crossSigningKeys
-    ).also(statisticCollector::addCache)
-    private val keyVerificationStateCache = MinimalRepositoryObservableCache(
-        repository = keyVerificationStateRepository,
-        tm = tm,
-        cacheScope = storeScope,
-        clock = clock,
-        expireDuration = config.cacheExpireDurations.keyVerificationState
-    ).also(statisticCollector::addCache)
-    private val secretKeyRequestCache = FullRepositoryObservableCache(
-        repository = secretKeyRequestRepository,
-        tm = tm,
-        cacheScope = storeScope,
-        clock = clock,
-        expireDuration = config.cacheExpireDurations.secretKeyRequest
-    ) { it.content.requestId }.also(statisticCollector::addCache)
-    private val roomKeyRequestCache = FullRepositoryObservableCache(
-        repository = roomKeyRequestRepository,
-        tm = tm,
-        cacheScope = storeScope,
-        clock = clock,
-        expireDuration = config.cacheExpireDurations.roomKeyRequest
-    ) { it.content.requestId }.also(statisticCollector::addCache)
+                repository = deviceKeysRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.deviceKeys,
+            )
+            .also(statisticCollector::addCache)
+    private val crossSigningKeysCache =
+        MinimalRepositoryObservableCache(
+                repository = crossSigningKeysRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.crossSigningKeys,
+            )
+            .also(statisticCollector::addCache)
+    private val keyVerificationStateCache =
+        MinimalRepositoryObservableCache(
+                repository = keyVerificationStateRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.keyVerificationState,
+            )
+            .also(statisticCollector::addCache)
+    private val secretKeyRequestCache =
+        FullRepositoryObservableCache(
+                repository = secretKeyRequestRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.secretKeyRequest,
+            ) {
+                it.content.requestId
+            }
+            .also(statisticCollector::addCache)
+    private val roomKeyRequestCache =
+        FullRepositoryObservableCache(
+                repository = roomKeyRequestRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.roomKeyRequest,
+            ) {
+                it.content.requestId
+            }
+            .also(statisticCollector::addCache)
 
     context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() {
@@ -123,9 +138,7 @@ class KeyStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateOutdatedKeys(updater: (Set<UserId>) -> Set<UserId>) =
-        outdatedKeysCache.update(1) {
-            updater(it.orEmpty())
-        }
+        outdatedKeysCache.update(1) { updater(it.orEmpty()) }
 
     suspend fun getSecrets(): Map<SecretType, StoredSecret> = secretsCache.get(1).first().orEmpty()
 
@@ -133,12 +146,11 @@ class KeyStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateSecrets(updater: (Map<SecretType, StoredSecret>) -> Map<SecretType, StoredSecret>) =
-        secretsCache.update(1) {
-            updater(it ?: mapOf())
-        }
+        secretsCache.update(1) { updater(it ?: mapOf()) }
 
     /**
-     * This prevents deadlocks when no parallel write transactions are allowed, but a second transaction is needed to update outdated keys.
+     * This prevents deadlocks when no parallel write transactions are allowed, but a second transaction is needed to
+     * update outdated keys.
      */
     object SkipOutdatedKeys : CoroutineContext.Element, CoroutineContext.Key<SkipOutdatedKeys> {
         override val key: CoroutineContext.Key<*> = this
@@ -148,9 +160,7 @@ class KeyStore(
         if (currentCoroutineContext()[SkipOutdatedKeys] == null) {
             if (keysAreNull()) {
                 log.trace { "add $userId to outdated keys, because key ($reason) not found" }
-                tm.writeTransaction {
-                    updateOutdatedKeys { it + userId }
-                }
+                tm.writeTransaction { updateOutdatedKeys { it + userId } }
             }
             log.debug { "possibly wait for outdated keys ($reason) of $userId" }
             getOutdatedKeysFlow().first { !it.contains(userId) }
@@ -158,87 +168,63 @@ class KeyStore(
         }
     }
 
-    fun getDeviceKeys(
-        userId: UserId,
-    ): Flow<Map<String, StoredDeviceKeys>?> =
-        flow {
-            waitForUpdateOutdatedKey(userId, "device keys") {
-                deviceKeysCache.get(userId).first() == null
-            }
-            emitAll(deviceKeysCache.get(userId))
-        }
+    fun getDeviceKeys(userId: UserId): Flow<Map<String, StoredDeviceKeys>?> = flow {
+        waitForUpdateOutdatedKey(userId, "device keys") { deviceKeysCache.get(userId).first() == null }
+        emitAll(deviceKeysCache.get(userId))
+    }
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateDeviceKeys(
         userId: UserId,
-        updater: (Map<String, StoredDeviceKeys>?) -> Map<String, StoredDeviceKeys>?
+        updater: (Map<String, StoredDeviceKeys>?) -> Map<String, StoredDeviceKeys>?,
     ) = deviceKeysCache.update(userId, updater = updater)
 
     context(transaction: StoreWriteTransaction)
-    suspend fun saveDeviceKeys(
-        userId: UserId,
-        deviceKeys: Map<String, StoredDeviceKeys>
-    ) = deviceKeysCache.set(userId, deviceKeys)
+    suspend fun saveDeviceKeys(userId: UserId, deviceKeys: Map<String, StoredDeviceKeys>) =
+        deviceKeysCache.set(userId, deviceKeys)
 
     context(transaction: StoreWriteTransaction)
     suspend fun deleteDeviceKeys(userId: UserId) = deviceKeysCache.set(userId, null)
 
-    fun getCrossSigningKeys(
-        userId: UserId,
-    ): Flow<Set<StoredCrossSigningKeys>?> =
-        flow {
-            waitForUpdateOutdatedKey(userId, "cross singing keys") {
-                crossSigningKeysCache.get(userId).first() == null
-            }
-            emitAll(crossSigningKeysCache.get(userId))
-        }
+    fun getCrossSigningKeys(userId: UserId): Flow<Set<StoredCrossSigningKeys>?> = flow {
+        waitForUpdateOutdatedKey(userId, "cross singing keys") { crossSigningKeysCache.get(userId).first() == null }
+        emitAll(crossSigningKeysCache.get(userId))
+    }
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateCrossSigningKeys(
         userId: UserId,
-        updater: (Set<StoredCrossSigningKeys>?) -> Set<StoredCrossSigningKeys>?
+        updater: (Set<StoredCrossSigningKeys>?) -> Set<StoredCrossSigningKeys>?,
     ) = crossSigningKeysCache.update(userId, updater = updater)
 
     context(transaction: StoreWriteTransaction)
     suspend fun deleteCrossSigningKeys(userId: UserId) = crossSigningKeysCache.set(userId, null)
 
-    suspend fun getKeyVerificationState(
-        key: Key,
-    ): KeyVerificationState? {
+    suspend fun getKeyVerificationState(key: Key): KeyVerificationState? {
         val keyId = key.id
         return keyId?.let {
-            keyVerificationStateCache.get(
-                KeyVerificationStateKey(
-                    keyId = it,
-                    keyAlgorithm = key.algorithm,
-                )
-            ).first()?.let { state ->
-                if (state.keyValue == key.value.valueOrNull) state
-                else KeyVerificationState.Blocked(state.keyValue)
-            }
+            keyVerificationStateCache
+                .get(KeyVerificationStateKey(keyId = it, keyAlgorithm = key.algorithm))
+                .first()
+                ?.let { state ->
+                    if (state.keyValue == key.value.valueOrNull) state else KeyVerificationState.Blocked(state.keyValue)
+                }
         }
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun saveKeyVerificationState(
-        key: Key,
-        state: KeyVerificationState
-    ) {
+    suspend fun saveKeyVerificationState(key: Key, state: KeyVerificationState) {
         val keyId = key.id
         requireNotNull(keyId)
-        keyVerificationStateCache.set(
-            KeyVerificationStateKey(keyId = keyId, keyAlgorithm = key.algorithm), state
-        )
+        keyVerificationStateCache.set(KeyVerificationStateKey(keyId = keyId, keyAlgorithm = key.algorithm), state)
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun saveKeyChainLink(keyChainLink: KeyChainLink) =
-        keyChainLinkRepository.save(keyChainLink)
+    suspend fun saveKeyChainLink(keyChainLink: KeyChainLink) = keyChainLinkRepository.save(keyChainLink)
 
-    suspend fun getKeyChainLinksBySigningKey(userId: UserId, signingKey: Key.Ed25519Key) =
-        tm.readTransaction {
-            keyChainLinkRepository.getBySigningKey(userId, signingKey)
-        }
+    suspend fun getKeyChainLinksBySigningKey(userId: UserId, signingKey: Key.Ed25519Key) = tm.readTransaction {
+        keyChainLinkRepository.getBySigningKey(userId, signingKey)
+    }
 
     context(transaction: StoreWriteTransaction)
     suspend fun deleteKeyChainLinksBySignedKey(userId: UserId, signedKey: Key.Ed25519Key) =

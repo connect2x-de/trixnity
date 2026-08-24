@@ -37,7 +37,8 @@ private fun isGetRandomAvailable(): Boolean {
     }
 
     return when (errno) {
-        ENOSYS, EPERM -> false
+        ENOSYS,
+        EPERM -> false
         else -> true
     }
 }
@@ -49,17 +50,19 @@ private val urandom by lazy {
     val randomFd = open("/dev/random")
     try {
         memScoped {
-            val pollFd = alloc<pollfd> {
-                fd = randomFd
-                events = POLLIN.convert()
-                revents = 0
-            }
+            val pollFd =
+                alloc<pollfd> {
+                    fd = randomFd
+                    events = POLLIN.convert()
+                    revents = 0
+                }
 
             while (true) {
                 if (poll(pollFd.ptr, 1u, -1) >= 0) break
 
                 when (errno) {
-                    EINTR, EAGAIN -> continue
+                    EINTR,
+                    EAGAIN -> continue
                     else -> error(errorMessage())
                 }
             }
@@ -79,7 +82,8 @@ private fun open(path: String): Int {
 private fun errorMessage(): String =
     when (val value = errno) {
         EFAULT -> "The address referred to by buf is outside the accessible address space."
-        EINTR -> "The call was interrupted by a signal handler; see the description of how interrupted read(2) calls on 'slow' devices are handled with and without the SA_RESTART flag in the signal(7) man page."
+        EINTR ->
+            "The call was interrupted by a signal handler; see the description of how interrupted read(2) calls on 'slow' devices are handled with and without the SA_RESTART flag in the signal(7) man page."
         EINVAL -> "An invalid flag was specified in flags."
         else -> "POSIX error: $value"
     }

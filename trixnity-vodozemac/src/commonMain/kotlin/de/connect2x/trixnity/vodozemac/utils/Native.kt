@@ -28,8 +28,7 @@ operator fun NativePointerArray.component5(): NativePointer = get(4)
 
 operator fun NativePointerArray.component6(): NativePointer = get(5)
 
-inline fun <R> NativePointerArray.map(transform: (NativePointer) -> R): List<R> =
-    List(size) { transform(this[it]) }
+inline fun <R> NativePointerArray.map(transform: (NativePointer) -> R): List<R> = List(size) { transform(this[it]) }
 
 expect fun NativePointerArray.asPtrSequence(): Sequence<NativePointer>
 
@@ -74,10 +73,7 @@ internal interface InteropScope : AutoCloseable {
 }
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun withResult(
-    result: ByteArray,
-    crossinline block: InteropScope.(InteropPointer) -> Unit
-): ByteArray {
+internal inline fun withResult(result: ByteArray, crossinline block: InteropScope.(InteropPointer) -> Unit): ByteArray {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
     return interopScope {
@@ -91,7 +87,7 @@ internal inline fun withResult(
 @OptIn(ExperimentalContracts::class)
 internal inline fun withResult(
     result: ShortArray,
-    crossinline block: InteropScope.(InteropPointer) -> Unit
+    crossinline block: InteropScope.(InteropPointer) -> Unit,
 ): ShortArray {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
@@ -106,7 +102,7 @@ internal inline fun withResult(
 @OptIn(ExperimentalContracts::class)
 internal inline fun withResult(
     result: NativePointerArray,
-    crossinline block: InteropScope.(InteropPointer) -> Unit
+    crossinline block: InteropScope.(InteropPointer) -> Unit,
 ): NativePointerArray {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
@@ -173,11 +169,7 @@ internal inline fun <T> reachableScope(obj1: Any, crossinline block: InteropScop
 }
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun <T> reachableScope(
-    obj1: Any,
-    obj2: Any,
-    crossinline block: InteropScope.() -> T
-): T {
+internal inline fun <T> reachableScope(obj1: Any, obj2: Any, crossinline block: InteropScope.() -> T): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
     return try {
@@ -189,12 +181,7 @@ internal inline fun <T> reachableScope(
 }
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun <T> reachableScope(
-    obj1: Any,
-    obj2: Any,
-    obj3: Any,
-    crossinline block: InteropScope.() -> T
-): T {
+internal inline fun <T> reachableScope(obj1: Any, obj2: Any, obj3: Any, crossinline block: InteropScope.() -> T): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
     return try {
@@ -212,7 +199,7 @@ internal inline fun <T> reachableScope(
     obj2: Any,
     obj3: Any,
     obj4: Any,
-    crossinline block: InteropScope.() -> T
+    crossinline block: InteropScope.() -> T,
 ): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
@@ -234,10 +221,7 @@ internal inline fun <T> Managed.managedReachableScope(crossinline block: Interop
 }
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun <T> Managed.managedReachableScope(
-    obj1: Any,
-    crossinline block: InteropScope.() -> T
-): T {
+internal inline fun <T> Managed.managedReachableScope(obj1: Any, crossinline block: InteropScope.() -> T): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
     return reachableScope(this, obj1, block)
@@ -247,7 +231,7 @@ internal inline fun <T> Managed.managedReachableScope(
 internal inline fun <T> Managed.managedReachableScope(
     obj1: Any,
     obj2: Any,
-    crossinline block: InteropScope.() -> T
+    crossinline block: InteropScope.() -> T,
 ): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
@@ -259,7 +243,7 @@ internal inline fun <T> Managed.managedReachableScope(
     obj1: Any,
     obj2: Any,
     obj3: Any,
-    crossinline block: InteropScope.() -> T
+    crossinline block: InteropScope.() -> T,
 ): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
 
@@ -274,10 +258,8 @@ abstract class Native(ptr: NativePointer) {
     override fun toString(): String = "${this::class.simpleName}(ptr=${ptr.format()})"
 }
 
-expect abstract class Managed(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
-    Native, AutoCloseable {
+expect abstract class Managed(ptr: NativePointer, finalizer: (NativePointer) -> Unit) : Native, AutoCloseable {
     override fun close()
 }
 
-internal class Cleanup(ptr: NativePointer, finalizer: (NativePointer) -> Unit) :
-    Managed(ptr, finalizer)
+internal class Cleanup(ptr: NativePointer, finalizer: (NativePointer) -> Unit) : Managed(ptr, finalizer)

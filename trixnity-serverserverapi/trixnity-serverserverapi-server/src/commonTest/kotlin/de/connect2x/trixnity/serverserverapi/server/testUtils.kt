@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.serverserverapi.server
 
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit
+import de.connect2x.trixnity.core.serialization.events.RoomVersionStore
 import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.matches
 import io.ktor.client.request.*
 import io.ktor.http.*
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.PersistentDataUnit
-import de.connect2x.trixnity.core.serialization.events.RoomVersionStore
 
 fun String.trimToFlatJson() = this.trimIndent().lines().joinToString("") { it.replace(": ", ":").trim() }
 
@@ -29,9 +29,5 @@ fun HttpRequestBuilder.someSignature() =
 class TestRoomVersionStore(val roomVersion: String) : RoomVersionStore {
     override fun getRoomVersion(roomId: RoomId): String = roomVersion
 
-    override fun setRoomVersion(
-        pdu: PersistentDataUnit.PersistentStateDataUnit<*>,
-        roomVersion: String
-    ) {
-    }
+    override fun setRoomVersion(pdu: PersistentDataUnit.PersistentStateDataUnit<*>, roomVersion: String) {}
 }

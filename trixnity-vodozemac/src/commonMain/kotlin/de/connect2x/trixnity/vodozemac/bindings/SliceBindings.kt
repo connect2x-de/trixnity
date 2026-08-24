@@ -15,8 +15,7 @@ internal object SliceBindings {
         InitHook()
     }
 
-    fun copyNonoverlapping(src: NativePointer, dest: InteropPointer, size: Int) =
-        copy_nonoverlapping(src, dest, size)
+    fun copyNonoverlapping(src: NativePointer, dest: InteropPointer, size: Int) = copy_nonoverlapping(src, dest, size)
 
     fun alloc(size: Int, align: Int) = allocOuter(size, align)
 

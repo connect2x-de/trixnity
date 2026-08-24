@@ -18,7 +18,9 @@ internal object ExposedOlmAccount : LongIdTable("olm_account") {
 internal class ExposedOlmAccountRepository : OlmAccountRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): String? {
-        return ExposedOlmAccount.selectAll().where { ExposedOlmAccount.id eq key }.firstOrNull()
+        return ExposedOlmAccount.selectAll()
+            .where { ExposedOlmAccount.id eq key }
+            .firstOrNull()
             ?.let { it[ExposedOlmAccount.pickled] }
     }
 

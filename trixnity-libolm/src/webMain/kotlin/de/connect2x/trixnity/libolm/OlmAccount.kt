@@ -1,29 +1,33 @@
 package de.connect2x.trixnity.libolm
 
-import kotlinx.serialization.json.Json
 import kotlin.js.toInt
 import kotlin.js.toJsNumber
+import kotlinx.serialization.json.Json
 
 actual class OlmAccount private constructor() : WantsToBeFree {
     internal actual val ptr: OlmAccountPointer = rethrow { Account() }
 
     actual companion object {
         actual fun create(): OlmAccount {
-            return OlmAccount()
-                .apply { rethrow { ptr.create() } }
+            return OlmAccount().apply { rethrow { ptr.create() } }
         }
 
         actual fun unpickle(key: String?, pickle: String): OlmAccount {
-            return OlmAccount().apply {
-                rethrow { ptr.unpickle(key ?: "", pickle) }
-            }
+            return OlmAccount().apply { rethrow { ptr.unpickle(key ?: "", pickle) } }
         }
     }
 
-    actual val identityKeys: OlmIdentityKeys get() = Json.decodeFromString(rethrow { ptr.identity_keys() })
-    actual val unpublishedFallbackKey: OlmOneTimeKeys get() = Json.decodeFromString(rethrow { ptr.unpublished_fallback_key() })
-    actual val oneTimeKeys: OlmOneTimeKeys get() = Json.decodeFromString(rethrow { ptr.one_time_keys() })
-    actual val maxNumberOfOneTimeKeys: Long get() = rethrow { ptr.max_number_of_one_time_keys() }.toInt().toLong()
+    actual val identityKeys: OlmIdentityKeys
+        get() = Json.decodeFromString(rethrow { ptr.identity_keys() })
+
+    actual val unpublishedFallbackKey: OlmOneTimeKeys
+        get() = Json.decodeFromString(rethrow { ptr.unpublished_fallback_key() })
+
+    actual val oneTimeKeys: OlmOneTimeKeys
+        get() = Json.decodeFromString(rethrow { ptr.one_time_keys() })
+
+    actual val maxNumberOfOneTimeKeys: Long
+        get() = rethrow { ptr.max_number_of_one_time_keys() }.toInt().toLong()
 
     actual override fun free() = ptr.free()
 
@@ -43,5 +47,4 @@ actual class OlmAccount private constructor() : WantsToBeFree {
     actual fun forgetOldFallbackKey() = rethrow { ptr.forget_old_fallback_key() }
 
     actual fun generateFallbackKey() = rethrow { ptr.generate_fallback_key() }
-
 }

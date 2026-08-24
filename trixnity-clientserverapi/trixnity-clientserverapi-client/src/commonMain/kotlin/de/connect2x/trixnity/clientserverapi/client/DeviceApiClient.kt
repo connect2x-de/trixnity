@@ -6,43 +6,25 @@ import de.connect2x.trixnity.core.model.keys.Keys
 import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 
 interface DeviceApiClient {
-    /**
-     * @see [GetDevices]
-     */
+    /** @see [GetDevices] */
     suspend fun getDevices(): Result<List<Device>>
 
-    /**
-     * @see [GetDevice]
-     */
+    /** @see [GetDevice] */
     suspend fun getDevice(deviceId: String): Result<Device>
 
-    /**
-     * @see [UpdateDevice]
-     */
-    suspend fun updateDevice(
-        deviceId: String,
-        displayName: String,
-    ): Result<Unit>
+    /** @see [UpdateDevice] */
+    suspend fun updateDevice(deviceId: String, displayName: String): Result<Unit>
 
-    /**
-     * @see [DeleteDevices]
-     */
+    /** @see [DeleteDevices] */
     suspend fun deleteDevices(devices: List<String>): Result<UIA<Unit>>
 
-    /**
-     * @see [DeleteDevice]
-     */
+    /** @see [DeleteDevice] */
     suspend fun deleteDevice(deviceId: String): Result<UIA<Unit>>
 
-    /**
-     * @see [GetDehydratedDevice]
-     */
-    @MSC3814
-    suspend fun getDehydratedDevice(): Result<GetDehydratedDevice.Response>
+    /** @see [GetDehydratedDevice] */
+    @MSC3814 suspend fun getDehydratedDevice(): Result<GetDehydratedDevice.Response>
 
-    /**
-     * @see [SetDehydratedDevice]
-     */
+    /** @see [SetDehydratedDevice] */
     @MSC3814
     suspend fun setDehydratedDevice(
         deviceId: String,
@@ -53,15 +35,10 @@ interface DeviceApiClient {
         initialDeviceDisplayName: String? = null,
     ): Result<SetDehydratedDevice.Response>
 
-    /**
-     * @see [DeleteDehydratedDevice]
-     */
-    @MSC3814
-    suspend fun deleteDehydratedDevice(): Result<DeleteDehydratedDevice.Response>
+    /** @see [DeleteDehydratedDevice] */
+    @MSC3814 suspend fun deleteDehydratedDevice(): Result<DeleteDehydratedDevice.Response>
 
-    /**
-     * @see [GetDehydratedDeviceEvents]
-     */
+    /** @see [GetDehydratedDeviceEvents] */
     @MSC3814
     suspend fun getDehydratedDeviceEvents(
         deviceId: String,
@@ -69,20 +46,13 @@ interface DeviceApiClient {
     ): Result<GetDehydratedDeviceEvents.Response>
 }
 
-class DeviceApiClientImpl(
-    private val baseClient: MatrixClientServerApiBaseClient
-) : DeviceApiClient {
+class DeviceApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient) : DeviceApiClient {
 
-    override suspend fun getDevices(): Result<List<Device>> =
-        baseClient.request(GetDevices).map { it.devices }
+    override suspend fun getDevices(): Result<List<Device>> = baseClient.request(GetDevices).map { it.devices }
 
-    override suspend fun getDevice(deviceId: String): Result<Device> =
-        baseClient.request(GetDevice(deviceId))
+    override suspend fun getDevice(deviceId: String): Result<Device> = baseClient.request(GetDevice(deviceId))
 
-    override suspend fun updateDevice(
-        deviceId: String,
-        displayName: String,
-    ): Result<Unit> =
+    override suspend fun updateDevice(deviceId: String, displayName: String): Result<Unit> =
         baseClient.request(UpdateDevice(deviceId), UpdateDevice.Request(displayName))
 
     override suspend fun deleteDevices(devices: List<String>): Result<UIA<Unit>> =
@@ -112,8 +82,8 @@ class DeviceApiClientImpl(
                 deviceKeys = deviceKeys,
                 oneTimeKeys = oneTimeKeys,
                 fallbackKeys = fallbackKeys,
-                initialDeviceDisplayName = initialDeviceDisplayName
-            )
+                initialDeviceDisplayName = initialDeviceDisplayName,
+            ),
         )
 
     @MSC3814

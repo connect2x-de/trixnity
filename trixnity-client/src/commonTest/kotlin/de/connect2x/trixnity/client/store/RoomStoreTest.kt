@@ -12,21 +12,22 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.flow.first
 
 class RoomStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val roomRepository = InMemoryRoomRepository() as RoomRepository
-    private val cut = RoomStore(
-        roomRepository = roomRepository,
-        tm = tm,
-        config = MatrixClientConfiguration(),
-        statisticCollector = ObservableCacheStatisticCollector(),
-        storeScope = testScope.backgroundScope,
-        clock = testScope.testClock,
-    )
+    private val cut =
+        RoomStore(
+            roomRepository = roomRepository,
+            tm = tm,
+            config = MatrixClientConfiguration(),
+            statisticCollector = ObservableCacheStatisticCollector(),
+            storeScope = testScope.backgroundScope,
+            clock = testScope.testClock,
+        )
 
     @Test
     fun `init » fill cache with values from repository`() = runTest {

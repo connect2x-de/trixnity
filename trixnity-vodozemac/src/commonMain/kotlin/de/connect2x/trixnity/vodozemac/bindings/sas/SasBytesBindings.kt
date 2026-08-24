@@ -20,11 +20,9 @@ internal object SasBytesBindings {
     fun emojiIndices(sasBytes: NativePointer, out: InteropPointer) =
         vodozemac_sas_sas_bytes_emoji_indices(sasBytes, out)
 
-    fun decimals(sasBytes: NativePointer, out: InteropPointer) =
-        vodozemac_sas_sas_bytes_decimals(sasBytes, out)
+    fun decimals(sasBytes: NativePointer, out: InteropPointer) = vodozemac_sas_sas_bytes_decimals(sasBytes, out)
 
-    fun asBytes(sasBytes: NativePointer, out: InteropPointer) =
-        vodozemac_sas_sas_bytes_as_bytes(sasBytes, out)
+    fun asBytes(sasBytes: NativePointer, out: InteropPointer) = vodozemac_sas_sas_bytes_as_bytes(sasBytes, out)
 }
 
 @ModuleImport("vodozemac", "vodozemac_sas_sas_bytes_free")
@@ -35,19 +33,19 @@ private external fun vodozemac_sas_sas_bytes_free(sas_bytes: NativePointer)
 @ExternalSymbolName("vodozemac_sas_sas_bytes_emoji_indices")
 private external fun vodozemac_sas_sas_bytes_emoji_indices(
     sas_bytes: NativePointer,
-    emoji_indices_out: InteropPointer // must be 7 bytes
+    emoji_indices_out: InteropPointer, // must be 7 bytes
 )
 
 @ModuleImport("vodozemac", "vodozemac_sas_sas_bytes_decimals")
 @ExternalSymbolName("vodozemac_sas_sas_bytes_decimals")
 private external fun vodozemac_sas_sas_bytes_decimals(
     sas_bytes: NativePointer,
-    decimals_out: InteropPointer // must be 3 shorts
+    decimals_out: InteropPointer, // must be 3 shorts
 )
 
 @ModuleImport("vodozemac", "vodozemac_sas_sas_bytes_as_bytes")
 @ExternalSymbolName("vodozemac_sas_sas_bytes_as_bytes")
 private external fun vodozemac_sas_sas_bytes_as_bytes(
     sas_bytes: NativePointer,
-    bytes_out: InteropPointer // must be 6 bytes
+    bytes_out: InteropPointer, // must be 6 bytes
 )

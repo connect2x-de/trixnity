@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class InitialStateEvent<C : StateEventContent>(
     @SerialName("content") override val content: C,
-    @SerialName("state_key") val stateKey: String
+    @SerialName("state_key") val stateKey: String,
 ) : Event<C>

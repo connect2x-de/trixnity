@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.idb.utils
 
 import js.errors.toThrowable
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.suspendCancellableCoroutine
 import web.events.EventHandler
 import web.idb.IDBDatabase
 import web.idb.indexedDB
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 object IDBUtils {
     suspend fun openDatabase(
@@ -18,37 +18,17 @@ object IDBUtils {
         val request = indexedDB.open(name, version.toDouble())
 
         suspendCancellableCoroutine { continuation ->
-
-            request.onsuccess = EventHandler { event ->
-                continuation.resume(event.target.result)
-            }
+            request.onsuccess = EventHandler { event -> continuation.resume(event.target.result) }
             request.onblocked = EventHandler { event ->
-                continuation.resumeWithException(
-                    Error(
-                        "database blocked",
-                        event.target.error?.toThrowable()
-                    )
-                )
+                continuation.resumeWithException(Error("database blocked", event.target.error?.toThrowable()))
             }
             request.onerror = EventHandler { event ->
-                continuation.resumeWithException(
-                    Error(
-                        "database error",
-                        event.target.error?.toThrowable()
-                    )
-                )
+                continuation.resumeWithException(Error("database error", event.target.error?.toThrowable()))
             }
             request.onupgradeneeded = EventHandler { event ->
                 val transaction = WrappedTransaction(checkNotNull(event.target.transaction))
-                transaction.upgrade(
-                    event.target.result,
-                    event.oldVersion.toInt(),
-                    event.newVersion?.toInt(),
-                )
+                transaction.upgrade(event.target.result, event.oldVersion.toInt(), event.newVersion?.toInt())
             }
         }
     }
 }
-
-
-

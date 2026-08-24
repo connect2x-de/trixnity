@@ -36,12 +36,14 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
     val mapToRepresentation: (K1, K2, V) -> R,
     val mapFromRepresentation: (R) -> V,
     val representationSerializer: KSerializer<R>,
-    val json: Json
+    val json: Json,
 ) : MapRepository<K1, K2, V>, IndexedDBRepository(objectStoreName) {
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: K1): Map<K2, V> = withRead { store ->
-        store.index(firstKeyIndexName).openCursor(keyOf(firstKeySerializer(firstKey)))
+        store
+            .index(firstKeyIndexName)
+            .openCursor(keyOf(firstKeySerializer(firstKey)))
             .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
             .map { secondKeyDestructor(it) to mapFromRepresentation(it) }
             .toList()
@@ -50,22 +52,20 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: K1, secondKey: K2): V? = withRead { store ->
-        json.decodeFromDynamicNullable(
-            representationSerializer,
-            store.get(keyOf(firstKeySerializer(firstKey) + secondKeySerializer(secondKey)))
-        )?.let(mapFromRepresentation)
+        json
+            .decodeFromDynamicNullable(
+                representationSerializer,
+                store.get(keyOf(firstKeySerializer(firstKey) + secondKeySerializer(secondKey))),
+            )
+            ?.let(mapFromRepresentation)
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(firstKey: K1, secondKey: K2, value: V): Unit =
-        withWrite { store ->
-            store.put(
-                value = json.encodeToDynamic(
-                    representationSerializer,
-                    mapToRepresentation(firstKey, secondKey, value)
-                )
-            )
-        }
+    override suspend fun save(firstKey: K1, secondKey: K2, value: V): Unit = withWrite { store ->
+        store.put(
+            value = json.encodeToDynamic(representationSerializer, mapToRepresentation(firstKey, secondKey, value))
+        )
+    }
 
     context(transaction: WriteTransaction)
     override suspend fun delete(firstKey: K1, secondKey: K2): Unit = withWrite { store ->
@@ -73,7 +73,5 @@ internal abstract class IndexedDBMapRepository<K1, K2, V, R : Any>(
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll(): Unit = withWrite { store ->
-        store.clear()
-    }
+    override suspend fun deleteAll(): Unit = withWrite { store -> store.clear() }
 }

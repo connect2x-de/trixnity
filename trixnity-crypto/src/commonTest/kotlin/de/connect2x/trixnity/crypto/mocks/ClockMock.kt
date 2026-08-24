@@ -5,5 +5,6 @@ import kotlin.time.Instant
 
 class ClockMock : Clock {
     var nowValue: Instant = Instant.fromEpochMilliseconds(24242424)
+
     override fun now(): Instant = nowValue
 }

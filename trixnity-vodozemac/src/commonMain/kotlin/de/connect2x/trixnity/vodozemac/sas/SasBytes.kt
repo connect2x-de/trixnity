@@ -29,9 +29,7 @@ class SasBytes internal constructor(ptr: NativePointer) : Managed(ptr, SasBytesB
         }
 
     val bytes: ByteArray
-        get() = managedReachableScope {
-            withResult(ByteArray(6)) { SasBytesBindings.asBytes(ptr, it) }
-        }
+        get() = managedReachableScope { withResult(ByteArray(6)) { SasBytesBindings.asBytes(ptr, it) } }
 
     data class Emojis(
         val emojiIndex1: UByte,
@@ -54,16 +52,7 @@ class SasBytes internal constructor(ptr: NativePointer) : Managed(ptr, SasBytesB
             )
     }
 
-    data class Decimals(
-        val first: UShort,
-        val second: UShort,
-        val third: UShort,
-    ) {
-        val asList: List<Int> =
-            listOf(
-                first.toInt(),
-                second.toInt(),
-                third.toInt(),
-            )
+    data class Decimals(val first: UShort, val second: UShort, val third: UShort) {
+        val asList: List<Int> = listOf(first.toInt(), second.toInt(), third.toInt())
     }
 }

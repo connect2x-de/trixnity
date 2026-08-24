@@ -11,17 +11,9 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 sealed interface KeyVerificationState {
     val keyValue: String
 
-    /**
-     * This key has been verified.
-     */
-    @Serializable
-    @SerialName("verified")
-    data class Verified(override val keyValue: String) : KeyVerificationState
+    /** This key has been verified. */
+    @Serializable @SerialName("verified") data class Verified(override val keyValue: String) : KeyVerificationState
 
-    /**
-     * This key has been blocked.
-     */
-    @Serializable
-    @SerialName("blocked")
-    data class Blocked(override val keyValue: String) : KeyVerificationState
+    /** This key has been blocked. */
+    @Serializable @SerialName("blocked") data class Blocked(override val keyValue: String) : KeyVerificationState
 }

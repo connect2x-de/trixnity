@@ -40,11 +40,11 @@ import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.serialization.ExperimentalSerializationApi
 
 class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
@@ -68,14 +68,15 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
     private val aliceCurveKey = Curve25519Key(aliceDeviceId, aliceAccount.curve25519Key.base64)
     private val aliceEdKey = Ed25519Key(aliceDeviceId, aliceAccount.ed25519Key.base64)
-    private val aliceDeviceKeys = SignedDeviceKeys(
-        DeviceKeys(
-            alice,
-            aliceDeviceId,
-            setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-            Keys(keysOf(aliceCurveKey, aliceEdKey))
-        ),
-    )
+    private val aliceDeviceKeys =
+        SignedDeviceKeys(
+            DeviceKeys(
+                alice,
+                aliceDeviceId,
+                setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                Keys(keysOf(aliceCurveKey, aliceEdKey)),
+            )
+        )
     private val bobCurveKey = Curve25519Key(bobDeviceId, bobAccount.curve25519Key.base64)
     private val bobEdKey = Ed25519Key(bobDeviceId, bobAccount.ed25519Key.base64)
 
@@ -95,26 +96,30 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
     @BeforeTest
     fun beforeTest() {
-        olmStoreMock.devices[bob] = mapOf(
-            bobDeviceId to Signed(
-                DeviceKeys(
-                    userId = bob,
-                    deviceId = bobDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(bobCurveKey, bobEdKey))
-                )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                        )
+                    )
             )
-        )
-        olmStoreMock.devices[alice] = mapOf(
-            aliceDeviceId to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = aliceDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(aliceCurveKey, aliceEdKey))
-                )
+        olmStoreMock.devices[alice] =
+            mapOf(
+                aliceDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = alice,
+                            deviceId = aliceDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
+                        )
+                    )
             )
-        )
         olmStoreMock.roomMembers[room] = setOf(alice, bob)
         olmStoreMock.olmAccount.value = aliceAccount.pickle()
         mockSignService.returnVerify = VerifyResult.Valid
@@ -123,20 +128,18 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         olmEncryptionService.encryptOlmRecipients = emptySet()
     }
 
-    private val cut = MegolmEncryptionServiceImpl(
-        UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
-        json,
-        olmStoreMock,
-        megolmEncryptionServiceRequestHandlerMock,
-        olmEncryptionService,
-        testScope.testClock,
-        driver,
-    )
+    private val cut =
+        MegolmEncryptionServiceImpl(
+            UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
+            json,
+            olmStoreMock,
+            megolmEncryptionServiceRequestHandlerMock,
+            olmEncryptionService,
+            testScope.testClock,
+            driver,
+        )
 
-    suspend fun shouldEncryptMessage(
-        settings: EncryptionEventContent,
-        expectedMessageCount: Int,
-    ) {
+    suspend fun shouldEncryptMessage(settings: EncryptionEventContent, expectedMessageCount: Int) {
         val olmCipher = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = aliceCurveKey.value)
         olmEncryptionService.encryptOlm[bob to bobDeviceId] = Result.success(olmCipher)
 
@@ -175,7 +178,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val inboundSession = inboundGroupSession.fromPickle(storedInboundSession.pickled)
 
         json.decodeFromString(
-            decryptedMegolmEventSerializer, inboundSession.decrypt(megolmMessage(result.ciphertext)).plaintext
+            decryptedMegolmEventSerializer,
+            inboundSession.decrypt(megolmMessage(result.ciphertext)).plaintext,
         ) shouldBe decryptedMegolmEvent
     }
 
@@ -186,34 +190,35 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `encryptMegolm - not send keys to own device`() = runTest {
-        olmStoreMock.devices[alice] = mapOf(
-            aliceDeviceId to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = aliceDeviceId,
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
-                )
-            ),
-        )
+        olmStoreMock.devices[alice] =
+            mapOf(
+                aliceDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = alice,
+                            deviceId = aliceDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(aliceCurveKey, aliceEdKey)),
+                        )
+                    )
+            )
         shouldEncryptMessage(EncryptionEventContent(), 1)
         olmEncryptionService.encryptOlmRecipients shouldBe setOf(bob to bobDeviceId)
     }
 
     @Test
-    fun `encryptMegolm - not update session when not possible to send key to a recipient`() =
-        runTest {
-            val olmCipher = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = aliceCurveKey.value)
-            olmEncryptionService.encryptOlm[bob to bobDeviceId] = Result.success(olmCipher)
-            megolmEncryptionServiceRequestHandlerMock.sendToDevice = Result.failure(
-                IllegalStateException("random network error")
-            )
+    fun `encryptMegolm - not update session when not possible to send key to a recipient`() = runTest {
+        val olmCipher = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = aliceCurveKey.value)
+        olmEncryptionService.encryptOlm[bob to bobDeviceId] = Result.success(olmCipher)
+        megolmEncryptionServiceRequestHandlerMock.sendToDevice =
+            Result.failure(IllegalStateException("random network error"))
 
-            cut.encryptMegolm(decryptedMegolmEventContent, room, EncryptionEventContent())
-                .exceptionOrNull().shouldBeInstanceOf<MegolmEncryptionService.EncryptMegolmError.NetworkError>()
-            olmStoreMock.outboundMegolmSession.shouldBeEmpty()
-            olmStoreMock.inboundMegolmSession.shouldBeEmpty()
-        }
+        cut.encryptMegolm(decryptedMegolmEventContent, room, EncryptionEventContent())
+            .exceptionOrNull()
+            .shouldBeInstanceOf<MegolmEncryptionService.EncryptMegolmError.NetworkError>()
+        olmStoreMock.outboundMegolmSession.shouldBeEmpty()
+        olmStoreMock.inboundMegolmSession.shouldBeEmpty()
+    }
 
     @Test
     fun `encryptMegolm - not update session when not possible to encrypt to a recipient because of network issue`() =
@@ -222,7 +227,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 Result.failure(EncryptOlmError.NetworkError(IllegalStateException("random network error")))
 
             cut.encryptMegolm(decryptedMegolmEventContent, room, EncryptionEventContent())
-                .exceptionOrNull().shouldBeInstanceOf<MegolmEncryptionService.EncryptMegolmError.NetworkError>()
+                .exceptionOrNull()
+                .shouldBeInstanceOf<MegolmEncryptionService.EncryptMegolmError.NetworkError>()
             olmStoreMock.outboundMegolmSession.shouldBeEmpty()
             olmStoreMock.inboundMegolmSession.shouldBeEmpty()
         }
@@ -231,29 +237,29 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val outboundSession = groupSession()
         repeat(23) { outboundSession.encrypt("bla") }
 
-        olmStoreMock.outboundMegolmSession[room] = StoredOutboundMegolmSession(
-            roomId = room,
-            createdAt = testScope.testClock.now(),
-            encryptedMessageCount = 23,
-            newDevices = mapOf(bob to setOf(bobDeviceId)),
-            pickled = outboundSession.pickle()
-        )
+        olmStoreMock.outboundMegolmSession[room] =
+            StoredOutboundMegolmSession(
+                roomId = room,
+                createdAt = testScope.testClock.now(),
+                encryptedMessageCount = 23,
+                newDevices = mapOf(bob to setOf(bobDeviceId)),
+                pickled = outboundSession.pickle(),
+            )
 
-        val inboundSession = inboundGroupSession(
-            sessionKey = outboundSession.sessionKey
-        )
+        val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] = StoredInboundMegolmSession(
-            senderKey = aliceCurveKey.value,
-            senderSigningKey = aliceEdKey.value,
-            sessionId = inboundSession.sessionId,
-            roomId = room,
-            firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = inboundSession.pickle()
-        )
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
+            StoredInboundMegolmSession(
+                senderKey = aliceCurveKey.value,
+                senderSigningKey = aliceEdKey.value,
+                sessionId = inboundSession.sessionId,
+                roomId = room,
+                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = inboundSession.pickle(),
+            )
     }
 
     @Test
@@ -270,7 +276,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 createdAt = testClock.now() - 24.milliseconds,
                 encryptedMessageCount = 5,
                 newDevices = emptyMap(),
-                pickled = "is irrelevant"
+                pickled = "is irrelevant",
             )
         olmStoreMock.outboundMegolmSession[room] = previousSession
         shouldEncryptMessage(EncryptionEventContent(rotationPeriodMs = 24), 1)
@@ -279,13 +285,14 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
     @Test
     fun `encryptMegolm - create new megolm session when message count passed`() = runTest {
-        val previousSession = StoredOutboundMegolmSession(
-            roomId = room,
-            createdAt = testClock.now(),
-            encryptedMessageCount = 24,
-            newDevices = emptyMap(),
-            pickled = "is irrelevant"
-        )
+        val previousSession =
+            StoredOutboundMegolmSession(
+                roomId = room,
+                createdAt = testClock.now(),
+                encryptedMessageCount = 24,
+                newDevices = emptyMap(),
+                pickled = "is irrelevant",
+            )
         olmStoreMock.outboundMegolmSession[room] = previousSession
         shouldEncryptMessage(EncryptionEventContent(rotationPeriodMsgs = 24), 1)
         olmStoreMock.outboundMegolmSession[room] shouldNotBe previousSession
@@ -294,40 +301,41 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decryptMegolm - decrypt megolm event 1`() = runTest {
         val outboundSession = groupSession()
-        val inboundSession = inboundGroupSession(
-            sessionKey = outboundSession.sessionKey
-        )
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] = StoredInboundMegolmSession(
-            senderKey = bobCurveKey.value,
-            senderSigningKey = bobEdKey.value,
-            sessionId = inboundSession.sessionId,
-            roomId = room,
-            firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = inboundSession.pickle()
-        )
+        val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
+            StoredInboundMegolmSession(
+                senderKey = bobCurveKey.value,
+                senderSigningKey = bobEdKey.value,
+                sessionId = inboundSession.sessionId,
+                roomId = room,
+                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = inboundSession.pickle(),
+            )
         val ciphertext =
             outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
         cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext),
-                    bobCurveKey.value,
-                    bobDeviceId,
-                    outboundSession.sessionId,
-                    relatesTo = relatesTo
-                ), EventId("\$event"), bob, room, 1234
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        outboundSession.sessionId,
+                        relatesTo = relatesTo,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
             )
-        )
-            .getOrThrow() shouldBe decryptedMegolmEvent.copy(content = decryptedMegolmEvent.content.copy(relatesTo = relatesTo))
+            .getOrThrow() shouldBe
+            decryptedMegolmEvent.copy(content = decryptedMegolmEvent.content.copy(relatesTo = relatesTo))
 
-        olmStoreMock.inboundMegolmSessionIndex[Triple(
-            outboundSession.sessionId, room, 0
-        )] shouldBe StoredInboundMegolmMessageIndex(
-            outboundSession.sessionId, room, 0, EventId("\$event"), 1234
-        )
+        olmStoreMock.inboundMegolmSessionIndex[Triple(outboundSession.sessionId, room, 0)] shouldBe
+            StoredInboundMegolmMessageIndex(outboundSession.sessionId, room, 0, EventId("\$event"), 1234)
     }
 
     @Test
@@ -336,31 +344,36 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val ciphertext = // encrypted before session saved
             outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
 
-        val inboundSession = inboundGroupSession(
-            sessionKey = outboundSession.sessionKey
-        )
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] = StoredInboundMegolmSession(
-            senderKey = bobCurveKey.value,
-            senderSigningKey = bobEdKey.value,
-            sessionId = inboundSession.sessionId,
-            roomId = room,
-            firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = inboundSession.pickle()
-        )
-        cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext),
-                    bobCurveKey.value,
-                    bobDeviceId,
-                    outboundSession.sessionId,
-                    relatesTo = relatesTo
-                ), EventId("\$event"), bob, room, 1234
+        val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
+            StoredInboundMegolmSession(
+                senderKey = bobCurveKey.value,
+                senderSigningKey = bobEdKey.value,
+                sessionId = inboundSession.sessionId,
+                roomId = room,
+                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = inboundSession.pickle(),
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptMegolmError.MegolmKeyUnknownMessageIndex>()
+        cut.decryptMegolm(
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        outboundSession.sessionId,
+                        relatesTo = relatesTo,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
+            )
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptMegolmError.MegolmKeyUnknownMessageIndex>()
     }
 
     @Test
@@ -368,85 +381,117 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val session = groupSession()
         val ciphertext = session.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
         cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext), bobCurveKey.value, bobDeviceId, session.sessionId
-                ), EventId("\$event"), bob, room, 1234
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        session.sessionId,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptMegolmError.MegolmKeyNotFound>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptMegolmError.MegolmKeyNotFound>()
     }
 
     @Test
     fun `decryptMegolm - handle manipulated roomId in megolmEvent`() = runTest {
         val outboundSession = groupSession()
-        val inboundSession = inboundGroupSession(
-            sessionKey = outboundSession.sessionKey
-        )
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] = StoredInboundMegolmSession(
-            senderKey = bobCurveKey.value,
-            senderSigningKey = bobEdKey.value,
-            sessionId = inboundSession.sessionId,
-            roomId = room,
-            firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = inboundSession.pickle()
-        )
-        val ciphertext = outboundSession.encrypt(
-            json.encodeToString(
-                decryptedMegolmEventSerializer, decryptedMegolmEvent.copy(roomId = RoomId("!other:server"))
+        val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
+            StoredInboundMegolmSession(
+                senderKey = bobCurveKey.value,
+                senderSigningKey = bobEdKey.value,
+                sessionId = inboundSession.sessionId,
+                roomId = room,
+                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = inboundSession.pickle(),
             )
-        )
+        val ciphertext =
+            outboundSession.encrypt(
+                json.encodeToString(
+                    decryptedMegolmEventSerializer,
+                    decryptedMegolmEvent.copy(roomId = RoomId("!other:server")),
+                )
+            )
         cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext), bobCurveKey.value, bobDeviceId, outboundSession.sessionId
-                ), EventId("\$event"), bob, room, 1234
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        outboundSession.sessionId,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
     }
 
     @Test
     fun `decryptMegolm - handle manipulated message index`() = runTest {
         val outboundSession = groupSession()
-        val inboundSession = inboundGroupSession(
-            sessionKey = outboundSession.sessionKey
-        )
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] = StoredInboundMegolmSession(
-            senderKey = bobCurveKey.value,
-            senderSigningKey = bobEdKey.value,
-            sessionId = inboundSession.sessionId,
-            roomId = room,
-            firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = inboundSession.pickle()
-        )
+        val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
+            StoredInboundMegolmSession(
+                senderKey = bobCurveKey.value,
+                senderSigningKey = bobEdKey.value,
+                sessionId = inboundSession.sessionId,
+                roomId = room,
+                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = inboundSession.pickle(),
+            )
         val ciphertext =
             outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
         olmStoreMock.inboundMegolmSessionIndex[Triple(outboundSession.sessionId, room, 0)] =
-            StoredInboundMegolmMessageIndex(
-                outboundSession.sessionId, room, 0, EventId("\$otherEvent"), 1234
-            )
+            StoredInboundMegolmMessageIndex(outboundSession.sessionId, room, 0, EventId("\$otherEvent"), 1234)
         cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext), bobCurveKey.value, bobDeviceId, outboundSession.sessionId
-                ), EventId("\$event"), bob, room, 1234
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        outboundSession.sessionId,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
         olmStoreMock.inboundMegolmSessionIndex[Triple(outboundSession.sessionId, room, 0)]
-        StoredInboundMegolmMessageIndex(
-            outboundSession.sessionId, room, 0, EventId("\$event"), 4321
-        )
+        StoredInboundMegolmMessageIndex(outboundSession.sessionId, room, 0, EventId("\$event"), 4321)
         cut.decryptMegolm(
-            MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue.of(ciphertext), bobCurveKey.value, bobDeviceId, outboundSession.sessionId
-                ), EventId("\$event"), bob, room, 1234
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        outboundSession.sessionId,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
             )
-        ).exceptionOrNull().shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
+            .exceptionOrNull()
+            .shouldBeInstanceOf<DecryptMegolmError.ValidationFailed>()
     }
 }

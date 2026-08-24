@@ -3,10 +3,7 @@ package de.connect2x.trixnity.libolm
 import kotlinx.cinterop.*
 import platform.posix.size_t
 
-internal inline fun <T : CPointed> genericInit(
-    init: (CValuesRef<*>?) -> CPointer<T>?,
-    size: size_t
-): CPointer<T> {
+internal inline fun <T : CPointed> genericInit(init: (CValuesRef<*>?) -> CPointer<T>?, size: size_t): CPointer<T> {
     val memory = nativeHeap.allocArray<ByteVar>(size.convert())
     try {
         val ptr = init(memory)
@@ -17,5 +14,4 @@ internal inline fun <T : CPointed> genericInit(
     }
 }
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun ByteArray.usize(): ULong = this.size.toULong()
+@Suppress("NOTHING_TO_INLINE") internal inline fun ByteArray.usize(): ULong = this.size.toULong()

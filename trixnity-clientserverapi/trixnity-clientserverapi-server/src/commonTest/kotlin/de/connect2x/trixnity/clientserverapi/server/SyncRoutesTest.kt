@@ -1,17 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.server
 
-import dev.mokkery.*
-import dev.mokkery.answering.returns
-import dev.mokkery.matcher.any
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
-import io.ktor.utils.io.charsets.*
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import de.connect2x.trixnity.api.server.matrixApiServer
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync
 import de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response.*
@@ -43,8 +31,20 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import dev.mokkery.*
+import dev.mokkery.answering.returns
+import dev.mokkery.matcher.any
+import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.shouldBe
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import io.ktor.utils.io.charsets.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class SyncRoutesTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
@@ -57,16 +57,12 @@ class SyncRoutesTest : TrixnityBaseTest() {
             installMatrixAccessTokenAuth {
                 authenticationFunction = AccessTokenAuthenticationFunction {
                     AccessTokenAuthenticationFunctionResult(
-                        MatrixClientPrincipal(
-                            UserId("user", "server"),
-                            "deviceId"
-                        ), null
+                        MatrixClientPrincipal(UserId("user", "server"), "deviceId"),
+                        null,
                     )
                 }
             }
-            matrixApiServer(json) {
-                syncApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { syncApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -83,168 +79,202 @@ class SyncRoutesTest : TrixnityBaseTest() {
             .returns(
                 Sync.Response(
                     nextBatch = "s72595_4483_1934",
-                    presence = Presence(
-                        listOf(
-                            EphemeralEvent(
-                                content = PresenceEventContent(
-                                    avatarUrl = "mxc://localhost:wefuiwegh8742w",
-                                    lastActiveAgo = 2478593,
-                                    presence = ONLINE,
-                                    isCurrentlyActive = false,
-                                    statusMessage = "Making cupcakes"
-                                ),
-                                sender = UserId("@example:localhost")
-                            )
-                        )
-                    ),
-                    accountData = GlobalAccountData(
-                        listOf(
-                            GlobalAccountDataEvent(
-                                content = UnknownEventContent(
-                                    JsonObject(mapOf("custom_config_key" to JsonPrimitive("custom_config_value"))),
-                                    EventContentBlocks(
-                                        EventContentBlock.Unknown(
-                                            "custom_config_key",
-                                            JsonPrimitive("custom_config_value")
-                                        )
-                                    ),
-                                    eventType = "org.example.custom.config"
-                                ),
-                            ),
-                            GlobalAccountDataEvent(
-                                content = DirectEventContent(
-                                    mapOf(
-                                        UserId("@bob:example.com") to setOf(
-                                            RoomId("!abcdefgh:example.com"),
-                                            RoomId("!hgfedcba:example.com")
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    ),
-                    room = Rooms(
-                        join = roomMapOf(
-                            RoomId("!726s6s6q:example.com") to JoinedRoom(
-                                summary = RoomSummary(
-                                    heroes = listOf(UserId("@alice:example.com"), UserId("@bob:example.com")),
-                                    joinedMemberCount = 2,
-                                    invitedMemberCount = 0
-                                ),
-                                state = Rooms.State(
-                                    listOf(
-                                        StateEvent(
-                                            content = MemberEventContent(
-                                                membership = JOIN,
-                                                avatarUrl = "mxc://example.org/SEsfnsuifSDFSSEF",
-                                                displayName = "Alice Margatroid"
-                                            ),
-                                            id = EventId("$143273582443PhrSn:example.org"),
-                                            sender = UserId("@example:example.org"),
-                                            originTimestamp = 1432735824653,
-                                            unsigned = UnsignedStateEventData(
-                                                age = 1234
-                                            ),
-                                            stateKey = "@alice:example.org",
-                                            roomId = RoomId("!726s6s6q:example.com")
-                                        )
-                                    )
-                                ),
-                                timeline = Rooms.Timeline(
-                                    listOf(
-                                        StateEvent(
-                                            content = MemberEventContent(
-                                                membership = JOIN,
-                                                avatarUrl = "mxc://example.org/SEsfnsuifSDFSSEF",
-                                                displayName = "Alice Margatroid"
-                                            ),
-                                            id = EventId("$143273582443PhrSn:example.org"),
-                                            sender = UserId("@example:example.org"),
-                                            originTimestamp = 1432735824653,
-                                            unsigned = UnsignedStateEventData(
-                                                age = 1234
-                                            ),
-                                            stateKey = "@alice:example.org",
-                                            roomId = RoomId("!726s6s6q:example.com")
+                    presence =
+                        Presence(
+                            listOf(
+                                EphemeralEvent(
+                                    content =
+                                        PresenceEventContent(
+                                            avatarUrl = "mxc://localhost:wefuiwegh8742w",
+                                            lastActiveAgo = 2478593,
+                                            presence = ONLINE,
+                                            isCurrentlyActive = false,
+                                            statusMessage = "Making cupcakes",
                                         ),
-                                        ClientEvent.RoomEvent.MessageEvent(
-                                            content = RoomMessageEventContent.TextBased.Text(
-                                                body = "This is an example text message",
-                                                format = "org.matrix.custom.html",
-                                                formattedBody = "<b>This is an example text message</b>"
-                                            ),
-                                            id = EventId("$143273582443PhrSn:example.org"),
-                                            sender = UserId("@example:example.org"),
-                                            originTimestamp = 1432735824653,
-                                            unsigned = UnsignedMessageEventData(
-                                                age = 1234
-                                            ),
-                                            roomId = RoomId("!726s6s6q:example.com")
-                                        )
-                                    ),
-                                    limited = true,
-                                    previousBatch = "t34-23535_0_0"
-                                ),
-                                ephemeral = Ephemeral(
-                                    listOf(
-                                        EphemeralEvent(
-                                            content = TypingEventContent(
-                                                setOf(UserId("@alice:matrix.org"), UserId("@bob:matrix.org"))
-                                            ),
-                                            roomId = RoomId("!726s6s6q:example.com")
-                                        )
-                                    )
-                                ),
-                                accountData = RoomAccountData(
-                                    listOf(
-                                        RoomAccountDataEvent(
-                                            content = UnknownEventContent(
-                                                JsonObject(mapOf("custom_config_key" to JsonPrimitive("custom_config_value"))),
-                                                EventContentBlocks(
-                                                    EventContentBlock.Unknown(
-                                                        "custom_config_key",
-                                                        JsonPrimitive("custom_config_value")
-                                                    )
-                                                ),
-                                                eventType = "org.example.custom.config"
-                                            ),
-                                            roomId = RoomId("!726s6s6q:example.com")
-                                        ),
-                                    )
+                                    sender = UserId("@example:localhost"),
                                 )
                             )
                         ),
-                        invite = roomMapOf(
-                            RoomId("!696r7674:example.com") to InvitedRoom(
-                                strippedState = StrippedState(
-                                    listOf(
-                                        StrippedStateEvent(
-                                            content = NameEventContent("My Room Name"),
-                                            sender = UserId("@alice:example.com"),
-                                            roomId = RoomId("!696r7674:example.com"),
-                                            stateKey = ""
-                                        ),
-                                        StrippedStateEvent(
-                                            content = MemberEventContent(membership = INVITE),
-                                            sender = UserId("@alice:example.com"),
-                                            roomId = RoomId("!696r7674:example.com"),
-                                            stateKey = "@bob:example.com"
+                    accountData =
+                        GlobalAccountData(
+                            listOf(
+                                GlobalAccountDataEvent(
+                                    content =
+                                        UnknownEventContent(
+                                            JsonObject(
+                                                mapOf("custom_config_key" to JsonPrimitive("custom_config_value"))
+                                            ),
+                                            EventContentBlocks(
+                                                EventContentBlock.Unknown(
+                                                    "custom_config_key",
+                                                    JsonPrimitive("custom_config_value"),
+                                                )
+                                            ),
+                                            eventType = "org.example.custom.config",
                                         )
-                                    )
-                                )
+                                ),
+                                GlobalAccountDataEvent(
+                                    content =
+                                        DirectEventContent(
+                                            mapOf(
+                                                UserId("@bob:example.com") to
+                                                    setOf(
+                                                        RoomId("!abcdefgh:example.com"),
+                                                        RoomId("!hgfedcba:example.com"),
+                                                    )
+                                            )
+                                        )
+                                ),
                             )
-                        )
-                    )
+                        ),
+                    room =
+                        Rooms(
+                            join =
+                                roomMapOf(
+                                    RoomId("!726s6s6q:example.com") to
+                                        JoinedRoom(
+                                            summary =
+                                                RoomSummary(
+                                                    heroes =
+                                                        listOf(
+                                                            UserId("@alice:example.com"),
+                                                            UserId("@bob:example.com"),
+                                                        ),
+                                                    joinedMemberCount = 2,
+                                                    invitedMemberCount = 0,
+                                                ),
+                                            state =
+                                                Rooms.State(
+                                                    listOf(
+                                                        StateEvent(
+                                                            content =
+                                                                MemberEventContent(
+                                                                    membership = JOIN,
+                                                                    avatarUrl = "mxc://example.org/SEsfnsuifSDFSSEF",
+                                                                    displayName = "Alice Margatroid",
+                                                                ),
+                                                            id = EventId("$143273582443PhrSn:example.org"),
+                                                            sender = UserId("@example:example.org"),
+                                                            originTimestamp = 1432735824653,
+                                                            unsigned = UnsignedStateEventData(age = 1234),
+                                                            stateKey = "@alice:example.org",
+                                                            roomId = RoomId("!726s6s6q:example.com"),
+                                                        )
+                                                    )
+                                                ),
+                                            timeline =
+                                                Rooms.Timeline(
+                                                    listOf(
+                                                        StateEvent(
+                                                            content =
+                                                                MemberEventContent(
+                                                                    membership = JOIN,
+                                                                    avatarUrl = "mxc://example.org/SEsfnsuifSDFSSEF",
+                                                                    displayName = "Alice Margatroid",
+                                                                ),
+                                                            id = EventId("$143273582443PhrSn:example.org"),
+                                                            sender = UserId("@example:example.org"),
+                                                            originTimestamp = 1432735824653,
+                                                            unsigned = UnsignedStateEventData(age = 1234),
+                                                            stateKey = "@alice:example.org",
+                                                            roomId = RoomId("!726s6s6q:example.com"),
+                                                        ),
+                                                        ClientEvent.RoomEvent.MessageEvent(
+                                                            content =
+                                                                RoomMessageEventContent.TextBased.Text(
+                                                                    body = "This is an example text message",
+                                                                    format = "org.matrix.custom.html",
+                                                                    formattedBody =
+                                                                        "<b>This is an example text message</b>",
+                                                                ),
+                                                            id = EventId("$143273582443PhrSn:example.org"),
+                                                            sender = UserId("@example:example.org"),
+                                                            originTimestamp = 1432735824653,
+                                                            unsigned = UnsignedMessageEventData(age = 1234),
+                                                            roomId = RoomId("!726s6s6q:example.com"),
+                                                        ),
+                                                    ),
+                                                    limited = true,
+                                                    previousBatch = "t34-23535_0_0",
+                                                ),
+                                            ephemeral =
+                                                Ephemeral(
+                                                    listOf(
+                                                        EphemeralEvent(
+                                                            content =
+                                                                TypingEventContent(
+                                                                    setOf(
+                                                                        UserId("@alice:matrix.org"),
+                                                                        UserId("@bob:matrix.org"),
+                                                                    )
+                                                                ),
+                                                            roomId = RoomId("!726s6s6q:example.com"),
+                                                        )
+                                                    )
+                                                ),
+                                            accountData =
+                                                RoomAccountData(
+                                                    listOf(
+                                                        RoomAccountDataEvent(
+                                                            content =
+                                                                UnknownEventContent(
+                                                                    JsonObject(
+                                                                        mapOf(
+                                                                            "custom_config_key" to
+                                                                                JsonPrimitive("custom_config_value")
+                                                                        )
+                                                                    ),
+                                                                    EventContentBlocks(
+                                                                        EventContentBlock.Unknown(
+                                                                            "custom_config_key",
+                                                                            JsonPrimitive("custom_config_value"),
+                                                                        )
+                                                                    ),
+                                                                    eventType = "org.example.custom.config",
+                                                                ),
+                                                            roomId = RoomId("!726s6s6q:example.com"),
+                                                        )
+                                                    )
+                                                ),
+                                        )
+                                ),
+                            invite =
+                                roomMapOf(
+                                    RoomId("!696r7674:example.com") to
+                                        InvitedRoom(
+                                            strippedState =
+                                                StrippedState(
+                                                    listOf(
+                                                        StrippedStateEvent(
+                                                            content = NameEventContent("My Room Name"),
+                                                            sender = UserId("@alice:example.com"),
+                                                            roomId = RoomId("!696r7674:example.com"),
+                                                            stateKey = "",
+                                                        ),
+                                                        StrippedStateEvent(
+                                                            content = MemberEventContent(membership = INVITE),
+                                                            sender = UserId("@alice:example.com"),
+                                                            roomId = RoomId("!696r7674:example.com"),
+                                                            stateKey = "@bob:example.com",
+                                                        ),
+                                                    )
+                                                )
+                                        )
+                                ),
+                        ),
                 )
             )
         val response =
-            client.get("/_matrix/client/v3/sync?filter=someFilter&full_state=true&set_presence=online&since=someSince&timeout=1234") {
+            client.get(
+                "/_matrix/client/v3/sync?filter=someFilter&full_state=true&set_presence=online&since=someSince&timeout=1234"
+            ) {
                 bearerAuth("token")
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                 {
                   "next_batch":"s72595_4483_1934",
                   "rooms":{
@@ -405,16 +435,19 @@ class SyncRoutesTest : TrixnityBaseTest() {
                     ]
                   }
                 }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.sync(assert {
-                it.endpoint.filter shouldBe "someFilter"
-                it.endpoint.fullState shouldBe true
-                it.endpoint.setPresence shouldBe ONLINE
-                it.endpoint.since shouldBe "someSince"
-                it.endpoint.timeout shouldBe 1234
-            })
+            handlerMock.sync(
+                assert {
+                    it.endpoint.filter shouldBe "someFilter"
+                    it.endpoint.fullState shouldBe true
+                    it.endpoint.setPresence shouldBe ONLINE
+                    it.endpoint.since shouldBe "someSince"
+                    it.endpoint.timeout shouldBe 1234
+                }
+            )
         }
     }
 }

@@ -15,6 +15,13 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventConte
 import de.connect2x.trixnity.core.model.events.mergeContentOrNull
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -24,13 +31,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 private val log = Logger("de.connect2x.trixnity.client.room.StickyRoomEventHandler")
 
@@ -45,9 +45,11 @@ class StickyEventHandler(
 ) : EventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
         if (config.experimentalFeatures.enableMSC4354.not()) return
-        api.sync.subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setStickyEvents)
+        api.sync
+            .subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setStickyEvents)
             .unsubscribeOnCompletion(scope)
-        api.sync.subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setEncryptedStickyEvents)
+        api.sync
+            .subscribeEventList(Priority.STORE_EVENTS, subscriber = ::setEncryptedStickyEvents)
             .unsubscribeOnCompletion(scope)
         scope.launch { removeInvalidStickyEvents() }
     }
@@ -55,9 +57,7 @@ class StickyEventHandler(
     internal suspend fun removeInvalidStickyEvents() {
         while (currentCoroutineContext().isActive) {
             delay(2.minutes)
-            tm.writeTransaction {
-                stickyEventStore.deleteInvalid()
-            }
+            tm.writeTransaction { stickyEventStore.deleteInvalid() }
         }
     }
 
@@ -69,34 +69,37 @@ class StickyEventHandler(
                 val startTime = minOf(now, Instant.fromEpochMilliseconds(stickyEvent.originTimestamp))
                 val stickyDuration = sticky.durationMs.milliseconds.coerceIn(ZERO..1.hours)
                 val endTime = startTime + stickyDuration
-                StoredStickyEvent(
-                    event = stickyEvent,
-                    startTime = startTime,
-                    endTime = endTime
-                )
+                StoredStickyEvent(event = stickyEvent, startTime = startTime, endTime = endTime)
             }
             if (stickyEventUpdates.isNotEmpty()) {
-                tm.writeTransaction {
-                    stickyEventUpdates.forEach { stickyEventStore.save(it) }
-                }
+                tm.writeTransaction { stickyEventUpdates.forEach { stickyEventStore.save(it) } }
             }
         }
     }
 
-    internal suspend fun setEncryptedStickyEvents(encryptedEvents: List<ClientEvent.RoomEvent.MessageEvent<EncryptedMessageEventContent>>) {
+    internal suspend fun setEncryptedStickyEvents(
+        encryptedEvents: List<ClientEvent.RoomEvent.MessageEvent<EncryptedMessageEventContent>>
+    ) {
         val encryptedStickyEvents = encryptedEvents.filter { it.sticky != null }
         if (encryptedStickyEvents.isNotEmpty()) {
             val stickyEvents = coroutineScope {
-                encryptedStickyEvents.map { encryptedStickyEvent ->
-                    async {
-                        val decryptedStickyEventContent = withTimeoutOrNull(3.seconds) {
-                            roomEventEncryptionServices.decrypt(encryptedStickyEvent)
-                                ?.onFailure { log.warn { "could not decrypt sticky event ${encryptedStickyEvent.id}" } }
-                                ?.getOrNull() as? StickyEventContent
-                        } ?: return@async null
-                        encryptedStickyEvent.mergeContentOrNull(decryptedStickyEventContent)
+                encryptedStickyEvents
+                    .map { encryptedStickyEvent ->
+                        async {
+                            val decryptedStickyEventContent =
+                                withTimeoutOrNull(3.seconds) {
+                                    roomEventEncryptionServices
+                                        .decrypt(encryptedStickyEvent)
+                                        ?.onFailure {
+                                            log.warn { "could not decrypt sticky event ${encryptedStickyEvent.id}" }
+                                        }
+                                        ?.getOrNull() as? StickyEventContent
+                                } ?: return@async null
+                            encryptedStickyEvent.mergeContentOrNull(decryptedStickyEventContent)
+                        }
                     }
-                }.awaitAll().filterNotNull()
+                    .awaitAll()
+                    .filterNotNull()
             }
             setStickyEvents(stickyEvents)
         }

@@ -25,35 +25,29 @@ internal object ExposedGlobalAccountData : Table("global_account_data") {
 
 internal class ExposedGlobalAccountDataRepository(private val json: Json) : GlobalAccountDataRepository {
     @OptIn(ExperimentalSerializationApi::class)
-    private val serializer = json.serializersModule.getContextual(GlobalAccountDataEvent::class)
-        ?: throw IllegalArgumentException("could not find event serializer")
+    private val serializer =
+        json.serializersModule.getContextual(GlobalAccountDataEvent::class)
+            ?: throw IllegalArgumentException("could not find event serializer")
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: String): Map<String, GlobalAccountDataEvent<*>> {
-        return ExposedGlobalAccountData.selectAll().where { ExposedGlobalAccountData.type.eq(firstKey) }
+        return ExposedGlobalAccountData.selectAll()
+            .where { ExposedGlobalAccountData.type.eq(firstKey) }
             .associate {
-                it[ExposedGlobalAccountData.key] to json.decodeFromString(
-                    serializer,
-                    it[ExposedGlobalAccountData.event]
-                )
+                it[ExposedGlobalAccountData.key] to
+                    json.decodeFromString(serializer, it[ExposedGlobalAccountData.event])
             }
     }
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: String, secondKey: String): GlobalAccountDataEvent<*>? =
-        ExposedGlobalAccountData.selectAll().where {
-            ExposedGlobalAccountData.type.eq(firstKey) and
-                    ExposedGlobalAccountData.key.eq(secondKey)
-        }.firstOrNull()?.let {
-            json.decodeFromString(serializer, it[ExposedGlobalAccountData.event])
-        }
+        ExposedGlobalAccountData.selectAll()
+            .where { ExposedGlobalAccountData.type.eq(firstKey) and ExposedGlobalAccountData.key.eq(secondKey) }
+            .firstOrNull()
+            ?.let { json.decodeFromString(serializer, it[ExposedGlobalAccountData.event]) }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        firstKey: String,
-        secondKey: String,
-        value: GlobalAccountDataEvent<*>
-    ) {
+    override suspend fun save(firstKey: String, secondKey: String, value: GlobalAccountDataEvent<*>) {
         ExposedGlobalAccountData.upsert {
             it[type] = firstKey
             it[key] = secondKey
@@ -63,10 +57,7 @@ internal class ExposedGlobalAccountDataRepository(private val json: Json) : Glob
 
     context(transaction: WriteTransaction)
     override suspend fun delete(firstKey: String, secondKey: String) {
-        ExposedGlobalAccountData.deleteWhere {
-            type.eq(firstKey) and
-                    key.eq(secondKey)
-        }
+        ExposedGlobalAccountData.deleteWhere { type.eq(firstKey) and key.eq(secondKey) }
     }
 
     context(transaction: WriteTransaction)

@@ -22,25 +22,23 @@ value class LibOlmSession(private val inner: OlmSession) : Session {
         val result = inner.encrypt(plaintext)
 
         return when (result.type) {
-            OlmMessage.OlmMessageType.INITIAL_PRE_KEY -> LibOlmPreKeyMessage(
-                inner = result.cipherText,
-            )
+            OlmMessage.OlmMessageType.INITIAL_PRE_KEY -> LibOlmPreKeyMessage(inner = result.cipherText)
 
-            OlmMessage.OlmMessageType.ORDINARY -> LibOlmNormalMessage(
-                inner = result.cipherText,
-            )
+            OlmMessage.OlmMessageType.ORDINARY -> LibOlmNormalMessage(inner = result.cipherText)
         }
     }
 
     override fun decrypt(message: Message): String {
         require(message is LibOlmPreKeyMessage || message is LibOlmNormalMessage)
 
-        val message = OlmMessage(
-            message.base64, when (message) {
-                is Message.PreKey -> OlmMessage.OlmMessageType.INITIAL_PRE_KEY
-                is Message.Normal -> OlmMessage.OlmMessageType.ORDINARY
-            }
-        )
+        val message =
+            OlmMessage(
+                message.base64,
+                when (message) {
+                    is Message.PreKey -> OlmMessage.OlmMessageType.INITIAL_PRE_KEY
+                    is Message.Normal -> OlmMessage.OlmMessageType.ORDINARY
+                },
+            )
 
         return rethrow { inner.decrypt(message) }
     }

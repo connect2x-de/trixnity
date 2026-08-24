@@ -6,10 +6,10 @@ import io.ktor.util.*
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
 import js.typedarrays.toUint8Array
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import okio.Buffer
 import okio.HashingSink
 import okio.blackholeSink
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private class BrowserSha256 : Hasher {
 
@@ -71,7 +71,8 @@ private class NodeJsSha256 : Hasher {
     }
 }
 
-actual fun Sha256(): Hasher = when {
-    PlatformUtils.IS_BROWSER -> BrowserSha256()
-    else -> NodeJsSha256()
-}
+actual fun Sha256(): Hasher =
+    when {
+        PlatformUtils.IS_BROWSER -> BrowserSha256()
+        else -> NodeJsSha256()
+    }

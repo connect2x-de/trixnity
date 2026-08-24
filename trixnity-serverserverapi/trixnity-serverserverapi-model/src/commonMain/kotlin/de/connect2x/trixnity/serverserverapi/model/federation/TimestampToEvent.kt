@@ -1,17 +1,17 @@
 package de.connect2x.trixnity.serverserverapi.model.federation
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
+import io.ktor.resources.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#get_matrixfederationv1timestamp_to_eventroomid">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#get_matrixfederationv1timestamp_to_eventroomid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/federation/v1/timestamp_to_event/{roomId}")
@@ -24,11 +24,8 @@ data class TimestampToEvent(
 
     @Serializable
     enum class Direction {
-        @SerialName("f")
-        FORWARDS,
-
-        @SerialName("b")
-        BACKWARDS
+        @SerialName("f") FORWARDS,
+        @SerialName("b") BACKWARDS,
     }
 
     @Serializable

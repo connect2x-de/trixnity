@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @see <a href="https://spec.matrix.org/v1.4/client-server-api/#get_matrixclientv1roomsroomidthreads">matrix spec</a>
@@ -31,10 +31,7 @@ data class GetThreads(
 
     @Serializable
     enum class Include {
-        @SerialName("all")
-        ALL,
-
-        @SerialName("participated")
-        PARTICIPATED
+        @SerialName("all") ALL,
+        @SerialName("participated") PARTICIPATED,
     }
 }

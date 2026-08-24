@@ -23,14 +23,15 @@ internal object ExposedMediaCacheMapping : Table("media_cache_mapping") {
 internal class ExposedMediaCacheMappingRepository : MediaCacheMappingRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: String): MediaCacheMapping? {
-        return ExposedMediaCacheMapping.selectAll().where { ExposedMediaCacheMapping.cacheUri eq key }
+        return ExposedMediaCacheMapping.selectAll()
+            .where { ExposedMediaCacheMapping.cacheUri eq key }
             .firstOrNull()
             ?.let {
                 MediaCacheMapping(
                     key,
                     it[ExposedMediaCacheMapping.mxcUri],
                     it[ExposedMediaCacheMapping.size],
-                    it[ExposedMediaCacheMapping.contentType]
+                    it[ExposedMediaCacheMapping.contentType],
                 )
             }
     }

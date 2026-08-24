@@ -1,11 +1,6 @@
 package de.connect2x.trixnity.client.notification
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.contentOrNull
 import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomUserStore
@@ -20,13 +15,16 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.roomIdOrNull
 import de.connect2x.trixnity.core.model.events.senderOrNull
 import de.connect2x.trixnity.core.model.push.PushCondition
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 
 private val log = Logger("de.connect2x.trixnity.client.notification.PushRuleConditionMatcher")
 
 interface PushRuleConditionMatcher {
-    /**
-     * Calculate if a [PushCondition] matches for the given event.
-     */
+    /** Calculate if a [PushCondition] matches for the given event. */
     suspend fun match(condition: PushCondition, event: ClientEvent<*>, eventJson: Lazy<JsonObject?>): Boolean
 }
 
@@ -49,9 +47,8 @@ class PushRuleConditionMatcherImpl(
             val content = event.content
             return if (content is RoomMessageEventContent) {
                 event.roomIdOrNull?.let { roomId ->
-                    roomUserStore.get(userId, roomId).first()?.name?.let { username ->
-                        content.body.contains(username)
-                    } ?: false
+                    roomUserStore.get(userId, roomId).first()?.name?.let { username -> content.body.contains(username) }
+                        ?: false
                 } ?: false
             } else false
         }
@@ -65,7 +62,7 @@ class PushRuleConditionMatcherImpl(
             return event.roomIdOrNull?.let { roomId ->
                 hasSizeMatch(
                     value = condition.isCount,
-                    size = roomStore.get(roomId).first()?.name?.summary?.joinedMemberCount ?: 0
+                    size = roomStore.get(roomId).first()?.name?.summary?.joinedMemberCount ?: 0,
                 )
             } ?: false
         }
@@ -91,12 +88,8 @@ class PushRuleConditionMatcherImpl(
             }
         }
 
-        fun match(
-            condition: PushCondition.EventMatch,
-            eventJson: Lazy<JsonObject?>
-        ): Boolean {
-            val propertyValue =
-                (eventJson.value?.let { jsonPath(it, condition.key) } as? JsonPrimitive)?.contentOrNull
+        fun match(condition: PushCondition.EventMatch, eventJson: Lazy<JsonObject?>): Boolean {
+            val propertyValue = (eventJson.value?.let { jsonPath(it, condition.key) } as? JsonPrimitive)?.contentOrNull
             return if (propertyValue == null) {
                 log.trace { "cannot get the event's value for key '${condition.key}' or value is 'null'" }
                 false
@@ -105,10 +98,7 @@ class PushRuleConditionMatcherImpl(
             }
         }
 
-        fun match(
-            condition: PushCondition.EventPropertyIs,
-            eventJson: Lazy<JsonObject?>
-        ): Boolean {
+        fun match(condition: PushCondition.EventPropertyIs, eventJson: Lazy<JsonObject?>): Boolean {
             val propertyValue = eventJson.value?.let { jsonPath(it, condition.key) } as? JsonPrimitive
             return if (propertyValue == null) {
                 log.trace { "cannot get the event's value for key '${condition.key}' or value is 'null'" }
@@ -118,10 +108,7 @@ class PushRuleConditionMatcherImpl(
             }
         }
 
-        fun match(
-            condition: PushCondition.EventPropertyContains,
-            eventJson: Lazy<JsonObject?>
-        ): Boolean {
+        fun match(condition: PushCondition.EventPropertyContains, eventJson: Lazy<JsonObject?>): Boolean {
             val propertyValue = eventJson.value?.let { jsonPath(it, condition.key) } as? JsonArray
             return if (propertyValue == null) {
                 log.trace { "cannot get the event's value for key '${condition.key}' or value is 'null'" }
@@ -132,19 +119,16 @@ class PushRuleConditionMatcherImpl(
         }
     }
 
-
     @Suppress("DEPRECATION")
-    override suspend fun match(
-        condition: PushCondition,
-        event: ClientEvent<*>,
-        eventJson: Lazy<JsonObject?>
-    ): Boolean = when (condition) {
-        is PushCondition.ContainsDisplayName -> Companion.match(condition, event, userInfo.userId, roomUserStore)
-        is PushCondition.RoomMemberCount -> Companion.match(condition, event, roomStore)
-        is PushCondition.SenderNotificationPermission -> Companion.match(condition, event, roomStateStore, canDoAction)
-        is PushCondition.EventMatch -> Companion.match(condition, eventJson)
-        is PushCondition.EventPropertyContains -> Companion.match(condition, eventJson)
-        is PushCondition.EventPropertyIs -> Companion.match(condition, eventJson)
-        is PushCondition.Unknown -> false
-    }
+    override suspend fun match(condition: PushCondition, event: ClientEvent<*>, eventJson: Lazy<JsonObject?>): Boolean =
+        when (condition) {
+            is PushCondition.ContainsDisplayName -> Companion.match(condition, event, userInfo.userId, roomUserStore)
+            is PushCondition.RoomMemberCount -> Companion.match(condition, event, roomStore)
+            is PushCondition.SenderNotificationPermission ->
+                Companion.match(condition, event, roomStateStore, canDoAction)
+            is PushCondition.EventMatch -> Companion.match(condition, eventJson)
+            is PushCondition.EventPropertyContains -> Companion.match(condition, eventJson)
+            is PushCondition.EventPropertyIs -> Companion.match(condition, eventJson)
+            is PushCondition.Unknown -> false
+        }
 }

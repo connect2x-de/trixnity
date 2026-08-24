@@ -19,5 +19,4 @@ value class LibOlmPkMessage(internal val inner: OlmPkMessage) : PkMessage {
         get() = LibOlmCurve25519PublicKey(inner.ephemeralKey)
 
     override fun close() {}
-
 }

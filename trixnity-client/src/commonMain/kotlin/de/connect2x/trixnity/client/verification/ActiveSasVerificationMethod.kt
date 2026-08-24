@@ -44,7 +44,8 @@ import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod")
 
-class ActiveSasVerificationMethod private constructor(
+class ActiveSasVerificationMethod
+private constructor(
     override val startEventContent: SasStartEventContent,
     private val weStartedVerification: Boolean,
     private val ownUserId: UserId,
@@ -61,21 +62,23 @@ class ActiveSasVerificationMethod private constructor(
     private val olmSas: Sas,
 ) : ActiveVerificationMethod() {
 
-    private val actualTransactionId = relatesTo?.eventId?.full
-        ?: transactionId
-        ?: throw IllegalArgumentException("actualTransactionId should never be null")
+    private val actualTransactionId =
+        relatesTo?.eventId?.full
+            ?: transactionId
+            ?: throw IllegalArgumentException("actualTransactionId should never be null")
 
     private val _state: MutableStateFlow<ActiveSasVerificationState> =
         MutableStateFlow(
             if (weStartedVerification) OwnSasStart(startEventContent)
-            else TheirSasStart(
-                startEventContent,
-                KeyValue.of(olmSas.publicKey),
-                json,
-                relatesTo,
-                transactionId,
-                sendVerificationStep
-            )
+            else
+                TheirSasStart(
+                    startEventContent,
+                    KeyValue.of(olmSas.publicKey),
+                    json,
+                    relatesTo,
+                    transactionId,
+                    sendVerificationStep,
+                )
         )
     val state = _state.asStateFlow()
 
@@ -87,16 +90,73 @@ class ActiveSasVerificationMethod private constructor(
     private var messageAuthenticationCode: SasMessageAuthenticationCode? = null
 
     companion object {
-        val numberToEmojiMapping = mapOf(
-            0 to "🐶", 1 to "🐱", 2 to "🦁", 3 to "🐎", 4 to "🦄", 5 to "🐷", 6 to "🐘", 7 to "🐰", 8 to "🐼",
-            9 to "🐓", 10 to "🐧", 11 to "🐢", 12 to "🐟", 13 to "🐙", 14 to "🦋", 15 to "🌷", 16 to "🌳", 17 to "🌵",
-            18 to "🍄", 19 to "🌏", 20 to "🌙", 21 to "☁", 22 to "🔥", 23 to "🍌", 24 to "🍎", 25 to "🍓", 26 to "🌽",
-            27 to "🍕", 28 to "🎂", 29 to "❤", 30 to "😀", 31 to "🤖", 32 to "🎩", 33 to "👓", 34 to "🔧", 35 to "🎅",
-            36 to "👍", 37 to "☂", 38 to "⌛", 39 to "⏰", 40 to "🎁", 41 to "💡", 42 to "📕", 43 to "✏", 44 to "📎",
-            45 to "✂", 46 to "🔒", 47 to "🔑", 48 to "🔨", 49 to "☎", 50 to "🏁", 51 to "🚂", 52 to "🚲", 53 to "✈",
-            54 to "🚀", 55 to "🏆", 56 to "⚽", 57 to "🎸", 58 to "🎺", 59 to "🔔", 60 to "⚓", 61 to "🎧", 62 to "📁",
-            63 to "📌"
-        )
+        val numberToEmojiMapping =
+            mapOf(
+                0 to "🐶",
+                1 to "🐱",
+                2 to "🦁",
+                3 to "🐎",
+                4 to "🦄",
+                5 to "🐷",
+                6 to "🐘",
+                7 to "🐰",
+                8 to "🐼",
+                9 to "🐓",
+                10 to "🐧",
+                11 to "🐢",
+                12 to "🐟",
+                13 to "🐙",
+                14 to "🦋",
+                15 to "🌷",
+                16 to "🌳",
+                17 to "🌵",
+                18 to "🍄",
+                19 to "🌏",
+                20 to "🌙",
+                21 to "☁",
+                22 to "🔥",
+                23 to "🍌",
+                24 to "🍎",
+                25 to "🍓",
+                26 to "🌽",
+                27 to "🍕",
+                28 to "🎂",
+                29 to "❤",
+                30 to "😀",
+                31 to "🤖",
+                32 to "🎩",
+                33 to "👓",
+                34 to "🔧",
+                35 to "🎅",
+                36 to "👍",
+                37 to "☂",
+                38 to "⌛",
+                39 to "⏰",
+                40 to "🎁",
+                41 to "💡",
+                42 to "📕",
+                43 to "✏",
+                44 to "📎",
+                45 to "✂",
+                46 to "🔒",
+                47 to "🔑",
+                48 to "🔨",
+                49 to "☎",
+                50 to "🏁",
+                51 to "🚂",
+                52 to "🚲",
+                53 to "✈",
+                54 to "🚀",
+                55 to "🏆",
+                56 to "⚽",
+                57 to "🎸",
+                58 to "🎺",
+                59 to "🔔",
+                60 to "⚓",
+                61 to "🎧",
+                62 to "📁",
+                63 to "📌",
+            )
 
         suspend fun create(
             startEventContent: SasStartEventContent,
@@ -120,40 +180,43 @@ class ActiveSasVerificationMethod private constructor(
                             UnknownMethod,
                             "key agreement protocol not supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                     null
                 }
 
-                startEventContent.shortAuthenticationString.none { it == SasMethod.Emoji || it == SasMethod.Decimal } -> {
+                startEventContent.shortAuthenticationString.none {
+                    it == SasMethod.Emoji || it == SasMethod.Decimal
+                } -> {
                     sendVerificationStep(
                         VerificationCancelEventContent(
                             UnknownMethod,
                             "short authentication string not supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                     null
                 }
 
-                else -> ActiveSasVerificationMethod(
-                    startEventContent,
-                    weStartedVerification,
-                    ownUserId,
-                    ownDeviceId,
-                    theirUserId,
-                    theirDeviceId,
-                    relatesTo,
-                    transactionId,
-                    sendVerificationStep,
-                    keyStore,
-                    keyTrustService,
-                    json,
-                    driver,
-                    driver.sas(),
-                )
+                else ->
+                    ActiveSasVerificationMethod(
+                        startEventContent,
+                        weStartedVerification,
+                        ownUserId,
+                        ownDeviceId,
+                        theirUserId,
+                        theirDeviceId,
+                        relatesTo,
+                        transactionId,
+                        sendVerificationStep,
+                        keyStore,
+                        keyTrustService,
+                        json,
+                        driver,
+                        driver.sas(),
+                    )
             }
         }
     }
@@ -162,24 +225,22 @@ class ActiveSasVerificationMethod private constructor(
         val currentState = state.value
         when (step) {
             is SasAcceptEventContent -> {
-                if (currentState is OwnSasStart || currentState is TheirSasStart)
-                    onAccept(step, isOurOwn)
+                if (currentState is OwnSasStart || currentState is TheirSasStart) onAccept(step, isOurOwn)
                 else cancelUnexpectedMessage(currentState)
             }
 
             is SasKeyEventContent -> {
-                if (currentState is Accept || currentState is WaitForKeys)
-                    onKey(step, isOurOwn)
+                if (currentState is Accept || currentState is WaitForKeys) onKey(step, isOurOwn)
                 else cancelUnexpectedMessage(currentState)
             }
 
             is SasMacEventContent -> {
-                if (currentState is ComparisonByUser || currentState is WaitForMacs)
-                    onMac(step, isOurOwn)
+                if (currentState is ComparisonByUser || currentState is WaitForMacs) onMac(step, isOurOwn)
                 else cancelUnexpectedMessage(currentState)
             }
 
-            is VerificationCancelEventContent, is VerificationDoneEventContent -> {
+            is VerificationCancelEventContent,
+            is VerificationDoneEventContent -> {
                 onDoneOrCancel()
             }
         }
@@ -191,7 +252,7 @@ class ActiveSasVerificationMethod private constructor(
                 UnexpectedMessage,
                 "this verification is at SAS step ${currentState::class.simpleName}",
                 relatesTo,
-                transactionId
+                transactionId,
             )
         )
     }
@@ -208,7 +269,7 @@ class ActiveSasVerificationMethod private constructor(
                             UnknownMethod,
                             "only hashes [${SasHash.Sha256.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
 
@@ -218,41 +279,35 @@ class ActiveSasVerificationMethod private constructor(
                             UnknownMethod,
                             "only key agreement protocols [${Curve25519HkdfSha256.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
 
-                stepContent.messageAuthenticationCode != HkdfHmacSha256
-                        && stepContent.messageAuthenticationCode != HkdfHmacSha256V2 ->
+                stepContent.messageAuthenticationCode != HkdfHmacSha256 &&
+                    stepContent.messageAuthenticationCode != HkdfHmacSha256V2 ->
                     sendVerificationStep(
                         VerificationCancelEventContent(
                             UnknownMethod,
                             "only message authentication codes [${HkdfHmacSha256.name} ${HkdfHmacSha256V2.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
 
-                stepContent.shortAuthenticationString.contains(SasMethod.Decimal).not()
-                        && stepContent.shortAuthenticationString.contains(SasMethod.Emoji).not() ->
+                stepContent.shortAuthenticationString.contains(SasMethod.Decimal).not() &&
+                    stepContent.shortAuthenticationString.contains(SasMethod.Emoji).not() ->
                     sendVerificationStep(
                         VerificationCancelEventContent(
                             UnknownMethod,
                             "only short authentication strings [${SasMethod.Decimal.name} ${SasMethod.Emoji.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
 
                 else -> {
                     theirCommitment = stepContent.commitment
-                    sendVerificationStep(
-                        SasKeyEventContent(
-                            KeyValue.of(olmSas.publicKey),
-                            relatesTo,
-                            transactionId
-                        )
-                    )
+                    sendVerificationStep(SasKeyEventContent(KeyValue.of(olmSas.publicKey), relatesTo, transactionId))
                 }
             }
         }
@@ -269,11 +324,7 @@ class ActiveSasVerificationMethod private constructor(
                 if (currentState.isOurOwn != isOurOwn) {
                     if (!isOurOwn) {
                         sendVerificationStep(
-                            SasKeyEventContent(
-                                KeyValue.of(olmSas.publicKey),
-                                relatesTo,
-                                transactionId
-                            )
+                            SasKeyEventContent(KeyValue.of(olmSas.publicKey), relatesTo, transactionId)
                         )
                     }
                 } else cancelUnexpectedMessage(currentState)
@@ -282,59 +333,71 @@ class ActiveSasVerificationMethod private constructor(
             is WaitForKeys -> {
                 if (currentState.isOurOwn != isOurOwn) {
                     fun createComparison() {
-                        val theirPublicKey = requireNotNull(theirPublicKey) {
-                            "their public key should never be null"
-                        }.value
+                        val theirPublicKey =
+                            requireNotNull(theirPublicKey) { "their public key should never be null" }.value
 
                         val ownInfo = "${ownUserId.full}|${ownDeviceId}|${olmSas.publicKey.base64}|"
                         val theirInfo = "${theirUserId.full}|${theirDeviceId}|${theirPublicKey}|"
-                        val sasInfo = "MATRIX_KEY_VERIFICATION_SAS|" +
+                        val sasInfo =
+                            "MATRIX_KEY_VERIFICATION_SAS|" +
                                 (if (weStartedVerification) ownInfo + theirInfo else theirInfo + ownInfo) +
                                 actualTransactionId
                         log.trace { "generate short code from sas info: $sasInfo" }
 
-                        val established = useAll(
-                            { olmSas },
-                            { driver.key.curve25519PublicKey(theirPublicKey) }
-                        ) { sas, theirPublicKey -> sas.diffieHellman(theirPublicKey) }
+                        val established =
+                            useAll({ olmSas }, { driver.key.curve25519PublicKey(theirPublicKey) }) { sas, theirPublicKey
+                                ->
+                                sas.diffieHellman(theirPublicKey)
+                            }
 
                         establishedSas = established
 
-                        val (decimal, rawEmojis) = established.generateBytes(sasInfo).use {
-                            it.decimals.asList to it.emojiIndices.asList
-                        }
-                        val emojis = rawEmojis.asSequence().map {
-                            it to checkNotNull(numberToEmojiMapping[it]) { "Cannot find emoji for number $it." }
-                        }.toList()
-                        _state.value = ComparisonByUser(
-                            decimal = decimal, emojis = emojis,
-                            ownUserId = ownUserId, ownDeviceId = ownDeviceId,
-                            theirUserId = theirUserId, theirDeviceId = theirDeviceId,
-                            messageAuthenticationCode = messageAuthenticationCode
-                                ?: throw IllegalArgumentException("should never be null at this step"),
-                            relatesTo = relatesTo,
-                            transactionId = transactionId,
-                            establishedSas = checkNotNull(establishedSas) { "should never be null at this step" },
-                            keyStore = keyStore,
-                            send = sendVerificationStep
-                        ).also { log.debug { "created comparison: $it" } }
+                        val (decimal, rawEmojis) =
+                            established.generateBytes(sasInfo).use { it.decimals.asList to it.emojiIndices.asList }
+                        val emojis =
+                            rawEmojis
+                                .asSequence()
+                                .map {
+                                    it to checkNotNull(numberToEmojiMapping[it]) { "Cannot find emoji for number $it." }
+                                }
+                                .toList()
+                        _state.value =
+                            ComparisonByUser(
+                                    decimal = decimal,
+                                    emojis = emojis,
+                                    ownUserId = ownUserId,
+                                    ownDeviceId = ownDeviceId,
+                                    theirUserId = theirUserId,
+                                    theirDeviceId = theirDeviceId,
+                                    messageAuthenticationCode =
+                                        messageAuthenticationCode
+                                            ?: throw IllegalArgumentException("should never be null at this step"),
+                                    relatesTo = relatesTo,
+                                    transactionId = transactionId,
+                                    establishedSas =
+                                        checkNotNull(establishedSas) { "should never be null at this step" },
+                                    keyStore = keyStore,
+                                    send = sendVerificationStep,
+                                )
+                                .also { log.debug { "created comparison: $it" } }
                     }
                     if (!isOurOwn) {
-                        if (theirCommitment != null
-                            && createSasCommitment(stepContent.key.value, startEventContent, json) == theirCommitment
+                        if (
+                            theirCommitment != null &&
+                                createSasCommitment(stepContent.key.value, startEventContent, json) == theirCommitment
                         ) {
                             theirPublicKey = stepContent.key
                             createComparison()
-                        } else sendVerificationStep(
-                            VerificationCancelEventContent(
-                                MismatchedCommitment,
-                                "mismatched commitment",
-                                relatesTo,
-                                transactionId
+                        } else
+                            sendVerificationStep(
+                                VerificationCancelEventContent(
+                                    MismatchedCommitment,
+                                    "mismatched commitment",
+                                    relatesTo,
+                                    transactionId,
+                                )
                             )
-                        )
                     } else createComparison()
-
                 } else cancelUnexpectedMessage(currentState)
             }
 
@@ -343,7 +406,9 @@ class ActiveSasVerificationMethod private constructor(
     }
 
     private suspend fun onMac(stepContent: SasMacEventContent, isOurOwn: Boolean) {
-        log.trace { "onMac $stepContent (isOurOwn=$isOurOwn, hasOwnMac=${ourMac != null}, hasTheirMac = ${theirMac != null})" }
+        log.trace {
+            "onMac $stepContent (isOurOwn=$isOurOwn, hasOwnMac=${ourMac != null}, hasTheirMac = ${theirMac != null})"
+        }
 
         if (isOurOwn) {
             ourMac = stepContent
@@ -376,7 +441,7 @@ class ActiveSasVerificationMethod private constructor(
                             UnexpectedMessage,
                             "messageAuthenticationCode is not set",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
@@ -387,9 +452,12 @@ class ActiveSasVerificationMethod private constructor(
     }
 
     private suspend fun checkHkdfHmacSha256Mac(theirMac: SasMacEventContent, calculateMac: (String, String) -> String) {
-        val baseInfo = "MATRIX_KEY_VERIFICATION_MAC" +
-                theirUserId.full + theirDeviceId +
-                ownUserId.full + ownDeviceId +
+        val baseInfo =
+            "MATRIX_KEY_VERIFICATION_MAC" +
+                theirUserId.full +
+                theirDeviceId +
+                ownUserId.full +
+                ownDeviceId +
                 actualTransactionId
         val theirMacs = theirMac.mac.keys.filterIsInstance<Ed25519Key>()
         val theirMacIds = theirMacs.map { it.fullId }
@@ -400,15 +468,22 @@ class ActiveSasVerificationMethod private constructor(
         if (keys == theirMac.keys.value) {
             val allKeysOfDevice = keyStore.getAllKeysFromUser<Ed25519Key>(theirUserId, theirDeviceId)
             val keysToMac = allKeysOfDevice.filter { theirMacIds.contains(it.fullId) }
-            val containsMismatchedMac = keysToMac.asSequence()
-                .map { keyToMac ->
-                    log.trace { "create key mac from input ${keyToMac.value} and info ${baseInfo + keyToMac.fullId}" }
-                    val calculatedMac =
-                        calculateMac(keyToMac.value.value, baseInfo + keyToMac.fullId)
-                    (calculatedMac == theirMac.mac.find { it.fullId == keyToMac.fullId }?.value?.valueOrNull).also {
-                        if (!it) log.warn { "macs from them (${keyToMac}) did not match our calculated ($calculatedMac)" }
+            val containsMismatchedMac =
+                keysToMac
+                    .asSequence()
+                    .map { keyToMac ->
+                        log.trace {
+                            "create key mac from input ${keyToMac.value} and info ${baseInfo + keyToMac.fullId}"
+                        }
+                        val calculatedMac = calculateMac(keyToMac.value.value, baseInfo + keyToMac.fullId)
+                        (calculatedMac == theirMac.mac.find { it.fullId == keyToMac.fullId }?.value?.valueOrNull).also {
+                            if (!it)
+                                log.warn {
+                                    "macs from them (${keyToMac}) did not match our calculated ($calculatedMac)"
+                                }
+                        }
                     }
-                }.contains(false)
+                    .contains(false)
             if (!containsMismatchedMac) {
                 keyTrustService.trustAndSignKeys(keysToMac.toSet(), theirUserId)
                 sendVerificationStep(VerificationDoneEventContent(relatesTo, transactionId))
@@ -429,5 +504,4 @@ class ActiveSasVerificationMethod private constructor(
         olmSas.close()
         establishedSas?.close()
     }
-
 }

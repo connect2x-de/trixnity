@@ -9,21 +9,12 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEven
 import de.connect2x.trixnity.core.model.events.m.Mentions
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 
-suspend fun MessageBuilder.reply(
-    event: TimelineEvent,
-) = reply(event.eventId, event.relatesTo)
+suspend fun MessageBuilder.reply(event: TimelineEvent) = reply(event.eventId, event.relatesTo)
 
-suspend fun MessageBuilder.reply(
-    event: MessageEvent<*>,
-) = reply(event.id, event.content.relatesTo)
+suspend fun MessageBuilder.reply(event: MessageEvent<*>) = reply(event.id, event.content.relatesTo)
 
-/**
- * Important: [eventRelatesTo] should be set from the event, that is replied. Otherwise, thread support is dropped.
- */
-suspend fun MessageBuilder.reply(
-    eventId: EventId,
-    eventRelatesTo: RelatesTo?,
-) {
+/** Important: [eventRelatesTo] should be set from the event, that is replied. Otherwise, thread support is dropped. */
+suspend fun MessageBuilder.reply(eventId: EventId, eventRelatesTo: RelatesTo?) {
     val replyTo = RelatesTo.ReplyTo(eventId)
     val repliedTimelineEvent = roomService.getTimelineEventWithContentAndTimeout(roomId, replyTo.eventId)
     mentions = Mentions(setOfNotNull(repliedTimelineEvent.sender)) + (mentions ?: Mentions())

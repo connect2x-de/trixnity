@@ -26,43 +26,47 @@ class ReceiptEventHandler(
 ) : EventHandler {
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        api.sync.subscribeContentList(Priority.STORE_EVENTS, subscriber = ::setReadReceipts)
+        api.sync
+            .subscribeContentList(Priority.STORE_EVENTS, subscriber = ::setReadReceipts)
             .unsubscribeOnCompletion(scope)
-        api.sync.subscribe(Priority.STORE_EVENTS, subscriber = ::deleteReadReceiptsOnNonJoin)
+        api.sync
+            .subscribe(Priority.STORE_EVENTS, subscriber = ::deleteReadReceiptsOnNonJoin)
             .unsubscribeOnCompletion(scope)
     }
 
     internal suspend fun setReadReceipts(receiptEvents: List<ClientEvent<ReceiptEventContent>>) {
         val receipts = receiptEvents.flatMap { receiptEvent ->
-            receiptEvent.roomIdOrNull?.let { roomId ->
-                log.trace { "set read receipts of room $roomId" }
-                data class UserReceipt(
-                    val userId: UserId,
-                    val type: ReceiptType,
-                    val receipt: RoomUserReceipts.Receipt,
-                )
+            receiptEvent.roomIdOrNull
+                ?.let { roomId ->
+                    log.trace { "set read receipts of room $roomId" }
+                    data class UserReceipt(
+                        val userId: UserId,
+                        val type: ReceiptType,
+                        val receipt: RoomUserReceipts.Receipt,
+                    )
 
-                val flattenReceipts = receiptEvent.content.events.flatMap { (eventId, receiptsByType) ->
-                    receiptsByType.flatMap { (type, receiptsByUser) ->
-                        receiptsByUser.map { (user, receipt) ->
-                            UserReceipt(user, type, RoomUserReceipts.Receipt(eventId, receipt))
+                    val flattenReceipts =
+                        receiptEvent.content.events.flatMap { (eventId, receiptsByType) ->
+                            receiptsByType.flatMap { (type, receiptsByUser) ->
+                                receiptsByUser.map { (user, receipt) ->
+                                    UserReceipt(user, type, RoomUserReceipts.Receipt(eventId, receipt))
+                                }
+                            }
                         }
-                    }
+                    flattenReceipts
+                        .groupBy { it.userId }
+                        .map { (userId, userReceipts) ->
+                            val receipts = userReceipts.groupBy { it.type }.mapValues { it.value.last().receipt }
+                            RoomUserReceipts(roomId, userId, receipts)
+                        }
                 }
-                flattenReceipts.groupBy { it.userId }
-                    .map { (userId, userReceipts) ->
-                        val receipts = userReceipts.groupBy { it.type }.mapValues { it.value.last().receipt }
-                        RoomUserReceipts(roomId, userId, receipts)
-                    }
-            }.orEmpty()
+                .orEmpty()
         }
         if (receipts.isNotEmpty()) {
             tm.writeTransaction {
                 receipts.forEach { roomUserReceipts ->
-                    roomUserStore.updateReceipts(
-                        roomUserReceipts.userId,
-                        roomUserReceipts.roomId
-                    ) { oldRoomUserReceipts ->
+                    roomUserStore.updateReceipts(roomUserReceipts.userId, roomUserReceipts.roomId) { oldRoomUserReceipts
+                        ->
                         oldRoomUserReceipts?.copy(receipts = oldRoomUserReceipts.receipts + roomUserReceipts.receipts)
                             ?: roomUserReceipts
                     }
@@ -74,14 +78,10 @@ class ReceiptEventHandler(
     internal suspend fun deleteReadReceiptsOnNonJoin(syncEvents: SyncEvents) {
         val deleteReceiptsByRoomId =
             syncEvents.syncResponse.room?.invite?.keys.orEmpty() +
-                    syncEvents.syncResponse.room?.knock?.keys.orEmpty() +
-                    syncEvents.syncResponse.room?.leave?.keys.orEmpty()
+                syncEvents.syncResponse.room?.knock?.keys.orEmpty() +
+                syncEvents.syncResponse.room?.leave?.keys.orEmpty()
         if (deleteReceiptsByRoomId.isNotEmpty()) {
-            tm.writeTransaction {
-                deleteReceiptsByRoomId.forEach {
-                    roomUserStore.deleteReceiptsByRoomId(it)
-                }
-            }
+            tm.writeTransaction { deleteReceiptsByRoomId.forEach { roomUserStore.deleteReceiptsByRoomId(it) } }
         }
     }
 }

@@ -11,33 +11,31 @@ interface CanDoAction {
         otherUserId: UserId,
         createEvent: ClientEvent.StateBaseEvent<CreateEventContent>,
         powerLevelsEventContent: PowerLevelsEventContent?,
-        actionCheck: (ownPowerLevel: Long) -> Boolean
+        actionCheck: (ownPowerLevel: Long) -> Boolean,
     ): Boolean
 
     fun asUser(
         userId: UserId,
         createEvent: ClientEvent.StateBaseEvent<CreateEventContent>,
         powerLevelsEventContent: PowerLevelsEventContent?,
-        actionCheck: (userPowerLevel: Long) -> Boolean
+        actionCheck: (userPowerLevel: Long) -> Boolean,
     ): Boolean
 }
 
-class CanDoActionImpl(
-    private val userInfo: UserInfo,
-    private val getPowerLevel: GetPowerLevel,
-) : CanDoAction {
+class CanDoActionImpl(private val userInfo: UserInfo, private val getPowerLevel: GetPowerLevel) : CanDoAction {
     override fun toUser(
         otherUserId: UserId,
         createEvent: ClientEvent.StateBaseEvent<CreateEventContent>,
         powerLevelsEventContent: PowerLevelsEventContent?,
-        actionCheck: (ownPowerLevel: Long) -> Boolean
+        actionCheck: (ownPowerLevel: Long) -> Boolean,
     ): Boolean =
         when (val otherPowerLevel = getPowerLevel(otherUserId, createEvent, powerLevelsEventContent)) {
             is PowerLevel.Creator -> false
             is PowerLevel.User ->
                 when (val ownPowerLevel = getPowerLevel(userInfo.userId, createEvent, powerLevelsEventContent)) {
                     is PowerLevel.Creator -> true
-                    is PowerLevel.User -> ownPowerLevel.level > otherPowerLevel.level && actionCheck(ownPowerLevel.level)
+                    is PowerLevel.User ->
+                        ownPowerLevel.level > otherPowerLevel.level && actionCheck(ownPowerLevel.level)
                 }
         }
 
@@ -45,7 +43,7 @@ class CanDoActionImpl(
         userId: UserId,
         createEvent: ClientEvent.StateBaseEvent<CreateEventContent>,
         powerLevelsEventContent: PowerLevelsEventContent?,
-        actionCheck: (userPowerLevel: Long) -> Boolean
+        actionCheck: (userPowerLevel: Long) -> Boolean,
     ): Boolean =
         when (val powerLevel = getPowerLevel(userId, createEvent, powerLevelsEventContent)) {
             is PowerLevel.Creator -> true

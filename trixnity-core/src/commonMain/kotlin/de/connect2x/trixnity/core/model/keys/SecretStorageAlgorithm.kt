@@ -18,8 +18,7 @@ sealed interface SecretStorageAlgorithm {
     data class Unknown(override val value: String) : SecretStorageAlgorithm
 
     object Serializer : KSerializer<SecretStorageAlgorithm> {
-        override val descriptor =
-            PrimitiveSerialDescriptor("SecretStorageAlgorithm", PrimitiveKind.STRING)
+        override val descriptor = PrimitiveSerialDescriptor("SecretStorageAlgorithm", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): SecretStorageAlgorithm {
             return when (val value = decoder.decodeString()) {

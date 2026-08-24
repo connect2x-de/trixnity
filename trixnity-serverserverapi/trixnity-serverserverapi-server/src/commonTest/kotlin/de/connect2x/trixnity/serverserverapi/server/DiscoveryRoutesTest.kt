@@ -1,5 +1,14 @@
 package de.connect2x.trixnity.serverserverapi.server
 
+import de.connect2x.trixnity.api.server.matrixApiServer
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.Signed
+import de.connect2x.trixnity.core.model.keys.keysOf
+import de.connect2x.trixnity.core.serialization.createMatrixDataUnitJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.serverserverapi.model.discovery.*
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import dev.mokkery.*
 import dev.mokkery.answering.returns
 import dev.mokkery.matcher.any
@@ -11,19 +20,10 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
-import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.core.model.keys.Key
-import de.connect2x.trixnity.core.model.keys.Signed
-import de.connect2x.trixnity.core.model.keys.keysOf
-import de.connect2x.trixnity.core.serialization.createMatrixDataUnitJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.serverserverapi.model.discovery.*
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 
 class DiscoveryRoutesTest : TrixnityBaseTest() {
     private val json = createMatrixDataUnitJson(TestRoomVersionStore("12"))
@@ -36,9 +36,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
             installMatrixSignatureAuth(hostname = "") {
                 authenticationFunction = { SignatureAuthenticationFunctionResult(UserIdPrincipal("user"), null) }
             }
-            matrixApiServer(json) {
-                discoveryApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { discoveryApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -51,23 +49,20 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
     @Test
     fun shouldGetWellKnown() = testApplication {
         initCut()
-        everySuspend { handlerMock.getWellKnown(any()) }
-            .returns(
-                GetWellKnown.Response("delegated.example.com:1234")
-            )
+        everySuspend { handlerMock.getWellKnown(any()) }.returns(GetWellKnown.Response("delegated.example.com:1234"))
         val response = client.get("/.well-known/matrix/server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "m.server": "delegated.example.com:1234"
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getWellKnown(any())
-        }
+        verifySuspend { handlerMock.getWellKnown(any()) }
     }
 
     @Test
@@ -78,7 +73,7 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                 GetServerVersion.Response(
                     GetServerVersion.Response.Server(
                         name = "My_Homeserver_Implementation",
-                        version = "ArbitraryVersionNumber"
+                        version = "ArbitraryVersionNumber",
                     )
                 )
             )
@@ -86,18 +81,18 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "server": {
                         "name": "My_Homeserver_Implementation",
                         "version": "ArbitraryVersionNumber"
                       }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getServerVersion(any())
-        }
+        verifySuspend { handlerMock.getServerVersion(any()) }
     }
 
     @Test
@@ -109,30 +104,34 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                     ServerKeys(
                         serverName = "example.org",
                         validUntil = 1652262000000,
-                        oldVerifyKeys = mapOf(
-                            "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                                expiredAt = 1532645052628,
-                                keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
-                            )
-                        ),
-                        verifyKeys = mapOf(
-                            "ed25519:abc123" to ServerKeys.VerifyKey(
-                                keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                            )
-                        )
+                        oldVerifyKeys =
+                            mapOf(
+                                "ed25519:0ldk3y" to
+                                    ServerKeys.OldVerifyKey(
+                                        expiredAt = 1532645052628,
+                                        keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                    )
+                            ),
+                        verifyKeys =
+                            mapOf(
+                                "ed25519:abc123" to
+                                    ServerKeys.VerifyKey(
+                                        keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                    )
+                            ),
                     ),
                     mapOf(
-                        "example.org" to keysOf(
-                            Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                        )
-                    )
+                        "example.org" to
+                            keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                    ),
                 )
             )
         val response = client.get("/_matrix/key/v2/server")
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "server_name": "example.org",
                       "valid_until_ts": 1652262000000,
@@ -153,11 +152,10 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                         }
                       }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.getServerKeys(any())
-        }
+        verifySuspend { handlerMock.getServerKeys(any()) }
     }
 
     @Test
@@ -171,48 +169,55 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                             ServerKeys(
                                 serverName = "example.org",
                                 validUntil = 1652262000000,
-                                oldVerifyKeys = mapOf(
-                                    "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                                        expiredAt = 1532645052628,
-                                        keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
-                                    )
-                                ),
-                                verifyKeys = mapOf(
-                                    "ed25519:abc123" to ServerKeys.VerifyKey(
-                                        keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                                    )
-                                )
+                                oldVerifyKeys =
+                                    mapOf(
+                                        "ed25519:0ldk3y" to
+                                            ServerKeys.OldVerifyKey(
+                                                expiredAt = 1532645052628,
+                                                keyValue =
+                                                    "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                            )
+                                    ),
+                                verifyKeys =
+                                    mapOf(
+                                        "ed25519:abc123" to
+                                            ServerKeys.VerifyKey(
+                                                keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                            )
+                                    ),
                             ),
                             mapOf(
-                                "example.org" to keysOf(
-                                    Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                                )
-                            )
+                                "example.org" to
+                                    keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                            ),
                         )
                     )
                 )
             )
-        val response = client.post("/_matrix/key/v2/query") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
-                {
-                  "server_keys": {
-                    "example.org": {
-                      "ed25519:abc123": {
-                        "minimum_valid_until_ts": 1234567890
+        val response =
+            client.post("/_matrix/key/v2/query") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
+                    {
+                      "server_keys": {
+                        "example.org": {
+                          "ed25519:abc123": {
+                            "minimum_valid_until_ts": 1234567890
+                          }
+                        }
                       }
                     }
-                  }
-                }
 
-            """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "server_keys": [
                         {
@@ -237,18 +242,28 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                         }
                       ]
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.queryServerKeys(assert {
-                it.requestBody shouldBe QueryServerKeys.Request(buildJsonObject {
-                    put("example.org", buildJsonObject {
-                        put("ed25519:abc123", buildJsonObject {
-                            put("minimum_valid_until_ts", JsonPrimitive(1234567890))
-                        })
-                    })
-                })
-            })
+            handlerMock.queryServerKeys(
+                assert {
+                    it.requestBody shouldBe
+                        QueryServerKeys.Request(
+                            buildJsonObject {
+                                put(
+                                    "example.org",
+                                    buildJsonObject {
+                                        put(
+                                            "ed25519:abc123",
+                                            buildJsonObject { put("minimum_valid_until_ts", JsonPrimitive(1234567890)) },
+                                        )
+                                    },
+                                )
+                            }
+                        )
+                }
+            )
         }
     }
 
@@ -263,23 +278,27 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                             ServerKeys(
                                 serverName = "example.org",
                                 validUntil = 1652262000000,
-                                oldVerifyKeys = mapOf(
-                                    "ed25519:0ldk3y" to ServerKeys.OldVerifyKey(
-                                        expiredAt = 1532645052628,
-                                        keyValue = "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg"
-                                    )
-                                ),
-                                verifyKeys = mapOf(
-                                    "ed25519:abc123" to ServerKeys.VerifyKey(
-                                        keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
-                                    )
-                                )
+                                oldVerifyKeys =
+                                    mapOf(
+                                        "ed25519:0ldk3y" to
+                                            ServerKeys.OldVerifyKey(
+                                                expiredAt = 1532645052628,
+                                                keyValue =
+                                                    "VGhpcyBzaG91bGQgYmUgeW91ciBvbGQga2V5J3MgZWQyNTUxOSBwYXlsb2FkLg",
+                                            )
+                                    ),
+                                verifyKeys =
+                                    mapOf(
+                                        "ed25519:abc123" to
+                                            ServerKeys.VerifyKey(
+                                                keyValue = "VGhpcyBzaG91bGQgYmUgYSByZWFsIGVkMjU1MTkgcGF5bG9hZA"
+                                            )
+                                    ),
                             ),
                             mapOf(
-                                "example.org" to keysOf(
-                                    Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU")
-                                )
-                            )
+                                "example.org" to
+                                    keysOf(Key.Ed25519Key("auto2", "VGhpcyBzaG91bGQgYWN0dWFsbHkgYmUgYSBzaWduYXR1cmU"))
+                            ),
                         )
                     )
                 )
@@ -288,7 +307,8 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "server_keys": [
                         {
@@ -313,13 +333,16 @@ class DiscoveryRoutesTest : TrixnityBaseTest() {
                         }
                       ]
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
         verifySuspend {
-            handlerMock.queryKeysByServer(assert {
-                it.endpoint.serverName shouldBe "example.org"
-                it.endpoint.minimumValidUntil shouldBe 1234567890
-            })
+            handlerMock.queryKeysByServer(
+                assert {
+                    it.endpoint.serverName shouldBe "example.org"
+                    it.endpoint.minimumValidUntil shouldBe 1234567890
+                }
+            )
         }
     }
 }

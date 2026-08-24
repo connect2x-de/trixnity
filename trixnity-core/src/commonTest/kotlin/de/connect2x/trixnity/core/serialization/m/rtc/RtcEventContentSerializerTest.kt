@@ -45,7 +45,8 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
           "type":"m.rtc.slot",
           "unsigned":{"age":123}
         }
-        """.trimToFlatJson()
+        """
+            .trimToFlatJson()
 
     private val rtcSlotJsonUnstable =
         """
@@ -64,13 +65,13 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
           "type":"org.matrix.msc4143.rtc.slot",
           "unsigned":{"age":123}
         }
-        """.trimToFlatJson()
+        """
+            .trimToFlatJson()
 
     private val rtcSlotEvent =
         StateEvent(
-            content = RtcSlotEventContent(
-                application = CallApplication(callId = "00000000-0000-0000-0000-000000000000")
-            ),
+            content =
+                RtcSlotEventContent(application = CallApplication(callId = "00000000-0000-0000-0000-000000000000")),
             id = EventId("$123"),
             sender = UserId("alice", "example.org"),
             roomId = RoomId("!room:example.org"),
@@ -81,25 +82,21 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
 
     @Test
     fun shouldDeserializeRtcSlotStateEvent() {
-        json.decodeFromString(
-            StateEventSerializer(EventContentSerializerMappings.default.state),
-            rtcSlotJson
-        ) shouldBe rtcSlotEvent
+        json.decodeFromString(StateEventSerializer(EventContentSerializerMappings.default.state), rtcSlotJson) shouldBe
+            rtcSlotEvent
     }
 
     @Test
     fun shouldSerializeRtcSlotStateEvent() {
-        json.encodeToString(
-            StateEventSerializer(EventContentSerializerMappings.default.state),
-            rtcSlotEvent
-        ) shouldBe rtcSlotJsonUnstable
+        json.encodeToString(StateEventSerializer(EventContentSerializerMappings.default.state), rtcSlotEvent) shouldBe
+            rtcSlotJsonUnstable
     }
 
     @Test
     fun shouldDeserializeRtcSlotStateEventUnstable() {
         json.decodeFromString(
             StateEventSerializer(EventContentSerializerMappings.default.state),
-            rtcSlotJsonUnstable
+            rtcSlotJsonUnstable,
         ) shouldBe rtcSlotEvent
     }
 
@@ -140,7 +137,8 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
             "age":123
           }
         }
-        """.trimToFlatJson()
+        """
+            .trimToFlatJson()
 
     private val rtcMemberJsonUnstable =
         """
@@ -179,23 +177,26 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
             "age":123
           }
         }
-        """.trimToFlatJson()
+        """
+            .trimToFlatJson()
 
     private val rtcMemberEvent =
         MessageEvent(
-            content = RtcMemberEventContent(
-                slotId = "m.call#ROOM",
-                application = CallApplication(callId = "00000000-0000-0000-0000-000000000000"),
-                member = RtcMemberEventContent.Member(
-                    id = "xyzABCDEF0123",
-                    claimedDeviceId = "DEVICEID",
-                    claimedUserId = UserId("alice", "example.org"),
+            content =
+                RtcMemberEventContent(
+                    slotId = "m.call#ROOM",
+                    application = CallApplication(callId = "00000000-0000-0000-0000-000000000000"),
+                    member =
+                        RtcMemberEventContent.Member(
+                            id = "xyzABCDEF0123",
+                            claimedDeviceId = "DEVICEID",
+                            claimedUserId = UserId("alice", "example.org"),
+                        ),
+                    relatesTo = RelatesTo.Reference(EventId("$125")),
+                    rtcTransports = listOf(RtcMemberEventContent.RtcTransport("livekit_multi_sfu")),
+                    stickyKey = "xyzABCDEF0123",
+                    versions = listOf("v0"),
                 ),
-                relatesTo = RelatesTo.Reference(EventId("$125")),
-                rtcTransports = listOf(RtcMemberEventContent.RtcTransport("livekit_multi_sfu")),
-                stickyKey = "xyzABCDEF0123",
-                versions = listOf("v0"),
-            ),
             id = EventId("$126"),
             sender = UserId("alice", "example.org"),
             roomId = RoomId("!room:example.org"),
@@ -207,7 +208,7 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
     fun shouldDeserializeRtcMemberMessageEvent() {
         json.decodeFromString(
             MessageEventSerializer(EventContentSerializerMappings.default.message),
-            rtcMemberJson
+            rtcMemberJson,
         ) shouldBe rtcMemberEvent
     }
 
@@ -215,7 +216,7 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
     fun shouldSerializeRtcMemberMessageEvent() {
         json.encodeToString(
             MessageEventSerializer(EventContentSerializerMappings.default.message),
-            rtcMemberEvent
+            rtcMemberEvent,
         ) shouldBe rtcMemberJsonUnstable
     }
 
@@ -223,7 +224,7 @@ class RtcEventContentSerializerTest : TrixnityBaseTest() {
     fun shouldDeserializeRtcMemberMessageEventUnstable() {
         json.decodeFromString(
             MessageEventSerializer(EventContentSerializerMappings.default.message),
-            rtcMemberJsonUnstable
+            rtcMemberJsonUnstable,
         ) shouldBe rtcMemberEvent
     }
 }

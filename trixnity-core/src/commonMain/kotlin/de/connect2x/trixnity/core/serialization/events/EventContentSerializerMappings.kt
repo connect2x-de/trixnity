@@ -56,24 +56,28 @@ interface EventContentSerializerMappings {
     }
 
     @JvmName("plusMappings")
-    private operator fun <T : EventContent> Set<EventContentSerializerMapping<T>>.plus(other: Set<EventContentSerializerMapping<T>>) =
-        (associateBy { it.type } + other.associateBy { it.type }).values.toSet()
+    private operator fun <T : EventContent> Set<EventContentSerializerMapping<T>>.plus(
+        other: Set<EventContentSerializerMapping<T>>
+    ) = (associateBy { it.type } + other.associateBy { it.type }).values.toSet()
 
     @JvmName("plusMessageMappings")
-    private operator fun Set<MessageEventContentSerializerMapping>.plus(other: Set<MessageEventContentSerializerMapping>) =
-        (associateBy { it.type } + other.associateBy { it.type }).values.toSet()
+    private operator fun Set<MessageEventContentSerializerMapping>.plus(
+        other: Set<MessageEventContentSerializerMapping>
+    ) = (associateBy { it.type } + other.associateBy { it.type }).values.toSet()
 
     @JvmName("plusStateMappings")
     private operator fun Set<StateEventContentSerializerMapping>.plus(other: Set<StateEventContentSerializerMapping>) =
         (associateBy { it.type } + other.associateBy { it.type }).values.toSet()
 
     @JvmName("minusMappings")
-    private operator fun <T : EventContent> Set<EventContentSerializerMapping<T>>.minus(other: Set<EventContentSerializerMapping<T>>) =
-        (associateBy { it.type } - other.map { it.type }.toSet()).values.toSet()
+    private operator fun <T : EventContent> Set<EventContentSerializerMapping<T>>.minus(
+        other: Set<EventContentSerializerMapping<T>>
+    ) = (associateBy { it.type } - other.map { it.type }.toSet()).values.toSet()
 
     @JvmName("minusMessageMappings")
-    private operator fun Set<MessageEventContentSerializerMapping>.minus(other: Set<MessageEventContentSerializerMapping>) =
-        (associateBy { it.type } - other.map { it.type }.toSet()).values.toSet()
+    private operator fun Set<MessageEventContentSerializerMapping>.minus(
+        other: Set<MessageEventContentSerializerMapping>
+    ) = (associateBy { it.type } - other.map { it.type }.toSet()).values.toSet()
 
     @JvmName("minusStateMappings")
     private operator fun Set<StateEventContentSerializerMapping>.minus(other: Set<StateEventContentSerializerMapping>) =

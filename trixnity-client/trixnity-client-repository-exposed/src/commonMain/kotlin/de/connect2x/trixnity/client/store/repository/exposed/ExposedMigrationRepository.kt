@@ -21,8 +21,7 @@ internal object ExposedMigration : Table("migration") {
 internal class ExposedMigrationRepository : MigrationRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: String): String? {
-        return ExposedMigration
-            .selectAll()
+        return ExposedMigration.selectAll()
             .where { ExposedMigration.name eq key }
             .firstOrNull()
             ?.get(ExposedMigration.metadata)
@@ -46,4 +45,3 @@ internal class ExposedMigrationRepository : MigrationRepository {
         ExposedMigration.deleteAll()
     }
 }
-

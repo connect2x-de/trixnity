@@ -16,7 +16,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid">matrix spec</a>
+ * @see <a
+ *   href="https://spec.matrix.org/v1.10/client-server-api/#put_matrixclientv3roomsroomidsendeventtypetxnid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/client/v3/rooms/{roomId}/send/{type}/{txnId}")
@@ -27,16 +29,19 @@ data class SendMessageEvent(
     @SerialName("txnId") val txnId: String,
     @SerialName("ts") val ts: Long? = null,
     @OptIn(ExperimentalSerializationApi::class)
-    @MSC4354 @SerialName("sticky_duration_ms") private val stickyDurationMsStable: Long? = null,
+    @MSC4354
+    @SerialName("sticky_duration_ms")
+    private val stickyDurationMsStable: Long? = null,
     @MSC4354 @SerialName("org.matrix.msc4354.sticky_duration_ms") private val stickyDurationMsUnstable: Long? = null,
 ) : MatrixEndpoint<MessageEventContent, SendEventResponse> {
     @MSC4354
-    val stickyDurationMs: Long? get() = stickyDurationMsStable ?: stickyDurationMsUnstable
-    
+    val stickyDurationMs: Long?
+        get() = stickyDurationMsStable ?: stickyDurationMsUnstable
+
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: MessageEventContent?
+        value: MessageEventContent?,
     ): KSerializer<MessageEventContent> {
         return mappings.message.contentSerializer(type, value)
     }

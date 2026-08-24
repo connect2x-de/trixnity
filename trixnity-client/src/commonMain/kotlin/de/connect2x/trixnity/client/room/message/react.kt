@@ -7,19 +7,10 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEven
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 
-fun MessageBuilder.react(
-    event: TimelineEvent,
-    key: String,
-) = react(event.eventId, key)
+fun MessageBuilder.react(event: TimelineEvent, key: String) = react(event.eventId, key)
 
-fun MessageBuilder.react(
-    event: MessageEvent<*>,
-    key: String,
-) = react(event.id, key)
+fun MessageBuilder.react(event: MessageEvent<*>, key: String) = react(event.id, key)
 
-fun MessageBuilder.react(
-    eventId: EventId,
-    key: String
-) {
+fun MessageBuilder.react(eventId: EventId, key: String) {
     content(ReactionEventContent(RelatesTo.Annotation(eventId, key)))
 }

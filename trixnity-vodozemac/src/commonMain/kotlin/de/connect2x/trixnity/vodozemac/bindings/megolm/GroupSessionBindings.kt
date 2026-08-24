@@ -22,17 +22,12 @@ internal object GroupSessionBindings {
     fun sessionId(result: InteropPointer, groupSession: NativePointer) =
         vodozemac_megolm_group_session_session_id(result, groupSession)
 
-    fun messageIndex(groupSession: NativePointer): Int =
-        vodozemac_megolm_group_session_message_index(groupSession)
+    fun messageIndex(groupSession: NativePointer): Int = vodozemac_megolm_group_session_message_index(groupSession)
 
     fun sessionConfig(groupSession: NativePointer): NativePointer =
         vodozemac_megolm_group_session_session_config(groupSession)
 
-    fun encrypt(
-        groupSession: NativePointer,
-        plaintext: InteropPointer,
-        plaintextSize: Int
-    ): NativePointer =
+    fun encrypt(groupSession: NativePointer, plaintext: InteropPointer, plaintextSize: Int): NativePointer =
         vodozemac_megolm_group_session_encrypt(groupSession, plaintext, plaintextSize)
 
     fun sessionKey(groupSession: NativePointer): NativePointer =
@@ -45,7 +40,7 @@ internal object GroupSessionBindings {
         result: InteropPointer,
         ciphertext: InteropPointer,
         ciphertextSize: Int,
-        pickleKey: InteropPointer?
+        pickleKey: InteropPointer?,
     ) = vodozemac_megolm_group_session_from_pickle(result, ciphertext, ciphertextSize, pickleKey)
 
     fun fromLibolmPickle(
@@ -54,9 +49,7 @@ internal object GroupSessionBindings {
         pickleSize: Int,
         pickleKey: InteropPointer,
         pickleKeySize: Int,
-    ) =
-        vodozemac_megolm_group_session_from_libolm_pickle(
-            result, pickle, pickleSize, pickleKey, pickleKeySize)
+    ) = vodozemac_megolm_group_session_from_libolm_pickle(result, pickle, pickleSize, pickleKey, pickleKeySize)
 }
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_new")
@@ -69,10 +62,7 @@ private external fun vodozemac_megolm_group_session_free(group_session: NativePo
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_session_id")
 @ExternalSymbolName("vodozemac_megolm_group_session_session_id")
-private external fun vodozemac_megolm_group_session_session_id(
-    result: InteropPointer,
-    group_session: NativePointer
-)
+private external fun vodozemac_megolm_group_session_session_id(result: InteropPointer, group_session: NativePointer)
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_message_index")
 @ExternalSymbolName("vodozemac_megolm_group_session_message_index")
@@ -80,23 +70,19 @@ private external fun vodozemac_megolm_group_session_message_index(group_session:
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_session_config")
 @ExternalSymbolName("vodozemac_megolm_group_session_session_config")
-private external fun vodozemac_megolm_group_session_session_config(
-    group_session: NativePointer
-): NativePointer
+private external fun vodozemac_megolm_group_session_session_config(group_session: NativePointer): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_encrypt")
 @ExternalSymbolName("vodozemac_megolm_group_session_encrypt")
 private external fun vodozemac_megolm_group_session_encrypt(
     group_session: NativePointer,
     plaintext: InteropPointer,
-    plaintext_size: Int
+    plaintext_size: Int,
 ): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_session_key")
 @ExternalSymbolName("vodozemac_megolm_group_session_session_key")
-private external fun vodozemac_megolm_group_session_session_key(
-    group_session: NativePointer
-): NativePointer
+private external fun vodozemac_megolm_group_session_session_key(group_session: NativePointer): NativePointer
 
 @ModuleImport("vodozemac", "vodozemac_megolm_group_session_pickle")
 @ExternalSymbolName("vodozemac_megolm_group_session_pickle")

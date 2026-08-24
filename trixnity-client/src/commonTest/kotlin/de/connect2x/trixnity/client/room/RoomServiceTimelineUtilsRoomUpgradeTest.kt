@@ -47,6 +47,9 @@ import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,9 +58,6 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -77,10 +77,7 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
     private val syncBatchTokenStore = SyncBatchTokenStore.inMemory()
 
     private val apiConfig = PortableMockEngineConfig()
-    private val api = mockMatrixClientServerApiClient(
-        config = apiConfig,
-        syncBatchTokenStore = syncBatchTokenStore,
-    )
+    private val api = mockMatrixClientServerApiClient(config = apiConfig, syncBatchTokenStore = syncBatchTokenStore)
 
     @OptIn(MSC4354::class)
     private val cut =
@@ -103,7 +100,7 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
             typingEventHandler = TypingEventHandlerImpl(api),
             currentSyncState = CurrentSyncState(currentSyncState),
             scope = testScope.backgroundScope,
-            eventContentMediaMappings = EventContentMediaMappings.default
+            eventContentMediaMappings = EventContentMediaMappings.default,
         )
 
     private fun encryptedEvent(i: Long = 24): MessageEvent<MegolmEncryptedMessageEventContent> {
@@ -112,12 +109,12 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
                 ciphertext = MegolmMessageValue("cipher $i"),
                 deviceId = "deviceId",
                 sessionId = "senderId",
-                senderKey = KeyValue.Curve25519KeyValue("key")
+                senderKey = KeyValue.Curve25519KeyValue("key"),
             ),
             EventId("\$event$i"),
             sender,
             room,
-            i
+            i,
         )
     }
 
@@ -127,99 +124,64 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
     private val event3 = encryptedEvent(3)
     private val event4 = encryptedEvent(4)
 
-    private val timelineEvent0 = TimelineEvent(
-        event = event0,
-        previousEventId = event1.id,
-        nextEventId = event2.id,
-        gap = null
-    )
-    private val timelineEvent1 = TimelineEvent(
-        event = event1,
-        previousEventId = null,
-        nextEventId = event2.id,
-        gap = TimelineEvent.Gap.GapBefore("1")
-    )
-    private val timelineEvent2 = TimelineEvent(
-        event = event2,
-        previousEventId = event1.id,
-        nextEventId = event3.id,
-        gap = null
-    )
-    private val timelineEvent3 = TimelineEvent(
-        event = event3,
-        previousEventId = event2.id,
-        nextEventId = null,
-        gap = TimelineEvent.Gap.GapAfter("3")
-    )
+    private val timelineEvent0 =
+        TimelineEvent(event = event0, previousEventId = event1.id, nextEventId = event2.id, gap = null)
+    private val timelineEvent1 =
+        TimelineEvent(
+            event = event1,
+            previousEventId = null,
+            nextEventId = event2.id,
+            gap = TimelineEvent.Gap.GapBefore("1"),
+        )
+    private val timelineEvent2 =
+        TimelineEvent(event = event2, previousEventId = event1.id, nextEventId = event3.id, gap = null)
+    private val timelineEvent3 =
+        TimelineEvent(
+            event = event3,
+            previousEventId = event2.id,
+            nextEventId = null,
+            gap = TimelineEvent.Gap.GapAfter("3"),
+        )
 
-    private val tombstoneEvent = StateEvent(
-        TombstoneEventContent("upgrade", newRoom),
-        EventId("\$tombstone"),
-        sender,
-        room,
-        2000,
-        stateKey = "",
-    )
-    private val createEvent1 = StateEvent(
-        CreateEventContent(),
-        EventId("\$event1"),
-        sender,
-        room,
-        2000,
-        stateKey = "",
-    )
-    private val createEvent2 = StateEvent(
-        CreateEventContent(predecessor = CreateEventContent.PreviousRoom(room, EventId("\$tombstone"))),
-        EventId("\$create"),
-        sender,
-        newRoom,
-        2000,
-        stateKey = "",
-    )
-    private val tombstoneTimelineEvent = TimelineEvent(
-        event = tombstoneEvent,
-        previousEventId = event2.id,
-        nextEventId = null,
-        gap = TimelineEvent.Gap.GapAfter("3")
-    )
-    private val createTimelineEvent1 = TimelineEvent(
-        event = createEvent1,
-        previousEventId = null,
-        nextEventId = event2.id,
-        gap = null
-    )
-    private val createTimelineEvent2 = TimelineEvent(
-        event = createEvent2,
-        previousEventId = null,
-        nextEventId = event3.id,
-        gap = null
-    )
+    private val tombstoneEvent =
+        StateEvent(TombstoneEventContent("upgrade", newRoom), EventId("\$tombstone"), sender, room, 2000, stateKey = "")
+    private val createEvent1 = StateEvent(CreateEventContent(), EventId("\$event1"), sender, room, 2000, stateKey = "")
+    private val createEvent2 =
+        StateEvent(
+            CreateEventContent(predecessor = CreateEventContent.PreviousRoom(room, EventId("\$tombstone"))),
+            EventId("\$create"),
+            sender,
+            newRoom,
+            2000,
+            stateKey = "",
+        )
+    private val tombstoneTimelineEvent =
+        TimelineEvent(
+            event = tombstoneEvent,
+            previousEventId = event2.id,
+            nextEventId = null,
+            gap = TimelineEvent.Gap.GapAfter("3"),
+        )
+    private val createTimelineEvent1 =
+        TimelineEvent(event = createEvent1, previousEventId = null, nextEventId = event2.id, gap = null)
+    private val createTimelineEvent2 =
+        TimelineEvent(event = createEvent2, previousEventId = null, nextEventId = event3.id, gap = null)
 
-    private val timeline = listOf(
-        createTimelineEvent1,
-        timelineEvent2.copy(nextEventId = tombstoneTimelineEvent.eventId),
-        tombstoneTimelineEvent,
-        // new room
-        createTimelineEvent2,
-        timelineEvent3.copy(
-            event = event3.copy(roomId = newRoom),
-            previousEventId = createTimelineEvent2.eventId
-        ),
-    )
+    private val timeline =
+        listOf(
+            createTimelineEvent1,
+            timelineEvent2.copy(nextEventId = tombstoneTimelineEvent.eventId),
+            tombstoneTimelineEvent,
+            // new room
+            createTimelineEvent2,
+            timelineEvent3.copy(event = event3.copy(roomId = newRoom), previousEventId = createTimelineEvent2.eventId),
+        )
 
     private val newTimelineEvent1 = timelineEvent1.copy(gap = null)
-    private val newTimelineEvent3 = TimelineEvent(
-        event = event3,
-        previousEventId = event2.id,
-        nextEventId = event4.id,
-        gap = null
-    )
-    private val timelineEvent4 = TimelineEvent(
-        event = event4,
-        previousEventId = event3.id,
-        nextEventId = null,
-        gap = null
-    )
+    private val newTimelineEvent3 =
+        TimelineEvent(event = event3, previousEventId = event2.id, nextEventId = event4.id, gap = null)
+    private val timelineEvent4 =
+        TimelineEvent(event = event4, previousEventId = event3.id, nextEventId = null, gap = null)
 
     private val joinCalled = MutableStateFlow<List<RoomId>>(emptyList())
     private val joinViaCalled = MutableStateFlow<List<RoomId>>(emptyList())
@@ -274,14 +236,11 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
     private fun testJoinBefore(roomKnown: Boolean) = runTest {
         roomUpgradeBeforeSetup(roomKnown)
         val result = backgroundScope.async {
-            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }
-                .take(5).toList().map { it.first() }
+            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }.take(5).toList().map { it.first() }
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        tm.writeTransaction {
-            roomStateStore.save(tombstoneEvent)
-        }
+        tm.writeTransaction { roomStateStore.save(tombstoneEvent) }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(room) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(room) else listOf()
@@ -291,45 +250,34 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
     private fun testJoinAfter(roomKnown: Boolean) = runTest {
         roomUpgradeAfterSetup(roomKnown)
         val result = backgroundScope.async {
-            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }
-                .take(5).toList().map { it.first() }
+            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }.take(5).toList().map { it.first() }
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        tm.writeTransaction {
-            roomStateStore.save(createEvent2)
-        }
+        tm.writeTransaction { roomStateStore.save(createEvent2) }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(newRoom) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(newRoom) else listOf()
         result.await() shouldBe timeline
     }
 
+    @Test fun `getTimelineEvents - room upgrade before - join room`() = testJoinBefore(true)
 
-    @Test
-    fun `getTimelineEvents - room upgrade before - join room`() = testJoinBefore(true)
+    @Test fun `getTimelineEvents - room upgrade before - join room via`() = testJoinBefore(false)
 
-    @Test
-    fun `getTimelineEvents - room upgrade before - join room via`() = testJoinBefore(false)
+    @Test fun `getTimelineEvents - room upgrade after - join room`() = testJoinAfter(true)
 
-    @Test
-    fun `getTimelineEvents - room upgrade after - join room`() = testJoinAfter(true)
-
-    @Test
-    fun `getTimelineEvents - room upgrade after - join room via`() = testJoinAfter(false)
+    @Test fun `getTimelineEvents - room upgrade after - join room via`() = testJoinAfter(false)
 
     private fun testRetryBefore(roomKnown: Boolean) = runTest {
         roomUpgradeBeforeSetup(roomKnown)
         exception = MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown("error"))
         val result = backgroundScope.async {
-            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }
-                .take(5).toList().map { it.first() }
+            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }.take(5).toList().map { it.first() }
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        tm.writeTransaction {
-            roomStateStore.save(tombstoneEvent)
-        }
+        tm.writeTransaction { roomStateStore.save(tombstoneEvent) }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(room, room) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(room, room) else listOf()
@@ -340,39 +288,30 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         roomUpgradeAfterSetup(roomKnown)
         exception = MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown("error"))
         val result = backgroundScope.async {
-            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }
-                .take(5).toList().map { it.first() }
+            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }.take(5).toList().map { it.first() }
         }
         delay(1.seconds)
         result.isActive shouldBe true
-        tm.writeTransaction {
-            roomStateStore.save(createEvent2)
-        }
+        tm.writeTransaction { roomStateStore.save(createEvent2) }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(newRoom, newRoom) else listOf()
         joinViaCalled.value shouldBe if (!roomKnown) listOf(newRoom, newRoom) else listOf()
         result.await() shouldBe timeline
     }
 
+    @Test fun `getTimelineEvents - room upgrade before - join room - exception - retry`() = testRetryBefore(true)
 
-    @Test
-    fun `getTimelineEvents - room upgrade before - join room - exception - retry`() = testRetryBefore(true)
+    @Test fun `getTimelineEvents - room upgrade before - join room via - exception - retry`() = testRetryBefore(false)
 
-    @Test
-    fun `getTimelineEvents - room upgrade before - join room via - exception - retry`() = testRetryBefore(false)
+    @Test fun `getTimelineEvents - room upgrade after - join room - exception - retry`() = testRetryAfter(true)
 
-    @Test
-    fun `getTimelineEvents - room upgrade after - join room - exception - retry`() = testRetryAfter(true)
-
-    @Test
-    fun `getTimelineEvents - room upgrade after - join room via - exception - retry`() = testRetryAfter(false)
+    @Test fun `getTimelineEvents - room upgrade after - join room via - exception - retry`() = testRetryAfter(false)
 
     private fun testNoRetryBefore(roomKnown: Boolean) = runTest {
         roomUpgradeBeforeSetup(roomKnown)
         exception = MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("forbidden"))
         val result = backgroundScope.async {
-            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }
-                .take(5).toList().map { it.first() }
+            cut.getTimelineEvents(newRoom, event3.id, BACKWARDS) { minSize = 5 }.take(5).toList().map { it.first() }
         }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(room) else listOf()
@@ -385,8 +324,7 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
         exception = MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("forbidden"))
         val result = mutableListOf<TimelineEvent>()
         backgroundScope.launch {
-            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }
-                .collect { result.add(it.first()) }
+            cut.getTimelineEvents(room, createEvent1.id, FORWARDS) { minSize = 5 }.collect { result.add(it.first()) }
         }
         delay(1.seconds)
         joinCalled.value shouldBe if (roomKnown) listOf(newRoom) else listOf()
@@ -412,25 +350,17 @@ class RoomServiceTimelineUtilsRoomUpgradeTest : TrixnityBaseTest() {
 
     private suspend fun roomUpgradeAfterSetup(roomKnown: Boolean) {
         tm.writeTransaction {
-            roomStore.update(newRoom) {
-                if (roomKnown) Room(newRoom, membership = Membership.INVITE) else null
-            }
+            roomStore.update(newRoom) { if (roomKnown) Room(newRoom, membership = Membership.INVITE) else null }
             timeline.forEach { roomTimelineStore.add(it) }
-            with(roomStateStore) {
-                save(tombstoneEvent)
-            }
+            with(roomStateStore) { save(tombstoneEvent) }
         }
     }
 
     private suspend fun roomUpgradeBeforeSetup(roomKnown: Boolean) {
         tm.writeTransaction {
-            roomStore.update(room) {
-                if (roomKnown) Room(room, membership = Membership.INVITE) else null
-            }
+            roomStore.update(room) { if (roomKnown) Room(room, membership = Membership.INVITE) else null }
             timeline.forEach { roomTimelineStore.add(it) }
-            with(roomStateStore) {
-                save(createEvent2)
-            }
+            with(roomStateStore) { save(createEvent2) }
         }
     }
 }

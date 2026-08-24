@@ -20,7 +20,8 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#put_matrixfederationv2send_joinroomideventid">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#put_matrixfederationv2send_joinroomideventid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/federation/v2/send_join/{roomId}/{eventId}")
@@ -34,21 +35,19 @@ data class SendJoin(
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: Signed<PersistentStateDataUnit<MemberEventContent>, String>?
+        value: Signed<PersistentStateDataUnit<MemberEventContent>, String>?,
     ): KSerializer<Signed<PersistentStateDataUnit<MemberEventContent>, String>> {
         @Suppress("UNCHECKED_CAST")
-        val serializer = requireNotNull(json.serializersModule.getContextual(PersistentStateDataUnit::class))
+        val serializer =
+            requireNotNull(json.serializersModule.getContextual(PersistentStateDataUnit::class))
                 as KSerializer<PersistentStateDataUnit<MemberEventContent>>
         return Signed.serializer(serializer, String.serializer())
     }
 
     @Serializable
     data class Response(
-        @SerialName("auth_chain")
-        val authChain: List<Signed<@Contextual PersistentDataUnit<*>, String>>,
-        @SerialName("event")
-        val event: Signed<@Contextual PersistentStateDataUnit<MemberEventContent>, String>? = null,
-        @SerialName("state")
-        val state: List<Signed<@Contextual PersistentStateDataUnit<*>, String>>,
+        @SerialName("auth_chain") val authChain: List<Signed<@Contextual PersistentDataUnit<*>, String>>,
+        @SerialName("event") val event: Signed<@Contextual PersistentStateDataUnit<MemberEventContent>, String>? = null,
+        @SerialName("state") val state: List<Signed<@Contextual PersistentStateDataUnit<*>, String>>,
     )
 }

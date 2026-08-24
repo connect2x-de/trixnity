@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.client.notification
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.core.model.push.PushAction
 import de.connect2x.trixnity.core.model.push.PushCondition
 import de.connect2x.trixnity.core.model.push.PushRule
 import de.connect2x.trixnity.core.model.push.ServerDefaultPushRules
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class IsPushRulesDisabledTest : TrixnityBaseTest() {
@@ -33,28 +33,19 @@ class IsPushRulesDisabledTest : TrixnityBaseTest() {
 
     @Test
     fun `id is not master - false`() {
-        isPushRulesDisabled(
-            listOf(
-                ServerDefaultPushRules.Master.rule.copy(ruleId = "other", enabled = true),
-            )
-        ) shouldBe false
+        isPushRulesDisabled(listOf(ServerDefaultPushRules.Master.rule.copy(ruleId = "other", enabled = true))) shouldBe
+            false
     }
 
     @Test
     fun `is not enabled - false`() {
-        isPushRulesDisabled(
-            listOf(
-                ServerDefaultPushRules.Master.rule.copy(enabled = false),
-            )
-        ) shouldBe false
+        isPushRulesDisabled(listOf(ServerDefaultPushRules.Master.rule.copy(enabled = false))) shouldBe false
     }
 
     @Test
     fun `actions not empty - false`() {
         isPushRulesDisabled(
-            listOf(
-                ServerDefaultPushRules.Master.rule.copy(enabled = true, actions = setOf(PushAction.Notify)),
-            )
+            listOf(ServerDefaultPushRules.Master.rule.copy(enabled = true, actions = setOf(PushAction.Notify)))
         ) shouldBe false
     }
 
@@ -64,8 +55,8 @@ class IsPushRulesDisabledTest : TrixnityBaseTest() {
             listOf(
                 ServerDefaultPushRules.Master.rule.copy(
                     enabled = true,
-                    conditions = setOf(PushCondition.RoomMemberCount("1"))
-                ),
+                    conditions = setOf(PushCondition.RoomMemberCount("1")),
+                )
             )
         ) shouldBe false
     }
@@ -73,17 +64,12 @@ class IsPushRulesDisabledTest : TrixnityBaseTest() {
     @Test
     fun `true`() {
         isPushRulesDisabled(
-            listOf(
-                ServerDefaultPushRules.Master.rule.copy(enabled = true),
-                ServerDefaultPushRules.RoomOneToOne.rule
-            )
+            listOf(ServerDefaultPushRules.Master.rule.copy(enabled = true), ServerDefaultPushRules.RoomOneToOne.rule)
         ) shouldBe true
     }
 
     @Test
     fun `true when empty`() {
-        isPushRulesDisabled(
-            listOf()
-        ) shouldBe true
+        isPushRulesDisabled(listOf()) shouldBe true
     }
 }

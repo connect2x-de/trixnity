@@ -2,14 +2,14 @@ package de.connect2x.trixnity.core.model.events.m
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.events.MessageEventContent
 
 private val log = Logger("de.connect2x.trixnity.core.model.events.m.RelatesTo")
 
@@ -20,72 +20,50 @@ sealed interface RelatesTo {
     val replyTo: ReplyTo?
 
     @Serializable
-    data class Reference(
-        @SerialName("event_id")
-        override val eventId: EventId,
-    ) : RelatesTo {
-        @SerialName("rel_type")
-        override val relationType: RelationType = RelationType.Reference
+    data class Reference(@SerialName("event_id") override val eventId: EventId) : RelatesTo {
+        @SerialName("rel_type") override val relationType: RelationType = RelationType.Reference
 
-        @SerialName("m.in_reply_to")
-        override val replyTo: ReplyTo? = null
+        @SerialName("m.in_reply_to") override val replyTo: ReplyTo? = null
     }
 
     @Serializable
     data class Replace(
-        @SerialName("event_id")
-        override val eventId: EventId,
+        @SerialName("event_id") override val eventId: EventId,
         /**
-         * The content used to replace the referenced event.
-         * This can be null, because it must not be present in encrypted events.
+         * The content used to replace the referenced event. This can be null, because it must not be present in
+         * encrypted events.
          */
-        @SerialName("m.new_content")
-        val newContent: @Contextual MessageEventContent? = null,
+        @SerialName("m.new_content") val newContent: @Contextual MessageEventContent? = null,
     ) : RelatesTo {
-        @SerialName("rel_type")
-        override val relationType: RelationType = RelationType.Replace
+        @SerialName("rel_type") override val relationType: RelationType = RelationType.Replace
 
-        @SerialName("m.in_reply_to")
-        override val replyTo: ReplyTo? = null
+        @SerialName("m.in_reply_to") override val replyTo: ReplyTo? = null
     }
 
     @Serializable
-    data class Reply(
-        @SerialName("m.in_reply_to")
-        override val replyTo: ReplyTo
-    ) : RelatesTo {
-        @Transient
-        override val eventId: EventId = replyTo.eventId
+    data class Reply(@SerialName("m.in_reply_to") override val replyTo: ReplyTo) : RelatesTo {
+        @Transient override val eventId: EventId = replyTo.eventId
 
-        @Transient
-        override val relationType: RelationType = RelationType.Reply
+        @Transient override val relationType: RelationType = RelationType.Reply
     }
 
     @Serializable
     data class Thread(
-        @SerialName("event_id")
-        override val eventId: EventId,
-        @SerialName("m.in_reply_to")
-        override val replyTo: ReplyTo? = null,
-        @SerialName("is_falling_back")
-        val isFallingBack: Boolean? = null,
+        @SerialName("event_id") override val eventId: EventId,
+        @SerialName("m.in_reply_to") override val replyTo: ReplyTo? = null,
+        @SerialName("is_falling_back") val isFallingBack: Boolean? = null,
     ) : RelatesTo {
-        @SerialName("rel_type")
-        override val relationType: RelationType = RelationType.Thread
+        @SerialName("rel_type") override val relationType: RelationType = RelationType.Thread
     }
 
     @Serializable
     data class Annotation(
-        @SerialName("event_id")
-        override val eventId: EventId,
-        @SerialName("key")
-        val key: String? = null,
+        @SerialName("event_id") override val eventId: EventId,
+        @SerialName("key") val key: String? = null,
     ) : RelatesTo {
-        @SerialName("rel_type")
-        override val relationType: RelationType = RelationType.Annotation
+        @SerialName("rel_type") override val relationType: RelationType = RelationType.Annotation
 
-        @Transient
-        override val replyTo: ReplyTo? = null
+        @Transient override val replyTo: ReplyTo? = null
     }
 
     data class Unknown(
@@ -95,10 +73,7 @@ sealed interface RelatesTo {
         override val replyTo: ReplyTo?,
     ) : RelatesTo
 
-    @Serializable
-    data class ReplyTo(
-        @SerialName("event_id") val eventId: EventId
-    )
+    @Serializable data class ReplyTo(@SerialName("event_id") val eventId: EventId)
 
     object Serializer : KSerializer<RelatesTo> {
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("RelatesTo")
@@ -149,19 +124,25 @@ sealed interface RelatesTo {
 
         override fun serialize(encoder: Encoder, value: RelatesTo) {
             require(encoder is JsonEncoder)
-            val jsonObject = when (value) {
-                is Reference -> encoder.json.encodeToJsonElement(value)
-                is Replace -> encoder.json.encodeToJsonElement(value)
-                is Reply -> encoder.json.encodeToJsonElement(value)
-                is Thread -> encoder.json.encodeToJsonElement(value)
-                is Annotation -> encoder.json.encodeToJsonElement(value)
-                is Unknown -> JsonObject(buildMap {
-                    putAll(value.raw)
-                    put("event_id", JsonPrimitive(value.eventId.full))
-                    put("rel_type", JsonPrimitive(value.relationType.name))
-                    value.replyTo?.also { put(RelationType.Reply.name, encoder.json.encodeToJsonElement(it)) }
-                })
-            }
+            val jsonObject =
+                when (value) {
+                    is Reference -> encoder.json.encodeToJsonElement(value)
+                    is Replace -> encoder.json.encodeToJsonElement(value)
+                    is Reply -> encoder.json.encodeToJsonElement(value)
+                    is Thread -> encoder.json.encodeToJsonElement(value)
+                    is Annotation -> encoder.json.encodeToJsonElement(value)
+                    is Unknown ->
+                        JsonObject(
+                            buildMap {
+                                putAll(value.raw)
+                                put("event_id", JsonPrimitive(value.eventId.full))
+                                put("rel_type", JsonPrimitive(value.relationType.name))
+                                value.replyTo?.also {
+                                    put(RelationType.Reply.name, encoder.json.encodeToJsonElement(it))
+                                }
+                            }
+                        )
+                }
             encoder.encodeJsonElement(jsonObject)
         }
     }

@@ -28,7 +28,6 @@ sealed interface SasKeyAgreementProtocol {
                 else -> Unknown(name)
             }
 
-        override fun serialize(encoder: Encoder, value: SasKeyAgreementProtocol) =
-            encoder.encodeString(value.name)
+        override fun serialize(encoder: Encoder, value: SasKeyAgreementProtocol) = encoder.encodeString(value.name)
     }
 }

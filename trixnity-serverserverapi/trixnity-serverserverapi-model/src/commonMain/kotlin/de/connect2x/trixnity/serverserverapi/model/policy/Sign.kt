@@ -14,9 +14,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
-/**
- * @see <a href="https://spec.matrix.org/v1.18/server-server-api/#post_matrixpolicyv1sign">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.18/server-server-api/#post_matrixpolicyv1sign">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/policy/v1/sign")
 @HttpMethod(POST)
@@ -25,7 +23,7 @@ object Sign : MatrixEndpoint<Signed<PersistentDataUnit<*>, String>, Signatures<S
     override fun requestSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: Signed<PersistentDataUnit<*>, String>?
+        value: Signed<PersistentDataUnit<*>, String>?,
     ): KSerializer<Signed<PersistentDataUnit<*>, String>> {
         @Suppress("UNCHECKED_CAST")
         val serializer = requireNotNull(json.serializersModule.getContextual(PersistentDataUnit::class))

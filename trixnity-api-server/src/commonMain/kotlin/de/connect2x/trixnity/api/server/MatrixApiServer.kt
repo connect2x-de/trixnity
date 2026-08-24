@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.api.server
 
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -11,14 +13,10 @@ import io.ktor.server.routing.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
 
 fun Application.matrixApiServer(json: Json, routes: Route.() -> Unit) {
     installMatrixApiServer(json)
-    routing {
-        routes()
-    }
+    routing { routes() }
 }
 
 fun Application.installMatrixApiServer(json: Json) {
@@ -30,15 +28,13 @@ fun Application.installMatrixApiServer(json: Json) {
                 is MatrixServerException -> {
                     val retryAfter = cause.retryAfter
                     if (retryAfter != null) call.response.header(HttpHeaders.RetryAfter, retryAfter)
-                    val errorResponse = cause.errorResponse.let {
-                        if (it is ErrorResponse.LimitExceeded && retryAfter != null)
-                            it.copy(retryAfterMillis = retryAfter * 1000)
-                        else it
-                    }
-                    call.respond(
-                        cause.statusCode,
-                        json.encodeToJsonElement(ErrorResponse.Serializer, errorResponse)
-                    )
+                    val errorResponse =
+                        cause.errorResponse.let {
+                            if (it is ErrorResponse.LimitExceeded && retryAfter != null)
+                                it.copy(retryAfterMillis = retryAfter * 1000)
+                            else it
+                        }
+                    call.respond(cause.statusCode, json.encodeToJsonElement(ErrorResponse.Serializer, errorResponse))
                 }
 
                 is SerializationException ->
@@ -46,8 +42,8 @@ fun Application.installMatrixApiServer(json: Json) {
                         HttpStatusCode.BadRequest,
                         json.encodeToJsonElement(
                             ErrorResponse.Serializer,
-                            ErrorResponse.BadJson(cause.message ?: "unknown")
-                        )
+                            ErrorResponse.BadJson(cause.message ?: "unknown"),
+                        ),
                     )
 
                 else -> {
@@ -55,8 +51,8 @@ fun Application.installMatrixApiServer(json: Json) {
                         HttpStatusCode.InternalServerError,
                         json.encodeToJsonElement(
                             ErrorResponse.Serializer,
-                            ErrorResponse.Unknown(cause.message ?: "unknown")
-                        )
+                            ErrorResponse.Unknown(cause.message ?: "unknown"),
+                        ),
                     )
                 }
             }
@@ -66,8 +62,8 @@ fun Application.installMatrixApiServer(json: Json) {
                 HttpStatusCode.NotFound,
                 json.encodeToJsonElement(
                     ErrorResponse.Serializer,
-                    ErrorResponse.Unrecognized("unsupported (or unknown) endpoint")
-                )
+                    ErrorResponse.Unrecognized("unsupported (or unknown) endpoint"),
+                ),
             )
         }
         status(HttpStatusCode.MethodNotAllowed) { call, _ ->
@@ -75,8 +71,8 @@ fun Application.installMatrixApiServer(json: Json) {
                 HttpStatusCode.MethodNotAllowed,
                 json.encodeToJsonElement(
                     ErrorResponse.Serializer,
-                    ErrorResponse.Unrecognized("http request method not allowed")
-                )
+                    ErrorResponse.Unrecognized("http request method not allowed"),
+                ),
             )
         }
         status(HttpStatusCode.UnsupportedMediaType) { call, _ ->
@@ -84,12 +80,10 @@ fun Application.installMatrixApiServer(json: Json) {
                 HttpStatusCode.UnsupportedMediaType,
                 json.encodeToJsonElement(
                     ErrorResponse.Serializer,
-                    ErrorResponse.Unrecognized("media type of request is not supported")
-                )
+                    ErrorResponse.Unrecognized("media type of request is not supported"),
+                ),
             )
         }
     }
-    install(ContentNegotiation) {
-        json(json)
-    }
+    install(ContentNegotiation) { json(json) }
 }

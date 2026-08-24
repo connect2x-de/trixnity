@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.utils
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -10,6 +8,8 @@ import java.io.PipedOutputStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 
 class StreamExtensionsTest : TrixnityBaseTest() {
 
@@ -56,18 +56,20 @@ class StreamExtensionsTest : TrixnityBaseTest() {
             } ?: throw Exception("this stream cannot be subscribed twice")
         }
 
-        val write = async(Dispatchers.IO, start = CoroutineStart.LAZY) {
-            delay(10.milliseconds)
-            outputStream.write("he".toByteArray())
-            delay(10.milliseconds)
-            outputStream.write("llo".toByteArray())
-            delay(10.milliseconds)
-            outputStream.close()
-        }
+        val write =
+            async(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                delay(10.milliseconds)
+                outputStream.write("he".toByteArray())
+                delay(10.milliseconds)
+                outputStream.write("llo".toByteArray())
+                delay(10.milliseconds)
+                outputStream.close()
+            }
 
-        val read = async(Dispatchers.IO, start = CoroutineStart.LAZY) {
-            assertContentEquals("hello".toByteArray(), byteArrayFlow.toByteArray())
-        }
+        val read =
+            async(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                assertContentEquals("hello".toByteArray(), byteArrayFlow.toByteArray())
+            }
 
         awaitAll(read, write)
     }

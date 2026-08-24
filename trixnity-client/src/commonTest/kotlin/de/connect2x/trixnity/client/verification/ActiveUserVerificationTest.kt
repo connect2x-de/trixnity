@@ -30,6 +30,9 @@ import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,9 +40,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ActiveUserVerificationTest : TrixnityBaseTest() {
@@ -57,18 +57,13 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
     private val roomServiceMock = RoomServiceMock()
 
-    private val requestTimelineEvent = TimelineEvent(
-        event = MessageEvent(
-            VerificationRequest("from", alice, setOf()),
-            EventId("e"),
-            bob,
-            roomId,
-            1
-        ),
-        previousEventId = null,
-        nextEventId = null,
-        gap = null
-    )
+    private val requestTimelineEvent =
+        TimelineEvent(
+            event = MessageEvent(VerificationRequest("from", alice, setOf()), EventId("e"), bob, roomId, 1),
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
 
     private val keyStore = getInMemoryKeyStore()
 
@@ -78,49 +73,67 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
         val cancelEvent = VerificationCancelEventContent(User, "u", relatesTo, null)
 
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(requestTimelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow( // ignore event, that is no VerificationStep
-                TimelineEvent(
-                    event = MessageEvent(
-                        RoomMessageEventContent.TextBased.Text("hi"),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            MutableStateFlow( // ignore own event
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationCancelEventContent(MismatchedSas, "", relatesTo, null),
-                        EventId("$2"), alice, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            MutableStateFlow( // ignore event with other relates to
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationCancelEventContent(
-                            MismatchedSas,
-                            "",
-                            RelatesTo.Reference(EventId("$0")),
-                            null
-                        ),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            MutableStateFlow(
-                TimelineEvent(
-                    event = MessageEvent(
-                        cancelEvent,
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow( // ignore event, that is no VerificationStep
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                RoomMessageEventContent.TextBased.Text("hi"),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                MutableStateFlow( // ignore own event
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationCancelEventContent(MismatchedSas, "", relatesTo, null),
+                                EventId("$2"),
+                                alice,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                MutableStateFlow( // ignore event with other relates to
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationCancelEventContent(
+                                    MismatchedSas,
+                                    "",
+                                    RelatesTo.Reference(EventId("$0")),
+                                    null,
+                                ),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                MutableStateFlow(
+                    TimelineEvent(
+                        event = MessageEvent(cancelEvent, EventId("$2"), bob, roomId, 1234),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
             )
-        )
         val cut = createCut()
         cut.startLifecycle(this)
         val result = cut.state.first { it is ActiveVerificationState.Cancel }
@@ -131,92 +144,126 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
     fun `handle encrypted verification step`() = runTest {
         roomServiceMock.returnGetTimelineEventsDisableDrop = true
         val cancelEvent = VerificationCancelEventContent(User, "u", relatesTo, null)
-        val cancelFlow = MutableStateFlow(
-            TimelineEvent(
-                event = MessageEvent(
-                    MegolmEncryptedMessageEventContent(
-                        MegolmMessageValue("cipher"),
-                        Curve25519KeyValue(""),
-                        bobDevice,
-                        "session"
-                    ),
-                    EventId("$2"), bob, roomId, 1234
-                ),
-                previousEventId = null, nextEventId = null, gap = null
+        val cancelFlow =
+            MutableStateFlow(
+                TimelineEvent(
+                    event =
+                        MessageEvent(
+                            MegolmEncryptedMessageEventContent(
+                                MegolmMessageValue("cipher"),
+                                Curve25519KeyValue(""),
+                                bobDevice,
+                                "session",
+                            ),
+                            EventId("$2"),
+                            bob,
+                            roomId,
+                            1234,
+                        ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(requestTimelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow( // ignore event, that is no VerificationStep
-                TimelineEvent(
-                    event = MessageEvent(
-                        MegolmEncryptedMessageEventContent(
-                            MegolmMessageValue("cipher"),
-                            Curve25519KeyValue(""),
-                            bobDevice,
-                            "session"
-                        ),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            MutableStateFlow( // ignore own event
-                TimelineEvent(
-                    event = MessageEvent(
-                        MegolmEncryptedMessageEventContent(
-                            MegolmMessageValue("cipher"),
-                            Curve25519KeyValue(""),
-                            bobDevice,
-                            "session"
-                        ),
-                        EventId("$2"), alice, roomId, 1234
-                    ),
-                    content = Result.success(VerificationCancelEventContent(MismatchedSas, "", relatesTo, null)),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            MutableStateFlow( // ignore event with other relates to
-                TimelineEvent(
-                    event = MessageEvent(
-                        MegolmEncryptedMessageEventContent(
-                            MegolmMessageValue("cipher"),
-                            Curve25519KeyValue(""),
-                            bobDevice,
-                            "session"
-                        ),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    content = Result.success(
-                        VerificationCancelEventContent(
-                            MismatchedSas,
-                            "",
-                            RelatesTo.Reference(EventId("$0")),
-                            null
-                        )
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
-                )
-            ),
-            cancelFlow
-        )
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow( // ignore event, that is no VerificationStep
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                MegolmEncryptedMessageEventContent(
+                                    MegolmMessageValue("cipher"),
+                                    Curve25519KeyValue(""),
+                                    bobDevice,
+                                    "session",
+                                ),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        content = Result.success(RoomMessageEventContent.TextBased.Text("hi")),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                MutableStateFlow( // ignore own event
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                MegolmEncryptedMessageEventContent(
+                                    MegolmMessageValue("cipher"),
+                                    Curve25519KeyValue(""),
+                                    bobDevice,
+                                    "session",
+                                ),
+                                EventId("$2"),
+                                alice,
+                                roomId,
+                                1234,
+                            ),
+                        content = Result.success(VerificationCancelEventContent(MismatchedSas, "", relatesTo, null)),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                MutableStateFlow( // ignore event with other relates to
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                MegolmEncryptedMessageEventContent(
+                                    MegolmMessageValue("cipher"),
+                                    Curve25519KeyValue(""),
+                                    bobDevice,
+                                    "session",
+                                ),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        content =
+                            Result.success(
+                                VerificationCancelEventContent(
+                                    MismatchedSas,
+                                    "",
+                                    RelatesTo.Reference(EventId("$0")),
+                                    null,
+                                )
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
+                ),
+                cancelFlow,
+            )
         val cut = createCut()
         cut.startLifecycle(this)
         delay(500)
-        cancelFlow.value = TimelineEvent(
-            event = MessageEvent(
-                MegolmEncryptedMessageEventContent(
-                    MegolmMessageValue("cipher"),
-                    Curve25519KeyValue(""),
-                    bobDevice,
-                    "session"
-                ),
-                EventId("$2"), bob, roomId, 1234
-            ),
-            content = Result.success(cancelEvent),
-            previousEventId = null, nextEventId = null, gap = null
-        )
+        cancelFlow.value =
+            TimelineEvent(
+                event =
+                    MessageEvent(
+                        MegolmEncryptedMessageEventContent(
+                            MegolmMessageValue("cipher"),
+                            Curve25519KeyValue(""),
+                            bobDevice,
+                            "session",
+                        ),
+                        EventId("$2"),
+                        bob,
+                        roomId,
+                        1234,
+                    ),
+                content = Result.success(cancelEvent),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
         val result = cut.state.first { it is ActiveVerificationState.Cancel }
         result shouldBe ActiveVerificationState.Cancel(cancelEvent, false)
     }
@@ -227,24 +274,34 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
         val cut = createCut()
         cut.startLifecycle(this)
         cut.cancel()
-        roomServiceMock.sentMessages.value.shouldNotBeEmpty().first().second
+        roomServiceMock.sentMessages.value
+            .shouldNotBeEmpty()
+            .first()
+            .second
             .shouldBeInstanceOf<VerificationCancelEventContent>()
     }
 
     @Test
     fun `stop lifecycle when cancelled`() = runTest {
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(requestTimelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow(
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationCancelEventContent(User, "r", relatesTo, null),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow(
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationCancelEventContent(User, "r", relatesTo, null),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
                 )
             )
-        )
         val cut = createCut()
         cut.startLifecycle(this)
     }
@@ -260,39 +317,48 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
     fun `set state to AcceptedByOtherDevice when request accepted by other device`() = runTest {
         roomServiceMock.returnGetTimelineEventsDisableDrop = true
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(requestTimelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow(
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationReadyEventContent(
-                            fromDevice = "OTHER_DEVICE",
-                            methods = setOf(),
-                            relatesTo, null
-                        ),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow(
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationReadyEventContent(
+                                    fromDevice = "OTHER_DEVICE",
+                                    methods = setOf(),
+                                    relatesTo,
+                                    null,
+                                ),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
                 )
             )
-        )
-        val cut = ActiveUserVerificationImpl(
-            request = VerificationRequest(aliceDevice, bob, setOf(Sas)),
-            requestIsFromOurOwn = false,
-            requestEventId = event,
-            requestTimestamp = currentTime,
-            ownUserId = bob,
-            ownDeviceId = bobDevice,
-            theirUserId = alice,
-            theirInitialDeviceId = null,
-            roomId = roomId,
-            supportedMethods = setOf(Sas),
-            json = json,
-            keyStore = keyStore,
-            room = roomServiceMock,
-            keyTrust = KeyTrustServiceMock(),
-            clock = testClock,
-            driver = driver,
-        )
+        val cut =
+            ActiveUserVerificationImpl(
+                request = VerificationRequest(aliceDevice, bob, setOf(Sas)),
+                requestIsFromOurOwn = false,
+                requestEventId = event,
+                requestTimestamp = currentTime,
+                ownUserId = bob,
+                ownDeviceId = bobDevice,
+                theirUserId = alice,
+                theirInitialDeviceId = null,
+                roomId = roomId,
+                supportedMethods = setOf(Sas),
+                json = json,
+                keyStore = keyStore,
+                room = roomServiceMock,
+                keyTrust = KeyTrustServiceMock(),
+                clock = testClock,
+                driver = driver,
+            )
         cut.startLifecycle(this)
         cut.state.first { it == AcceptedByOtherDevice } shouldBe AcceptedByOtherDevice
         cut.cancel()
@@ -302,39 +368,48 @@ class ActiveUserVerificationTest : TrixnityBaseTest() {
     fun `set state to Undefined when request accepted by own device but state does not match`() = runTest {
         roomServiceMock.returnGetTimelineEventsDisableDrop = true
         roomServiceMock.returnGetTimelineEvent = MutableStateFlow(requestTimelineEvent)
-        roomServiceMock.returnGetTimelineEvents = flowOf(
-            MutableStateFlow(
-                TimelineEvent(
-                    event = MessageEvent(
-                        VerificationReadyEventContent(
-                            fromDevice = bobDevice,
-                            methods = setOf(),
-                            relatesTo, null
-                        ),
-                        EventId("$2"), bob, roomId, 1234
-                    ),
-                    previousEventId = null, nextEventId = null, gap = null
+        roomServiceMock.returnGetTimelineEvents =
+            flowOf(
+                MutableStateFlow(
+                    TimelineEvent(
+                        event =
+                            MessageEvent(
+                                VerificationReadyEventContent(
+                                    fromDevice = bobDevice,
+                                    methods = setOf(),
+                                    relatesTo,
+                                    null,
+                                ),
+                                EventId("$2"),
+                                bob,
+                                roomId,
+                                1234,
+                            ),
+                        previousEventId = null,
+                        nextEventId = null,
+                        gap = null,
+                    )
                 )
             )
-        )
-        val cut = ActiveUserVerificationImpl(
-            request = VerificationRequest(aliceDevice, bob, setOf(Sas)),
-            requestIsFromOurOwn = false,
-            requestEventId = event,
-            requestTimestamp = currentTime,
-            ownUserId = bob,
-            ownDeviceId = bobDevice,
-            theirUserId = alice,
-            theirInitialDeviceId = null,
-            roomId = roomId,
-            supportedMethods = setOf(Sas),
-            json = json,
-            keyStore = keyStore,
-            room = roomServiceMock,
-            keyTrust = KeyTrustServiceMock(),
-            clock = testClock,
-            driver = driver,
-        )
+        val cut =
+            ActiveUserVerificationImpl(
+                request = VerificationRequest(aliceDevice, bob, setOf(Sas)),
+                requestIsFromOurOwn = false,
+                requestEventId = event,
+                requestTimestamp = currentTime,
+                ownUserId = bob,
+                ownDeviceId = bobDevice,
+                theirUserId = alice,
+                theirInitialDeviceId = null,
+                roomId = roomId,
+                supportedMethods = setOf(Sas),
+                json = json,
+                keyStore = keyStore,
+                room = roomServiceMock,
+                keyTrust = KeyTrustServiceMock(),
+                clock = testClock,
+                driver = driver,
+            )
         cut.startLifecycle(this)
         cut.state.first { it == Undefined } shouldBe Undefined
         cut.cancel()

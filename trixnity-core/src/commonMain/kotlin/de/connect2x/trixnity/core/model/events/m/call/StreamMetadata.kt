@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.core.model.events.m.call
 
-import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.test.utils
 
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KProperty
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.coroutines.CoroutineContext
-import kotlin.reflect.KProperty
 
 interface LazySuspend<out T> {
     val value: T
@@ -18,10 +18,8 @@ interface LazySuspend<out T> {
 
 operator fun <T> LazySuspend<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
 
-internal class LazySuspendImpl<T>(
-    private val coroutineContext: CoroutineContext,
-    block: suspend TestScope.() -> T,
-) : LazySuspend<T> {
+internal class LazySuspendImpl<T>(private val coroutineContext: CoroutineContext, block: suspend TestScope.() -> T) :
+    LazySuspend<T> {
 
     private val result = CompletableDeferred<T>()
 
@@ -37,9 +35,15 @@ internal class LazySuspendImpl<T>(
         }
     }
 
-    private val scheduledTasksContext = requireNotNull(coroutineContext[ScheduledTasksContext]) { "cannot get value without ScheduledTasksContext present" }
-    private val testScheduler = requireNotNull(coroutineContext[ContinuationInterceptor] as? TestDispatcher) { "only works under test dispatcher" }
-        .scheduler
+    private val scheduledTasksContext =
+        requireNotNull(coroutineContext[ScheduledTasksContext]) {
+            "cannot get value without ScheduledTasksContext present"
+        }
+    private val testScheduler =
+        requireNotNull(coroutineContext[ContinuationInterceptor] as? TestDispatcher) {
+                "only works under test dispatcher"
+            }
+            .scheduler
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val value: T
@@ -49,10 +53,9 @@ internal class LazySuspendImpl<T>(
             return result.getCompleted()
         }
 
-
     override val isCompleted
         get() = result.isCompleted
 
-    override fun <U> map(transformer: (T) -> U): LazySuspend<U>
-        = LazySuspendImpl(coroutineContext) { transformer(value) }
+    override fun <U> map(transformer: (T) -> U): LazySuspend<U> =
+        LazySuspendImpl(coroutineContext) { transformer(value) }
 }

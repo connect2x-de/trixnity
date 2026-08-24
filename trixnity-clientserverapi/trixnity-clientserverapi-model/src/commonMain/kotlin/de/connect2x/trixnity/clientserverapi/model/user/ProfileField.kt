@@ -35,12 +35,8 @@ sealed interface ProfileField {
     val key: Key<*>
 
     @Serializable
-    data class DisplayName(
-        @SerialName("displayname")
-        val value: String? = null
-    ) : ProfileField {
-        @Transient
-        override val key = Key
+    data class DisplayName(@SerialName("displayname") val value: String? = null) : ProfileField {
+        @Transient override val key = Key
 
         companion object Key : ProfileField.Key<DisplayName> {
             override val name = "displayname"
@@ -50,12 +46,8 @@ sealed interface ProfileField {
     }
 
     @Serializable
-    data class AvatarUrl(
-        @SerialName("avatar_url")
-        val value: String? = null
-    ) : ProfileField {
-        @Transient
-        override val key = Key
+    data class AvatarUrl(@SerialName("avatar_url") val value: String? = null) : ProfileField {
+        @Transient override val key = Key
 
         companion object Key : ProfileField.Key<AvatarUrl> {
             override val name = "avatar_url"
@@ -65,12 +57,8 @@ sealed interface ProfileField {
     }
 
     @Serializable
-    data class TimeZone(
-        @SerialName("m.tz")
-        val value: String? = null
-    ) : ProfileField {
-        @Transient
-        override val key = Key
+    data class TimeZone(@SerialName("m.tz") val value: String? = null) : ProfileField {
+        @Transient override val key = Key
 
         companion object Key : ProfileField.Key<AvatarUrl> {
             override val name = "m.tz"
@@ -91,8 +79,9 @@ sealed interface ProfileField {
         override fun deserialize(decoder: Decoder): ProfileField {
             require(decoder is JsonDecoder)
             val jsonObject = decoder.decodeJsonElement().jsonObject
-            val value = jsonObject.entries.firstOrNull()
-                ?: throw SerializationException("no key found in response for profile field")
+            val value =
+                jsonObject.entries.firstOrNull()
+                    ?: throw SerializationException("no key found in response for profile field")
             return when (value.key) {
                 DisplayName.name -> decoder.json.decodeFromJsonElement<DisplayName>(jsonObject)
                 AvatarUrl.name -> decoder.json.decodeFromJsonElement<AvatarUrl>(jsonObject)

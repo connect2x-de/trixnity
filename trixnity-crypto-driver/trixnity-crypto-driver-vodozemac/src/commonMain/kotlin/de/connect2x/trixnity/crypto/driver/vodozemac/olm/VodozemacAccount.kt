@@ -11,8 +11,8 @@ import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacEd25519Public
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacEd25519Signature
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
 import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.olm.Account as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class VodozemacAccount(val inner: Inner) : Account {
@@ -37,17 +37,11 @@ value class VodozemacAccount(val inner: Inner) : Account {
 
     override fun sign(message: String): VodozemacEd25519Signature = VodozemacEd25519Signature(inner.sign(message))
 
-    override fun createOutboundSession(
-        identityKey: Curve25519PublicKey,
-        oneTimeKey: Curve25519PublicKey,
-    ): Session {
+    override fun createOutboundSession(identityKey: Curve25519PublicKey, oneTimeKey: Curve25519PublicKey): Session {
         require(identityKey is VodozemacCurve25519PublicKey)
         require(oneTimeKey is VodozemacCurve25519PublicKey)
 
-        val session = inner.createOutboundSession(
-            identityKey.inner,
-            oneTimeKey.inner,
-        )
+        val session = inner.createOutboundSession(identityKey.inner, oneTimeKey.inner)
 
         return VodozemacSession(session)
     }
@@ -59,15 +53,13 @@ value class VodozemacAccount(val inner: Inner) : Account {
         require(preKeyMessage is VodozemacPreKeyMessage)
         require(theirIdentityKey == null || theirIdentityKey is VodozemacCurve25519PublicKey)
 
-        val (plaintext, session) = inner.createInboundSession(
-            preKeyMessage.inner,
-            theirIdentityKey?.inner ?: preKeyMessage.inner.sessionKeys.identityKey,
-        )
+        val (plaintext, session) =
+            inner.createInboundSession(
+                preKeyMessage.inner,
+                theirIdentityKey?.inner ?: preKeyMessage.inner.sessionKeys.identityKey,
+            )
 
-        InboundSessionCreationResult(
-            plaintext = plaintext,
-            session = VodozemacSession(session)
-        )
+        InboundSessionCreationResult(plaintext = plaintext, session = VodozemacSession(session))
     }
 
     override fun generateOneTimeKeys(count: Int): OneTimeKeyGenerationResult {
@@ -96,17 +88,13 @@ value class VodozemacAccount(val inner: Inner) : Account {
 
     override fun dehydrate(pickleKey: PickleKey): DehydratedDevice {
         require(pickleKey is VodozemacPickleKey)
-        return inner.dehydratedDevice(pickleKey.inner).let {
-            DehydratedDevice(it.ciphertext, it.nonce)
-        }
+        return inner.dehydratedDevice(pickleKey.inner).let { DehydratedDevice(it.ciphertext, it.nonce) }
     }
 
     override fun close() = inner.close()
 
-    data class InboundSessionCreationResult(
-        override val plaintext: String,
-        override val session: VodozemacSession,
-    ) : Account.InboundSessionCreationResult
+    data class InboundSessionCreationResult(override val plaintext: String, override val session: VodozemacSession) :
+        Account.InboundSessionCreationResult
 
     data class OneTimeKeyGenerationResult(
         override val created: List<VodozemacCurve25519PublicKey>,

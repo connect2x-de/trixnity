@@ -6,6 +6,7 @@ import web.blob.Blob
 
 interface IndexeddbPlatformMedia : PlatformMedia {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): IndexeddbPlatformMedia
+
     override suspend fun getTemporaryFile(): Result<TemporaryFile>
 
     interface TemporaryFile : PlatformMedia.TemporaryFile {

@@ -1,21 +1,22 @@
 package de.connect2x.trixnity.client.media.indexeddb
 
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.idb.schemaexporter.exportSchema
 import io.kotest.assertions.json.shouldEqualJson
+import kotlin.test.Test
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.idb.schemaexporter.exportSchema
-import kotlin.test.Test
-import kotlin.time.Clock
 
 class IndexedDBMediaStoreSchemaTest {
 
     private val databaseName = "media"
 
-    private val expectedSchema = """
+    private val expectedSchema =
+        """
         {
           "name": "$databaseName",
           "version": 2,
@@ -32,7 +33,8 @@ class IndexedDBMediaStoreSchemaTest {
             }
           }
         }
-    """.trimIndent()
+    """
+            .trimIndent()
 
     @Test
     fun `schema should match`() = runTest {
@@ -45,15 +47,9 @@ class IndexedDBMediaStoreSchemaTest {
         val backgroundJob = SupervisorJob(coroutineContext.job)
         val backgroundScope = CoroutineScope(coroutineContext + backgroundJob)
 
-        IndexedDBMediaStore(
-            databaseName,
-            backgroundScope,
-            MatrixClientConfiguration(),
-            Clock.System
-        )
+        IndexedDBMediaStore(databaseName, backgroundScope, MatrixClientConfiguration(), Clock.System)
             .init(backgroundScope)
 
         backgroundJob.cancel()
     }
-
 }

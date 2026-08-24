@@ -22,16 +22,11 @@ class OpensslNativeTarget(
     val includePath: File = opensslBinariesDirs.include(target)
 }
 
-val opensslNativeTargetList = listOf(
-    OpensslNativeTarget(
-        target = KonanTarget.LINUX_X64,
-        createTarget = { linuxX64() },
-    ),
-    OpensslNativeTarget(
-        target = KonanTarget.MINGW_X64,
-        createTarget = { mingwX64() },
-    ),
-)
+val opensslNativeTargetList =
+    listOf(
+        OpensslNativeTarget(target = KonanTarget.LINUX_X64, createTarget = { linuxX64() }),
+        OpensslNativeTarget(target = KonanTarget.MINGW_X64, createTarget = { mingwX64() }),
+    )
 
 kotlin {
     addJvmTarget()
@@ -47,9 +42,7 @@ kotlin {
                             defFile("src/opensslMain/cinterop/libopenssl.def")
                             packageName("org.openssl")
                             includeDirs(target.includePath)
-                            tasks.named(interopProcessingTaskName) {
-                                dependsOn(trixnityBinariesTask)
-                            }
+                            tasks.named(interopProcessingTaskName) { dependsOn(trixnityBinariesTask) }
                         }
                         if (target.target.family == Family.LINUX) {
                             val librandom by creating {
@@ -60,9 +53,7 @@ kotlin {
                     }
                 }
             }
-            compilerOptions {
-                freeCompilerArgs.addAll(listOf("-include-binary", target.libPath.absolutePath))
-            }
+            compilerOptions { freeCompilerArgs.addAll(listOf("-include-binary", target.libPath.absolutePath)) }
         }
     }
 
@@ -76,7 +67,6 @@ kotlin {
     }
 
     sourceSets {
-
         configureEach {
             languageSettings.optIn("kotlin.RequiresOptIn")
             if (isNativeOnly) languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
@@ -91,11 +81,7 @@ kotlin {
             }
         }
 
-        commonTest {
-            dependencies {
-                implementation(projects.trixnityTestUtils)
-            }
-        }
+        commonTest { dependencies { implementation(projects.trixnityTestUtils) } }
     }
 }
 

@@ -7,6 +7,5 @@ object VodozemacEd25519SignatureFactory : Ed25519SignatureFactory {
     override fun invoke(bytes: ByteArray): VodozemacEd25519Signature =
         VodozemacEd25519Signature(Ed25519Signature(bytes))
 
-    override fun invoke(base64: String): VodozemacEd25519Signature =
-        VodozemacEd25519Signature(Ed25519Signature(base64))
+    override fun invoke(base64: String): VodozemacEd25519Signature = VodozemacEd25519Signature(Ed25519Signature(base64))
 }

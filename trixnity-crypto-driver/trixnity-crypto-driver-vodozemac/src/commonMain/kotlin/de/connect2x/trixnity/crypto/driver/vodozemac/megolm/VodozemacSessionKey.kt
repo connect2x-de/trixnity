@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.megolm
 
 import de.connect2x.trixnity.crypto.driver.megolm.SessionKey
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.vodozemac.megolm.SessionKey as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class VodozemacSessionKey(val inner: Inner) : SessionKey {
@@ -14,5 +14,4 @@ value class VodozemacSessionKey(val inner: Inner) : SessionKey {
         get() = inner.base64
 
     override fun close() = inner.close()
-
 }

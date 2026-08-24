@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.model.events.EmptyEventContent
+import de.connect2x.trixnity.core.model.events.PersistentDataUnit.UnknownPersistentDataUnit
+import de.connect2x.trixnity.core.serialization.canonicalJson
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -7,9 +10,6 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.model.events.EmptyEventContent
-import de.connect2x.trixnity.core.model.events.PersistentDataUnit.UnknownPersistentDataUnit
-import de.connect2x.trixnity.core.serialization.canonicalJson
 
 object UnknownPersistentDataUnitSerializer : KSerializer<UnknownPersistentDataUnit> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("UnknownPersistentDataUnit")

@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.megolm
 
 import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKey
-import kotlin.jvm.JvmInline
-
 import de.connect2x.trixnity.vodozemac.megolm.ExportedSessionKey as Inner
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class VodozemacExportedSessionKey(val inner: Inner) : ExportedSessionKey {

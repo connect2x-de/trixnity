@@ -31,10 +31,10 @@ internal class ExposedSecretKeyRequestRepository(private val json: Json) : Secre
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: String): StoredSecretKeyRequest? {
-        return ExposedSecretKeyRequest.selectAll().where { ExposedSecretKeyRequest.id eq key }.firstOrNull()
-            ?.let {
-                json.decodeFromString(it[ExposedSecretKeyRequest.value])
-            }
+        return ExposedSecretKeyRequest.selectAll()
+            .where { ExposedSecretKeyRequest.id eq key }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedSecretKeyRequest.value]) }
     }
 
     context(transaction: WriteTransaction)

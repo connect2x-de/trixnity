@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.clientserverapi.model.server
 
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -15,22 +16,17 @@ import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlin.jvm.JvmInline
 
 sealed interface Capability {
     @Serializable
-    data class ChangePassword(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class ChangePassword(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.change_password"
         }
     }
 
     @Serializable
-    data class ForgetForcedUponLeave(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class ForgetForcedUponLeave(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.forget_forced_upon_leave"
         }
@@ -39,7 +35,7 @@ sealed interface Capability {
     @Serializable
     data class RoomVersions(
         @SerialName("default") val default: String,
-        @SerialName("available") val available: Map<String, RoomVersionStability>
+        @SerialName("available") val available: Map<String, RoomVersionStability>,
     ) : Capability {
         companion object {
             const val name = "m.room_versions"
@@ -47,19 +43,14 @@ sealed interface Capability {
 
         @Serializable
         enum class RoomVersionStability {
-            @SerialName("stable")
-            STABLE,
-
-            @SerialName("unstable")
-            UNSTABLE
+            @SerialName("stable") STABLE,
+            @SerialName("unstable") UNSTABLE,
         }
     }
 
     @Deprecated("use ProfileFields instead")
     @Serializable
-    data class SetDisplayName(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class SetDisplayName(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.set_displayname"
         }
@@ -67,9 +58,7 @@ sealed interface Capability {
 
     @Deprecated("use ProfileFields instead")
     @Serializable
-    data class SetAvatarUrl(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class SetAvatarUrl(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.set_avatar_url"
         }
@@ -79,7 +68,7 @@ sealed interface Capability {
     data class ProfileFields(
         @SerialName("enabled") val enabled: Boolean,
         @SerialName("allowed") val allowed: Set<ProfileField.Key<*>>? = null,
-        @SerialName("disallowed") val disallowed: Set<ProfileField.Key<*>>? = null
+        @SerialName("disallowed") val disallowed: Set<ProfileField.Key<*>>? = null,
     ) : Capability {
         companion object {
             const val name = "m.profile_fields"
@@ -87,24 +76,19 @@ sealed interface Capability {
 
         fun isChangeAllowed(key: ProfileField.Key<*>): Boolean =
             enabled &&
-                    (allowed != null && allowed.contains(key) ||
-                            allowed == null && (disallowed == null || !disallowed.contains(key)))
-
+                (allowed != null && allowed.contains(key) ||
+                    allowed == null && (disallowed == null || !disallowed.contains(key)))
     }
 
     @Serializable
-    data class ThirdPartyChanges(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class ThirdPartyChanges(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.3pid_changes"
         }
     }
 
     @Serializable
-    data class GetLoginToken(
-        @SerialName("enabled") val enabled: Boolean
-    ) : Capability {
+    data class GetLoginToken(@SerialName("enabled") val enabled: Boolean) : Capability {
         companion object {
             const val name = "m.get_login_token"
         }
@@ -134,39 +118,41 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
             val jsonObject =
                 decoder.decodeJsonElement() as? JsonObject ?: throw SerializationException("expected object")
             return Capabilities(
-                jsonObject.map { (key, value) ->
-                    @Suppress("DEPRECATION")
-                    when (key) {
-                        Capability.ChangePassword.name ->
-                            decoder.json.decodeFromJsonElement<Capability.ChangePassword>(value)
+                jsonObject
+                    .map { (key, value) ->
+                        @Suppress("DEPRECATION")
+                        when (key) {
+                            Capability.ChangePassword.name ->
+                                decoder.json.decodeFromJsonElement<Capability.ChangePassword>(value)
 
-                        Capability.ForgetForcedUponLeave.name ->
-                            decoder.json.decodeFromJsonElement<Capability.ForgetForcedUponLeave>(value)
+                            Capability.ForgetForcedUponLeave.name ->
+                                decoder.json.decodeFromJsonElement<Capability.ForgetForcedUponLeave>(value)
 
-                        Capability.RoomVersions.name ->
-                            decoder.json.decodeFromJsonElement<Capability.RoomVersions>(value)
+                            Capability.RoomVersions.name ->
+                                decoder.json.decodeFromJsonElement<Capability.RoomVersions>(value)
 
-                        Capability.SetDisplayName.name ->
-                            decoder.json.decodeFromJsonElement<Capability.SetDisplayName>(value)
+                            Capability.SetDisplayName.name ->
+                                decoder.json.decodeFromJsonElement<Capability.SetDisplayName>(value)
 
-                        Capability.SetAvatarUrl.name ->
-                            decoder.json.decodeFromJsonElement<Capability.SetAvatarUrl>(value)
+                            Capability.SetAvatarUrl.name ->
+                                decoder.json.decodeFromJsonElement<Capability.SetAvatarUrl>(value)
 
-                        Capability.ProfileFields.name ->
-                            decoder.json.decodeFromJsonElement<Capability.ProfileFields>(value)
+                            Capability.ProfileFields.name ->
+                                decoder.json.decodeFromJsonElement<Capability.ProfileFields>(value)
 
-                        Capability.ThirdPartyChanges.name ->
-                            decoder.json.decodeFromJsonElement<Capability.ThirdPartyChanges>(value)
+                            Capability.ThirdPartyChanges.name ->
+                                decoder.json.decodeFromJsonElement<Capability.ThirdPartyChanges>(value)
 
-                        Capability.GetLoginToken.name ->
-                            decoder.json.decodeFromJsonElement<Capability.GetLoginToken>(value)
+                            Capability.GetLoginToken.name ->
+                                decoder.json.decodeFromJsonElement<Capability.GetLoginToken>(value)
 
-                        Capability.AccountModeration.name ->
-                            decoder.json.decodeFromJsonElement<Capability.AccountModeration>(value)
+                            Capability.AccountModeration.name ->
+                                decoder.json.decodeFromJsonElement<Capability.AccountModeration>(value)
 
-                        else -> Capability.Unknown(key, value)
+                            else -> Capability.Unknown(key, value)
+                        }
                     }
-                }.toSet()
+                    .toSet()
             )
         }
 
@@ -207,18 +193,18 @@ value class Capabilities(private val delegate: Set<Capability>) : Set<Capability
                             is Capability.Unknown -> element.name to element.raw
                         }
                     }
-                ))
+                )
+            )
         }
     }
 }
 
 val Capabilities.changePassword: Capability.ChangePassword
-    get() = filterIsInstance<Capability.ChangePassword>().firstOrNull()
-        ?: Capability.ChangePassword(true)
+    get() = filterIsInstance<Capability.ChangePassword>().firstOrNull() ?: Capability.ChangePassword(true)
 
 val Capabilities.forgetForcedUponLeave: Capability.ForgetForcedUponLeave
-    get() = filterIsInstance<Capability.ForgetForcedUponLeave>().firstOrNull()
-        ?: Capability.ForgetForcedUponLeave(false)
+    get() =
+        filterIsInstance<Capability.ForgetForcedUponLeave>().firstOrNull() ?: Capability.ForgetForcedUponLeave(false)
 
 val Capabilities.roomVersion: Capability.RoomVersions?
     get() = filterIsInstance<Capability.RoomVersions>().firstOrNull()
@@ -226,27 +212,21 @@ val Capabilities.roomVersion: Capability.RoomVersions?
 @Deprecated("use ProfileFields instead")
 @Suppress("DEPRECATION")
 val Capabilities.setDisplayName: Capability.SetDisplayName
-    get() = filterIsInstance<Capability.SetDisplayName>().firstOrNull()
-        ?: Capability.SetDisplayName(true)
+    get() = filterIsInstance<Capability.SetDisplayName>().firstOrNull() ?: Capability.SetDisplayName(true)
 
 @Deprecated("use ProfileFields instead")
 @Suppress("DEPRECATION")
 val Capabilities.setAvatarUrl: Capability.SetAvatarUrl
-    get() = filterIsInstance<Capability.SetAvatarUrl>().firstOrNull()
-        ?: Capability.SetAvatarUrl(true)
+    get() = filterIsInstance<Capability.SetAvatarUrl>().firstOrNull() ?: Capability.SetAvatarUrl(true)
 
 val Capabilities.profileFields: Capability.ProfileFields
-    get() = filterIsInstance<Capability.ProfileFields>().firstOrNull()
-        ?: Capability.ProfileFields(true)
+    get() = filterIsInstance<Capability.ProfileFields>().firstOrNull() ?: Capability.ProfileFields(true)
 
 val Capabilities.thirdPartyChanges: Capability.ThirdPartyChanges
-    get() = filterIsInstance<Capability.ThirdPartyChanges>().firstOrNull()
-        ?: Capability.ThirdPartyChanges(true)
+    get() = filterIsInstance<Capability.ThirdPartyChanges>().firstOrNull() ?: Capability.ThirdPartyChanges(true)
 
 val Capabilities.getLoginToken: Capability.GetLoginToken
-    get() = filterIsInstance<Capability.GetLoginToken>().firstOrNull()
-        ?: Capability.GetLoginToken(false)
+    get() = filterIsInstance<Capability.GetLoginToken>().firstOrNull() ?: Capability.GetLoginToken(false)
 
 val Capabilities.accountModeration: Capability.AccountModeration
-    get() = filterIsInstance<Capability.AccountModeration>().firstOrNull()
-        ?: Capability.AccountModeration()
+    get() = filterIsInstance<Capability.AccountModeration>().firstOrNull() ?: Capability.AccountModeration()

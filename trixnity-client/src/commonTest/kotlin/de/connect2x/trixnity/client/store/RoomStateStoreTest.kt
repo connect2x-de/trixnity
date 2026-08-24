@@ -25,46 +25,49 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.JsonObject
-import kotlin.test.Test
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 class RoomStateStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val roomStateRepository = InMemoryRoomStateRepository() as RoomStateRepository
-    private val cut = RoomStateStore(
-        roomStateRepository = roomStateRepository,
-        tm = tm,
-        contentMappings = EventContentSerializerMappings.default,
-        config = MatrixClientConfiguration(),
-        statisticCollector = ObservableCacheStatisticCollector(),
-        storeScope = testScope.backgroundScope,
-        clock = testScope.testClock,
-    )
+    private val cut =
+        RoomStateStore(
+            roomStateRepository = roomStateRepository,
+            tm = tm,
+            contentMappings = EventContentSerializerMappings.default,
+            config = MatrixClientConfiguration(),
+            statisticCollector = ObservableCacheStatisticCollector(),
+            storeScope = testScope.backgroundScope,
+            clock = testScope.testClock,
+        )
 
     private val roomId = RoomId("!room:server")
-    private val event1 = StateEvent(
-        MemberEventContent(membership = LEAVE),
-        EventId("\$event"),
-        UserId("alice", "server"),
-        roomId,
-        1234,
-        stateKey = "@user:server"
-    )
-    private val event2 = StateEvent(
-        MemberEventContent(membership = JOIN),
-        EventId("\$event"),
-        UserId("alice", "server"),
-        roomId,
-        1234,
-        stateKey = "@alice:server"
-    )
+    private val event1 =
+        StateEvent(
+            MemberEventContent(membership = LEAVE),
+            EventId("\$event"),
+            UserId("alice", "server"),
+            roomId,
+            1234,
+            stateKey = "@user:server",
+        )
+    private val event2 =
+        StateEvent(
+            MemberEventContent(membership = JOIN),
+            EventId("\$event"),
+            UserId("alice", "server"),
+            roomId,
+            1234,
+            stateKey = "@alice:server",
+        )
 
     @Test
     fun `save » insert event into stateKey map of events`() = runTest {
@@ -73,14 +76,8 @@ class RoomStateStoreTest : TrixnityBaseTest() {
             cut.save(event2)
         }
         tm.readTransaction {
-            roomStateRepository.get(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server"
-            ) shouldBe event1
-            roomStateRepository.get(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@alice:server"
-            ) shouldBe event2
+            roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server") shouldBe event1
+            roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.member"), "@alice:server") shouldBe event2
         }
     }
 
@@ -93,10 +90,7 @@ class RoomStateStoreTest : TrixnityBaseTest() {
             cut.save(event1Copy, skipWhenAlreadyPresent = false)
         }
         tm.readTransaction {
-            roomStateRepository.get(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server"
-            ) shouldBe event1Copy
+            roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server") shouldBe event1Copy
         }
     }
 
@@ -109,42 +103,32 @@ class RoomStateStoreTest : TrixnityBaseTest() {
             cut.save(event1Copy, skipWhenAlreadyPresent = true)
         }
         tm.readTransaction {
-            roomStateRepository.get(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server"
-            ) shouldBe event1
+            roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server") shouldBe event1
         }
     }
 
     @Test
     fun `save » skipWhenAlreadyPresent » with existing StrippedStateEvent`() = runTest {
-        val event1Stripped = StrippedStateEvent(
-            MemberEventContent(membership = LEAVE),
-            sender = UserId("alice", "server"),
-            stateKey = "@user:server"
-        )
+        val event1Stripped =
+            StrippedStateEvent(
+                MemberEventContent(membership = LEAVE),
+                sender = UserId("alice", "server"),
+                stateKey = "@user:server",
+            )
         tm.writeTransaction {
             cut.save(event1Stripped)
 
             cut.save(event1, skipWhenAlreadyPresent = true)
         }
         tm.readTransaction {
-            roomStateRepository.get(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server"
-            ) shouldBe event1
+            roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server") shouldBe event1
         }
     }
-
 
     @Test
     fun `get » without scope » return matching event`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         cut.get<MemberEventContent>(roomId).flatten().first() shouldBe mapOf("@user:server" to event1)
     }
@@ -152,18 +136,14 @@ class RoomStateStoreTest : TrixnityBaseTest() {
     @Test
     fun `get » without scope » prefer cache`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         cut.get<MemberEventContent>(roomId).flatten().first() shouldBe mapOf("@user:server" to event1)
         tm.writeTransaction {
             roomStateRepository.save(
                 RoomStateRepositoryKey(roomId, "m.room.member"),
                 "@user:server",
-                event1.copy(originTimestamp = 0)
+                event1.copy(originTimestamp = 0),
             )
         }
         cut.get<MemberEventContent>(roomId).flatten().first() shouldBe mapOf("@user:server" to event1)
@@ -172,11 +152,7 @@ class RoomStateStoreTest : TrixnityBaseTest() {
     @Test
     fun `get » without scope » ignore unknown state event`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1,
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
             roomStateRepository.save(
                 RoomStateRepositoryKey(roomId, "m.room.member"),
                 "@bob:server",
@@ -186,28 +162,20 @@ class RoomStateStoreTest : TrixnityBaseTest() {
                     UserId("alice", "server"),
                     roomId,
                     1234,
-                    stateKey = "@bob:server"
-                )
+                    stateKey = "@bob:server",
+                ),
             )
         }
-        cut.get<MemberEventContent>(roomId).flattenNotNull().first() shouldBe mapOf(
-            "@user:server" to event1,
-        )
+        cut.get<MemberEventContent>(roomId).flattenNotNull().first() shouldBe mapOf("@user:server" to event1)
     }
 
     @Test
     fun `get » with scope » ignore unknown state event`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         val result = cut.get<MemberEventContent>(roomId).flatten(throttle = Duration.ZERO).stateIn(backgroundScope)
-        result.value shouldBe mapOf(
-            "@user:server" to event1,
-        )
+        result.value shouldBe mapOf("@user:server" to event1)
         tm.writeTransaction {
             cut.save(
                 StateEvent(
@@ -216,25 +184,18 @@ class RoomStateStoreTest : TrixnityBaseTest() {
                     UserId("alice", "server"),
                     roomId,
                     1234,
-                    stateKey = "@bob:server"
+                    stateKey = "@bob:server",
                 )
             )
         }
         delay(100.milliseconds)
-        result.value shouldBe mapOf(
-            "@user:server" to event1,
-            "@bob:server" to null
-        )
+        result.value shouldBe mapOf("@user:server" to event1, "@bob:server" to null)
     }
 
     @Test
     fun `getByStateKey » without scope » return matching event`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         cut.getByStateKey<MemberEventContent>(roomId, "@user:server").first() shouldBe event1
     }
@@ -242,11 +203,7 @@ class RoomStateStoreTest : TrixnityBaseTest() {
     @Test
     fun `getByStateKey » without scope » return matching content`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         cut.getContentByStateKey<MemberEventContent>(roomId, "@user:server").first() shouldBe event1.content
     }
@@ -254,18 +211,14 @@ class RoomStateStoreTest : TrixnityBaseTest() {
     @Test
     fun `getByStateKey » without scope » prefer cache`() = runTest {
         tm.writeTransaction {
-            roomStateRepository.save(
-                RoomStateRepositoryKey(roomId, "m.room.member"),
-                "@user:server",
-                event1
-            )
+            roomStateRepository.save(RoomStateRepositoryKey(roomId, "m.room.member"), "@user:server", event1)
         }
         cut.getByStateKey<MemberEventContent>(roomId, "@user:server").first() shouldBe event1
         tm.writeTransaction {
             roomStateRepository.save(
                 RoomStateRepositoryKey(roomId, "m.room.member"),
                 "@user:server",
-                event1.copy(originTimestamp = 0)
+                event1.copy(originTimestamp = 0),
             )
         }
         cut.getByStateKey<MemberEventContent>(roomId, "@user:server").first() shouldBe event1
@@ -281,7 +234,7 @@ class RoomStateStoreTest : TrixnityBaseTest() {
                     UserId("alice", "server"),
                     roomId,
                     1234,
-                    stateKey = "@user:server"
+                    stateKey = "@user:server",
                 )
             )
         }
@@ -290,12 +243,11 @@ class RoomStateStoreTest : TrixnityBaseTest() {
 
     @Test
     fun `getByStateKey » with scope » ignore unknown state event`() = runTest {
-        tm.writeTransaction {
-            cut.save(event1)
-        }
+        tm.writeTransaction { cut.save(event1) }
 
-        val result = cut.getByStateKey<MemberEventContent>(roomId, "@user:server")
-            .shareIn(backgroundScope, SharingStarted.Eagerly, 3)
+        val result =
+            cut.getByStateKey<MemberEventContent>(roomId, "@user:server")
+                .shareIn(backgroundScope, SharingStarted.Eagerly, 3)
         result.first { it != null }
         tm.writeTransaction {
             cut.save(
@@ -305,7 +257,7 @@ class RoomStateStoreTest : TrixnityBaseTest() {
                     UserId("alice", "server"),
                     roomId,
                     1234,
-                    stateKey = "@user:server"
+                    stateKey = "@user:server",
                 )
             )
         }
@@ -316,17 +268,8 @@ class RoomStateStoreTest : TrixnityBaseTest() {
     @Test
     fun `getByStateKey » return empty event contents`() = runTest {
         val event =
-            StateEvent(
-                AvatarEventContent(),
-                EventId("\$event"),
-                UserId("alice", "server"),
-                roomId,
-                1234,
-                stateKey = ""
-            )
-        tm.writeTransaction {
-            cut.save(event)
-        }
+            StateEvent(AvatarEventContent(), EventId("\$event"), UserId("alice", "server"), roomId, 1234, stateKey = "")
+        tm.writeTransaction { cut.save(event) }
         tm.writeTransaction {
             roomStateRepository.get(RoomStateRepositoryKey(roomId, "m.room.avatar"), "") shouldBe event
         }

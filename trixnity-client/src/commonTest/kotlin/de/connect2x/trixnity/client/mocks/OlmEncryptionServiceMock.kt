@@ -11,10 +11,11 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
 
     var returnEncryptOlm: Result<OlmEncryptedToDeviceEventContent>? = null
     var encryptOlmCalled: Triple<EventContent, UserId, String>? = null
+
     override suspend fun encryptOlm(
         content: EventContent,
         recipientUserId: UserId,
-        recipientDeviceId: String
+        recipientDeviceId: String,
     ): Result<OlmEncryptedToDeviceEventContent> {
         encryptOlmCalled = Triple(content, recipientUserId, recipientDeviceId)
         return returnEncryptOlm ?: Result.failure(NotImplementedError())
@@ -22,18 +23,23 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
 
     override suspend fun encryptOlm(
         content: EventContent,
-        recipients: Set<Pair<UserId, String>>
+        recipients: Set<Pair<UserId, String>>,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> {
         encryptOlmCalled = Triple(content, recipients.first().first, recipients.first().second)
         return recipients.associateWith { returnEncryptOlm ?: Result.failure(NotImplementedError()) }
     }
 
-    override suspend fun recoverOlm(olmRecovery: OlmEncryptionService.OlmRecovery): Result<OlmEncryptedToDeviceEventContent?> {
+    override suspend fun recoverOlm(
+        olmRecovery: OlmEncryptionService.OlmRecovery
+    ): Result<OlmEncryptedToDeviceEventContent?> {
         throw NotImplementedError()
     }
 
     lateinit var returnDecryptOlm: PlaintextOlmEvent<*>
-    override suspend fun decryptOlm(event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>): Result<PlaintextOlmEvent<*>> {
+
+    override suspend fun decryptOlm(
+        event: ClientEvent.ToDeviceEvent<OlmEncryptedToDeviceEventContent>
+    ): Result<PlaintextOlmEvent<*>> {
         return Result.success(returnDecryptOlm)
     }
 }

@@ -11,4 +11,3 @@ object VodozemacMegolmFactory : MegolmFactory {
 
     override val message: VodozemacMegolmMessageFactory = VodozemacMegolmMessageFactory
 }
-

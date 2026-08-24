@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.api.server
 
+import de.connect2x.trixnity.core.HttpMethod
+import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -7,6 +13,7 @@ import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.charsets.*
+import kotlin.test.Test
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,13 +21,6 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.HttpMethod
-import de.connect2x.trixnity.core.MatrixEndpoint
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import kotlin.test.Test
 
 class MatrixEndpointRouteTest : TrixnityBaseTest() {
     private val json = createMatrixEventJson()
@@ -33,15 +33,9 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
         @SerialName("pathParam") val pathParam: String,
         @SerialName("requestParam") val requestParam: String,
     ) : MatrixEndpoint<PostPath.Request, PostPath.Response> {
-        @Serializable
-        data class Request(
-            val includeDino: Boolean
-        )
+        @Serializable data class Request(val includeDino: Boolean)
 
-        @Serializable
-        data class Response(
-            val status: String
-        )
+        @Serializable data class Response(val status: String)
     }
 
     @Serializable
@@ -51,10 +45,7 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
         @SerialName("pathParam") val pathParam: String,
         @SerialName("requestParam") val requestParam: String,
     ) : MatrixEndpoint<Unit, GetPath.Response> {
-        @Serializable
-        data class Response(
-            val status: String
-        )
+        @Serializable data class Response(val status: String)
     }
 
     @Test
@@ -69,10 +60,11 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
                 }
             }
         }
-        val response = client.post("/path/unicorn?requestParam=2") {
-            contentType(ContentType.Application.Json)
-            setBody("""{"includeDino":true}""")
-        }
+        val response =
+            client.post("/path/unicorn?requestParam=2") {
+                contentType(ContentType.Application.Json)
+                setBody("""{"includeDino":true}""")
+            }
         response.body<String>() shouldBe """{"status":"dino"}"""
         response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
@@ -94,10 +86,11 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
                 }
             }
         }
-        val response1 = client.post("/path/unicorn?requestParam=2") {
-            contentType(ContentType.Application.Json)
-            setBody("""{"includeDino":true}""")
-        }
+        val response1 =
+            client.post("/path/unicorn?requestParam=2") {
+                contentType(ContentType.Application.Json)
+                setBody("""{"includeDino":true}""")
+            }
         getHasBeenCalled shouldBe false
         postHasBeenCalled shouldBe true
         response1.body<String>() shouldBe """{"status":"dino"}"""
@@ -122,20 +115,14 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
         @SerialName("pathParam") val pathParam: String,
         @SerialName("requestParam") val requestParam: String,
     ) : MatrixEndpoint<PostPathWithCustomSerializer.Request, PostPathWithCustomSerializer.Response> {
-        @Serializable
-        data class Request(
-            val includeDino: Boolean
-        )
+        @Serializable data class Request(val includeDino: Boolean)
 
-        @Serializable
-        data class Response(
-            val status: String
-        )
+        @Serializable data class Response(val status: String)
 
         override fun requestSerializerBuilder(
             mappings: EventContentSerializerMappings,
             json: Json,
-            value: Request?
+            value: Request?,
         ): KSerializer<Request> {
             return object : KSerializer<Request> {
                 override val descriptor = buildClassSerialDescriptor("customRequest")
@@ -149,14 +136,13 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
                 override fun serialize(encoder: Encoder, value: Request) {
                     throw NotImplementedError()
                 }
-
             }
         }
 
         override fun responseSerializerBuilder(
             mappings: EventContentSerializerMappings,
             json: Json,
-            value: Response?
+            value: Response?,
         ): KSerializer<Response> {
             return object : KSerializer<Response> {
                 override val descriptor = buildClassSerialDescriptor("customResponse")
@@ -177,19 +163,24 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
     fun shouldHandleRequestWithCustomSerializers() = testApplication {
         application {
             matrixApiServer(json) {
-                matrixEndpoint<PostPathWithCustomSerializer, PostPathWithCustomSerializer.Request, PostPathWithCustomSerializer.Response>(
+                matrixEndpoint<
+                    PostPathWithCustomSerializer,
+                    PostPathWithCustomSerializer.Request,
+                    PostPathWithCustomSerializer.Response,
+                >(
                     json,
-                    contentMappings
+                    contentMappings,
                 ) {
                     requestBody.includeDino shouldBe false
                     PostPathWithCustomSerializer.Response("dino")
                 }
             }
         }
-        val response = client.post("/path/unicorn?requestParam=2") {
-            contentType(ContentType.Application.Json)
-            setBody("""{"includeDino":true}""")
-        }
+        val response =
+            client.post("/path/unicorn?requestParam=2") {
+                contentType(ContentType.Application.Json)
+                setBody("""{"includeDino":true}""")
+            }
         response.body<String>() shouldBe """{"custom":true}"""
         response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
@@ -204,18 +195,16 @@ class MatrixEndpointRouteTest : TrixnityBaseTest() {
     fun shouldHandleUnitRequestAndResponse() = testApplication {
         application {
             matrixApiServer(json) {
-                matrixEndpoint<UnitPath, Unit, Unit>(json, contentMappings) {
-                    requestBody shouldBe Unit
-                }
+                matrixEndpoint<UnitPath, Unit, Unit>(json, contentMappings) { requestBody shouldBe Unit }
             }
         }
-        val response = client.get("/unit") {
-            contentType(ContentType.Application.Json)
-            setBody("""{}""")
-        }
+        val response =
+            client.get("/unit") {
+                contentType(ContentType.Application.Json)
+                setBody("""{}""")
+            }
         response.body<String>() shouldBe """{}"""
         response.contentType() shouldBe ContentType.Application.Json
         response.status shouldBe HttpStatusCode.OK
     }
-
 }

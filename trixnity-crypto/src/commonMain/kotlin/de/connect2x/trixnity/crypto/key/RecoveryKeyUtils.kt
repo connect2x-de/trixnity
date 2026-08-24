@@ -13,14 +13,16 @@ fun encodeRecoveryKey(recoveryKey: ByteArray): String {
     val recoveryKeyWithPrefix = recoveryKeyPrefix + recoveryKey.toList()
     return (recoveryKeyWithPrefix +
             recoveryKeyWithPrefix.fold(0x00) { parity, byte -> parity xor byte.toInt() }.toByte())
-        .toByteArray().encodeBase58().chunked(4).joinToString(" ")
+        .toByteArray()
+        .encodeBase58()
+        .chunked(4)
+        .joinToString(" ")
 }
 
 fun decodeRecoveryKey(encodedRecoveryKey: String): ByteArray {
     val recoveryKey = encodedRecoveryKey.filterNot { it.isWhitespace() }.decodeBase58()
     recoveryKeyPrefix.forEachIndexed { index, prefix ->
-        if (recoveryKey.getOrNull(index) != prefix)
-            throw RecoveryKeyInvalidException("wrong prefix")
+        if (recoveryKey.getOrNull(index) != prefix) throw RecoveryKeyInvalidException("wrong prefix")
     }
     if (recoveryKey.fold(0x00) { parity, byte -> parity xor byte.toInt() } != 0)
         throw RecoveryKeyInvalidException("wrong parity")
@@ -30,17 +32,14 @@ fun decodeRecoveryKey(encodedRecoveryKey: String): ByteArray {
     return recoveryKey.copyOfRange(recoveryKeyPrefix.size, recoveryKey.size - 1)
 }
 
-suspend fun recoveryKeyFromPassphrase(
-    passphrase: String,
-    info: AesHmacSha2Key.SecretStorageKeyPassphrase
-): ByteArray {
+suspend fun recoveryKeyFromPassphrase(passphrase: String, info: AesHmacSha2Key.SecretStorageKeyPassphrase): ByteArray {
     return when (info) {
         is AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2 -> {
             generatePbkdf2Sha512(
                 password = passphrase,
                 salt = info.salt.encodeToByteArray(),
                 iterationCount = info.iterations,
-                keyBitLength = info.bits ?: (32 * 8)
+                keyBitLength = info.bits ?: (32 * 8),
             )
         }
 
@@ -50,10 +49,8 @@ suspend fun recoveryKeyFromPassphrase(
 }
 
 suspend fun checkRecoveryKey(key: ByteArray, info: AesHmacSha2Key): Result<Unit> {
-    val expectedMac = createAesHmacSha2MacFromKey(
-        key, info.iv?.decodeBase64()
-            ?: throw IllegalArgumentException("iv was null")
-    )
+    val expectedMac =
+        createAesHmacSha2MacFromKey(key, info.iv?.decodeBase64() ?: throw IllegalArgumentException("iv was null"))
     val mac = info.mac
     return if (mac != null && !mac.decodeBase64().contentEquals(expectedMac.decodeBase64()))
         Result.failure(RecoveryKeyInvalidException("expected mac ${expectedMac}, but got ${info.mac}"))

@@ -1,15 +1,16 @@
 package de.connect2x.trixnity.client.store
 
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.push.PushAction
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.push.PushAction
 
 /**
- * Represents an update operation for a notification. This [Change] can be [Change.New], [Change.Update] or [Change.Remove].
+ * Represents an update operation for a notification. This [Change] can be [Change.New], [Change.Update] or
+ * [Change.Remove].
  */
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -40,13 +41,10 @@ sealed interface StoredNotificationUpdate {
     ) : StoredNotificationUpdate {
         override val roomId = content.roomId
     }
-    
+
     @Serializable
     @SerialName("remove")
-    data class Remove(
-        override val id: String,
-        override val roomId: RoomId
-    ) : StoredNotificationUpdate {
+    data class Remove(override val id: String, override val roomId: RoomId) : StoredNotificationUpdate {
         override val sortKey: String = ""
     }
 
@@ -58,18 +56,14 @@ sealed interface StoredNotificationUpdate {
 
         @Serializable
         @SerialName("message")
-        data class Message(
-            override val roomId: RoomId,
-            val eventId: EventId,
-        ) : Content
+        data class Message(override val roomId: RoomId, val eventId: EventId) : Content
 
         @Serializable
         @SerialName("state")
         data class State(
             override val roomId: RoomId,
             val eventId: EventId?,
-            @SerialName("eventContentType")
-            val type: String,
+            @SerialName("eventContentType") val type: String,
             val stateKey: String,
         ) : Content
     }

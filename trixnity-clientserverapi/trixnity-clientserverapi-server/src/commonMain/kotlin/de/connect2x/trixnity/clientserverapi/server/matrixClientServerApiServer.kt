@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.clientserverapi.server
 
+import de.connect2x.trixnity.api.server.matrixApiServer
+import de.connect2x.trixnity.core.serialization.createMatrixEventJson
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
-import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.core.serialization.createMatrixEventJson
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
 
 fun Application.matrixClientServerApiServer(
     accessTokenAuthenticationFunction: AccessTokenAuthenticationFunction,
@@ -21,15 +21,18 @@ fun Application.matrixClientServerApiServer(
     }
     install(ConvertMediaPlugin)
     matrixApiServer(json) {
-        createChild(object : RouteSelector() {
-            override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
-                RouteSelectorEvaluation.Transparent
-        }).apply {
-            installMatrixClientServerApiServer()
-            authenticate("matrix-access-token-auth") {
-                routes()
+        createChild(
+                object : RouteSelector() {
+                    override suspend fun evaluate(
+                        context: RoutingResolveContext,
+                        segmentIndex: Int,
+                    ): RouteSelectorEvaluation = RouteSelectorEvaluation.Transparent
+                }
+            )
+            .apply {
+                installMatrixClientServerApiServer()
+                authenticate("matrix-access-token-auth") { routes() }
             }
-        }
     }
 }
 
@@ -47,5 +50,5 @@ fun Route.installMatrixClientServerApiServer() {
         allowHeader(io.ktor.http.HttpHeaders.ContentType)
         allowHeader("X-Requested-With")
     }
-    options("{...}") { }
+    options("{...}") {}
 }

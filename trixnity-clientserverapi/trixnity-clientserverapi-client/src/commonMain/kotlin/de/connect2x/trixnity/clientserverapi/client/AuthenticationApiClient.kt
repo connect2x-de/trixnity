@@ -33,59 +33,39 @@ import de.connect2x.trixnity.core.model.UserId
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
-private val log = Logger { }
+private val log = Logger {}
 
 interface AuthenticationApiClient {
-    /**
-     * @see [WhoAmI]
-     */
+    /** @see [WhoAmI] */
     suspend fun whoAmI(): Result<WhoAmI.Response>
 
-    /**
-     * @see [IsRegistrationTokenValid]
-     */
-    suspend fun isRegistrationTokenValid(
-        token: String
-    ): Result<Boolean>
+    /** @see [IsRegistrationTokenValid] */
+    suspend fun isRegistrationTokenValid(token: String): Result<Boolean>
 
-    /**
-     * @see [IsUsernameAvailable]
-     */
-    suspend fun isUsernameAvailable(
-        username: String
-    ): Result<Boolean>
+    /** @see [IsUsernameAvailable] */
+    suspend fun isUsernameAvailable(username: String): Result<Boolean>
 
-    /**
-     * @see [GetEmailRequestTokenForPassword]
-     */
+    /** @see [GetEmailRequestTokenForPassword] */
     suspend fun getEmailRequestTokenForPassword(
         request: GetEmailRequestTokenForPassword.Request
     ): Result<GetEmailRequestTokenForPassword.Response>
 
-    /**
-     * @see [GetEmailRequestTokenForRegistration]
-     */
+    /** @see [GetEmailRequestTokenForRegistration] */
     suspend fun getEmailRequestTokenForRegistration(
         request: GetEmailRequestTokenForRegistration.Request
     ): Result<GetEmailRequestTokenForRegistration.Response>
 
-    /**
-     * @see [GetMsisdnRequestTokenForPassword]
-     */
+    /** @see [GetMsisdnRequestTokenForPassword] */
     suspend fun getMsisdnRequestTokenForPassword(
         request: GetMsisdnRequestTokenForPassword.Request
     ): Result<GetMsisdnRequestTokenForPassword.Response>
 
-    /**
-     * @see [GetMsisdnRequestTokenForRegistration]
-     */
+    /** @see [GetMsisdnRequestTokenForRegistration] */
     suspend fun getMsisdnRequestTokenForRegistration(
         request: GetMsisdnRequestTokenForRegistration.Request
     ): Result<GetMsisdnRequestTokenForRegistration.Response>
 
-    /**
-     * @see [Register]
-     */
+    /** @see [Register] */
     suspend fun register(
         username: String? = null,
         password: String? = null,
@@ -97,33 +77,21 @@ interface AuthenticationApiClient {
         isAppservice: Boolean = false,
     ): Result<UIA<Register.Response>>
 
-    fun getSsoUrl(
-        redirectUrl: String,
-        idpId: String? = null,
-        action: SSOAction? = null,
-    ): String
+    fun getSsoUrl(redirectUrl: String, idpId: String? = null, action: SSOAction? = null): String
 
     @Serializable
-    enum class SSOAction(
-        val value: String
-    ) {
+    enum class SSOAction(val value: String) {
         LOGIN("login"),
         REGISTER("register"),
     }
 
-    /**
-     * @see [GetLoginTypes]
-     */
+    /** @see [GetLoginTypes] */
     suspend fun getLoginTypes(): Result<Set<LoginType>>
 
-    /**
-     * @see [de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata]
-     */
+    /** @see [de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata] */
     suspend fun getOAuth2ServerMetadata(): Result<ServerMetadata>
 
-    /**
-     * @see [Login]
-     */
+    /** @see [Login] */
     suspend fun login(
         identifier: IdentifierType? = null,
         password: String? = null,
@@ -131,51 +99,31 @@ interface AuthenticationApiClient {
         type: LoginType = LoginType.Password,
         deviceId: String? = null,
         initialDeviceDisplayName: String? = null,
-        refreshToken: Boolean? = null
+        refreshToken: Boolean? = null,
     ): Result<Login.Response>
 
-    /**
-     * @see [Logout]
-     */
+    /** @see [Logout] */
     suspend fun logout(): Result<Unit>
 
-    /**
-     * @see [LogoutAll]
-     */
+    /** @see [LogoutAll] */
     suspend fun logoutAll(): Result<Unit>
 
-    /**
-     * @see [DeactivateAccount]
-     */
+    /** @see [DeactivateAccount] */
     suspend fun deactivateAccount(
         identityServer: String? = null,
         erase: Boolean? = null,
     ): Result<UIA<DeactivateAccount.Response>>
 
-    /**
-     * @see [ChangePassword]
-     */
-    suspend fun changePassword(
-        newPassword: String,
-        logoutDevices: Boolean = false
-    ): Result<UIA<Unit>>
+    /** @see [ChangePassword] */
+    suspend fun changePassword(newPassword: String, logoutDevices: Boolean = false): Result<UIA<Unit>>
 
-    /**
-     * @see [GetThirdPartyIdentifiers]
-     */
+    /** @see [GetThirdPartyIdentifiers] */
     suspend fun getThirdPartyIdentifiers(): Result<Set<ThirdPartyIdentifier>>
 
-    /**
-     * @see [AddThirdPartyIdentifiers]
-     */
-    suspend fun addThirdPartyIdentifiers(
-        clientSecret: String,
-        sessionId: String,
-    ): Result<UIA<Unit>>
+    /** @see [AddThirdPartyIdentifiers] */
+    suspend fun addThirdPartyIdentifiers(clientSecret: String, sessionId: String): Result<UIA<Unit>>
 
-    /**
-     * @see [BindThirdPartyIdentifiers]
-     */
+    /** @see [BindThirdPartyIdentifiers] */
     suspend fun bindThirdPartyIdentifiers(
         clientSecret: String,
         sessionId: String,
@@ -183,64 +131,45 @@ interface AuthenticationApiClient {
         idServer: String,
     ): Result<Unit>
 
-    /**
-     * @see [DeleteThirdPartyIdentifiers]
-     */
+    /** @see [DeleteThirdPartyIdentifiers] */
     suspend fun deleteThirdPartyIdentifiers(
         address: String,
         idServer: String? = null,
         medium: ThirdPartyIdentifier.Medium,
     ): Result<DeleteThirdPartyIdentifiers.Response>
 
-    /**
-     * @see [UnbindThirdPartyIdentifiers]
-     */
+    /** @see [UnbindThirdPartyIdentifiers] */
     suspend fun unbindThirdPartyIdentifiers(
         address: String,
         idServer: String? = null,
         medium: ThirdPartyIdentifier.Medium,
     ): Result<UnbindThirdPartyIdentifiers.Response>
 
-    /**
-     * @see [GetOIDCRequestToken]
-     */
+    /** @see [GetOIDCRequestToken] */
     suspend fun getOIDCRequestToken(userId: UserId): Result<GetOIDCRequestToken.Response>
 
-    /**
-     * @see [Refresh]
-     */
-    suspend fun refresh(
-        refreshToken: String,
-    ): Result<Refresh.Response>
+    /** @see [Refresh] */
+    suspend fun refresh(refreshToken: String): Result<Refresh.Response>
 
-    /**
-     * @see [GetToken]
-     */
-    suspend fun getToken(
-    ): Result<UIA<GetToken.Response>>
+    /** @see [GetToken] */
+    suspend fun getToken(): Result<UIA<GetToken.Response>>
 }
 
 class AuthenticationApiClientImpl(
     private val baseClient: MatrixClientServerApiBaseClient,
     private val authProvider: MatrixClientAuthProvider,
 ) : AuthenticationApiClient {
-    override suspend fun whoAmI(): Result<WhoAmI.Response> =
-        baseClient.request(WhoAmI)
+    override suspend fun whoAmI(): Result<WhoAmI.Response> = baseClient.request(WhoAmI)
 
-    override suspend fun isRegistrationTokenValid(
-        token: String
-    ): Result<Boolean> =
+    override suspend fun isRegistrationTokenValid(token: String): Result<Boolean> =
         baseClient.request(IsRegistrationTokenValid(token)).map { it.valid }
 
-    override suspend fun isUsernameAvailable(
-        username: String
-    ): Result<Boolean> =
+    override suspend fun isUsernameAvailable(username: String): Result<Boolean> =
         baseClient.request(IsUsernameAvailable(username)).map { it.available }
 
     override suspend fun getEmailRequestTokenForPassword(
         request: GetEmailRequestTokenForPassword.Request
-    ): Result<GetEmailRequestTokenForPassword.Response> =
-        baseClient.request(GetEmailRequestTokenForPassword, request)
+    ): Result<GetEmailRequestTokenForPassword.Response> = baseClient.request(GetEmailRequestTokenForPassword, request)
 
     override suspend fun getEmailRequestTokenForRegistration(
         request: GetEmailRequestTokenForRegistration.Request
@@ -249,8 +178,7 @@ class AuthenticationApiClientImpl(
 
     override suspend fun getMsisdnRequestTokenForPassword(
         request: GetMsisdnRequestTokenForPassword.Request
-    ): Result<GetMsisdnRequestTokenForPassword.Response> =
-        baseClient.request(GetMsisdnRequestTokenForPassword, request)
+    ): Result<GetMsisdnRequestTokenForPassword.Response> = baseClient.request(GetMsisdnRequestTokenForPassword, request)
 
     override suspend fun getMsisdnRequestTokenForRegistration(
         request: GetMsisdnRequestTokenForRegistration.Request
@@ -276,23 +204,24 @@ class AuthenticationApiClientImpl(
                 initialDeviceDisplayName = initialDeviceDisplayName,
                 inhibitLogin = inhibitLogin,
                 refreshToken = refreshToken,
-                type = if (isAppservice) LoginType.AppService.name else null
-            )
+                type = if (isAppservice) LoginType.AppService.name else null,
+            ),
         )
 
     override fun getSsoUrl(redirectUrl: String, idpId: String?, action: AuthenticationApiClient.SSOAction?): String =
-        URLBuilder().apply {
-            takeFrom(authProvider.baseUrl)
-            path(*listOfNotNull("/_matrix/client/v3/login/sso/redirect", idpId).toTypedArray())
-            parameters.append("redirectUrl", redirectUrl)
-            if (action != null) parameters.append("action", action.value)
-        }.toString()
+        URLBuilder()
+            .apply {
+                takeFrom(authProvider.baseUrl)
+                path(*listOfNotNull("/_matrix/client/v3/login/sso/redirect", idpId).toTypedArray())
+                parameters.append("redirectUrl", redirectUrl)
+                if (action != null) parameters.append("action", action.value)
+            }
+            .toString()
 
     override suspend fun getLoginTypes(): Result<Set<LoginType>> =
         baseClient.request(GetLoginTypes).mapCatching { it.flows }
 
-    override suspend fun getOAuth2ServerMetadata(): Result<ServerMetadata> =
-        baseClient.request(GetOAuth2ServerMetadata)
+    override suspend fun getOAuth2ServerMetadata(): Result<ServerMetadata> = baseClient.request(GetOAuth2ServerMetadata)
 
     override suspend fun login(
         identifier: IdentifierType?,
@@ -304,15 +233,16 @@ class AuthenticationApiClientImpl(
         refreshToken: Boolean?,
     ): Result<Login.Response> =
         baseClient.request(
-            Login, Login.Request(
+            Login,
+            Login.Request(
                 type = type.name,
                 identifier = identifier,
                 password = password,
                 refreshToken = refreshToken,
                 token = token,
                 deviceId = deviceId,
-                initialDeviceDisplayName = initialDeviceDisplayName
-            )
+                initialDeviceDisplayName = initialDeviceDisplayName,
+            ),
         )
 
     override suspend fun logout(): Result<Unit> = runCatching {
@@ -320,8 +250,7 @@ class AuthenticationApiClientImpl(
         baseClient.request(Logout).getOrThrow()
     }
 
-    override suspend fun logoutAll(): Result<Unit> =
-        baseClient.request(LogoutAll)
+    override suspend fun logoutAll(): Result<Unit> = baseClient.request(LogoutAll)
 
     override suspend fun deactivateAccount(
         identityServer: String?,
@@ -329,23 +258,16 @@ class AuthenticationApiClientImpl(
     ): Result<UIA<DeactivateAccount.Response>> =
         baseClient.uiaRequest(DeactivateAccount, DeactivateAccount.Request(identityServer, erase))
 
-    override suspend fun changePassword(
-        newPassword: String,
-        logoutDevices: Boolean
-    ): Result<UIA<Unit>> =
+    override suspend fun changePassword(newPassword: String, logoutDevices: Boolean): Result<UIA<Unit>> =
         baseClient.uiaRequest(ChangePassword, ChangePassword.Request(newPassword, logoutDevices))
 
-    override suspend fun getThirdPartyIdentifiers(
-    ): Result<Set<ThirdPartyIdentifier>> =
+    override suspend fun getThirdPartyIdentifiers(): Result<Set<ThirdPartyIdentifier>> =
         baseClient.request(GetThirdPartyIdentifiers).map { it.thirdPartyIdentifiers }
 
-    override suspend fun addThirdPartyIdentifiers(
-        clientSecret: String,
-        sessionId: String,
-    ): Result<UIA<Unit>> =
+    override suspend fun addThirdPartyIdentifiers(clientSecret: String, sessionId: String): Result<UIA<Unit>> =
         baseClient.uiaRequest(
             AddThirdPartyIdentifiers,
-            AddThirdPartyIdentifiers.Request(clientSecret = clientSecret, sessionId = sessionId)
+            AddThirdPartyIdentifiers.Request(clientSecret = clientSecret, sessionId = sessionId),
         )
 
     override suspend fun bindThirdPartyIdentifiers(
@@ -360,8 +282,8 @@ class AuthenticationApiClientImpl(
                 clientSecret = clientSecret,
                 sessionId = sessionId,
                 idAccessToken = idAccessToken,
-                idServer = idServer
-            )
+                idServer = idServer,
+            ),
         )
 
     override suspend fun deleteThirdPartyIdentifiers(
@@ -371,11 +293,7 @@ class AuthenticationApiClientImpl(
     ): Result<DeleteThirdPartyIdentifiers.Response> =
         baseClient.request(
             DeleteThirdPartyIdentifiers,
-            DeleteThirdPartyIdentifiers.Request(
-                address = address,
-                idServer = idServer,
-                medium = medium
-            )
+            DeleteThirdPartyIdentifiers.Request(address = address, idServer = idServer, medium = medium),
         )
 
     override suspend fun unbindThirdPartyIdentifiers(
@@ -385,11 +303,7 @@ class AuthenticationApiClientImpl(
     ): Result<UnbindThirdPartyIdentifiers.Response> =
         baseClient.request(
             UnbindThirdPartyIdentifiers,
-            UnbindThirdPartyIdentifiers.Request(
-                address = address,
-                idServer = idServer,
-                medium = medium
-            )
+            UnbindThirdPartyIdentifiers.Request(address = address, idServer = idServer, medium = medium),
         )
 
     override suspend fun getOIDCRequestToken(userId: UserId): Result<GetOIDCRequestToken.Response> =
@@ -398,6 +312,5 @@ class AuthenticationApiClientImpl(
     override suspend fun refresh(refreshToken: String): Result<Refresh.Response> =
         baseClient.request(Refresh, Refresh.Request(refreshToken))
 
-    override suspend fun getToken(): Result<UIA<GetToken.Response>> =
-        baseClient.uiaRequest(GetToken)
+    override suspend fun getToken(): Result<UIA<GetToken.Response>> = baseClient.uiaRequest(GetToken)
 }

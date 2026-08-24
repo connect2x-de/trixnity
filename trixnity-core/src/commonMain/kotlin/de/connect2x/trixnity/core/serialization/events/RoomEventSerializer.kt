@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.serialization.canonicalJson
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -8,17 +12,12 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.jsonObject
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.serialization.canonicalJson
 
 class RoomEventSerializer(
     private val messageEventSerializer: KSerializer<MessageEvent<*>>,
     private val stateEventSerializer: KSerializer<StateEvent<*>>,
 ) : KSerializer<RoomEvent<*>> {
-    override val descriptor: SerialDescriptor =
-        buildClassSerialDescriptor("RoomEvent")
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("RoomEvent")
 
     override fun deserialize(decoder: Decoder): RoomEvent<*> {
         require(decoder is JsonDecoder)
@@ -30,10 +29,11 @@ class RoomEventSerializer(
 
     override fun serialize(encoder: Encoder, value: RoomEvent<*>) {
         require(encoder is JsonEncoder)
-        val jsonElement = when (value) {
-            is MessageEvent -> encoder.json.encodeToJsonElement(messageEventSerializer, value)
-            is StateEvent -> encoder.json.encodeToJsonElement(stateEventSerializer, value)
-        }
+        val jsonElement =
+            when (value) {
+                is MessageEvent -> encoder.json.encodeToJsonElement(messageEventSerializer, value)
+                is StateEvent -> encoder.json.encodeToJsonElement(stateEventSerializer, value)
+            }
         encoder.encodeJsonElement(canonicalJson(jsonElement))
     }
 }

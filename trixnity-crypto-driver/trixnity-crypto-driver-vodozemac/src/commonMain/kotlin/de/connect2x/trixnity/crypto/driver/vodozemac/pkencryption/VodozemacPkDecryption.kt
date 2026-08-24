@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.pkencryption
 
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
-import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519SecretKey
 import de.connect2x.trixnity.crypto.driver.pkencryption.PkDecryption
 import de.connect2x.trixnity.crypto.driver.pkencryption.PkMessage
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
+import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519SecretKey
 import de.connect2x.trixnity.vodozemac.pkencryption.PkDecryption as Inner
 import kotlin.jvm.JvmInline
 

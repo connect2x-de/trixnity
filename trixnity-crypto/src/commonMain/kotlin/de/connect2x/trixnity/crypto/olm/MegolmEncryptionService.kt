@@ -36,6 +36,8 @@ import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptOlmError
 import de.connect2x.trixnity.utils.AtomicUpdateAndRunResult
 import de.connect2x.trixnity.utils.atomicUpdateAndRun
 import de.connect2x.trixnity.utils.nextString
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
@@ -43,20 +45,16 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 
 private val log = Logger("de.connect2x.trixnity.crypto.olm.MegolmEncryptionService")
 
 interface MegolmEncryptionService {
     sealed interface EncryptMegolmError {
-        data class CryptoDriverError(
-            val error: CryptoDriverException,
-        ) : EncryptMegolmError, IllegalStateException("error in crypto driver", error)
+        data class CryptoDriverError(val error: CryptoDriverException) :
+            EncryptMegolmError, IllegalStateException("error in crypto driver", error)
 
-        data class NetworkError(
-            val error: Throwable,
-        ) : EncryptMegolmError, IllegalStateException("network error", error)
+        data class NetworkError(val error: Throwable) :
+            EncryptMegolmError, IllegalStateException("network error", error)
     }
 
     /**
@@ -67,28 +65,23 @@ interface MegolmEncryptionService {
     suspend fun encryptMegolm(
         content: MessageEventContent,
         roomId: RoomId,
-        settings: EncryptionEventContent
+        settings: EncryptionEventContent,
     ): Result<MegolmEncryptedMessageEventContent>
 
-
     sealed interface DecryptMegolmError {
-        data class CryptoDriverError(
-            val error: CryptoDriverException,
-        ) : DecryptMegolmError, IllegalStateException("error in crypto driver", error)
+        data class CryptoDriverError(val error: CryptoDriverException) :
+            DecryptMegolmError, IllegalStateException("error in crypto driver", error)
 
-        class MegolmKeyNotFound : DecryptMegolmError,
-            IllegalStateException("megolm key not found")
+        class MegolmKeyNotFound : DecryptMegolmError, IllegalStateException("megolm key not found")
 
-        class MegolmKeyUnknownMessageIndex : DecryptMegolmError,
-            IllegalStateException("megolm key with unknown message index")
+        class MegolmKeyUnknownMessageIndex :
+            DecryptMegolmError, IllegalStateException("megolm key with unknown message index")
 
-        data class ValidationFailed(
-            val reason: String,
-        ) : DecryptMegolmError, IllegalStateException("validation failed ($reason)")
+        data class ValidationFailed(val reason: String) :
+            DecryptMegolmError, IllegalStateException("validation failed ($reason)")
 
-        data class DeserializationError(
-            val error: SerializationException,
-        ) : DecryptMegolmError, IllegalStateException("deserialization failed", error)
+        data class DeserializationError(val error: SerializationException) :
+            DecryptMegolmError, IllegalStateException("deserialization failed", error)
     }
 
     /**
@@ -119,98 +112,105 @@ class MegolmEncryptionServiceImpl(
     override suspend fun encryptMegolm(
         content: MessageEventContent,
         roomId: RoomId,
-        settings: EncryptionEventContent
-    ): Result<MegolmEncryptedMessageEventContent> = runCatchingCancellationAware {
-        val rotationPeriodMs = settings.rotationPeriodMs
-        val rotationPeriodMsgs = settings.rotationPeriodMsgs
-        val pickleKey =
-            try {
-                driver.key.pickleKey(store.getOlmPickleKey())
-            } catch (exception: CryptoDriverException) {
-                throw EncryptMegolmError.CryptoDriverError(exception)
-            }
-        atomicUpdateAndRun(
-            getValue = { store.getOutboundMegolmSession(roomId) },
-            updateValue = { store.updateOutboundMegolmSession(roomId, it) },
-        ) { storedMegolmSession ->
-            if (
-                storedMegolmSession != null
-                && (rotationPeriodMs == null || ((storedMegolmSession.createdAt + rotationPeriodMs.milliseconds) > clock.now()))
-                && (rotationPeriodMsgs == null || (storedMegolmSession.encryptedMessageCount < rotationPeriodMsgs))
-            ) {
-                log.debug { "encrypt megolm event with existing session" }
-                val (encryptionResult, pickledSession) =
+        settings: EncryptionEventContent,
+    ): Result<MegolmEncryptedMessageEventContent> =
+        runCatchingCancellationAware {
+                val rotationPeriodMs = settings.rotationPeriodMs
+                val rotationPeriodMsgs = settings.rotationPeriodMsgs
+                val pickleKey =
                     try {
-                        driver.megolm.groupSession.fromPickle(storedMegolmSession.pickled, pickleKey)
-                            .use { outboundSession ->
-                                outboundSession.encrypt(
-                                    content = content,
-                                    roomId = roomId,
-                                    newDevices = storedMegolmSession.newDevices
-                                        .flatMap { (userId, deviceIds) -> deviceIds.map { userId to it } }
-                                        .toSet()
-                                ) to outboundSession.pickle(pickleKey)
-                            }
-                    } catch (olmLibraryException: CryptoDriverException) {
-                        throw EncryptMegolmError.CryptoDriverError(olmLibraryException)
+                        driver.key.pickleKey(store.getOlmPickleKey())
+                    } catch (exception: CryptoDriverException) {
+                        throw EncryptMegolmError.CryptoDriverError(exception)
                     }
-                return@atomicUpdateAndRun AtomicUpdateAndRunResult(
-                    result = encryptionResult,
-                    update = storedMegolmSession.copy(
-                        encryptedMessageCount = storedMegolmSession.encryptedMessageCount + 1,
-                        pickled = pickledSession,
-                        newDevices = emptyMap(),
-                    )
-                )
-            }
-
-            log.debug { "encrypt megolm event with new session" }
-            val newUserDevices =
-                store.getDevices(roomId, store.getHistoryVisibility(roomId).membershipsAllowedToReceiveKey)
-            val (encryptionResult, pickledSession, storedInboundMegolmSession) =
-                try {
-                    useAll(
-                        { driver.megolm.groupSession() },
-                        { it.sessionKey.use(driver.megolm.inboundGroupSession::invoke) }
-                    ) { outboundSession, inboundSession ->
-                        Triple(
-                            outboundSession.encrypt(
-                                content = content,
-                                roomId = roomId,
-                                newDevices = newUserDevices
-                            ),
-                            outboundSession.pickle(pickleKey),
-                            StoredInboundMegolmSession(
-                                senderKey = ownCurve25519Key.value,
-                                sessionId = inboundSession.sessionId,
-                                roomId = roomId,
-                                firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
-                                hasBeenBackedUp = false,
-                                isTrusted = true,
-                                senderSigningKey = ownEd25519Key.value,
-                                forwardingCurve25519KeyChain = listOf(),
-                                pickled = inboundSession.pickle(pickleKey),
-                            )
+                atomicUpdateAndRun(
+                    getValue = { store.getOutboundMegolmSession(roomId) },
+                    updateValue = { store.updateOutboundMegolmSession(roomId, it) },
+                ) { storedMegolmSession ->
+                    if (
+                        storedMegolmSession != null &&
+                            (rotationPeriodMs == null ||
+                                ((storedMegolmSession.createdAt + rotationPeriodMs.milliseconds) > clock.now())) &&
+                            (rotationPeriodMsgs == null ||
+                                (storedMegolmSession.encryptedMessageCount < rotationPeriodMsgs))
+                    ) {
+                        log.debug { "encrypt megolm event with existing session" }
+                        val (encryptionResult, pickledSession) =
+                            try {
+                                driver.megolm.groupSession.fromPickle(storedMegolmSession.pickled, pickleKey).use {
+                                    outboundSession ->
+                                    outboundSession.encrypt(
+                                        content = content,
+                                        roomId = roomId,
+                                        newDevices =
+                                            storedMegolmSession.newDevices
+                                                .flatMap { (userId, deviceIds) -> deviceIds.map { userId to it } }
+                                                .toSet(),
+                                    ) to outboundSession.pickle(pickleKey)
+                                }
+                            } catch (olmLibraryException: CryptoDriverException) {
+                                throw EncryptMegolmError.CryptoDriverError(olmLibraryException)
+                            }
+                        return@atomicUpdateAndRun AtomicUpdateAndRunResult(
+                            result = encryptionResult,
+                            update =
+                                storedMegolmSession.copy(
+                                    encryptedMessageCount = storedMegolmSession.encryptedMessageCount + 1,
+                                    pickled = pickledSession,
+                                    newDevices = emptyMap(),
+                                ),
                         )
                     }
-                } catch (olmLibraryException: CryptoDriverException) {
-                    throw EncryptMegolmError.CryptoDriverError(olmLibraryException)
+
+                    log.debug { "encrypt megolm event with new session" }
+                    val newUserDevices =
+                        store.getDevices(roomId, store.getHistoryVisibility(roomId).membershipsAllowedToReceiveKey)
+                    val (encryptionResult, pickledSession, storedInboundMegolmSession) =
+                        try {
+                            useAll(
+                                { driver.megolm.groupSession() },
+                                { it.sessionKey.use(driver.megolm.inboundGroupSession::invoke) },
+                            ) { outboundSession, inboundSession ->
+                                Triple(
+                                    outboundSession.encrypt(
+                                        content = content,
+                                        roomId = roomId,
+                                        newDevices = newUserDevices,
+                                    ),
+                                    outboundSession.pickle(pickleKey),
+                                    StoredInboundMegolmSession(
+                                        senderKey = ownCurve25519Key.value,
+                                        sessionId = inboundSession.sessionId,
+                                        roomId = roomId,
+                                        firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
+                                        hasBeenBackedUp = false,
+                                        isTrusted = true,
+                                        senderSigningKey = ownEd25519Key.value,
+                                        forwardingCurve25519KeyChain = listOf(),
+                                        pickled = inboundSession.pickle(pickleKey),
+                                    ),
+                                )
+                            }
+                        } catch (olmLibraryException: CryptoDriverException) {
+                            throw EncryptMegolmError.CryptoDriverError(olmLibraryException)
+                        }
+                    store.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
+                        storedInboundMegolmSession
+                    }
+                    return@atomicUpdateAndRun AtomicUpdateAndRunResult(
+                        result = encryptionResult,
+                        update =
+                            StoredOutboundMegolmSession(
+                                roomId = roomId,
+                                createdAt = clock.now(),
+                                encryptedMessageCount = 1,
+                                newDevices = emptyMap(),
+                                pickled = pickledSession,
+                            ),
+                    )
                 }
-            store.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
-                storedInboundMegolmSession
             }
-            return@atomicUpdateAndRun AtomicUpdateAndRunResult(
-                result = encryptionResult,
-                update = StoredOutboundMegolmSession(
-                    roomId = roomId,
-                    createdAt = clock.now(),
-                    encryptedMessageCount = 1,
-                    newDevices = emptyMap(),
-                    pickled = pickledSession,
-                )
-            )
-        }
-    }.onFailure { log.warn(it) { "encrypt megolm failed" } }
+            .onFailure { log.warn(it) { "encrypt megolm failed" } }
 
     @OptIn(ExperimentalSerializationApi::class)
     private suspend fun GroupSession.encrypt(
@@ -221,35 +221,45 @@ class MegolmEncryptionServiceImpl(
         val newDevicesWithoutUs = newDevices - (ownUserId to ownDeviceId)
 
         if (newDevicesWithoutUs.isNotEmpty()) {
-            val roomKeyEventContent = RoomKeyEventContent(
-                roomId = roomId,
-                sessionId = sessionId,
-                sessionKey = SessionKeyValue.of(sessionKey),
-                algorithm = Megolm
-            )
+            val roomKeyEventContent =
+                RoomKeyEventContent(
+                    roomId = roomId,
+                    sessionId = sessionId,
+                    sessionKey = SessionKeyValue.of(sessionKey),
+                    algorithm = Megolm,
+                )
 
             val eventsToSend =
-                olmEncryptionService.encryptOlm(roomKeyEventContent, newDevicesWithoutUs)
+                olmEncryptionService
+                    .encryptOlm(roomKeyEventContent, newDevicesWithoutUs)
                     .mapNotNull { (recipient, encryptOlmResult) ->
                         encryptOlmResult
                             .onFailure {
                                 val e = it as? EncryptOlmError
                                 when (e) {
-                                    is EncryptOlmError.CryptoDriverError -> throw EncryptMegolmError.CryptoDriverError(e.error)
+                                    is EncryptOlmError.CryptoDriverError ->
+                                        throw EncryptMegolmError.CryptoDriverError(e.error)
 
                                     is EncryptOlmError.NetworkError -> throw EncryptMegolmError.NetworkError(e.error)
 
                                     is EncryptOlmError.DehydratedDeviceNotCrossSigned -> {
-                                        log.info { "will not send megolm session to $recipient, because dehydrated device not cross signed" }
+                                        log.info {
+                                            "will not send megolm session to $recipient, because dehydrated device not cross signed"
+                                        }
                                     }
 
                                     is EncryptOlmError.NoOlmSupported -> {
-                                        log.info { "will not send megolm session to $recipient, because olm not supported" }
+                                        log.info {
+                                            "will not send megolm session to $recipient, because olm not supported"
+                                        }
                                     }
 
                                     is EncryptOlmError.RemoteHomeserverNotReachable -> {
-                                        // TODO happens rarely, but we need a recovery mechanism (e.g. request room keys)!
-                                        log.warn { "will not send megolm session to $recipient, because remote homeserver not reachable and therefore new olm session could not be created" }
+                                        // TODO happens rarely, but we need a recovery mechanism (e.g. request room
+                                        // keys)!
+                                        log.warn {
+                                            "will not send megolm session to $recipient, because remote homeserver not reachable and therefore new olm session could not be created"
+                                        }
                                     }
 
                                     null -> {
@@ -259,11 +269,13 @@ class MegolmEncryptionServiceImpl(
                             }
                             .getOrNull()
                             ?.let { recipient to it }
-                    }.groupBy { it.first.first }
+                    }
+                    .groupBy { it.first.first }
                     .mapValues { it.value.associate { it.first.second to it.second } }
             if (eventsToSend.isNotEmpty()) {
                 log.debug { "send megolm key to devices: ${eventsToSend.mapValues { it.value.keys }}" }
-                requests.sendToDevice(eventsToSend, SecureRandom.nextString(22))
+                requests
+                    .sendToDevice(eventsToSend, SecureRandom.nextString(22))
                     .onFailure { throw EncryptMegolmError.NetworkError(it) }
                     .getOrThrow()
             }
@@ -280,96 +292,112 @@ class MegolmEncryptionServiceImpl(
             senderKey = ownCurve25519Key.value,
             deviceId = ownDeviceId,
             sessionId = sessionId,
-            relatesTo = relatesToForEncryptedEvent(content)
+            relatesTo = relatesToForEncryptedEvent(content),
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun decryptMegolm(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
-    ): Result<DecryptedMegolmEvent<*>> = runCatchingCancellationAware {
-        val roomId = encryptedEvent.roomId
-        val encryptedContent = encryptedEvent.content
-        val sessionId = encryptedContent.sessionId
+    ): Result<DecryptedMegolmEvent<*>> =
+        runCatchingCancellationAware {
+                val roomId = encryptedEvent.roomId
+                val encryptedContent = encryptedEvent.content
+                val sessionId = encryptedContent.sessionId
 
-        val storedSession = store.getInboundMegolmSession(sessionId, roomId)
-            ?: throw DecryptMegolmError.MegolmKeyNotFound()
+                val storedSession =
+                    store.getInboundMegolmSession(sessionId, roomId) ?: throw DecryptMegolmError.MegolmKeyNotFound()
 
-        val pickleKey =
-            try {
-                driver.key.pickleKey(store.getOlmPickleKey())
-            } catch (exception: CryptoDriverException) {
-                throw DecryptMegolmError.CryptoDriverError(exception)
-            }
-
-        val (plaintext, messageIndex) =
-            try {
-                driver.megolm.inboundGroupSession.fromPickle(
-                    pickle = storedSession.pickled,
-                    pickleKey = pickleKey,
-                ).use { session ->
-                    session.decrypt(driver.megolm.message(encryptedContent.ciphertext))
-                }
-            } catch (e: CryptoDriverException) {
-                when {
-                    e.message == "UNKNOWN_MESSAGE_INDEX" -> throw DecryptMegolmError.MegolmKeyUnknownMessageIndex()
-                    e.message?.contains("unknown message index") == true -> throw DecryptMegolmError.MegolmKeyUnknownMessageIndex()
-                    else -> throw DecryptMegolmError.CryptoDriverError(e)
-                }
-            }
-
-        val serializer = json.serializersModule.getContextual(DecryptedMegolmEvent::class)
-        checkNotNull(serializer)
-        val decryptedEvent =
-            try {
-                json.decodeFromJsonElement(
-                    serializer, addRelatesToToDecryptedEvent(plaintext, encryptedContent.relatesTo)
-                )
-            } catch (e: SerializationException) {
-                throw DecryptMegolmError.DeserializationError(e)
-            }
-        store.updateInboundMegolmMessageIndex(sessionId, roomId, messageIndex.toLong()) { storedIndex ->
-            if (encryptedEvent.roomId != decryptedEvent.roomId)
-                throw DecryptMegolmError.ValidationFailed("roomId did not match")
-            if (storedIndex != null
-                && (storedIndex.eventId != encryptedEvent.id || storedIndex.originTimestamp != encryptedEvent.originTimestamp)
-            ) throw DecryptMegolmError.ValidationFailed("message index did not match")
-
-            storedIndex ?: StoredInboundMegolmMessageIndex(
-                sessionId, roomId, messageIndex.toLong(), encryptedEvent.id, encryptedEvent.originTimestamp
-            )
-        }
-
-        decryptedEvent
-    }.onFailure { log.warn(it) { "decrypt megolm failed" } }
-
-    private fun addRelatesToToDecryptedEvent(
-        decryptionJson: String,
-        relatesTo: RelatesTo?
-    ) = JsonObject(buildMap {
-        val originalJsonObject = json.decodeFromString<JsonObject>(decryptionJson).jsonObject
-        putAll(originalJsonObject)
-        relatesTo?.let { relatesTo ->
-            originalJsonObject["content"]?.jsonObject?.let { content ->
-                put("content", JsonObject(buildMap {
-                    putAll(content)
-                    put("m.relates_to", JsonObject(buildMap {
-                        content["m.relates_to"]?.jsonObject?.let { putAll(it) }
-                        putAll(json.encodeToJsonElement(relatesTo).jsonObject)
+                val pickleKey =
+                    try {
+                        driver.key.pickleKey(store.getOlmPickleKey())
+                    } catch (exception: CryptoDriverException) {
+                        throw DecryptMegolmError.CryptoDriverError(exception)
                     }
+
+                val (plaintext, messageIndex) =
+                    try {
+                        driver.megolm.inboundGroupSession
+                            .fromPickle(pickle = storedSession.pickled, pickleKey = pickleKey)
+                            .use { session -> session.decrypt(driver.megolm.message(encryptedContent.ciphertext)) }
+                    } catch (e: CryptoDriverException) {
+                        when {
+                            e.message == "UNKNOWN_MESSAGE_INDEX" ->
+                                throw DecryptMegolmError.MegolmKeyUnknownMessageIndex()
+                            e.message?.contains("unknown message index") == true ->
+                                throw DecryptMegolmError.MegolmKeyUnknownMessageIndex()
+                            else -> throw DecryptMegolmError.CryptoDriverError(e)
+                        }
+                    }
+
+                val serializer = json.serializersModule.getContextual(DecryptedMegolmEvent::class)
+                checkNotNull(serializer)
+                val decryptedEvent =
+                    try {
+                        json.decodeFromJsonElement(
+                            serializer,
+                            addRelatesToToDecryptedEvent(plaintext, encryptedContent.relatesTo),
+                        )
+                    } catch (e: SerializationException) {
+                        throw DecryptMegolmError.DeserializationError(e)
+                    }
+                store.updateInboundMegolmMessageIndex(sessionId, roomId, messageIndex.toLong()) { storedIndex ->
+                    if (encryptedEvent.roomId != decryptedEvent.roomId)
+                        throw DecryptMegolmError.ValidationFailed("roomId did not match")
+                    if (
+                        storedIndex != null &&
+                            (storedIndex.eventId != encryptedEvent.id ||
+                                storedIndex.originTimestamp != encryptedEvent.originTimestamp)
                     )
-                    )
+                        throw DecryptMegolmError.ValidationFailed("message index did not match")
+
+                    storedIndex
+                        ?: StoredInboundMegolmMessageIndex(
+                            sessionId,
+                            roomId,
+                            messageIndex.toLong(),
+                            encryptedEvent.id,
+                            encryptedEvent.originTimestamp,
+                        )
                 }
-                ))
+
+                decryptedEvent
             }
-        }
-    })
+            .onFailure { log.warn(it) { "decrypt megolm failed" } }
+
+    private fun addRelatesToToDecryptedEvent(decryptionJson: String, relatesTo: RelatesTo?) =
+        JsonObject(
+            buildMap {
+                val originalJsonObject = json.decodeFromString<JsonObject>(decryptionJson).jsonObject
+                putAll(originalJsonObject)
+                relatesTo?.let { relatesTo ->
+                    originalJsonObject["content"]?.jsonObject?.let { content ->
+                        put(
+                            "content",
+                            JsonObject(
+                                buildMap {
+                                    putAll(content)
+                                    put(
+                                        "m.relates_to",
+                                        JsonObject(
+                                            buildMap {
+                                                content["m.relates_to"]?.jsonObject?.let { putAll(it) }
+                                                putAll(json.encodeToJsonElement(relatesTo).jsonObject)
+                                            }
+                                        ),
+                                    )
+                                }
+                            ),
+                        )
+                    }
+                }
+            }
+        )
 
     private fun relatesToForEncryptedEvent(content: EventContent) =
         if (content is MessageEventContent) {
             val relatesTo = content.relatesTo
-            if (relatesTo is RelatesTo.Replace) relatesTo.copy(newContent = null)
-            else relatesTo
+            if (relatesTo is RelatesTo.Replace) relatesTo.copy(newContent = null) else relatesTo
         } else null
 
     private inline fun <T, R> T.runCatchingCancellationAware(block: T.() -> R): Result<R> {
@@ -389,4 +417,3 @@ class MegolmEncryptionServiceImpl(
         }
     }
 }
-

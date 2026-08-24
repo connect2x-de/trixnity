@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- INTERNAL,CI: Add ktfmt
+
 ### Changed
 
 - Use new runner infrastructure

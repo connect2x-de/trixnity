@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.test.utils
 
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,10 +14,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlin.coroutines.AbstractCoroutineContextElement
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.time.Duration
 
 interface CoroutineTest {
     val defaultTimeout: Duration?
@@ -29,18 +29,15 @@ fun CoroutineTest.scheduleTeardown(block: ScheduledTaskLambda) = testScope.corou
 fun <T> CoroutineTest.runTest(
     timeout: Duration? = defaultTimeout,
     setup: suspend TestScope.() -> T,
-    testBody: suspend TestScope.(T) -> Unit
+    testBody: suspend TestScope.(T) -> Unit,
 ): TestResult {
     suspend fun TestScope.wrappedTest() = withScheduledTasks(setup, testBody)
 
-    return if (timeout == null) testScope.runTest { wrappedTest() }
-    else testScope.runTest(timeout) { wrappedTest() }
+    return if (timeout == null) testScope.runTest { wrappedTest() } else testScope.runTest(timeout) { wrappedTest() }
 }
 
-fun CoroutineTest.runTest(
-    timeout: Duration? = defaultTimeout,
-    testBody: suspend TestScope.() -> Unit
-): TestResult = runTest(timeout, {}) { testBody() }
+fun CoroutineTest.runTest(timeout: Duration? = defaultTimeout, testBody: suspend TestScope.() -> Unit): TestResult =
+    runTest(timeout, {}) { testBody() }
 
 fun <T> CoroutineTest.suspendLazy(block: suspend TestScope.() -> T): LazySuspend<T> =
     LazySuspendImpl(testScope.coroutineContext, block)
@@ -50,12 +47,14 @@ fun CoroutineTestScope(coroutineContext: CoroutineContext = EmptyCoroutineContex
     TestScope(coroutineContext + ScheduledTasksContext())
 
 internal typealias ScheduledTaskLambda = suspend TestScope.() -> Unit
+
 internal typealias SchuduledTaskLambdas = List<ScheduledTask>
 
 internal sealed interface ScheduledTask {
     val task: ScheduledTaskLambda
 
     data class Setup(override val task: ScheduledTaskLambda) : ScheduledTask
+
     data class Teardown(override val task: ScheduledTaskLambda) : ScheduledTask
 }
 
@@ -92,7 +91,7 @@ internal fun CoroutineContext.scheduleTeardown(block: ScheduledTaskLambda) {
 
 private suspend fun <T> TestScope.withScheduledTasks(
     setup: suspend TestScope.() -> T,
-    testBody: suspend TestScope.(T) -> Unit
+    testBody: suspend TestScope.(T) -> Unit,
 ) {
     val scheduledTasks = currentCoroutineContext()[ScheduledTasksContext]
     requireNotNull(scheduledTasks) { "cannot schedule tasks without ScheduledTasks present" }
@@ -103,12 +102,8 @@ private suspend fun <T> TestScope.withScheduledTasks(
     val setupTasks = tasks.mapNotNull { (it as? ScheduledTask.Setup)?.task }
     val teardownTasks = tasks.mapNotNull { (it as? ScheduledTask.Teardown)?.task }.reversed()
 
-    coroutineScope {
-        setupTasks.map { launch { it() } }.joinAll()
-    }
+    coroutineScope { setupTasks.map { launch { it() } }.joinAll() }
     testBody(setup())
 
-    coroutineScope {
-        teardownTasks.map { launch { it() } }.joinAll()
-    }
+    coroutineScope { teardownTasks.map { launch { it() } }.joinAll() }
 }

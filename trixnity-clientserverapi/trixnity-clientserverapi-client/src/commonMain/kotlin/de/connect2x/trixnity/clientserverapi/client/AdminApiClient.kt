@@ -8,47 +8,33 @@ import de.connect2x.trixnity.clientserverapi.model.admin.WhoIs
 import de.connect2x.trixnity.core.model.UserId
 
 interface AdminApiClient {
-    /**
-     * @see [GetSuspend]
-     */
+    /** @see [GetSuspend] */
     suspend fun getSuspend(userId: UserId): Result<GetSuspend.Response>
 
-    /**
-     * @see [SetSuspend]
-     */
+    /** @see [SetSuspend] */
     suspend fun setSuspend(userId: UserId, suspended: Boolean): Result<SetSuspend.Response>
 
-    /**
-     * @see [GetLock]
-     */
+    /** @see [GetLock] */
     suspend fun getLock(userId: UserId): Result<GetLock.Response>
 
-    /**
-     * @see [SetLock]
-     */
+    /** @see [SetLock] */
     suspend fun setLock(userId: UserId, locked: Boolean): Result<SetLock.Response>
 
-    /**
-     * @see [WhoIs]
-     */
+    /** @see [WhoIs] */
     suspend fun whoIs(userId: UserId): Result<WhoIs.Response>
 }
 
-class AdminApiClientImpl(
-    private val baseClient: MatrixClientServerApiBaseClient
-) : AdminApiClient {
+class AdminApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient) : AdminApiClient {
     override suspend fun getSuspend(userId: UserId): Result<GetSuspend.Response> =
         baseClient.request(GetSuspend(userId))
 
     override suspend fun setSuspend(userId: UserId, suspended: Boolean): Result<SetSuspend.Response> =
         baseClient.request(SetSuspend(userId), SetSuspend.Request(suspended))
 
-    override suspend fun getLock(userId: UserId): Result<GetLock.Response> =
-        baseClient.request(GetLock(userId))
+    override suspend fun getLock(userId: UserId): Result<GetLock.Response> = baseClient.request(GetLock(userId))
 
     override suspend fun setLock(userId: UserId, locked: Boolean): Result<SetLock.Response> =
         baseClient.request(SetLock(userId), SetLock.Request(locked))
 
-    override suspend fun whoIs(userId: UserId): Result<WhoIs.Response> =
-        baseClient.request(WhoIs(userId))
+    override suspend fun whoIs(userId: UserId): Result<WhoIs.Response> = baseClient.request(WhoIs(userId))
 }

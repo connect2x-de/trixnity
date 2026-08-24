@@ -21,9 +21,6 @@ class GlobalAccountDataEventHandler(
 
     internal suspend fun setGlobalAccountData(syncEvents: SyncEvents) {
         val events = syncEvents.syncResponse.accountData?.events
-        if (events?.isNotEmpty() == true)
-            tm.writeTransaction {
-                events.forEach { globalAccountDataStore.save(it) }
-            }
+        if (events?.isNotEmpty() == true) tm.writeTransaction { events.forEach { globalAccountDataStore.save(it) } }
     }
 }

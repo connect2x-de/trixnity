@@ -68,12 +68,12 @@ internal object JvmLoader {
         val targetPath = Files.createTempFile("$prefix$name", ".$suffix")
         val resourcePath = "/natives/${os.name}-${arch.name}/$prefix$name.$suffix"
 
-        this::class.java.getResourceAsStream(resourcePath)
-            .use { Files.copy(it, targetPath, StandardCopyOption.REPLACE_EXISTING) }
+        this::class.java.getResourceAsStream(resourcePath).use {
+            Files.copy(it, targetPath, StandardCopyOption.REPLACE_EXISTING)
+        }
 
         System.load(targetPath.toString())
 
         targetPath.toFile().deleteOnExit()
     }
 }
-

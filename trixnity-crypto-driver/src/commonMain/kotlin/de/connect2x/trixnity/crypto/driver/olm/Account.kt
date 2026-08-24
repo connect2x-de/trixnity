@@ -18,19 +18,14 @@ interface Account : AutoCloseable {
 
     fun sign(message: String): Ed25519Signature
 
-    fun createOutboundSession(
-        identityKey: Curve25519PublicKey,
-        oneTimeKey: Curve25519PublicKey,
-    ): Session
+    fun createOutboundSession(identityKey: Curve25519PublicKey, oneTimeKey: Curve25519PublicKey): Session
 
     fun createInboundSession(
         preKeyMessage: Message.PreKey,
         theirIdentityKey: Curve25519PublicKey? = null,
     ): InboundSessionCreationResult
 
-    fun generateOneTimeKeys(
-        count: Int,
-    ): OneTimeKeyGenerationResult
+    fun generateOneTimeKeys(count: Int): OneTimeKeyGenerationResult
 
     fun generateFallbackKey(): Curve25519PublicKey?
 
@@ -39,6 +34,7 @@ interface Account : AutoCloseable {
     fun markKeysAsPublished()
 
     fun pickle(pickleKey: PickleKey? = null): String
+
     fun dehydrate(pickleKey: PickleKey): DehydratedDevice
 
     interface OneTimeKeyGenerationResult {
@@ -46,6 +42,7 @@ interface Account : AutoCloseable {
         val removed: List<Curve25519PublicKey>
 
         operator fun component1() = created
+
         operator fun component2() = removed
     }
 
@@ -54,6 +51,7 @@ interface Account : AutoCloseable {
         val session: Session
 
         operator fun component1() = plaintext
+
         operator fun component2() = session
     }
 }

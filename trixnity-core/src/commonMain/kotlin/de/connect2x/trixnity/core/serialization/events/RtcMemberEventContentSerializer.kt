@@ -18,7 +18,7 @@ import kotlinx.serialization.modules.overwriteWith
 @MSC4143
 @MSC4354
 class RtcMemberEventContentSerializer(
-    rtcApplicationSerializerMappings: RtcApplicationSerializerMappings = RtcApplicationSerializerMappings.default,
+    rtcApplicationSerializerMappings: RtcApplicationSerializerMappings = RtcApplicationSerializerMappings.default
 ) : KSerializer<RtcMemberEventContent> {
 
     private val applicationSerializer = RtcApplicationSerializer(rtcApplicationSerializerMappings)
@@ -26,11 +26,11 @@ class RtcMemberEventContentSerializer(
 
     override val descriptor: SerialDescriptor = delegate.descriptor
 
-    private fun jsonWithModule(baseJson: Json): Json = Json(baseJson) {
-        serializersModule = baseJson.serializersModule.overwriteWith(
-            SerializersModule { contextual(applicationSerializer) }
-        )
-    }
+    private fun jsonWithModule(baseJson: Json): Json =
+        Json(baseJson) {
+            serializersModule =
+                baseJson.serializersModule.overwriteWith(SerializersModule { contextual(applicationSerializer) })
+        }
 
     override fun deserialize(decoder: Decoder): RtcMemberEventContent {
         require(decoder is JsonDecoder)

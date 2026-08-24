@@ -18,8 +18,7 @@ internal object SessionConfigBindings {
 
     fun version2(): NativePointer = vodozemac_megolm_session_config_version_2()
 
-    fun version(sessionConfig: NativePointer): Int =
-        vodozemac_megolm_session_config_version(sessionConfig)
+    fun version(sessionConfig: NativePointer): Int = vodozemac_megolm_session_config_version(sessionConfig)
 
     fun free(sessionConfig: NativePointer) = vodozemac_megolm_session_config_free(sessionConfig)
 }

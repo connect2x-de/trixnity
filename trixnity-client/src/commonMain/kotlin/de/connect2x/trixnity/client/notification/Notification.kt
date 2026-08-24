@@ -4,28 +4,18 @@ import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.push.PushAction
 
-/**
- * A notification can be of type [Message] or [State].
- */
+/** A notification can be of type [Message] or [State]. */
 sealed interface Notification {
-    /**
-     * Unique identifier, that can be used for various operations in [NotificationService].
-     */
+    /** Unique identifier, that can be used for various operations in [NotificationService]. */
     val id: String
 
-    /**
-     * Can be used to sort the notification.
-     */
+    /** Can be used to sort the notification. */
     val sortKey: String
 
-    /**
-     * The [PushAction] that should be performed, when the notification is created on the device.
-     */
+    /** The [PushAction] that should be performed, when the notification is created on the device. */
     val actions: Set<PushAction>
 
-    /**
-     * Indicates, that a user has dismissed a notification on the device.
-     */
+    /** Indicates, that a user has dismissed a notification on the device. */
     val dismissed: Boolean
 
     data class Message(

@@ -16,17 +16,13 @@ import kotlinx.serialization.json.JsonElement
 sealed interface KeyValue {
 
     @Serializable(with = Ed25519KeyValue.Serializer::class)
-    data class Ed25519KeyValue(
-        val value: String,
-    ) : KeyValue {
+    data class Ed25519KeyValue(val value: String) : KeyValue {
         object Serializer :
             UnwrapSerializer<Ed25519KeyValue>("Ed25519KeyValue", ::Ed25519KeyValue, Ed25519KeyValue::value)
     }
 
     @Serializable(with = Curve25519KeyValue.Serializer::class)
-    data class Curve25519KeyValue(
-        val value: String,
-    ) : KeyValue {
+    data class Curve25519KeyValue(val value: String) : KeyValue {
         object Serializer :
             UnwrapSerializer<Curve25519KeyValue>("Curve25519KeyValue", ::Curve25519KeyValue, Curve25519KeyValue::value)
     }
@@ -36,10 +32,12 @@ sealed interface KeyValue {
         val value: String,
         val fallback: Boolean? = null,
         override val signatures: Signatures<UserId>,
-    ) : KeyValue, Signed<SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable, UserId>(
-        SignedCurve25519KeyValueSignable(value, fallback),
-        signatures
-    ) {
+    ) :
+        KeyValue,
+        Signed<SignedCurve25519KeyValue.SignedCurve25519KeyValueSignable, UserId>(
+            SignedCurve25519KeyValueSignable(value, fallback),
+            signatures,
+        ) {
         @Serializable
         data class SignedCurve25519KeyValueSignable(
             @SerialName("key") val key: String,
@@ -47,10 +45,7 @@ sealed interface KeyValue {
         )
 
         object Serializer : KSerializer<SignedCurve25519KeyValue> {
-            private val delegate = Signed.Serializer(
-                SignedCurve25519KeyValueSignable.serializer(),
-                UserId.serializer(),
-            )
+            private val delegate = Signed.Serializer(SignedCurve25519KeyValueSignable.serializer(), UserId.serializer())
             override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SignedCurve25519KeyValue")
 
             override fun deserialize(decoder: Decoder): SignedCurve25519KeyValue {
@@ -58,7 +53,7 @@ sealed interface KeyValue {
                 return SignedCurve25519KeyValue(
                     signed.signed.key,
                     signed.signed.fallback,
-                    signed.signatures ?: throw SerializationException("no signatures found for curve25519 key")
+                    signed.signatures ?: throw SerializationException("no signatures found for curve25519 key"),
                 )
             }
 
@@ -68,9 +63,7 @@ sealed interface KeyValue {
         }
     }
 
-    data class UnknownKeyValue(
-        val raw: JsonElement,
-    ) : KeyValue
+    data class UnknownKeyValue(val raw: JsonElement) : KeyValue
 
     abstract class UnwrapSerializer<T : KeyValue>(
         name: String,
@@ -92,9 +85,10 @@ sealed interface KeyValue {
 }
 
 val KeyValue.valueOrNull: String?
-    get() = when (this) {
-        is KeyValue.Ed25519KeyValue -> value
-        is KeyValue.Curve25519KeyValue -> value
-        is KeyValue.SignedCurve25519KeyValue -> value
-        is KeyValue.UnknownKeyValue -> null
-    }
+    get() =
+        when (this) {
+            is KeyValue.Ed25519KeyValue -> value
+            is KeyValue.Curve25519KeyValue -> value
+            is KeyValue.SignedCurve25519KeyValue -> value
+            is KeyValue.UnknownKeyValue -> null
+        }

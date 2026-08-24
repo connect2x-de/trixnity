@@ -49,17 +49,13 @@ sealed interface OlmMessage {
         override val message: Message
         override val sessionKeys: SessionKeys
 
-        data class Text(
-            override val message: Message,
-            override val sessionKeys: SessionKeys,
-        ) : PreKey, OlmMessage.Text {
+        data class Text(override val message: Message, override val sessionKeys: SessionKeys) :
+            PreKey, OlmMessage.Text {
             companion object : OlmMessageFactory<Text> by factory(::Text)
         }
 
-        data class Bytes(
-            override val message: Message,
-            override val sessionKeys: SessionKeys,
-        ) : PreKey, OlmMessage.Bytes {
+        data class Bytes(override val message: Message, override val sessionKeys: SessionKeys) :
+            PreKey, OlmMessage.Bytes {
             companion object : OlmMessageFactory<Bytes> by factory(::Bytes)
         }
     }
@@ -71,21 +67,16 @@ sealed interface OlmMessage {
         private fun <T : Normal> factory(constructor: (Message) -> T) =
             factory(1) { message, _ -> constructor(Message(message)) }
 
-        private fun <T : OlmMessage> factory(
-            messageType: Int,
-            constructor: (NativePointer, NativePointer) -> T
-        ) =
+        private fun <T : OlmMessage> factory(messageType: Int, constructor: (NativePointer, NativePointer) -> T) =
             object : OlmMessageFactory<T> {
                 override fun invoke(bytes: ByteArray): T = interopScope {
                     val result =
                         withResult(NativePointerArray(4)) {
-                            MessageBindings.fromBytes(
-                                it, messageType, bytes.toInterop(), bytes.size)
+                            MessageBindings.fromBytes(it, messageType, bytes.toInterop(), bytes.size)
                         }
 
                     if (result[0].intValue != 0)
-                        throw VodozemacException(
-                            result[1].toByteArray(result[2].intValue).decodeToString())
+                        throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
 
                     // TODO: swap enum order in rust
                     if (result[1].intValue != messageType xor 1)
@@ -112,8 +103,7 @@ sealed interface OlmMessage {
 
         val ciphertext: ByteArray
             get() = managedReachableScope {
-                val (ptr, size) =
-                    withResult(NativePointerArray(2)) { MessageBindings.ciphertext(it, ptr) }
+                val (ptr, size) = withResult(NativePointerArray(2)) { MessageBindings.ciphertext(it, ptr) }
 
                 ptr.toByteArray(size.intValue)
             }

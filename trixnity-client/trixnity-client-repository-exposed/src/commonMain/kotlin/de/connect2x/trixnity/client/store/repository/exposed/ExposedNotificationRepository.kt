@@ -23,9 +23,7 @@ internal object ExposedNotification : Table("notification") {
     val value = text("value")
 }
 
-internal class ExposedNotificationRepository(
-    private val json: Json,
-) : NotificationRepository {
+internal class ExposedNotificationRepository(private val json: Json) : NotificationRepository {
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): List<StoredNotification> {
@@ -36,9 +34,9 @@ internal class ExposedNotificationRepository(
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: String): StoredNotification? {
-        return ExposedNotification.selectAll().where {
-            ExposedNotification.id.eq(key)
-        }.firstOrNull()
+        return ExposedNotification.selectAll()
+            .where { ExposedNotification.id.eq(key) }
+            .firstOrNull()
             ?.let { json.decodeFromString(it[ExposedNotification.value]) }
     }
 

@@ -40,19 +40,15 @@ kotlin {
     }
 }
 
-room {
-    schemaDirectory("$projectDir/schemas")
-}
+room { schemaDirectory("$projectDir/schemas") }
 
 dependencies {
     configurations
         .filter {
-            it.name != "ksp"
-                    && it.name.startsWith("ksp")
-                    && it.name.contains("Common").not()
-                    && it.name.contains("Test").not()
+            it.name != "ksp" &&
+                it.name.startsWith("ksp") &&
+                it.name.contains("Common").not() &&
+                it.name.contains("Test").not()
         }
-        .forEach {
-            add(it.name, sharedLibs.androidx.roomCompiler)
-        }
+        .forEach { add(it.name, sharedLibs.androidx.roomCompiler) }
 }

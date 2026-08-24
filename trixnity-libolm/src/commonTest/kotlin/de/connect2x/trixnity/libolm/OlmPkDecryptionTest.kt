@@ -3,8 +3,8 @@ package de.connect2x.trixnity.libolm
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmPkDecryptionTest {
 
@@ -34,23 +34,20 @@ class OlmPkDecryptionTest {
 
     @Test
     fun pickle() = runTest {
-        freeAfter(OlmPkDecryption.create()) { pkDecryption ->
-            pkDecryption.pickle("someKey") shouldNot beBlank()
-        }
+        freeAfter(OlmPkDecryption.create()) { pkDecryption -> pkDecryption.pickle("someKey") shouldNot beBlank() }
     }
 
     @Test
     fun pickleWithEmptyKey() = runTest {
-        freeAfter(OlmPkDecryption.create()) { pkDecryption ->
-            pkDecryption.pickle(null) shouldNot beBlank()
-        }
+        freeAfter(OlmPkDecryption.create()) { pkDecryption -> pkDecryption.pickle(null) shouldNot beBlank() }
     }
 
     @Test
     fun unpickle() = runTest {
-        val pickle = freeAfter(OlmPkDecryption.create("W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4")) { pkDecryption ->
-            pkDecryption.pickle("someKey")
-        }
+        val pickle =
+            freeAfter(OlmPkDecryption.create("W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4")) { pkDecryption ->
+                pkDecryption.pickle("someKey")
+            }
         freeAfter(OlmPkDecryption.unpickle("someKey", pickle)) { pkDecryption ->
             pkDecryption.privateKey shouldBe "W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4"
         }
@@ -58,9 +55,10 @@ class OlmPkDecryptionTest {
 
     @Test
     fun unpickleWithEmptyKey() = runTest {
-        val pickle = freeAfter(OlmPkDecryption.create("W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4")) { pkDecryption ->
-            pkDecryption.pickle(null)
-        }
+        val pickle =
+            freeAfter(OlmPkDecryption.create("W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4")) { pkDecryption ->
+                pkDecryption.pickle(null)
+            }
         freeAfter(OlmPkDecryption.unpickle(null, pickle)) { pkDecryption ->
             pkDecryption.privateKey shouldBe "W69V7atpH+HldmtexIZSEg51sNITai/Yut3pOw1pON4"
         }

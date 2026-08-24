@@ -8,14 +8,11 @@ data class ThirdPartyIdentifier(
     @SerialName("added_at") val addedAt: Long,
     @SerialName("address") val address: String,
     @SerialName("medium") val medium: Medium,
-    @SerialName("validated_at") val validatedAt: Long
+    @SerialName("validated_at") val validatedAt: Long,
 ) {
     @Serializable
     enum class Medium {
-        @SerialName("email")
-        EMAIL,
-
-        @SerialName("msisdn")
-        MSISDN
+        @SerialName("email") EMAIL,
+        @SerialName("msisdn") MSISDN,
     }
 }

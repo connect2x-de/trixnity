@@ -5,10 +5,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonTransformingSerializer
 
-open class HideFieldsSerializer<T : Any>(
-    baseSerializer: KSerializer<T>,
-    private vararg val hideFields: String,
-) : JsonTransformingSerializer<T>(baseSerializer) {
+open class HideFieldsSerializer<T : Any>(baseSerializer: KSerializer<T>, private vararg val hideFields: String) :
+    JsonTransformingSerializer<T>(baseSerializer) {
 
     override fun transformDeserialize(element: JsonElement): JsonElement {
         return hideField(element)
@@ -20,9 +18,11 @@ open class HideFieldsSerializer<T : Any>(
 
     private fun hideField(element: JsonElement): JsonElement {
         require(element is JsonObject)
-        return JsonObject(buildMap {
-            putAll(element)
-            hideFields.forEach { remove(it) }
-        })
+        return JsonObject(
+            buildMap {
+                putAll(element)
+                hideFields.forEach { remove(it) }
+            }
+        )
     }
 }

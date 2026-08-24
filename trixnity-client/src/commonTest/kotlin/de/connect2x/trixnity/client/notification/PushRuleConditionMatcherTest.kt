@@ -32,10 +32,10 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.test.Test
 
 class PushRuleConditionMatcherTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -44,60 +44,63 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
     private val userInfo = UserInfo(userId, "device", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, ""))
 
     private val json: Json = createMatrixEventJson()
-    private val roomStore = getInMemoryRoomStore { tm.writeTransaction { update(roomId) { Room(roomId) } } }.apply {
-        scheduleSetup {
-            tm.writeTransaction {
-                update(roomId) {
-                    simpleRoom.copy(
-                        name = RoomDisplayName(
-                            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(
-                                joinedMemberCount = 1
+    private val roomStore =
+        getInMemoryRoomStore { tm.writeTransaction { update(roomId) { Room(roomId) } } }
+            .apply {
+                scheduleSetup {
+                    tm.writeTransaction {
+                        update(roomId) {
+                            simpleRoom.copy(
+                                name =
+                                    RoomDisplayName(
+                                        summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 1)
+                                    )
                             )
-                        )
-                    )
+                        }
+                    }
                 }
             }
-        }
-    }
-    private val roomStateStore = getInMemoryRoomStateStore().apply {
-        scheduleSetup {
-            tm.writeTransaction {
-                save(
-                    ClientEvent.RoomEvent.StateEvent(
-                        content = CreateEventContent(roomVersion = "12"),
-                        id = EventId("create"),
-                        roomId = roomId,
-                        sender = UserId("other", "server"),
-                        originTimestamp = 1234,
-                        stateKey = "",
-                        unsigned = null,
-                    )
-                )
-            }
-        }
-    }
-    private val roomUserStore = getInMemoryRoomUserStore().apply {
-        scheduleSetup {
-            tm.writeTransaction {
-                update(userId, roomId) {
-                    RoomUser(
-                        roomId, userId, "Bob", ClientEvent.RoomEvent.StateEvent(
-                            content = MemberEventContent(
-                                displayName = "Bob",
-                                membership = Membership.JOIN
-                            ),
-                            id = EventId("bob_member"),
+    private val roomStateStore =
+        getInMemoryRoomStateStore().apply {
+            scheduleSetup {
+                tm.writeTransaction {
+                    save(
+                        ClientEvent.RoomEvent.StateEvent(
+                            content = CreateEventContent(roomVersion = "12"),
+                            id = EventId("create"),
                             roomId = roomId,
-                            sender = userId,
+                            sender = UserId("other", "server"),
                             originTimestamp = 1234,
-                            stateKey = userId.full,
+                            stateKey = "",
                             unsigned = null,
                         )
                     )
                 }
             }
         }
-    }
+    private val roomUserStore =
+        getInMemoryRoomUserStore().apply {
+            scheduleSetup {
+                tm.writeTransaction {
+                    update(userId, roomId) {
+                        RoomUser(
+                            roomId,
+                            userId,
+                            "Bob",
+                            ClientEvent.RoomEvent.StateEvent(
+                                content = MemberEventContent(displayName = "Bob", membership = Membership.JOIN),
+                                id = EventId("bob_member"),
+                                roomId = roomId,
+                                sender = userId,
+                                originTimestamp = 1234,
+                                stateKey = userId.full,
+                                unsigned = null,
+                            ),
+                        )
+                    }
+                }
+            }
+        }
 
     private val canDoAction = CanDoActionImpl(userInfo, GetPowerLevelImpl())
 
@@ -122,64 +125,44 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
             unsigned = null,
         )
 
-    private suspend fun setUpNotificationPowerLevel(user: Long, levels: Map<String, Long>) =
-        tm.writeTransaction {
-            roomStateStore.save(
-                ClientEvent.RoomEvent.StateEvent(
-                    content = PowerLevelsEventContent(
-                        users = mapOf(userId to user),
-                        notifications = levels
-                    ),
-                    id = EventId("power_level"),
-                    roomId = roomId,
-                    sender = userId,
-                    originTimestamp = 1234,
-                    stateKey = "",
-                    unsigned = null,
-                )
+    private suspend fun setUpNotificationPowerLevel(user: Long, levels: Map<String, Long>) = tm.writeTransaction {
+        roomStateStore.save(
+            ClientEvent.RoomEvent.StateEvent(
+                content = PowerLevelsEventContent(users = mapOf(userId to user), notifications = levels),
+                id = EventId("power_level"),
+                roomId = roomId,
+                sender = userId,
+                originTimestamp = 1234,
+                stateKey = "",
+                unsigned = null,
             )
-        }
+        )
+    }
 
     @Test
     fun `ContainsDisplayName - no match`() = runTest {
         val event = messageEvent(Text("Hello Tina!"))
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.ContainsDisplayName,
-            event,
-            userId,
-            roomUserStore,
-        ) shouldBe false
+        PushRuleConditionMatcherImpl.match(PushCondition.ContainsDisplayName, event, userId, roomUserStore) shouldBe
+            false
     }
 
     @Test
     fun `ContainsDisplayName - match`() = runTest {
         val event = messageEvent(Text("Hello Bob!"))
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.ContainsDisplayName,
-            event,
-            userId,
-            roomUserStore
-        ) shouldBe true
+        PushRuleConditionMatcherImpl.match(PushCondition.ContainsDisplayName, event, userId, roomUserStore) shouldBe
+            true
     }
 
     @Test
     fun `RoomMemberCount - no match`() = runTest {
         val event = messageEvent(Text("Hello!"))
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.RoomMemberCount("2"),
-            event,
-            roomStore
-        ) shouldBe false
+        PushRuleConditionMatcherImpl.match(PushCondition.RoomMemberCount("2"), event, roomStore) shouldBe false
     }
 
     @Test
     fun `RoomMemberCount - match`() = runTest {
         val event = messageEvent(Text("Hello!"))
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.RoomMemberCount("1"),
-            event,
-            roomStore
-        ) shouldBe true
+        PushRuleConditionMatcherImpl.match(PushCondition.RoomMemberCount("1"), event, roomStore) shouldBe true
     }
 
     @Test
@@ -202,7 +185,7 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
             PushCondition.SenderNotificationPermission("dino"),
             event,
             roomStateStore,
-            canDoAction
+            canDoAction,
         ) shouldBe true
     }
 
@@ -210,20 +193,14 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
     fun `Eventno match`() = runTest {
         val event = messageEvent(Text("Hello!"))
         val eventJson = lazy { notificationEventToJson(event, json) }
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.EventMatch("content.body", "dino"),
-            eventJson
-        ) shouldBe false
+        PushRuleConditionMatcherImpl.match(PushCondition.EventMatch("content.body", "dino"), eventJson) shouldBe false
     }
 
     @Test
     fun `Eventmatch`() = runTest {
         val event = messageEvent(Text("Hello!"))
         val eventJson = lazy { notificationEventToJson(event, json) }
-        PushRuleConditionMatcherImpl.match(
-            PushCondition.EventMatch("content.body", "*!"),
-            eventJson
-        ) shouldBe true
+        PushRuleConditionMatcherImpl.match(PushCondition.EventMatch("content.body", "*!"), eventJson) shouldBe true
     }
 
     @Test
@@ -232,7 +209,7 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
         val eventJson = lazy { notificationEventToJson(event, json) }
         PushRuleConditionMatcherImpl.match(
             PushCondition.EventPropertyIs("type", JsonPrimitive("m.room.mess")),
-            eventJson
+            eventJson,
         ) shouldBe false
     }
 
@@ -242,7 +219,7 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
         val eventJson = lazy { notificationEventToJson(event, json) }
         PushRuleConditionMatcherImpl.match(
             PushCondition.EventPropertyIs("type", JsonPrimitive("m.room.message")),
-            eventJson
+            eventJson,
         ) shouldBe true
     }
 
@@ -252,7 +229,7 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
         val eventJson = lazy { notificationEventToJson(event, json) }
         PushRuleConditionMatcherImpl.match(
             PushCondition.EventPropertyContains("content.alt_aliases", JsonPrimitive("#dino")),
-            eventJson
+            eventJson,
         ) shouldBe false
     }
 
@@ -262,7 +239,7 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
         val eventJson = lazy { notificationEventToJson(event, json) }
         PushRuleConditionMatcherImpl.match(
             PushCondition.EventPropertyContains("content.alt_aliases", JsonPrimitive("#dino")),
-            eventJson
+            eventJson,
         ) shouldBe true
     }
 
@@ -271,10 +248,6 @@ class PushRuleConditionMatcherTest : TrixnityBaseTest() {
         val event = messageEvent(Text("Hello!"))
         val eventJson = lazy { notificationEventToJson(event, json) }
         PushRuleConditionMatcherImpl(roomStore, roomStateStore, roomUserStore, canDoAction, userInfo)
-            .match(
-                PushCondition.Unknown(JsonObject(mapOf())),
-                event,
-                eventJson
-            ) shouldBe false
+            .match(PushCondition.Unknown(JsonObject(mapOf())), event, eventJson) shouldBe false
     }
 }

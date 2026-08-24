@@ -25,11 +25,10 @@ internal object ExposedOutboundMegolmSession : Table("outbound_megolm_session") 
 internal class ExposedOutboundMegolmSessionRepository(private val json: Json) : OutboundMegolmSessionRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: RoomId): StoredOutboundMegolmSession? {
-        return ExposedOutboundMegolmSession.selectAll().where { ExposedOutboundMegolmSession.roomId eq key.full }
+        return ExposedOutboundMegolmSession.selectAll()
+            .where { ExposedOutboundMegolmSession.roomId eq key.full }
             .firstOrNull()
-            ?.let {
-                json.decodeFromString(it[ExposedOutboundMegolmSession.value])
-            }
+            ?.let { json.decodeFromString(it[ExposedOutboundMegolmSession.value]) }
     }
 
     context(transaction: ReadTransaction)

@@ -7,6 +7,8 @@ interface Session : AutoCloseable {
     val hasReceivedMessage: Boolean
 
     fun encrypt(plaintext: String): Message
+
     fun decrypt(message: Message): String
+
     fun pickle(pickleKey: PickleKey? = null): String
 }

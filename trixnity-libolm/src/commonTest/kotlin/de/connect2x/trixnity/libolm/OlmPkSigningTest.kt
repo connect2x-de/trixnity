@@ -3,8 +3,8 @@ package de.connect2x.trixnity.libolm
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
 class OlmPkSigningTest {
 
@@ -23,10 +23,9 @@ class OlmPkSigningTest {
 
     @Test
     fun createWithPrivateKey() = runTest {
-        freeAfter(
-            OlmPkSigning.create("p/fiOzzdWmXCUUWO6XUctZP6Q0rhNz9RAJ/goUJVbwk"),
-            OlmUtility.create()
-        ) { pkSigning, utility ->
+        freeAfter(OlmPkSigning.create("p/fiOzzdWmXCUUWO6XUctZP6Q0rhNz9RAJ/goUJVbwk"), OlmUtility.create()) {
+            pkSigning,
+            utility ->
             val privateKey = pkSigning.privateKey
             privateKey shouldBe "p/fiOzzdWmXCUUWO6XUctZP6Q0rhNz9RAJ/goUJVbwk"
             val message =
@@ -36,5 +35,4 @@ class OlmPkSigningTest {
             utility.verifyEd25519(pkSigning.publicKey, message, signature)
         }
     }
-
 }

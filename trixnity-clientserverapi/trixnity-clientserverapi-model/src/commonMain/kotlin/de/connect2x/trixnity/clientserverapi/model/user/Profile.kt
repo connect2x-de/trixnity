@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.clientserverapi.model.user
 
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -11,14 +12,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import kotlin.jvm.JvmInline
 
 @Serializable(with = Profile.Serializer::class)
 @JvmInline
-value class Profile private constructor(
-    private val profileFields: Map<ProfileField.Key<*>, ProfileField> = emptyMap(),
-) {
+value class Profile
+private constructor(private val profileFields: Map<ProfileField.Key<*>, ProfileField> = emptyMap()) {
     constructor(profileFields: Set<ProfileField>) : this(profileFields.associateBy { it.key })
+
     constructor(vararg profileFields: ProfileField) : this(profileFields.toSet())
 
     operator fun <T : ProfileField> get(type: ProfileField.Key<T>): T? {
@@ -32,15 +32,25 @@ value class Profile private constructor(
     }
 
     operator fun plus(other: ProfileField): Profile = Profile(profileFields + (other.key to other))
+
     operator fun minus(other: ProfileField): Profile = Profile(profileFields - other.key)
+
     operator fun minus(key: ProfileField.Key<*>): Profile = Profile(profileFields - key)
 
-    val size: Int get() = profileFields.size
+    val size: Int
+        get() = profileFields.size
+
     fun isEmpty(): Boolean = profileFields.isEmpty()
+
     fun containsType(key: ProfileField.Key<*>): Boolean = profileFields.containsKey(key)
+
     fun contains(block: ProfileField): Boolean = profileFields.containsValue(block)
-    val types: Set<ProfileField.Key<*>> get() = profileFields.keys
-    val values: Collection<ProfileField> get() = profileFields.values
+
+    val types: Set<ProfileField.Key<*>>
+        get() = profileFields.keys
+
+    val values: Collection<ProfileField>
+        get() = profileFields.values
 
     object Serializer : KSerializer<Profile> {
         override val descriptor = buildClassSerialDescriptor("Profile")
@@ -49,20 +59,22 @@ value class Profile private constructor(
             require(decoder is JsonDecoder)
             val jsonObject = decoder.decodeJsonElement().jsonObject
             return Profile(
-                jsonObject.map {
-                    when (it.key) {
-                        ProfileField.DisplayName.name ->
-                            decoder.json.decodeFromJsonElement<ProfileField.DisplayName>(jsonObject)
+                jsonObject
+                    .map {
+                        when (it.key) {
+                            ProfileField.DisplayName.name ->
+                                decoder.json.decodeFromJsonElement<ProfileField.DisplayName>(jsonObject)
 
-                        ProfileField.AvatarUrl.name ->
-                            decoder.json.decodeFromJsonElement<ProfileField.AvatarUrl>(jsonObject)
+                            ProfileField.AvatarUrl.name ->
+                                decoder.json.decodeFromJsonElement<ProfileField.AvatarUrl>(jsonObject)
 
-                        ProfileField.TimeZone.name ->
-                            decoder.json.decodeFromJsonElement<ProfileField.TimeZone>(jsonObject)
+                            ProfileField.TimeZone.name ->
+                                decoder.json.decodeFromJsonElement<ProfileField.TimeZone>(jsonObject)
 
-                        else -> ProfileField.Unknown(ProfileField.Unknown.Key(it.key), it.value)
+                            else -> ProfileField.Unknown(ProfileField.Unknown.Key(it.key), it.value)
+                        }
                     }
-                }.toSet()
+                    .toSet()
             )
         }
 
@@ -70,17 +82,16 @@ value class Profile private constructor(
             require(encoder is JsonEncoder)
             encoder.encodeJsonElement(
                 JsonObject(
-                    buildMap {
-                        value.values.forEach {
-                            putAll(encoder.json.encodeToJsonElement(it).jsonObject)
-                        }
-                    }
+                    buildMap { value.values.forEach { putAll(encoder.json.encodeToJsonElement(it).jsonObject) } }
                 )
             )
         }
     }
 }
 
-val Profile.displayName: String? get() = get(ProfileField.DisplayName)?.value
-val Profile.avatarUrl: String? get() = get(ProfileField.AvatarUrl)?.value
-val Profile.timeZone: String? get() = get(ProfileField.TimeZone)?.value
+val Profile.displayName: String?
+    get() = get(ProfileField.DisplayName)?.value
+val Profile.avatarUrl: String?
+    get() = get(ProfileField.AvatarUrl)?.value
+val Profile.timeZone: String?
+    get() = get(ProfileField.TimeZone)?.value

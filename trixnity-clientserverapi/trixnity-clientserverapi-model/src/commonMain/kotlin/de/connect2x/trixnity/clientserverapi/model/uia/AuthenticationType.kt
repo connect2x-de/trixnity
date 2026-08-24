@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.clientserverapi.model.uia
 
+import de.connect2x.trixnity.core.serialization.stringWrapperSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -7,8 +8,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.serialization.stringWrapperSerializer
-
 
 @Serializable(with = AuthenticationType.Serializer::class)
 sealed interface AuthenticationType {
@@ -78,9 +77,7 @@ sealed interface AuthenticationType {
     }
 
     @Serializable(with = Unknown.Serializer::class)
-    data class Unknown(
-        override val name: String
-    ) : AuthenticationType {
+    data class Unknown(override val name: String) : AuthenticationType {
         object Serializer : KSerializer<Unknown> by stringWrapperSerializer(::Unknown, Unknown::name)
     }
 
@@ -106,5 +103,4 @@ sealed interface AuthenticationType {
             encoder.encodeString(value.name)
         }
     }
-
 }

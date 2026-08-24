@@ -6,9 +6,9 @@ import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollecto
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlin.time.Clock
 
 class RoomOutboxMessageStore(
     roomOutboxMessageRepository: RoomOutboxMessageRepository,
@@ -18,15 +18,18 @@ class RoomOutboxMessageStore(
     storeScope: CoroutineScope,
     clock: Clock,
 ) : Store {
-    private val roomOutboxMessageCache = FullDeleteByRoomIdRepositoryObservableCache(
-        roomOutboxMessageRepository,
-        tm,
-        storeScope,
-        clock,
-        config.cacheExpireDurations.roomOutboxMessage,
-        { RoomOutboxMessageRepositoryKey(it.roomId, it.transactionId) }) {
-        it.roomId
-    }.also(statisticCollector::addCache)
+    private val roomOutboxMessageCache =
+        FullDeleteByRoomIdRepositoryObservableCache(
+                roomOutboxMessageRepository,
+                tm,
+                storeScope,
+                clock,
+                config.cacheExpireDurations.roomOutboxMessage,
+                { RoomOutboxMessageRepositoryKey(it.roomId, it.transactionId) },
+            ) {
+                it.roomId
+            }
+            .also(statisticCollector::addCache)
 
     context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() = deleteAll()
@@ -43,9 +46,8 @@ class RoomOutboxMessageStore(
     suspend fun update(
         roomId: RoomId,
         transactionId: String,
-        updater: (RoomOutboxMessage<*>?) -> RoomOutboxMessage<*>?
-    ) =
-        roomOutboxMessageCache.update(RoomOutboxMessageRepositoryKey(roomId, transactionId), updater = updater)
+        updater: (RoomOutboxMessage<*>?) -> RoomOutboxMessage<*>?,
+    ) = roomOutboxMessageCache.update(RoomOutboxMessageRepositoryKey(roomId, transactionId), updater = updater)
 
     fun get(roomId: RoomId, transactionId: String): Flow<RoomOutboxMessage<*>?> =
         roomOutboxMessageCache.get(RoomOutboxMessageRepositoryKey(roomId, transactionId))

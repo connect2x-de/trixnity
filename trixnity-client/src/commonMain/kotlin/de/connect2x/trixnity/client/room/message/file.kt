@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.client.room.message
 
-import io.ktor.http.*
-import kotlinx.coroutines.flow.first
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.FileInfo
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import de.connect2x.trixnity.utils.ByteArrayFlow
+import io.ktor.http.*
+import kotlinx.coroutines.flow.first
 
 suspend fun MessageBuilder.file(
     body: String,
@@ -26,33 +26,36 @@ suspend fun MessageBuilder.file(
     if (isEncryptedRoom) {
         encryptedFile = mediaService.prepareUploadEncryptedMedia(file)
         val encryptedThumbnailFile = thumbnail?.let { mediaService.prepareUploadEncryptedMedia(it) }
-        info = FileInfo(
-            mimeType = type?.toString(),
-            size = size,
-            thumbnailUrl = null,
-            thumbnailFile = encryptedThumbnailFile,
-            thumbnailInfo = thumbnailInfo
-        )
+        info =
+            FileInfo(
+                mimeType = type?.toString(),
+                size = size,
+                thumbnailUrl = null,
+                thumbnailFile = encryptedThumbnailFile,
+                thumbnailInfo = thumbnailInfo,
+            )
         url = null
     } else {
         url = mediaService.prepareUploadMedia(file, type)
         val thumbnailUrl = thumbnail?.let {
-            val thumbnailType = thumbnailInfo?.mimeType?.let { mimeType ->
-                try {
-                    ContentType.parse(mimeType)
-                } catch (_: Exception) {
-                    null
+            val thumbnailType =
+                thumbnailInfo?.mimeType?.let { mimeType ->
+                    try {
+                        ContentType.parse(mimeType)
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
-            }
             mediaService.prepareUploadMedia(thumbnail, thumbnailType)
         }
-        info = FileInfo(
-            mimeType = type?.toString(),
-            size = size,
-            thumbnailUrl = thumbnailUrl,
-            thumbnailFile = null,
-            thumbnailInfo = thumbnailInfo
-        )
+        info =
+            FileInfo(
+                mimeType = type?.toString(),
+                size = size,
+                thumbnailUrl = thumbnailUrl,
+                thumbnailFile = null,
+                thumbnailInfo = thumbnailInfo,
+            )
         encryptedFile = null
     }
     roomMessageBuilder(body, format, formattedBody) {

@@ -40,8 +40,7 @@ fun createStoreModule() = module {
     singleOf(::RoomStateStore)
     singleOf(::RoomStore)
     singleOf(::RoomTimelineStore)
-    @OptIn(MSC4354::class)
-    singleOf(::StickyEventStore)
+    @OptIn(MSC4354::class) singleOf(::StickyEventStore)
     singleOf(::RoomUserStore)
     singleOf(::UserPresenceStore)
     singleOf(::NotificationStore)
@@ -61,8 +60,7 @@ fun createStoreModule() = module {
                 getOrNull<RoomStateStore>(),
                 getOrNull<RoomStore>(),
                 getOrNull<RoomTimelineStore>(),
-                @OptIn(MSC4354::class)
-                getOrNull<StickyEventStore>(),
+                @OptIn(MSC4354::class) getOrNull<StickyEventStore>(),
                 getOrNull<RoomUserStore>(),
                 getOrNull<UserPresenceStore>(),
                 getOrNull<NotificationStore>(),

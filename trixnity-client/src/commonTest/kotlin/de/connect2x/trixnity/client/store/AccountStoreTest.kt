@@ -17,19 +17,21 @@ import kotlin.test.Test
 class AccountStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val repository = InMemoryAccountRepository() as AccountRepository
-    private val cut = AccountStore(
-        repository,
-        tm,
-        ObservableCacheStatisticCollector(),
-        testScope.backgroundScope,
-        testScope.testClock,
-    )
+    private val cut =
+        AccountStore(
+            repository,
+            tm,
+            ObservableCacheStatisticCollector(),
+            testScope.backgroundScope,
+            testScope.testClock,
+        )
 
     @Test
     fun `init » load values from database`() = runTest {
         tm.writeTransaction {
             repository.save(
-                1, Account(
+                1,
+                Account(
                     olmPickleKey = null,
                     baseUrl = "http://localhost",
                     userId = UserId("user", "server"),
@@ -37,16 +39,18 @@ class AccountStoreTest : TrixnityBaseTest() {
                     accessToken = "access_token",
                     refreshToken = "refresh_token",
                     syncBatchToken = "sync_token",
-                    filter = Account.Filter(
-                        syncFilterId = "filter_id",
-                        syncOnceFilterId = "background_filter_id",
-                        eventTypesHash = "someHash",
-                    ),
-                    profile = Profile(
-                        ProfileField.DisplayName("display name"),
-                        ProfileField.AvatarUrl("mxc://localhost/123456")
-                    ),
-                )
+                    filter =
+                        Account.Filter(
+                            syncFilterId = "filter_id",
+                            syncOnceFilterId = "background_filter_id",
+                            eventTypesHash = "someHash",
+                        ),
+                    profile =
+                        Profile(
+                            ProfileField.DisplayName("display name"),
+                            ProfileField.AvatarUrl("mxc://localhost/123456"),
+                        ),
+                ),
             )
         }
 
@@ -63,15 +67,14 @@ class AccountStoreTest : TrixnityBaseTest() {
             @Suppress("DEPRECATION")
             refreshToken shouldBe "refresh_token"
             syncBatchToken shouldBe "sync_token"
-            filter shouldBe Account.Filter(
-                syncFilterId = "filter_id",
-                syncOnceFilterId = "background_filter_id",
-                eventTypesHash = "someHash",
-            )
-            profile shouldBe Profile(
-                ProfileField.DisplayName("display name"),
-                ProfileField.AvatarUrl("mxc://localhost/123456")
-            )
+            filter shouldBe
+                Account.Filter(
+                    syncFilterId = "filter_id",
+                    syncOnceFilterId = "background_filter_id",
+                    eventTypesHash = "someHash",
+                )
+            profile shouldBe
+                Profile(ProfileField.DisplayName("display name"), ProfileField.AvatarUrl("mxc://localhost/123456"))
         }
     }
 }

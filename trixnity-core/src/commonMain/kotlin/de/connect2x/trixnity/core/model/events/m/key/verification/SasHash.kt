@@ -19,8 +19,7 @@ sealed interface SasHash {
     data class Unknown(override val name: String) : SasHash
 
     class Serializer : KSerializer<SasHash> {
-        override val descriptor: SerialDescriptor =
-            PrimitiveSerialDescriptor("SasHash", PrimitiveKind.STRING)
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SasHash", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): SasHash =
             when (val name = decoder.decodeString()) {
@@ -28,7 +27,6 @@ sealed interface SasHash {
                 else -> Unknown(name)
             }
 
-        override fun serialize(encoder: Encoder, value: SasHash) =
-            encoder.encodeString(value.name)
+        override fun serialize(encoder: Encoder, value: SasHash) = encoder.encodeString(value.name)
     }
 }

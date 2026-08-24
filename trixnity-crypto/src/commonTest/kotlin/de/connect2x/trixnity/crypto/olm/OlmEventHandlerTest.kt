@@ -53,10 +53,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
-import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.first
 
 class OlmEventHandlerTest : TrixnityBaseTest() {
 
@@ -76,16 +76,12 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
 
     private val dummyPickledAccount = account().use(Account::pickle)
 
-    private val olmStoreMock = OlmStoreMock().apply {
-        olmAccount.value = dummyPickledAccount
-    }
+    private val olmStoreMock = OlmStoreMock().apply { olmAccount.value = dummyPickledAccount }
     private val olmEncryptionServiceMock = OlmEncryptionServiceMock()
     private val olmEventHandlerRequestHandlerMock = OlmEventHandlerRequestHandlerMock()
 
     private val subscriberReceived = mutableListOf<DecryptedOlmEventContainer>()
-    private val subscriber: DecryptedOlmEventSubscriber = {
-        subscriberReceived.add(it)
-    }
+    private val subscriber: DecryptedOlmEventSubscriber = { subscriberReceived.add(it) }
 
     private val cut: OlmEventHandlerImpl
 
@@ -93,137 +89,153 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
 
         val eventEmitter: ClientEventEmitterImpl<List<ClientEvent<*>>> =
             object : ClientEventEmitterImpl<List<ClientEvent<*>>>() {}
-        val olmKeysChangeEmitter: OlmKeysChangeEmitter = object : OlmKeysChangeEmitter {
-            override fun subscribeOneTimeKeysCount(subscriber: suspend (OlmKeysChange) -> Unit): Unsubscriber {
-                throw NotImplementedError()
+        val olmKeysChangeEmitter: OlmKeysChangeEmitter =
+            object : OlmKeysChangeEmitter {
+                override fun subscribeOneTimeKeysCount(subscriber: suspend (OlmKeysChange) -> Unit): Unsubscriber {
+                    throw NotImplementedError()
+                }
             }
-        }
 
-        cut = OlmEventHandlerImpl(
-            userInfo = UserInfo(UserId(""), "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-            eventEmitter = eventEmitter,
-            olmKeysChangeEmitter = olmKeysChangeEmitter,
-            signService = SignServiceMock().apply {
-                signCurve25519Key = Key.SignedCurve25519Key(null, "", signatures = mapOf())
-            },
-            olmEncryptionService = olmEncryptionServiceMock,
-            requestHandler = olmEventHandlerRequestHandlerMock,
-            store = olmStoreMock,
-            clock = testScope.testClock,
-            driver = driver,
-        )
+        cut =
+            OlmEventHandlerImpl(
+                userInfo = UserInfo(UserId(""), "", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+                eventEmitter = eventEmitter,
+                olmKeysChangeEmitter = olmKeysChangeEmitter,
+                signService =
+                    SignServiceMock().apply {
+                        signCurve25519Key = Key.SignedCurve25519Key(null, "", signatures = mapOf())
+                    },
+                olmEncryptionService = olmEncryptionServiceMock,
+                requestHandler = olmEventHandlerRequestHandlerMock,
+                store = olmStoreMock,
+                clock = testScope.testClock,
+                driver = driver,
+            )
         cut.subscribe(subscriber)
     }
 
     @Test
-    fun `handleOlmEvents - ignore decrypt exceptions`() = kotlinx.coroutines.test.runTest {
-        val event = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")),
-            UserId("sender", "server")
-        )
-        olmEncryptionServiceMock.decryptOlm.add(Result.failure(OlmEncryptionService.DecryptOlmError.ValidationFailed("")))
-        cut.handleOlmEvents(listOf(event))
-        subscriberReceived shouldHaveSize 0
-    }
-
-    @Test
-    fun `handleOlmEvents - recover olm sessions`() = kotlinx.coroutines.test.runTest {
-        val event1 = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("1")),
-            UserId("sender1", "server")
-        )
-        val event2 = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("2")),
-            UserId("sender2", "server")
-        )
-        val event3 = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("2")),
-            UserId("sender3", "server")
-        )
-        olmEncryptionServiceMock.decryptOlm.add(
-            Result.failure(
-                OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
-                    OlmEncryptionService.OlmRecovery(UserId("sender1", "server"), "d", testClock.now())
+    fun `handleOlmEvents - ignore decrypt exceptions`() =
+        kotlinx.coroutines.test.runTest {
+            val event =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")),
+                    UserId("sender", "server"),
                 )
+            olmEncryptionServiceMock.decryptOlm.add(
+                Result.failure(OlmEncryptionService.DecryptOlmError.ValidationFailed(""))
             )
-        )
-        olmEncryptionServiceMock.decryptOlm.add(
-            Result.failure(
-                OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
-                    OlmEncryptionService.OlmRecovery(UserId("sender2", "server"), "d", testClock.now())
-                )
-            )
-        )
-        val event3Decrypted = PlaintextOlmEvent(
-            RoomMessageEventContent.TextBased.Text("hi"),
-            UserId("sender", "server"), keysOf(),
-            null,
-            UserId("receiver", "server"), keysOf()
-        )
-        olmEncryptionServiceMock.decryptOlm.add(Result.success(event3Decrypted))
-        val recoverEvent = OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("a"))
-        olmEncryptionServiceMock.recoverOlm = Result.success(recoverEvent)
-        cut.handleOlmEvents(listOf(event1, event2, event3))
-
-        olmEventHandlerRequestHandlerMock.sendToDeviceParams shouldBe listOf(
-            mapOf(
-                UserId("sender1", "server") to mapOf("d" to recoverEvent),
-                UserId("sender2", "server") to mapOf("d" to recoverEvent),
-            )
-        )
-        subscriberReceived shouldContainExactly listOf(DecryptedOlmEventContainer(event3, event3Decrypted))
-    }
-
-    @Test
-    fun `handleOlmEvents - recover olm sessions - rethrow network errors`() = kotlinx.coroutines.test.runTest {
-        val event = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("1")),
-            UserId("sender1", "server")
-        )
-        olmEncryptionServiceMock.decryptOlm.add(
-            Result.failure(
-                OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
-                    OlmEncryptionService.OlmRecovery(UserId("sender1", "server"), "d", testClock.now())
-                )
-            )
-        )
-        OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("a"))
-        olmEncryptionServiceMock.recoverOlm = Result.failure(
-            OlmEncryptionService.EncryptOlmError.NetworkError(
-                IllegalStateException("network error")
-            )
-        )
-        shouldThrow<OlmEncryptionService.EncryptOlmError.NetworkError> {
             cut.handleOlmEvents(listOf(event))
+            subscriberReceived shouldHaveSize 0
         }
 
-        olmEventHandlerRequestHandlerMock.sendToDeviceParams shouldBe listOf()
-        subscriberReceived shouldHaveSize 0
-    }
+    @Test
+    fun `handleOlmEvents - recover olm sessions`() =
+        kotlinx.coroutines.test.runTest {
+            val event1 =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("1")),
+                    UserId("sender1", "server"),
+                )
+            val event2 =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("2")),
+                    UserId("sender2", "server"),
+                )
+            val event3 =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("2")),
+                    UserId("sender3", "server"),
+                )
+            olmEncryptionServiceMock.decryptOlm.add(
+                Result.failure(
+                    OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
+                        OlmEncryptionService.OlmRecovery(UserId("sender1", "server"), "d", testClock.now())
+                    )
+                )
+            )
+            olmEncryptionServiceMock.decryptOlm.add(
+                Result.failure(
+                    OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
+                        OlmEncryptionService.OlmRecovery(UserId("sender2", "server"), "d", testClock.now())
+                    )
+                )
+            )
+            val event3Decrypted =
+                PlaintextOlmEvent(
+                    RoomMessageEventContent.TextBased.Text("hi"),
+                    UserId("sender", "server"),
+                    keysOf(),
+                    null,
+                    UserId("receiver", "server"),
+                    keysOf(),
+                )
+            olmEncryptionServiceMock.decryptOlm.add(Result.success(event3Decrypted))
+            val recoverEvent = OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("a"))
+            olmEncryptionServiceMock.recoverOlm = Result.success(recoverEvent)
+            cut.handleOlmEvents(listOf(event1, event2, event3))
+
+            olmEventHandlerRequestHandlerMock.sendToDeviceParams shouldBe
+                listOf(
+                    mapOf(
+                        UserId("sender1", "server") to mapOf("d" to recoverEvent),
+                        UserId("sender2", "server") to mapOf("d" to recoverEvent),
+                    )
+                )
+            subscriberReceived shouldContainExactly listOf(DecryptedOlmEventContainer(event3, event3Decrypted))
+        }
 
     @Test
-    fun `handleOlmEvents - get decrypted events`() = kotlinx.coroutines.test.runTest {
-        val event = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")),
-            UserId("sender", "server")
-        )
-        val decryptedEvent = PlaintextOlmEvent(
-            RoomMessageEventContent.TextBased.Text("hi"),
-            UserId("sender", "server"), keysOf(),
-            null,
-            UserId("receiver", "server"), keysOf()
-        )
-        olmEncryptionServiceMock.decryptOlm.add(Result.success(decryptedEvent))
-        cut.handleOlmEvents(listOf(event))
-        subscriberReceived shouldContainExactly listOf(DecryptedOlmEventContainer(event, decryptedEvent))
-    }
+    fun `handleOlmEvents - recover olm sessions - rethrow network errors`() =
+        kotlinx.coroutines.test.runTest {
+            val event =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("1")),
+                    UserId("sender1", "server"),
+                )
+            olmEncryptionServiceMock.decryptOlm.add(
+                Result.failure(
+                    OlmEncryptionService.DecryptOlmError.NoMatchingOlmSessionFound(
+                        OlmEncryptionService.OlmRecovery(UserId("sender1", "server"), "d", testClock.now())
+                    )
+                )
+            )
+            OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("a"))
+            olmEncryptionServiceMock.recoverOlm =
+                Result.failure(
+                    OlmEncryptionService.EncryptOlmError.NetworkError(IllegalStateException("network error"))
+                )
+            shouldThrow<OlmEncryptionService.EncryptOlmError.NetworkError> { cut.handleOlmEvents(listOf(event)) }
+
+            olmEventHandlerRequestHandlerMock.sendToDeviceParams shouldBe listOf()
+            subscriberReceived shouldHaveSize 0
+        }
+
+    @Test
+    fun `handleOlmEvents - get decrypted events`() =
+        kotlinx.coroutines.test.runTest {
+            val event =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(mapOf(), Curve25519KeyValue("")),
+                    UserId("sender", "server"),
+                )
+            val decryptedEvent =
+                PlaintextOlmEvent(
+                    RoomMessageEventContent.TextBased.Text("hi"),
+                    UserId("sender", "server"),
+                    keysOf(),
+                    null,
+                    UserId("receiver", "server"),
+                    keysOf(),
+                )
+            olmEncryptionServiceMock.decryptOlm.add(Result.success(decryptedEvent))
+            cut.handleOlmEvents(listOf(event))
+            subscriberReceived shouldContainExactly listOf(DecryptedOlmEventContainer(event, decryptedEvent))
+        }
 
     @Test
     fun `forgetOldFallbackKey - forget after timestamp`() = runTest {
-        data class OlmInfos(
-            val olmAccount: String,
-            val fallbackKey: String
-        )
+        data class OlmInfos(val olmAccount: String, val fallbackKey: String)
 
         val bobAccount = account()
         val aliceAccount = account()
@@ -236,21 +248,14 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
         bobAccount.generateFallbackKey() // we need 2 fallback keys to forget one
         bobAccount.markKeysAsPublished()
 
-        val aliceSession = aliceAccount.createOutboundSession(
-            identityKey = bobIdentityKey, oneTimeKey = bobFallbackKey
-        )
+        val aliceSession = aliceAccount.createOutboundSession(identityKey = bobIdentityKey, oneTimeKey = bobFallbackKey)
         val message = aliceSession.encrypt("Hello bob , this is alice!") as Message.PreKey
 
-        val (decryptedMessage, _) = bobAccount.createInboundSession(
-            preKeyMessage = message
-        )
+        val (decryptedMessage, _) = bobAccount.createInboundSession(preKeyMessage = message)
 
         decryptedMessage shouldBe "Hello bob , this is alice!"
 
-        val olmInfos = OlmInfos(
-            olmAccount = bobAccount.pickle(),
-            fallbackKey = bobFallbackKey.base64,
-        )
+        val olmInfos = OlmInfos(olmAccount = bobAccount.pickle(), fallbackKey = bobFallbackKey.base64)
         olmStoreMock.olmAccount.value = olmInfos.olmAccount
 
         olmStoreMock.forgetFallbackKeyAfter.value = testClock.now() - 1.seconds
@@ -266,17 +271,18 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
 
         val newBobIdentityKey = bobAccount.curve25519Key
 
-        val newAliceSession = newAliceAccount.createOutboundSession(
-            identityKey = newBobIdentityKey, oneTimeKey = curve25519PublicKey(olmInfos.fallbackKey)
-        )
+        val newAliceSession =
+            newAliceAccount.createOutboundSession(
+                identityKey = newBobIdentityKey,
+                oneTimeKey = curve25519PublicKey(olmInfos.fallbackKey),
+            )
 
         val newMessage = newAliceSession.encrypt("Hello bob , this is alice!") as Message.PreKey
 
         shouldThrow<CryptoDriverException> {
-            unpickledBobAccount.createInboundSession(
-                preKeyMessage = newMessage
-            )
-        } // TODO: .message shouldBe "The pre-key message contained an unknown one-time key: ${newMessage.sessionKeys.oneTimeKey.base64}"
+            unpickledBobAccount.createInboundSession(preKeyMessage = newMessage)
+        } // TODO: .message shouldBe "The pre-key message contained an unknown one-time key:
+        // ${newMessage.sessionKeys.oneTimeKey.base64}"
     }
 
     @Test
@@ -295,12 +301,7 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `forgetOldFallbackKey - re-upload generated keys when failed`() = runTest {
         olmEventHandlerRequestHandlerMock.setOneTimeKeys =
-            Result.failure(
-                MatrixServerException(
-                    HttpStatusCode.BadGateway,
-                    ErrorResponse.Unknown("bad gateway")
-                )
-            )
+            Result.failure(MatrixServerException(HttpStatusCode.BadGateway, ErrorResponse.Unknown("bad gateway")))
         shouldThrow<MatrixServerException> {
             cut.handleOlmKeysChange(OlmKeysChange(mapOf(KeyAlgorithm.SignedCurve25519 to 24), setOf()))
         }
@@ -317,27 +318,16 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     fun `forgetOldFallbackKey - not fail when re-upload gives 4xx failure because we most likely already uploaded them`() =
         runTest {
             olmEventHandlerRequestHandlerMock.setOneTimeKeys =
-                Result.failure(
-                    MatrixServerException(
-                        HttpStatusCode.BadGateway,
-                        ErrorResponse.Unknown("bad gateway")
-                    )
-                )
+                Result.failure(MatrixServerException(HttpStatusCode.BadGateway, ErrorResponse.Unknown("bad gateway")))
             shouldThrow<MatrixServerException> {
                 cut.handleOlmKeysChange(OlmKeysChange(mapOf(KeyAlgorithm.SignedCurve25519 to 24), setOf()))
             }
             olmEventHandlerRequestHandlerMock.setOneTimeKeys =
                 Result.failure(
-                    MatrixServerException(
-                        HttpStatusCode.BadRequest,
-                        ErrorResponse.Unknown("key already exist")
-                    )
+                    MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.Unknown("key already exist"))
                 )
             cut.handleOlmKeysChange( // should re-upload even if the server says it does not need to
-                OlmKeysChange(
-                    mapOf(KeyAlgorithm.SignedCurve25519 to 0),
-                    setOf(KeyAlgorithm.SignedCurve25519)
-                )
+                OlmKeysChange(mapOf(KeyAlgorithm.SignedCurve25519 to 0), setOf(KeyAlgorithm.SignedCurve25519))
             )
 
             val captureOneTimeKeys = olmEventHandlerRequestHandlerMock.setOneTimeKeysParam.mapNotNull { it.first }
@@ -381,35 +371,27 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     fun `handleOlmEncryptedRoomKeyEventContent - store new inbound megolm session`() = runTest {
         val outboundSession = groupSession()
 
-        val eventContent = RoomKeyEventContent(
-            roomId, outboundSession.sessionId, SessionKeyValue.of(outboundSession.sessionKey),
-            EncryptionAlgorithm.Megolm
-        )
-        val encryptedEvent = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("BOB_IDEN"),
-            ), bob
-        )
+        val eventContent =
+            RoomKeyEventContent(
+                roomId,
+                outboundSession.sessionId,
+                SessionKeyValue.of(outboundSession.sessionKey),
+                EncryptionAlgorithm.Megolm,
+            )
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
 
         cut.handleOlmEncryptedRoomKeyEventContent(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    eventContent,
-                    bob,
-                    keysOf(Key.Ed25519Key(null, "BOB_SIGN")),
-                    null,
-                    alice,
-                    keysOf()
-                )
+                PlaintextOlmEvent(eventContent, bob, keysOf(Key.Ed25519Key(null, "BOB_SIGN")), null, alice, keysOf()),
             )
         )
 
-        assertSoftly(
-            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId]
-                .shouldNotBeNull()
-        ) {
+        assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
             roomId shouldBe roomId
             sessionId shouldBe outboundSession.sessionId
             senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -421,47 +403,40 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     fun `handleOlmEncryptedRoomKeyEventContent - store inbound megolm session when existing index higher`() = runTest {
         val outboundSession = groupSession()
 
-        val eventContent = RoomKeyEventContent(
-            roomId, outboundSession.sessionId, SessionKeyValue.of(outboundSession.sessionKey),
-            EncryptionAlgorithm.Megolm
-        )
-        val encryptedEvent = ToDeviceEvent(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("BOB_IDEN"),
-            ), bob
-        )
+        val eventContent =
+            RoomKeyEventContent(
+                roomId,
+                outboundSession.sessionId,
+                SessionKeyValue.of(outboundSession.sessionKey),
+                EncryptionAlgorithm.Megolm,
+            )
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
 
-        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] = StoredInboundMegolmSession(
-            senderKey = Curve25519KeyValue("BOB_IDEN"),
-            senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
-            sessionId = outboundSession.sessionId,
-            roomId = roomId,
-            firstKnownIndex = 1,
-            hasBeenBackedUp = false,
-            isTrusted = true,
-            forwardingCurve25519KeyChain = listOf(),
-            pickled = "existing_pickled"
-        )
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] =
+            StoredInboundMegolmSession(
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
+                sessionId = outboundSession.sessionId,
+                roomId = roomId,
+                firstKnownIndex = 1,
+                hasBeenBackedUp = false,
+                isTrusted = true,
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = "existing_pickled",
+            )
 
         cut.handleOlmEncryptedRoomKeyEventContent(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    eventContent,
-                    bob,
-                    keysOf(Key.Ed25519Key(null, "BOB_SIGN")),
-                    null,
-                    alice,
-                    keysOf()
-                )
+                PlaintextOlmEvent(eventContent, bob, keysOf(Key.Ed25519Key(null, "BOB_SIGN")), null, alice, keysOf()),
             )
         )
 
-        assertSoftly(
-            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId]
-                .shouldNotBeNull()
-        ) {
+        assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
             roomId shouldBe roomId
             sessionId shouldBe outboundSession.sessionId
             senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -475,28 +450,31 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
         runTest {
             val outboundSession = groupSession()
 
-            val eventContent = RoomKeyEventContent(
-                roomId, outboundSession.sessionId, SessionKeyValue.of(outboundSession.sessionKey),
-                EncryptionAlgorithm.Megolm
-            )
-            val encryptedEvent = ToDeviceEvent(
-                OlmEncryptedToDeviceEventContent(
-                    ciphertext = mapOf(),
-                    senderKey = Curve25519KeyValue("BOB_IDEN"),
-                ), bob
-            )
+            val eventContent =
+                RoomKeyEventContent(
+                    roomId,
+                    outboundSession.sessionId,
+                    SessionKeyValue.of(outboundSession.sessionKey),
+                    EncryptionAlgorithm.Megolm,
+                )
+            val encryptedEvent =
+                ToDeviceEvent(
+                    OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                    bob,
+                )
 
-            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] = StoredInboundMegolmSession(
-                senderKey = Curve25519KeyValue("BOB_IDEN"),
-                senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
-                sessionId = outboundSession.sessionId,
-                roomId = roomId,
-                firstKnownIndex = 0,
-                hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
-                pickled = "existing_pickled"
-            )
+            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] =
+                StoredInboundMegolmSession(
+                    senderKey = Curve25519KeyValue("BOB_IDEN"),
+                    senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
+                    sessionId = outboundSession.sessionId,
+                    roomId = roomId,
+                    firstKnownIndex = 0,
+                    hasBeenBackedUp = false,
+                    isTrusted = true,
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = "existing_pickled",
+                )
 
             cut.handleOlmEncryptedRoomKeyEventContent(
                 DecryptedOlmEventContainer(
@@ -507,15 +485,12 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                         keysOf(Key.Ed25519Key(null, "BOB_SIGN")),
                         null,
                         alice,
-                        keysOf()
-                    )
+                        keysOf(),
+                    ),
                 )
             )
 
-            assertSoftly(
-                olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId]
-                    .shouldNotBeNull()
-            ) {
+            assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
                 roomId shouldBe roomId
                 sessionId shouldBe outboundSession.sessionId
                 senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -528,11 +503,14 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     fun `handleMemberEvents - remove megolm session`() = runTest {
         olmStoreMock.roomEncryptionAlgorithm[roomId] = EncryptionAlgorithm.Megolm
 
-        olmStoreMock.outboundMegolmSession[roomId] = StoredOutboundMegolmSession(
-            roomId = roomId, encryptedMessageCount = 1,
-            createdAt = testClock.now(),
-            newDevices = emptyMap(), pickled = ""
-        )
+        olmStoreMock.outboundMegolmSession[roomId] =
+            StoredOutboundMegolmSession(
+                roomId = roomId,
+                encryptedMessageCount = 1,
+                createdAt = testClock.now(),
+                newDevices = emptyMap(),
+                pickled = "",
+            )
         cut.handleMemberEvents(
             listOf(
                 StateEvent(
@@ -541,7 +519,7 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                     alice,
                     roomId,
                     1234,
-                    stateKey = alice.full
+                    stateKey = alice.full,
                 )
             )
         )
@@ -552,32 +530,36 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
     fun `handleMemberEvents - update new devices in megolm session`() = runTest {
         olmStoreMock.roomEncryptionAlgorithm[roomId] = EncryptionAlgorithm.Megolm
         olmStoreMock.historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.SHARED
-        olmStoreMock.devices[alice] = mapOf(
-            "A1" to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = "A1",
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf())
-                )
-            ),
-            "A2" to Signed(
-                DeviceKeys(
-                    userId = alice,
-                    deviceId = "A2",
-                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
-                    keys = Keys(keysOf())
-                )
+        olmStoreMock.devices[alice] =
+            mapOf(
+                "A1" to
+                    Signed(
+                        DeviceKeys(
+                            userId = alice,
+                            deviceId = "A1",
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf()),
+                        )
+                    ),
+                "A2" to
+                    Signed(
+                        DeviceKeys(
+                            userId = alice,
+                            deviceId = "A2",
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf()),
+                        )
+                    ),
             )
-        )
 
-        val megolmSession = StoredOutboundMegolmSession(
-            roomId = roomId,
-            encryptedMessageCount = 1,
-            createdAt = testClock.now(),
-            newDevices = emptyMap(),
-            pickled = ""
-        )
+        val megolmSession =
+            StoredOutboundMegolmSession(
+                roomId = roomId,
+                encryptedMessageCount = 1,
+                createdAt = testClock.now(),
+                newDevices = emptyMap(),
+                pickled = "",
+            )
         olmStoreMock.outboundMegolmSession[roomId] = megolmSession
         cut.handleMemberEvents(
             listOf(
@@ -587,12 +569,11 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                     alice,
                     roomId,
                     1234,
-                    stateKey = alice.full
+                    stateKey = alice.full,
                 )
             )
         )
-        olmStoreMock.outboundMegolmSession[roomId] shouldBe megolmSession.copy(
-            newDevices = mapOf(alice to setOf("A1", "A2"))
-        )
+        olmStoreMock.outboundMegolmSession[roomId] shouldBe
+            megolmSession.copy(newDevices = mapOf(alice to setOf("A1", "A2")))
     }
 }

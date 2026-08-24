@@ -18,6 +18,12 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimedValue
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -35,12 +41,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.test.Test
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.TimedValue
-import kotlin.time.measureTimedValue
 
 class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
     private val noOpTm = NoOpStoreTransactionManager
@@ -58,33 +58,34 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         override fun serializeKey(firstKey: String, secondKey: String): String = firstKey + secondKey
     }
 
-    private val repository = TestInMemoryMapRepository()
-        .also { scheduleSetup { noOpTm.writeTransaction { it.deleteAll() } } }
+    private val repository =
+        TestInMemoryMapRepository().also { scheduleSetup { noOpTm.writeTransaction { it.deleteAll() } } }
 
     private val readTransactionCalled = MutableStateFlow(0)
     private val writeTransactionCalled = MutableStateFlow(0)
-    private val tm = object : StoreTransactionManager() {
-        override suspend fun <T> repositoryReadTransaction(block: suspend StoreReadTransaction.() -> T): T {
-            return block(NoOpStoreReadTransaction).also { readTransactionCalled.value++ }
-        }
+    private val tm =
+        object : StoreTransactionManager() {
+            override suspend fun <T> repositoryReadTransaction(block: suspend StoreReadTransaction.() -> T): T {
+                return block(NoOpStoreReadTransaction).also { readTransactionCalled.value++ }
+            }
 
-        override suspend fun <T> repositoryWriteTransaction(
-            cacheTransaction: CacheTransaction,
-            block: suspend StoreWriteTransaction.() -> T
-        ): T {
-            return block(NoOpStoreWriteTransaction(cacheTransaction)).also { writeTransactionCalled.value++ }
+            override suspend fun <T> repositoryWriteTransaction(
+                cacheTransaction: CacheTransaction,
+                block: suspend StoreWriteTransaction.() -> T,
+            ): T {
+                return block(NoOpStoreWriteTransaction(cacheTransaction)).also { writeTransactionCalled.value++ }
+            }
         }
-    }
 
     private val cut =
         MapRepositoryObservableCache(
-            repository = repository,
-            tm = tm,
-            cacheScope = testScope.backgroundScope,
-            clock = testScope.testClock,
-            expireDuration = 1.minutes
-        ).also { scheduleSetup { it.clear() } }
-
+                repository = repository,
+                tm = tm,
+                cacheScope = testScope.backgroundScope,
+                clock = testScope.testClock,
+                expireDuration = 1.minutes,
+            )
+            .also { scheduleSetup { it.clear() } }
 
     @Test
     fun `write » save into database without reading old value`() = runTest {
@@ -92,9 +93,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "old")
             repository.save("firstKey", "secondKey2", "old")
         }
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), "value1")
-        }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), "value1") }
         readTransactionCalled.value shouldBe 0
         writeTransactionCalled.value shouldBe 1
         noOpTm.readTransaction {
@@ -104,18 +103,10 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `write » save existing cache value without reading old value`() = runTest {
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "old")
-        }
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), "value1")
-        }
-        noOpTm.readTransaction {
-            repository.get("firstKey") shouldBe mapOf("secondKey1" to "value1")
-        }
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey2"), "value2")
-        }
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old") }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), "value1") }
+        noOpTm.readTransaction { repository.get("firstKey") shouldBe mapOf("secondKey1" to "value1") }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey2"), "value2") }
         readTransactionCalled.value shouldBe 0
         writeTransactionCalled.value shouldBe 2
         noOpTm.readTransaction {
@@ -129,14 +120,10 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "old")
             repository.save("firstKey", "secondKey2", "old")
         }
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), null)
-        }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"), null) }
         readTransactionCalled.value shouldBe 0
         writeTransactionCalled.value shouldBe 1
-        noOpTm.readTransaction {
-            repository.get("firstKey") shouldBe mapOf("secondKey2" to "old")
-        }
+        noOpTm.readTransaction { repository.get("firstKey") shouldBe mapOf("secondKey2" to "old") }
     }
 
     @Test
@@ -156,21 +143,24 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 }
 
                 val cut = MapRepositoryObservableCache(InMemoryRepositoryWithHistory(), tm, backgroundScope, testClock)
-                val result =
-                    measureTimedValue {
-                        (0..99).map { i ->
+                val result = measureTimedValue {
+                    (0..99)
+                        .map { i ->
                             async {
                                 measureTimedValue {
-                                    tm.writeTransaction {
-                                        cut.update(
-                                            key = MapRepositoryCoroutinesCacheKey("key", "key"),
-                                            updater = { "$i" },
-                                        )
+                                        tm.writeTransaction {
+                                            cut.update(
+                                                key = MapRepositoryCoroutinesCacheKey("key", "key"),
+                                                updater = { "$i" },
+                                            )
+                                        }
                                     }
-                                }.duration
+                                    .duration
                             }
-                        }.awaitAll().reduce { acc, duration -> acc + duration }
-                    }
+                        }
+                        .awaitAll()
+                        .reduce { acc, duration -> acc + duration }
+                }
                 database.replayCache shouldContainAll (0..99).map { it.toString() }
                 return result
             }
@@ -202,23 +192,26 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 }
 
                 val cut = MapRepositoryObservableCache(InMemoryRepositoryWithHistory(), tm, backgroundScope, testClock)
-                val result =
-                    measureTimedValue {
-                        coroutineScope {
-                            (0..99).map { i ->
+                val result = measureTimedValue {
+                    coroutineScope {
+                        (0..99)
+                            .map { i ->
                                 async {
                                     measureTimedValue {
-                                        tm.writeTransaction {
-                                            cut.update(
-                                                key = MapRepositoryCoroutinesCacheKey("key", "$i"),
-                                                updater = { "value" },
-                                            )
+                                            tm.writeTransaction {
+                                                cut.update(
+                                                    key = MapRepositoryCoroutinesCacheKey("key", "$i"),
+                                                    updater = { "value" },
+                                                )
+                                            }
                                         }
-                                    }.duration
+                                        .duration
                                 }
-                            }.awaitAll().reduce { acc, duration -> acc + duration }
-                        }
+                            }
+                            .awaitAll()
+                            .reduce { acc, duration -> acc + duration }
                     }
+                }
                 database.replayCache shouldContainAll (0..99).map { "key" to "$it" }
                 return result
             }
@@ -235,9 +228,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `write with update » save into database reading old value`() = runTest {
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "old")
-        }
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old") }
         tm.writeTransaction {
             cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) {
                 it shouldBe "old"
@@ -262,21 +253,15 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `write with update » delete into database reading old value`() = runTest {
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "old")
-        }
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old") }
         tm.writeTransaction {
             cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) {
                 it shouldBe "old"
                 null
             }
         }
-        noOpTm.readTransaction {
-            repository.get("firstKey") shouldBe mapOf()
-        }
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "old")
-        }
+        noOpTm.readTransaction { repository.get("firstKey") shouldBe mapOf() }
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old") }
         tm.writeTransaction {
             cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) {
                 it shouldBe null
@@ -302,12 +287,8 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `read » prefer cache`() = runTest {
-        tm.writeTransaction {
-            cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) { "value1" }
-        }
-        noOpTm.writeTransaction {
-            repository.delete("firstKey", "secondKey1")
-        }
+        tm.writeTransaction { cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) { "value1" } }
+        noOpTm.writeTransaction { repository.delete("firstKey", "secondKey1") }
         cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")).first() shouldBe "value1"
     }
 
@@ -317,10 +298,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
     }
 
     @Test
@@ -330,15 +308,14 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey2", "old2")
         }
         val startedCollectReadByFirstKey = MutableStateFlow(false)
-        val collectRead = launch(start = CoroutineStart.LAZY) {
-            cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"))
-                .onEach { startedCollectReadByFirstKey.value = true }
-                .collect()
-        }
+        val collectRead =
+            launch(start = CoroutineStart.LAZY) {
+                cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"))
+                    .onEach { startedCollectReadByFirstKey.value = true }
+                    .collect()
+            }
         val collectReadByFirstKey = launch {
-            cut.readByFirstKey("firstKey").flatten()
-                .onEach { collectRead.start() }
-                .collect()
+            cut.readByFirstKey("firstKey").flatten().onEach { collectRead.start() }.collect()
         }
         startedCollectReadByFirstKey.first { it }
         delay(1.minutes + 1.milliseconds)
@@ -353,10 +330,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "new2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "new2")
         collectRead.cancel()
     }
 
@@ -369,10 +343,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")).first() shouldBe "old1"
         cut.invalidate()
         readTransactionCalled.value = 0
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         readTransactionCalled.value shouldBe 1
     }
 
@@ -382,19 +353,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
             repository.save("firstKey", "secondKey3", "new3")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
     }
 
     @Test
@@ -403,48 +368,33 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2"
-        )
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
         }
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey3"), "new3")
-        }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf(
-            "secondKey1" to "old1",
-            "secondKey2" to "old2",
-            "secondKey3" to "new3",
-        )
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey3"), "new3") }
+        cut.readByFirstKey("firstKey").flatten().first() shouldBe
+            mapOf("secondKey1" to "old1", "secondKey2" to "old2", "secondKey3" to "new3")
     }
 
     @Test
     fun `readByFirstKey » remove from cache when not used anymore`() = runTest {
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "old1")
-        }
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old1") }
 
         val readByFirstJob = backgroundScope.launch { cut.readByFirstKey(key = "firstKey").flatten().collect() }
 
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe
-                mapOf("secondKey1" to "old1")
-        noOpTm.writeTransaction {
-            repository.save("firstKey", "secondKey1", "new1")
-        }
+        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
+        noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "new1") }
         readByFirstJob.cancel()
 
         delay(1.minutes)
         cut.invalidate()
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe
-                mapOf("secondKey1" to "old1")
+        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
 
         delay(1.milliseconds)
         cut.invalidate()
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe
-                mapOf("secondKey1" to "new1")
+        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "new1")
     }
 
     @Test
@@ -456,9 +406,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         val byFirstKey = cut.readByFirstKey(key = "firstKey").map { it.keys }.stateIn(backgroundScope)
 
         byFirstKey.value shouldBe setOf("secondKey1", "secondKey2")
-        tm.writeTransaction {
-            cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) { null }
-        }
+        tm.writeTransaction { cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) { null } }
         delay(1.minutes + 1.milliseconds)
         cut.invalidate()
         delay(50.milliseconds) // wait for collecting
@@ -467,28 +415,25 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
 
     @Test
     fun `readByFirstKey » handle parallel read and write`() = runTest {
-        val repository = object : InMemoryMapRepository<String, String, String>() {
-            context(transaction: WriteTransaction)
-            override suspend fun save(firstKey: String, secondKey: String, value: String) {
-                delay(50.milliseconds)
-                super.save(firstKey, secondKey, value)
-            }
+        val repository =
+            object : InMemoryMapRepository<String, String, String>() {
+                context(transaction: WriteTransaction)
+                override suspend fun save(firstKey: String, secondKey: String, value: String) {
+                    delay(50.milliseconds)
+                    super.save(firstKey, secondKey, value)
+                }
 
-            override fun serializeKey(firstKey: String, secondKey: String): String = firstKey + secondKey
-        }
+                override fun serializeKey(firstKey: String, secondKey: String): String = firstKey + secondKey
+            }
         val cut = MapRepositoryObservableCache(repository, tm, backgroundScope, testClock)
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondsKey1"), "value1")
-        }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondsKey1"), "value1") }
         coroutineScope {
             launch {
                 tm.writeTransaction {
                     cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondsKey2")) { "value2" }
                 }
             }
-            launch {
-                cut.readByFirstKey("firstKey").filterNotNull().first()
-            }
+            launch { cut.readByFirstKey("firstKey").filterNotNull().first() }
         }
         cut.readByFirstKey("firstKey").filterNotNull().first() shouldHaveSize 2
     }
@@ -513,25 +458,25 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         }
 
         repository.continueGetFirstKey.value = true
-        result.await() shouldBe mapOf(
-            "sk1" to "v11",
-            "sk2" to "v12",
-            "sk3" to "v13",
-        )
+        result.await() shouldBe mapOf("sk1" to "v11", "sk2" to "v12", "sk3" to "v13")
     }
 
     @Test
     fun `index » has right subscription count`() = runTest {
         val values =
-            ConcurrentObservableMap<MapRepositoryCoroutinesCacheKey<String, String>, MutableStateFlow<CacheValue<String?>>>()
-        val cut = MapRepositoryObservableCache(
-            repository = repository,
-            tm = tm,
-            cacheScope = backgroundScope,
-            clock = testClock,
-            expireDuration = 50.milliseconds,
-            values = values
-        )
+            ConcurrentObservableMap<
+                MapRepositoryCoroutinesCacheKey<String, String>,
+                MutableStateFlow<CacheValue<String?>>,
+            >()
+        val cut =
+            MapRepositoryObservableCache(
+                repository = repository,
+                tm = tm,
+                cacheScope = backgroundScope,
+                clock = testClock,
+                expireDuration = 50.milliseconds,
+                values = values,
+            )
 
         suspend fun subscriptionCount1() =
             values.getIndexSubscriptionCount(MapRepositoryCoroutinesCacheKey("firstKey1", "secondsKey1"))
@@ -541,13 +486,11 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
 
-        tm.writeTransaction {
-            cut.set(MapRepositoryCoroutinesCacheKey("firstKey1", "secondsKey1"), "value")
-        }
+        tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey1", "secondsKey1"), "value") }
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
 
-        val readByFirstJob = backgroundScope.launch { cut.readByFirstKey("firstKey1").flatten().collect { } }
+        val readByFirstJob = backgroundScope.launch { cut.readByFirstKey("firstKey1").flatten().collect {} }
         delay(50.milliseconds)
         subscriptionCount1() shouldBe 1
         subscriptionCount2() shouldBe 0
@@ -557,5 +500,4 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
     }
-
 }

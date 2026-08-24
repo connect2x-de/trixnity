@@ -9,11 +9,10 @@ import de.connect2x.trixnity.crypto.olm.OlmEventHandlerRequestHandler
 class ClientOlmEventHandlerRequestHandler(private val api: MatrixClientServerApiClient) :
     OlmEventHandlerRequestHandler {
     override suspend fun setOneTimeKeys(oneTimeKeys: Keys?, fallbackKeys: Keys?): Result<Unit> =
-        api.key.setKeys(oneTimeKeys = oneTimeKeys, fallbackKeys = fallbackKeys).map { }
+        api.key.setKeys(oneTimeKeys = oneTimeKeys, fallbackKeys = fallbackKeys).map {}
 
     override suspend fun sendToDevice(
         events: Map<UserId, Map<String, ToDeviceEventContent>>,
-        transactionId: String
-    ): Result<Unit> =
-        api.user.sendToDevice(events, transactionId)
+        transactionId: String,
+    ): Result<Unit> = api.user.sendToDevice(events, transactionId)
 }

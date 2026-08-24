@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core.model.keys
 
+import de.connect2x.trixnity.core.serialization.stringWrapperSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -7,7 +8,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.serialization.stringWrapperSerializer
 
 @Serializable(with = EncryptionAlgorithm.Serializer::class)
 sealed class EncryptionAlgorithm {

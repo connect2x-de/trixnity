@@ -24,19 +24,14 @@ interface MediaCacheMappingDao {
     @Query("SELECT * FROM MediaCacheMapping WHERE cacheUri = :cacheUri LIMIT 1")
     suspend fun get(cacheUri: String): RoomMediaCacheMapping?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomMediaCacheMapping)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomMediaCacheMapping)
 
-    @Query("DELETE FROM MediaCacheMapping WHERE cacheUri = :cacheUri")
-    suspend fun delete(cacheUri: String)
+    @Query("DELETE FROM MediaCacheMapping WHERE cacheUri = :cacheUri") suspend fun delete(cacheUri: String)
 
-    @Query("DELETE FROM MediaCacheMapping")
-    suspend fun deleteAll()
+    @Query("DELETE FROM MediaCacheMapping") suspend fun deleteAll()
 }
 
-internal class RoomMediaCacheMappingRepository(
-    db: TrixnityRoomDatabase,
-) : MediaCacheMappingRepository {
+internal class RoomMediaCacheMappingRepository(db: TrixnityRoomDatabase) : MediaCacheMappingRepository {
     private val dao = db.mediaCacheMapping()
 
     context(transaction: ReadTransaction)
@@ -62,10 +57,8 @@ internal class RoomMediaCacheMappingRepository(
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: String) =
-        dao.delete(cacheUri = key)
+    override suspend fun delete(key: String) = dao.delete(cacheUri = key)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

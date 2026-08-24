@@ -17,17 +17,16 @@ actual class OlmSAS private constructor() : WantsToBeFree {
     internal actual val ptr: OlmSASPointer = sas()
 
     actual companion object {
-        actual fun create(): OlmSAS = OlmSAS().apply {
-            try {
-                val result = withRandom(create_sas_random_length(ptr)) { random ->
-                    create_sas(ptr, random)
+        actual fun create(): OlmSAS =
+            OlmSAS().apply {
+                try {
+                    val result = withRandom(create_sas_random_length(ptr)) { random -> create_sas(ptr, random) }
+                    checkError(ptr, result, ::sas_last_error)
+                } catch (e: Exception) {
+                    free()
+                    throw e
                 }
-                checkError(ptr, result, ::sas_last_error)
-            } catch (e: Exception) {
-                free()
-                throw e
             }
-        }
     }
 
     actual val publicKey: String

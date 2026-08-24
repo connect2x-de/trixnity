@@ -1,10 +1,8 @@
 package de.connect2x.trixnity.client.verification
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.key.getAllKeysFromUser
 import de.connect2x.trixnity.client.store.KeyStore
-import de.connect2x.trixnity.core.model.keys.MacValue
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.key.verification.*
@@ -18,15 +16,15 @@ import de.connect2x.trixnity.core.model.keys.CrossSigningKeysUsage.MasterKey
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
 import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.MacValue
 import de.connect2x.trixnity.crypto.driver.sas.EstablishedSas
 import de.connect2x.trixnity.crypto.of
+import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.verification.ActiveSasVerificationState")
 
 sealed interface ActiveSasVerificationState {
-    data class OwnSasStart(
-        val content: SasStartEventContent
-    ) : ActiveSasVerificationState
+    data class OwnSasStart(val content: SasStartEventContent) : ActiveSasVerificationState
 
     data class TheirSasStart(
         val content: SasStartEventContent,
@@ -34,7 +32,7 @@ sealed interface ActiveSasVerificationState {
         private val json: Json,
         private val relatesTo: RelatesTo.Reference?,
         private val transactionId: String?,
-        private val send: suspend (step: VerificationStep) -> Unit
+        private val send: suspend (step: VerificationStep) -> Unit,
     ) : ActiveSasVerificationState {
         suspend fun accept() {
             when {
@@ -44,7 +42,7 @@ sealed interface ActiveSasVerificationState {
                             UnknownMethod,
                             "only hashes [${Sha256.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
@@ -55,31 +53,31 @@ sealed interface ActiveSasVerificationState {
                             UnknownMethod,
                             "only key agreement protocols [${Curve25519HkdfSha256.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
 
-                content.messageAuthenticationCodes.contains(HkdfHmacSha256).not()
-                        && content.messageAuthenticationCodes.contains(HkdfHmacSha256V2).not() -> {
+                content.messageAuthenticationCodes.contains(HkdfHmacSha256).not() &&
+                    content.messageAuthenticationCodes.contains(HkdfHmacSha256V2).not() -> {
                     send(
                         VerificationCancelEventContent(
                             UnknownMethod,
                             "only message authentication codes [${HkdfHmacSha256.name} ${HkdfHmacSha256V2.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
 
-                content.shortAuthenticationString.contains(SasMethod.Decimal).not()
-                        && content.shortAuthenticationString.contains(SasMethod.Emoji).not() -> {
+                content.shortAuthenticationString.contains(SasMethod.Decimal).not() &&
+                    content.shortAuthenticationString.contains(SasMethod.Emoji).not() -> {
                     send(
                         VerificationCancelEventContent(
                             UnknownMethod,
                             "only short authentication strings [${SasMethod.Decimal.name} ${SasMethod.Emoji.name}] are supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
@@ -90,13 +88,13 @@ sealed interface ActiveSasVerificationState {
                             commitment = createSasCommitment(sasPublicKey.value, content, json),
                             hash = Sha256,
                             keyAgreementProtocol = Curve25519HkdfSha256,
-                            messageAuthenticationCode = content.messageAuthenticationCodes.let {
-                                if (it.contains(HkdfHmacSha256V2)) HkdfHmacSha256V2
-                                else HkdfHmacSha256
-                            },
+                            messageAuthenticationCode =
+                                content.messageAuthenticationCodes.let {
+                                    if (it.contains(HkdfHmacSha256V2)) HkdfHmacSha256V2 else HkdfHmacSha256
+                                },
                             shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                             relatesTo = relatesTo,
-                            transactionId = transactionId
+                            transactionId = transactionId,
                         )
                     )
                 }
@@ -105,7 +103,9 @@ sealed interface ActiveSasVerificationState {
     }
 
     data class Accept(val isOurOwn: Boolean) : ActiveSasVerificationState
+
     data class WaitForKeys(val isOurOwn: Boolean) : ActiveSasVerificationState
+
     data class ComparisonByUser(
         val decimal: List<Int>,
         val emojis: List<Pair<Int, String>>,
@@ -120,9 +120,10 @@ sealed interface ActiveSasVerificationState {
         private val keyStore: KeyStore,
         private val send: suspend (stepContent: VerificationStep) -> Unit,
     ) : ActiveSasVerificationState {
-        private val actualTransactionId = relatesTo?.eventId?.full
-            ?: transactionId
-            ?: throw IllegalArgumentException("actualTransactionId should never be null")
+        private val actualTransactionId =
+            relatesTo?.eventId?.full
+                ?: transactionId
+                ?: throw IllegalArgumentException("actualTransactionId should never be null")
 
         suspend fun match() {
             when (messageAuthenticationCode) {
@@ -135,9 +136,7 @@ sealed interface ActiveSasVerificationState {
 
                 HkdfHmacSha256V2 -> {
                     log.trace { "sendHkdfHmacSha256Mac with fixed base64" }
-                    sendHkdfHmacSha256Mac { input, info ->
-                        establishedSas.calculateMac(input, info).let(MacValue::of)
-                    }
+                    sendHkdfHmacSha256Mac { input, info -> establishedSas.calculateMac(input, info).let(MacValue::of) }
                 }
 
                 is SasMessageAuthenticationCode.Unknown -> {
@@ -146,7 +145,7 @@ sealed interface ActiveSasVerificationState {
                             UnknownMethod,
                             "message authentication code not supported",
                             relatesTo,
-                            transactionId
+                            transactionId,
                         )
                     )
                 }
@@ -154,9 +153,12 @@ sealed interface ActiveSasVerificationState {
         }
 
         private suspend fun sendHkdfHmacSha256Mac(calculateMac: (String, String) -> MacValue) {
-            val baseInfo = "MATRIX_KEY_VERIFICATION_MAC" +
-                    ownUserId.full + ownDeviceId +
-                    theirUserId.full + theirDeviceId +
+            val baseInfo =
+                "MATRIX_KEY_VERIFICATION_MAC" +
+                    ownUserId.full +
+                    ownDeviceId +
+                    theirUserId.full +
+                    theirDeviceId +
                     actualTransactionId
             val keysToMac = keyStore.getAllKeysFromUser<Ed25519Key>(ownUserId, ownDeviceId, MasterKey)
             if (keysToMac.isNotEmpty()) {
@@ -164,28 +166,13 @@ sealed interface ActiveSasVerificationState {
                 val info = baseInfo + "KEY_IDS"
                 log.trace { "create keys mac from input $input and info $info" }
                 val keys = calculateMac(input, info)
-                val macs =
-                    keysToMac.map {
-                        log.trace { "create key mac from input $it and info ${baseInfo + it.fullId}" }
-                        it.copy(
-                            value = KeyValue.Ed25519KeyValue(
-                                calculateMac(
-                                    it.value.value, baseInfo + it.fullId
-                                ).value
-                            )
-                        )
-                    }
+                val macs = keysToMac.map {
+                    log.trace { "create key mac from input $it and info ${baseInfo + it.fullId}" }
+                    it.copy(value = KeyValue.Ed25519KeyValue(calculateMac(it.value.value, baseInfo + it.fullId).value))
+                }
                 send(SasMacEventContent(keys, Keys(macs.toSet()), relatesTo, transactionId))
-            } else send(
-                VerificationCancelEventContent(
-                    InternalError,
-                    "no keys found",
-                    relatesTo,
-                    transactionId
-                )
-            )
+            } else send(VerificationCancelEventContent(InternalError, "no keys found", relatesTo, transactionId))
         }
-
 
         suspend fun noMatch() {
             send(VerificationCancelEventContent(MismatchedSas, "no match of SAS", relatesTo, transactionId))

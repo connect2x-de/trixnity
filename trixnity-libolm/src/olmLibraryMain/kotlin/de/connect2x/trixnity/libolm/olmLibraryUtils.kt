@@ -3,11 +3,7 @@ package de.connect2x.trixnity.libolm
 import de.connect2x.trixnity.crypto.core.SecureRandom
 import kotlin.random.Random
 
-internal inline fun <T : Any> checkError(
-    ptr: T,
-    result: ULong,
-    getLastError: (T) -> String?
-): ULong {
+internal inline fun <T : Any> checkError(ptr: T, result: ULong, getLastError: (T) -> String?): ULong {
     if (result == OlmLibrary.error()) {
         throw OlmLibraryException(getLastError(ptr))
     }
@@ -17,7 +13,7 @@ internal inline fun <T : Any> checkError(
 internal inline fun <T : Any> withRandom(
     size: ULong,
     random: Random = SecureRandom,
-    block: (randomBytes: ByteArray?) -> T
+    block: (randomBytes: ByteArray?) -> T,
 ): T {
     val randomBytes = if (size > 0u) random.nextBytes(size.toInt()) else null
     return try {
@@ -30,8 +26,9 @@ internal inline fun <T : Any> withRandom(
 internal inline fun <T : Any> pickle(
     ptr: T,
     key: String,
-    length: (T) -> ULong, pickle: (account: T, key: ByteArray, pickled: ByteArray) -> ULong,
-    getLastError: (T) -> String?
+    length: (T) -> ULong,
+    pickle: (account: T, key: ByteArray, pickled: ByteArray) -> ULong,
+    getLastError: (T) -> String?,
 ): String {
     val pickled = ByteArray(length(ptr).toInt())
     val result = pickle(ptr, key.encodeToByteArray(), pickled)

@@ -14,16 +14,8 @@ import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
-@Entity(
-    tableName = "RoomAccountData",
-    primaryKeys = ["roomId", "type", "key"],
-)
-data class RoomRoomAccountData(
-    val roomId: RoomId,
-    val type: String,
-    val key: String,
-    val event: String,
-)
+@Entity(tableName = "RoomAccountData", primaryKeys = ["roomId", "type", "key"])
+data class RoomRoomAccountData(val roomId: RoomId, val type: String, val key: String, val event: String)
 
 @Dao
 interface RoomAccountDataDao {
@@ -33,14 +25,11 @@ interface RoomAccountDataDao {
     @Query("SELECT * FROM RoomAccountData WHERE roomId = :roomId AND type = :type AND key = :key LIMIT 1")
     suspend fun getByAllKeys(roomId: RoomId, type: String, key: String): RoomRoomAccountData?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomRoomAccountData)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomRoomAccountData)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(entity: List<RoomRoomAccountData>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(entity: List<RoomRoomAccountData>)
 
-    @Query("DELETE FROM RoomAccountData WHERE roomId = :roomId")
-    suspend fun delete(roomId: RoomId)
+    @Query("DELETE FROM RoomAccountData WHERE roomId = :roomId") suspend fun delete(roomId: RoomId)
 
     @Query("DELETE FROM RoomAccountData WHERE roomId = :roomId AND type = :type")
     suspend fun delete(roomId: RoomId, type: String)
@@ -48,38 +37,33 @@ interface RoomAccountDataDao {
     @Query("DELETE FROM RoomAccountData WHERE roomId = :roomId AND type = :type AND key = :key")
     suspend fun delete(roomId: RoomId, type: String, key: String)
 
-    @Query("DELETE FROM RoomAccountData")
-    suspend fun deleteAll()
+    @Query("DELETE FROM RoomAccountData") suspend fun deleteAll()
 }
 
-internal class RoomRoomAccountDataRepository(
-    db: TrixnityRoomDatabase,
-    private val json: Json,
-) : RoomAccountDataRepository {
+internal class RoomRoomAccountDataRepository(db: TrixnityRoomDatabase, private val json: Json) :
+    RoomAccountDataRepository {
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val serializer = json.serializersModule.getContextual(RoomAccountDataEvent::class)
-        ?: throw IllegalArgumentException("could not find event serializer")
+    private val serializer =
+        json.serializersModule.getContextual(RoomAccountDataEvent::class)
+            ?: throw IllegalArgumentException("could not find event serializer")
 
     private val dao = db.roomAccountData()
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomAccountDataRepositoryKey): Map<String, RoomAccountDataEvent<*>> =
-
-        dao.getByTwoKeys(firstKey.roomId, firstKey.type)
-            .associate { entity -> entity.key to json.decodeFromString(serializer, entity.event) }
+        dao.getByTwoKeys(firstKey.roomId, firstKey.type).associate { entity ->
+            entity.key to json.decodeFromString(serializer, entity.event)
+        }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteByRoomId(roomId: RoomId) =
-        dao.delete(roomId)
+    override suspend fun deleteByRoomId(roomId: RoomId) = dao.delete(roomId)
 
     context(transaction: ReadTransaction)
-    override suspend fun get(
-        firstKey: RoomAccountDataRepositoryKey,
-        secondKey: String,
-    ): RoomAccountDataEvent<*>? =
-        dao.getByAllKeys(firstKey.roomId, firstKey.type, secondKey)
-            ?.let { entity -> json.decodeFromString(serializer, entity.event) }
+    override suspend fun get(firstKey: RoomAccountDataRepositoryKey, secondKey: String): RoomAccountDataEvent<*>? =
+        dao.getByAllKeys(firstKey.roomId, firstKey.type, secondKey)?.let { entity ->
+            json.decodeFromString(serializer, entity.event)
+        }
 
     context(transaction: WriteTransaction)
     override suspend fun save(
@@ -97,13 +81,9 @@ internal class RoomRoomAccountDataRepository(
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(
-        firstKey: RoomAccountDataRepositoryKey,
-        secondKey: String
-    ) =
+    override suspend fun delete(firstKey: RoomAccountDataRepositoryKey, secondKey: String) =
         dao.delete(firstKey.roomId, firstKey.type, secondKey)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

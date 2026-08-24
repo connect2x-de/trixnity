@@ -22,14 +22,14 @@ import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -46,12 +46,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
 
     private val roomStore = getInMemoryRoomStore()
     private val roomStateStore = getInMemoryRoomStateStore()
-    private val cut = RoomUpgradeHandler(
-        api,
-        roomStore,
-        roomStateStore,
-        config,
-    )
+    private val cut = RoomUpgradeHandler(api, roomStore, roomStateStore, config)
 
     init {
         apiConfig.apply {
@@ -88,12 +83,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     @Test
     fun `tombstone from sync - upgrade using join via`() = runTest {
         tm.writeTransaction {
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
 
@@ -109,12 +99,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     @Test
     fun `tombstone from sync - exception - retry`() = runTest {
         tm.writeTransaction {
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
         exception = MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
@@ -133,12 +118,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     @Test
     fun `tombstone from sync - 4xx exception - no retry`() = runTest {
         tm.writeTransaction {
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
         exception = MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Unknown(""))
@@ -157,12 +137,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
         (Membership.entries - Membership.INVITE).forEach { membership ->
             withClue("membership: $membership") {
                 tm.writeTransaction {
-                    roomStore.update(upgradedRoom) {
-                        Room(
-                            upgradedRoom,
-                            membership = membership
-                        )
-                    }
+                    roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = membership) }
                     roomStateStore.save(tombstoneEvent())
                 }
 
@@ -181,12 +156,7 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     fun `disabled - do nothing`() = runTest {
         config.autoJoinUpgradedRooms = false
         tm.writeTransaction {
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
 
@@ -202,19 +172,8 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
     @Test
     fun `tombstone from room list - old room is JOIN - upgrade`() = runTest {
         tm.writeTransaction {
-            roomStore.update(oldRoom) {
-                Room(
-                    oldRoom,
-                    nextRoomId = upgradedRoom,
-                    membership = Membership.JOIN
-                )
-            }
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(oldRoom) { Room(oldRoom, nextRoomId = upgradedRoom, membership = Membership.JOIN) }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
 
@@ -231,19 +190,8 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
         (Membership.entries - Membership.JOIN).forEach { membership ->
             withClue("membership: $membership") {
                 tm.writeTransaction {
-                    roomStore.update(oldRoom) {
-                        Room(
-                            oldRoom,
-                            nextRoomId = upgradedRoom,
-                            membership = membership
-                        )
-                    }
-                    roomStore.update(upgradedRoom) {
-                        Room(
-                            upgradedRoom,
-                            membership = Membership.INVITE
-                        )
-                    }
+                    roomStore.update(oldRoom) { Room(oldRoom, nextRoomId = upgradedRoom, membership = membership) }
+                    roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
                     roomStateStore.save(tombstoneEvent())
                 }
 
@@ -257,23 +205,11 @@ class RoomUpgradeHandlerTest : TrixnityBaseTest() {
         }
     }
 
-
     @Test
     fun `tombstone from room list - got MatrixServerException - upgrade`() = runTest {
         tm.writeTransaction {
-            roomStore.update(oldRoom) {
-                Room(
-                    oldRoom,
-                    nextRoomId = upgradedRoom,
-                    membership = Membership.JOIN
-                )
-            }
-            roomStore.update(upgradedRoom) {
-                Room(
-                    upgradedRoom,
-                    membership = Membership.INVITE
-                )
-            }
+            roomStore.update(oldRoom) { Room(oldRoom, nextRoomId = upgradedRoom, membership = Membership.JOIN) }
+            roomStore.update(upgradedRoom) { Room(upgradedRoom, membership = Membership.INVITE) }
             roomStateStore.save(tombstoneEvent())
         }
 

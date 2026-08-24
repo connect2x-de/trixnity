@@ -43,9 +43,7 @@ class PolicyRoutesTest : TrixnityBaseTest() {
                 authenticationFunction = { SignatureAuthenticationFunctionResult(UserIdPrincipal("user"), null) }
             }
             install(ConvertMediaPlugin)
-            matrixApiServer(json) {
-                policyApiRoutes(handlerMock, json, mapping)
-            }
+            matrixApiServer(json) { policyApiRoutes(handlerMock, json, mapping) }
         }
     }
 
@@ -55,29 +53,32 @@ class PolicyRoutesTest : TrixnityBaseTest() {
         resetCalls(handlerMock)
     }
 
-    private val pdu: Signed<PersistentDataUnit<*>, String> = Signed(
-        PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
-            authEvents = listOf(),
-            content = RoomMessageEventContent.TextBased.Text("hi"),
-            depth = 12u,
-            hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
-            originTimestamp = 1404838188000,
-            prevEvents = listOf(),
-            roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
-            sender = UserId("@alice:example.com"),
-            unsigned = PersistentDataUnit.UnsignedData(age = 4612)
-        ),
-        mapOf(
-            "matrix.org" to keysOf(
-                Ed25519Key(
-                    "key",
-                    "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus"
-                )
-            )
+    private val pdu: Signed<PersistentDataUnit<*>, String> =
+        Signed(
+            PersistentDataUnit.PersistentDataUnitV12.PersistentMessageDataUnitV12(
+                authEvents = listOf(),
+                content = RoomMessageEventContent.TextBased.Text("hi"),
+                depth = 12u,
+                hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
+                originTimestamp = 1404838188000,
+                prevEvents = listOf(),
+                roomId = RoomId("!UcYsUzyxTGDxLBEvLy:example.org"),
+                sender = UserId("@alice:example.com"),
+                unsigned = PersistentDataUnit.UnsignedData(age = 4612),
+            ),
+            mapOf(
+                "matrix.org" to
+                    keysOf(
+                        Ed25519Key(
+                            "key",
+                            "these86bytesofbase64signaturecoveressentialfieldsincludinghashessocancheckredactedpdus",
+                        )
+                    )
+            ),
         )
-    )
 
-    private val pduJson = """
+    private val pduJson =
+        """
         {
           "auth_events": [],
           "content": {
@@ -102,7 +103,8 @@ class PolicyRoutesTest : TrixnityBaseTest() {
               }
           }                      
         }
-    """.trimToFlatJson()
+    """
+            .trimToFlatJson()
 
     @Test
     fun shouldSendTransaction() = testApplication {
@@ -110,34 +112,34 @@ class PolicyRoutesTest : TrixnityBaseTest() {
         everySuspend { handlerMock.sign(any()) }
             .returns(
                 mapOf(
-                    "policy.example.org" to keysOf(
-                        Ed25519Key(
-                            "policy_server",
-                            "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw"
+                    "policy.example.org" to
+                        keysOf(
+                            Ed25519Key(
+                                "policy_server",
+                                "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw",
+                            )
                         )
-                    )
                 )
             )
-        val response = client.post("/_matrix/policy/v1/sign") {
-            contentType(ContentType.Application.Json)
-            someSignature()
-            setBody(pduJson)
-        }
+        val response =
+            client.post("/_matrix/policy/v1/sign") {
+                contentType(ContentType.Application.Json)
+                someSignature()
+                setBody(pduJson)
+            }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
             this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe """
+            this.body<String>() shouldBe
+                """
                     {
                       "policy.example.org": {
                         "ed25519:policy_server": "zLFxllD0pbBuBpfHh8NuHNaICpReF/PAOpUQTsw+bFGKiGfDNAsnhcP7pbrmhhpfbOAxIdLraQLeeiXBryLmBw"
                       }
                     }
-                """.trimToFlatJson()
+                """
+                    .trimToFlatJson()
         }
-        verifySuspend {
-            handlerMock.sign(assert {
-                it.requestBody shouldBe pdu
-            })
-        }
+        verifySuspend { handlerMock.sign(assert { it.requestBody shouldBe pdu }) }
     }
 }

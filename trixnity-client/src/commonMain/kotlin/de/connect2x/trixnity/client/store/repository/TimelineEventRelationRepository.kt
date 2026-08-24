@@ -12,8 +12,4 @@ interface TimelineEventRelationRepository :
         firstKey.roomId.full + firstKey.relatedEventId.full + firstKey.relationType.name + secondKey.full
 }
 
-data class TimelineEventRelationKey(
-    val relatedEventId: EventId,
-    val roomId: RoomId,
-    val relationType: RelationType,
-)
+data class TimelineEventRelationKey(val relatedEventId: EventId, val roomId: RoomId, val relationType: RelationType)

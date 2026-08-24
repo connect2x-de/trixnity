@@ -1,6 +1,4 @@
-plugins {
-    alias(sharedLibs.plugins.kotlin.multiplatform)
-}
+plugins { alias(sharedLibs.plugins.kotlin.multiplatform) }
 
 kotlin {
     addJvmTarget()
@@ -8,9 +6,7 @@ kotlin {
     addNativeTargets()
     applyDefaultHierarchyTemplate()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-        }
+        all { languageSettings.optIn("kotlin.RequiresOptIn") }
         commonMain {
             dependencies {
                 api(sharedLibs.ktor.utils)
@@ -25,10 +21,6 @@ kotlin {
                 api(sharedLibs.kotlin.browser)
             }
         }
-        commonTest {
-            dependencies {
-                implementation(projects.trixnityTestUtils)
-            }
-        }
+        commonTest { dependencies { implementation(projects.trixnityTestUtils) } }
     }
 }

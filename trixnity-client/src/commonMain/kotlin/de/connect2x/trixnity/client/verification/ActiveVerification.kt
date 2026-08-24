@@ -2,15 +2,6 @@ package de.connect2x.trixnity.client.verification
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.getAndUpdate
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.client.key.KeyTrustService
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.verification.ActiveVerificationState.*
@@ -23,6 +14,15 @@ import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCa
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent.SasStartEventContent
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.utils.withReentrantLock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.verification.ActiveVerification")
 
@@ -60,14 +60,14 @@ abstract class ActiveVerificationImpl(
     protected val mutableState: MutableStateFlow<ActiveVerificationState> =
         MutableStateFlow(
             if (requestIsFromOurOwn) OwnRequest(request)
-            else TheirRequest(
-                request, ownDeviceId, supportedMethods, relatesTo, transactionId, ::queueStep
-            )
+            else TheirRequest(request, ownDeviceId, supportedMethods, relatesTo, transactionId, ::queueStep)
         )
     override val state = mutableState.asStateFlow()
 
     private val lifecycleStarted = MutableStateFlow(false)
+
     protected abstract suspend fun lifecycle()
+
     internal fun startLifecycle(scope: CoroutineScope): Boolean {
         log.debug { "start lifecycle of verification ${transactionId ?: relatesTo}" }
         return if (!lifecycleAlreadyStarted()) {
@@ -88,7 +88,10 @@ abstract class ActiveVerificationImpl(
             try {
                 if (sender != theirUserId && sender != ownUserId)
                     cancel(Code.UserMismatch, "the user did not match the expected user, we want to verify")
-                if (!(relatesTo != null && step.relatesTo == relatesTo || transactionId != null && step.transactionId == transactionId))
+                if (
+                    !(relatesTo != null && step.relatesTo == relatesTo ||
+                        transactionId != null && step.transactionId == transactionId)
+                )
                     cancel(Code.UnknownTransaction, "transaction is unknown")
                 val currentState = state.value
                 log.debug {
@@ -98,7 +101,8 @@ abstract class ActiveVerificationImpl(
                             sender=$sender
                             isOurOwn=$isOurOwn ($ownUserId/$ownDeviceId)
                             current state: $currentState
-                    """.trimIndent()
+                    """
+                        .trimIndent()
                 }
                 if (currentState is AcceptedByOtherDevice) {
                     if (step is VerificationDoneEventContent) {
@@ -107,34 +111,33 @@ abstract class ActiveVerificationImpl(
                     if (step is VerificationCancelEventContent) {
                         mutableState.value = Cancel(step, isOurOwn)
                     }
-                } else when (step) {
-                    is VerificationReadyEventContent -> {
-                        if (currentState is OwnRequest || currentState is TheirRequest)
-                            onReady(step)
-                        else cancelUnexpectedMessage(currentState)
-                    }
+                } else
+                    when (step) {
+                        is VerificationReadyEventContent -> {
+                            if (currentState is OwnRequest || currentState is TheirRequest) onReady(step)
+                            else cancelUnexpectedMessage(currentState)
+                        }
 
-                    is VerificationStartEventContent -> {
-                        if (currentState is Ready || currentState is Start)
-                            onStart(step, sender, isOurOwn)
-                        else cancelUnexpectedMessage(currentState)
-                    }
+                        is VerificationStartEventContent -> {
+                            if (currentState is Ready || currentState is Start) onStart(step, sender, isOurOwn)
+                            else cancelUnexpectedMessage(currentState)
+                        }
 
-                    is VerificationDoneEventContent -> {
-                        if (currentState is Start || currentState is WaitForDone)
-                            onDone(isOurOwn)
-                        else cancelUnexpectedMessage(currentState)
-                    }
+                        is VerificationDoneEventContent -> {
+                            if (currentState is Start || currentState is WaitForDone) onDone(isOurOwn)
+                            else cancelUnexpectedMessage(currentState)
+                        }
 
-                    is VerificationCancelEventContent -> {
-                        onCancel(step, isOurOwn)
-                    }
+                        is VerificationCancelEventContent -> {
+                            onCancel(step, isOurOwn)
+                        }
 
-                    else -> when (currentState) {
-                        is Start -> currentState.method.handleVerificationStep(step, isOurOwn)
-                        else -> cancelUnexpectedMessage(currentState)
+                        else ->
+                            when (currentState) {
+                                is Start -> currentState.method.handleVerificationStep(step, isOurOwn)
+                                else -> cancelUnexpectedMessage(currentState)
+                            }
                     }
-                }
             } catch (error: Exception) {
                 cancel(Code.InternalError, "something went wrong: ${error.message}")
             }
@@ -147,13 +150,8 @@ abstract class ActiveVerificationImpl(
 
     private fun onReady(step: VerificationReadyEventContent) {
         if (theirDeviceId == null && step.fromDevice != ownDeviceId) theirDeviceId = step.fromDevice
-        mutableState.value = Ready(
-            ownDeviceId,
-            step.methods.intersect(supportedMethods),
-            relatesTo,
-            transactionId,
-            ::queueStep
-        )
+        mutableState.value =
+            Ready(ownDeviceId, step.methods.intersect(supportedMethods), relatesTo, transactionId, ::queueStep)
     }
 
     private suspend fun onStart(step: VerificationStartEventContent, sender: UserId, isOurOwn: Boolean) {
@@ -161,27 +159,31 @@ abstract class ActiveVerificationImpl(
         val currentState = state.value
         suspend fun setNewStartEvent(weStartedVerification: Boolean) {
             log.debug { "set new start event $step from $sender ($senderDevice)" }
-            val method = when (step) {
-                is SasStartEventContent ->
-                    ActiveSasVerificationMethod.create(
-                        startEventContent = step,
-                        weStartedVerification = weStartedVerification,
-                        ownUserId = ownUserId,
-                        ownDeviceId = ownDeviceId,
-                        theirUserId = theirUserId,
-                        theirDeviceId = theirDeviceId
-                            ?: throw IllegalArgumentException("their device id should never be null at this step"),
-                        relatesTo = relatesTo,
-                        transactionId = transactionId,
-                        sendVerificationStep = ::queueStep,
-                        keyStore = keyStore,
-                        keyTrustService = keyTrustService,
-                        json = json,
-                        driver = driver,
-                    )
-            }
+            val method =
+                when (step) {
+                    is SasStartEventContent ->
+                        ActiveSasVerificationMethod.create(
+                            startEventContent = step,
+                            weStartedVerification = weStartedVerification,
+                            ownUserId = ownUserId,
+                            ownDeviceId = ownDeviceId,
+                            theirUserId = theirUserId,
+                            theirDeviceId =
+                                theirDeviceId
+                                    ?: throw IllegalArgumentException(
+                                        "their device id should never be null at this step"
+                                    ),
+                            relatesTo = relatesTo,
+                            transactionId = transactionId,
+                            sendVerificationStep = ::queueStep,
+                            keyStore = keyStore,
+                            keyTrustService = keyTrustService,
+                            json = json,
+                            driver = driver,
+                        )
+                }
             if (method != null) // the method already called cancel
-                mutableState.value = Start(method, sender, senderDevice)
+             mutableState.value = Start(method, sender, senderDevice)
         }
         if (currentState is Start) {
             val currentStartContent = currentState.method.startEventContent
@@ -189,7 +191,7 @@ abstract class ActiveVerificationImpl(
                 val userIdComparison = currentState.senderUserId.full.compareTo(sender.full)
                 when {
                     userIdComparison > 0 -> setNewStartEvent(ownUserId == sender)
-                    userIdComparison < 0 -> {// do nothing (we keep the current Start)
+                    userIdComparison < 0 -> { // do nothing (we keep the current Start)
                     }
 
                     else -> {
@@ -239,14 +241,10 @@ abstract class ActiveVerificationImpl(
             sendQueue.addLast(step)
         }
         if (sendMutex.tryLock()) {
-            var step = queueMutex.withReentrantLock {
-                sendQueue.removeFirstOrNull()
-            }
+            var step = queueMutex.withReentrantLock { sendQueue.removeFirstOrNull() }
             while (step != null) {
                 sendVerificationStepAndHandleIt(step)
-                step = queueMutex.withReentrantLock {
-                    sendQueue.removeFirstOrNull()
-                }
+                step = queueMutex.withReentrantLock { sendQueue.removeFirstOrNull() }
             }
             sendMutex.unlock()
         }
@@ -268,21 +266,23 @@ abstract class ActiveVerificationImpl(
                 }
             }
 
-            else -> try {
-                handleVerificationStep(step, ownUserId, true)
-                sendVerificationStep(step)
-            } catch (error: Exception) {
-                log.debug { "could not send step $step because: ${error.message}" }
-                handleVerificationStep(
-                    VerificationCancelEventContent(
-                        Code.InternalError,
-                        "problem sending step",
-                        relatesTo,
-                        transactionId
-                    ), ownUserId,
-                    true
-                )
-            }
+            else ->
+                try {
+                    handleVerificationStep(step, ownUserId, true)
+                    sendVerificationStep(step)
+                } catch (error: Exception) {
+                    log.debug { "could not send step $step because: ${error.message}" }
+                    handleVerificationStep(
+                        VerificationCancelEventContent(
+                            Code.InternalError,
+                            "problem sending step",
+                            relatesTo,
+                            transactionId,
+                        ),
+                        ownUserId,
+                        true,
+                    )
+                }
         }
     }
 

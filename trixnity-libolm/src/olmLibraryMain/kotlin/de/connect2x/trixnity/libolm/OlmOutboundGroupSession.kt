@@ -23,9 +23,10 @@ actual class OlmOutboundGroupSession private constructor() : WantsToBeFree {
         actual fun create(): OlmOutboundGroupSession =
             OlmOutboundGroupSession().apply {
                 try {
-                    val result = withRandom(init_outbound_group_session_random_length(ptr)) { random ->
-                        init_outbound_group_session(ptr, random)
-                    }
+                    val result =
+                        withRandom(init_outbound_group_session_random_length(ptr)) { random ->
+                            init_outbound_group_session(ptr, random)
+                        }
                     checkError(ptr, result, ::outbound_group_session_last_error)
                 } catch (e: Exception) {
                     free()
@@ -40,7 +41,7 @@ actual class OlmOutboundGroupSession private constructor() : WantsToBeFree {
                         unpickle_outbound_group_session(
                             ptr,
                             key?.encodeToByteArray() ?: ByteArray(0),
-                            pickle.encodeToByteArray()
+                            pickle.encodeToByteArray(),
                         )
                     checkError(ptr, result, ::outbound_group_session_last_error)
                 } catch (e: Exception) {
@@ -78,7 +79,7 @@ actual class OlmOutboundGroupSession private constructor() : WantsToBeFree {
             key ?: "",
             ::pickle_outbound_group_session_length,
             ::pickle_outbound_group_session,
-            ::outbound_group_session_last_error
+            ::outbound_group_session_last_error,
         )
 
     actual fun encrypt(plainText: String): String {
@@ -88,6 +89,5 @@ actual class OlmOutboundGroupSession private constructor() : WantsToBeFree {
         return encryptedText.decodeToString(endIndex = size.toInt())
     }
 
-    private fun checkResult(block: () -> ULong): ULong =
-        checkError(ptr, block(), ::outbound_group_session_last_error)
+    private fun checkResult(block: () -> ULong): ULong = checkError(ptr, block(), ::outbound_group_session_last_error)
 }

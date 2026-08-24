@@ -21,9 +21,7 @@ package de.connect2x.trixnity.crypto.core
 
 const val BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-private val BASE58_REVERSE_ALPHABET by lazy {
-    IntArray(128) { BASE58_ALPHABET.indexOf(it.toChar()) }
-}
+private val BASE58_REVERSE_ALPHABET by lazy { IntArray(128) { BASE58_ALPHABET.indexOf(it.toChar()) } }
 
 private const val BASE58_ENCODED_ZERO = '1'
 
@@ -44,19 +42,19 @@ fun ByteArray.encodeBase58(): String {
     while (outputStart < encoded.size && encoded[outputStart] == BASE58_ENCODED_ZERO) {
         ++outputStart
     }
-    repeat(zeros) {
-        encoded[--outputStart] = BASE58_ENCODED_ZERO
-    }
+    repeat(zeros) { encoded[--outputStart] = BASE58_ENCODED_ZERO }
     return encoded.concatToString(outputStart)
 }
 
 fun String.decodeBase58(): ByteArray {
     if (isEmpty()) ByteArray(0)
-    val input58 = this.mapIndexed { index: Int, c: Char ->
-        val digit = if (c.code < 128) BASE58_REVERSE_ALPHABET[c.code] else -1
-        if (digit < 0) throw IllegalArgumentException("Illegal character $c at position $index")
-        digit.toByte()
-    }.toByteArray()
+    val input58 =
+        this.mapIndexed { index: Int, c: Char ->
+                val digit = if (c.code < 128) BASE58_REVERSE_ALPHABET[c.code] else -1
+                if (digit < 0) throw IllegalArgumentException("Illegal character $c at position $index")
+                digit.toByte()
+            }
+            .toByteArray()
 
     val zeros = input58.indexOfFirst { it.toInt() != 0 }.let { if (it < 0) input58.size else it }
     val decoded = ByteArray(length)

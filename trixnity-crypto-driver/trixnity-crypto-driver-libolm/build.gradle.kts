@@ -1,6 +1,4 @@
-plugins {
-    alias(sharedLibs.plugins.kotlin.multiplatform)
-}
+plugins { alias(sharedLibs.plugins.kotlin.multiplatform) }
 
 kotlin {
     addJvmTarget()
@@ -14,8 +12,6 @@ kotlin {
             implementation(projects.trixnityUtils)
         }
 
-        commonTest.dependencies {
-            implementation(projects.trixnityCryptoDriver.driverTest)
-        }
+        commonTest.dependencies { implementation(projects.trixnityCryptoDriver.driverTest) }
     }
 }

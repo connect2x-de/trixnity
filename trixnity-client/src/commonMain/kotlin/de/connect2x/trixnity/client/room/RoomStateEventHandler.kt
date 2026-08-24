@@ -23,26 +23,21 @@ class RoomStateEventHandler(
     private val tm: StoreTransactionManager,
 ) : EventHandler, LazyMemberEventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
-        api.sync.subscribeEventList<StateEventContent, StateBaseEvent<StateEventContent>>(Priority.STORE_EVENTS) {
-            setState(it)
-        }.unsubscribeOnCompletion(scope)
+        api.sync
+            .subscribeEventList<StateEventContent, StateBaseEvent<StateEventContent>>(Priority.STORE_EVENTS) {
+                setState(it)
+            }
+            .unsubscribeOnCompletion(scope)
     }
 
     override suspend fun handleLazyMemberEvents(memberEvents: List<StateEvent<MemberEventContent>>) {
         setState(memberEvents, skipWhenAlreadyPresent = true)
     }
 
-    internal suspend fun setState(
-        events: List<StateBaseEvent<*>>,
-        skipWhenAlreadyPresent: Boolean = false
-    ) {
+    internal suspend fun setState(events: List<StateBaseEvent<*>>, skipWhenAlreadyPresent: Boolean = false) {
         if (events.isNotEmpty()) {
             log.debug { "start save ${events.size} state events" }
-            tm.writeTransaction {
-                events.forEach {
-                    roomStateStore.save(it, skipWhenAlreadyPresent)
-                }
-            }
+            tm.writeTransaction { events.forEach { roomStateStore.save(it, skipWhenAlreadyPresent) } }
             log.debug { "finished save ${events.size} state events" }
         }
     }

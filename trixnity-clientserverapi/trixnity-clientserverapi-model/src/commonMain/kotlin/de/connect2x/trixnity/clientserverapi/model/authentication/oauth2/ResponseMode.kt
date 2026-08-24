@@ -34,7 +34,6 @@ sealed interface ResponseMode {
                 else -> Unknown(value)
             }
 
-        override fun serialize(encoder: Encoder, value: ResponseMode) =
-            encoder.encodeString(value.value)
+        override fun serialize(encoder: Encoder, value: ResponseMode) = encoder.encodeString(value.value)
     }
 }

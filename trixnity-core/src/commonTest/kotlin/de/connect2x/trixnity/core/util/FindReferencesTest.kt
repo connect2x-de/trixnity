@@ -1,15 +1,14 @@
 package de.connect2x.trixnity.core.util
 
-import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import de.connect2x.trixnity.core.util.Reference.Companion.findReferences
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.util.Reference.Companion.findReferences
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
+import io.ktor.http.*
 import kotlin.test.*
-
 
 class FindReferencesTest : TrixnityBaseTest() {
     // User IDs
@@ -17,16 +16,12 @@ class FindReferencesTest : TrixnityBaseTest() {
         val text = "Hello $id :D"
         val result = findReferences(text).filter { it.value !is Reference.Link }
 
-        result.keys.any {
-            text.substring(it) == id
-        } shouldBe expected
+        result.keys.any { text.substring(it) == id } shouldBe expected
 
         if (expected) {
             result.size shouldBe 1
-            (result.entries.first { text.substring(it.key) == id }.value as Reference.User).userId shouldBe UserId(
-                localpart,
-                domain
-            )
+            (result.entries.first { text.substring(it.key) == id }.value as Reference.User).userId shouldBe
+                UserId(localpart, domain)
         } else {
             result.size shouldBe 0
         }
@@ -40,13 +35,23 @@ class FindReferencesTest : TrixnityBaseTest() {
         // Ll
         userIdTest("@aâăǟǻɐΐαҩոᴀᴞℼ:example.com", "aâăǟǻɐΐαҩոᴀᴞℼ", "example.com", expected = true)
         // Lu
-        userIdTest("@AÀĀƵǺǺΆАӐḀẠἈᾸℂℇΩKÅℬℭℲℳↃⱭꝄꝆꝌꝔ:example.com", "AÀĀƵǺǺΆАӐḀẠἈᾸℂℇΩKÅℬℭℲℳↃⱭꝄꝆꝌꝔ", "example.com", expected = true)
+        userIdTest(
+            "@AÀĀƵǺǺΆАӐḀẠἈᾸℂℇΩKÅℬℭℲℳↃⱭꝄꝆꝌꝔ:example.com",
+            "AÀĀƵǺǺΆАӐḀẠἈᾸℂℇΩKÅℬℭℲℳↃⱭꝄꝆꝌꝔ",
+            "example.com",
+            expected = true,
+        )
         // Lt
         userIdTest("@ǅᾈ:example.com", "ǅᾈ", "example.com", expected = true)
         // Lm
         userIdTest("@ʰͺՙॱៗᡃᱼᱻᴬᵃᵄᵅᶛᶴₐ々ゝꀕꙿꧏꧦꭞ:example.com", "ʰͺՙॱៗᡃᱼᱻᴬᵃᵄᵅᶛᶴₐ々ゝꀕꙿꧏꧦꭞ", "example.com", expected = true)
         // Lo
-        userIdTest("@ªƻʔऄঀਅઅଅஃఅಀඅกກༀཀဪᆠቚᐂᚏᚼᛒខᠠᤁᬛᮮこんにちはꁊꓐꕥꕷꤕꦙꨘꪀꪵ:example.com", "ªƻʔऄঀਅઅଅஃఅಀඅกກༀཀဪᆠቚᐂᚏᚼᛒខᠠᤁᬛᮮこんにちはꁊꓐꕥꕷꤕꦙꨘꪀꪵ", "example.com", expected = true)
+        userIdTest(
+            "@ªƻʔऄঀਅઅଅஃఅಀඅกກༀཀဪᆠቚᐂᚏᚼᛒខᠠᤁᬛᮮこんにちはꁊꓐꕥꕷꤕꦙꨘꪀꪵ:example.com",
+            "ªƻʔऄঀਅઅଅஃఅಀඅกກༀཀဪᆠቚᐂᚏᚼᛒខᠠᤁᬛᮮこんにちはꁊꓐꕥꕷꤕꦙꨘꪀꪵ",
+            "example.com",
+            expected = true,
+        )
         // Nd
         userIdTest("@0०๐၀០᠐᮰᱐０:example.com", "0०๐၀០᠐᮰᱐０", "example.com", expected = true)
         // Nl
@@ -61,7 +66,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "@demo.test:example.eu.timp.mock.abc.xyz",
             "demo.test",
             "example.eu.timp.mock.abc.xyz",
-            expected = true
+            expected = true,
         )
     }
 
@@ -81,7 +86,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "@user:[2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
             "user",
             "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
-            expected = true
+            expected = true,
         )
     }
 
@@ -105,16 +110,12 @@ class FindReferencesTest : TrixnityBaseTest() {
         val text = "omw to $id now"
         val result = findReferences(text).filter { it.value !is Reference.Link }
 
-        result.keys.any {
-            text.substring(it) == id
-        } shouldBe expected
+        result.keys.any { text.substring(it) == id } shouldBe expected
 
         if (expected) {
             result.size shouldBe 1
-            (result.entries.first { text.substring(it.key) == id }.value as Reference.RoomAlias).roomAliasId shouldBe RoomAliasId(
-                localpart,
-                domain
-            )
+            (result.entries.first { text.substring(it.key) == id }.value as Reference.RoomAlias).roomAliasId shouldBe
+                RoomAliasId(localpart, domain)
         } else {
             result.size shouldBe 0
         }
@@ -141,7 +142,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "#room:[2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
             "room",
             "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
-            expected = true
+            expected = true,
         )
     }
 
@@ -166,16 +167,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "Hello $uri :D"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == uri
-            } shouldBe expected
+            result.keys.any { text.substring(it) == uri } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
-                (result.entries.first { text.substring(it.key) == uri }.value as Reference.User).userId shouldBe UserId(
-                    localpart,
-                    domain
-                )
+                (result.entries.first { text.substring(it.key) == uri }.value as Reference.User).userId shouldBe
+                    UserId(localpart, domain)
             } else {
                 result.size shouldBe 0
             }
@@ -185,13 +182,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "omw to $uri now"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == uri
-            } shouldBe expected
+            result.keys.any { text.substring(it) == uri } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
-                (result.entries.first { text.substring(it.key) == uri }.value as Reference.Room).roomId shouldBe RoomId(id)
+                (result.entries.first { text.substring(it.key) == uri }.value as Reference.Room).roomId shouldBe
+                    RoomId(id)
             }
         }
 
@@ -199,16 +195,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "omw to $uri now"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == uri
-            } shouldBe expected
+            result.keys.any { text.substring(it) == uri } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
-                (result.entries.first { text.substring(it.key) == uri }.value as Reference.RoomAlias).roomAliasId shouldBe RoomAliasId(
-                    localpart,
-                    domain
-                )
+                (result.entries.first { text.substring(it.key) == uri }.value as Reference.RoomAlias)
+                    .roomAliasId shouldBe RoomAliasId(localpart, domain)
             } else {
                 result.size shouldBe 0
             }
@@ -225,10 +217,7 @@ class FindReferencesTest : TrixnityBaseTest() {
                 assertEquals(roomId, value.roomId!!.full)
                 assertEquals(eventId, value.eventId.full)
             } else {
-                assertEquals(
-                    expected = emptyList(),
-                    actual = result.values.toList(),
-                )
+                assertEquals(expected = emptyList(), actual = result.values.toList())
             }
         }
     }
@@ -276,7 +265,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:r/room:example.com?via=example.com&action=join",
             "room",
             "example.com",
-            expected = true
+            expected = true,
         )
     }
 
@@ -286,7 +275,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:r/room:example.com?action=chat&via=example.com",
             "room",
             "example.com",
-            expected = true
+            expected = true,
         )
     }
 
@@ -326,7 +315,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         UriTest.roomId(
             "matrix:roomid/room:example.com?via=example.com&action=join",
             "!room:example.com",
-            expected = true
+            expected = true,
         )
     }
 
@@ -335,7 +324,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         UriTest.roomId(
             "matrix:roomid/room:example.com?action=chat&via=example.com",
             "!room:example.com",
-            expected = true
+            expected = true,
         )
     }
 
@@ -351,7 +340,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:roomid/room:example.com/e/event?action=join",
             "!room:example.com",
             "\$event",
-            expected = true
+            expected = true,
         )
     }
 
@@ -361,7 +350,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:roomid/room:example.com/e/event?via=example.com",
             "!room:example.com",
             "\$event",
-            expected = true
+            expected = true,
         )
     }
 
@@ -371,7 +360,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:roomid/room:example.com/e/event?via=example.com&action=join",
             "!room:example.com",
             "\$event",
-            expected = true
+            expected = true,
         )
     }
 
@@ -381,7 +370,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "matrix:roomid/room:example.com/e/event?action=chat&via=example.com",
             "!room:example.com",
             "\$event",
-            expected = true
+            expected = true,
         )
     }
 
@@ -396,16 +385,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "Hello $permalink :D"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == permalink
-            } shouldBe expected
+            result.keys.any { text.substring(it) == permalink } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
-                (result.entries.first { text.substring(it.key) == permalink }.value as Reference.User).userId shouldBe UserId(
-                    localpart,
-                    domain
-                )
+                (result.entries.first { text.substring(it.key) == permalink }.value as Reference.User).userId shouldBe
+                    UserId(localpart, domain)
             } else {
                 result.size shouldBe 0
             }
@@ -415,14 +400,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "omw to $permalink now"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == permalink
-            } shouldBe expected
+            result.keys.any { text.substring(it) == permalink } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
                 (result.entries.first { text.substring(it.key) == permalink }.value as Reference.Room).roomId shouldBe
-                        RoomId(roomId)
+                    RoomId(roomId)
             } else {
                 result.size shouldBe 0
             }
@@ -432,16 +415,12 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "omw to $permalink now"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == permalink
-            } shouldBe expected
+            result.keys.any { text.substring(it) == permalink } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
-                (result.entries.first { text.substring(it.key) == permalink }.value as Reference.RoomAlias).roomAliasId shouldBe RoomAliasId(
-                    localpart,
-                    domain
-                )
+                (result.entries.first { text.substring(it.key) == permalink }.value as Reference.RoomAlias)
+                    .roomAliasId shouldBe RoomAliasId(localpart, domain)
             } else {
                 result.size shouldBe 0
             }
@@ -451,9 +430,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             val text = "You can find it at $permalink :)"
             val result = findReferences(text)
 
-            result.keys.any {
-                text.substring(it) == permalink
-            } shouldBe expected
+            result.keys.any { text.substring(it) == permalink } shouldBe expected
 
             if (expected) {
                 result.size shouldBe 1
@@ -496,7 +473,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "https://matrix.to/#/%23somewhere%3Aexample.org",
             "somewhere",
             "example.org",
-            expected = true
+            expected = true,
         )
     }
 
@@ -512,7 +489,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         PermalinkTest.roomId(
             "https://matrix.to/#/!room%3Aexample.com?via=elsewhere.ca",
             "!room:example.com",
-            expected = true
+            expected = true,
         )
     }
 
@@ -523,7 +500,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "https://matrix.to/#/!room:example.com/\$event",
             "!room:example.com",
             "\$event",
-            expected = true
+            expected = true,
         )
     }
 
@@ -533,7 +510,7 @@ class FindReferencesTest : TrixnityBaseTest() {
             "https://matrix.to/#/!room%3Aexample.com/%24event%3Aexample.org?via=elsewhere.ca",
             "!room:example.com",
             "\$event:example.org",
-            expected = true
+            expected = true,
         )
     }
 
@@ -542,13 +519,14 @@ class FindReferencesTest : TrixnityBaseTest() {
         val mentions = findReferences(uri)
 
         mentions.values.forEach {
-            val parameters = when (it) {
-                is Reference.Event -> it.parameters
-                is Reference.Link -> null
-                is Reference.Room -> it.parameters
-                is Reference.RoomAlias -> it.parameters
-                is Reference.User -> it.parameters
-            }
+            val parameters =
+                when (it) {
+                    is Reference.Event -> it.parameters
+                    is Reference.Link -> null
+                    is Reference.Room -> it.parameters
+                    is Reference.RoomAlias -> it.parameters
+                    is Reference.User -> it.parameters
+                }
             (parameters == params) shouldBe expected
         }
     }
@@ -558,7 +536,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:roomid/somewhere%3Aexample.org/%24event%3Aexample.org?via=elsewhere.ca",
             parametersOf("via" to listOf("elsewhere.ca")),
-            expected = true
+            expected = true,
         )
     }
 
@@ -567,7 +545,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:roomid/room:example.com/e/event?via=example.com&action=join",
             parametersOf("action" to listOf("join"), "via" to listOf("example.com")),
-            expected = true
+            expected = true,
         )
     }
 
@@ -576,17 +554,13 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:roomid/somewhere%3Aexample.org?action=chat&via=example.com",
             parametersOf("action" to listOf("chat"), "via" to listOf("example.com")),
-            expected = true
+            expected = true,
         )
     }
 
     @Test
     fun shouldPassCustomParameter() {
-        parameterTest(
-            "matrix:r/somewhere:example.org?foo=bar",
-            parametersOf("foo" to listOf("bar")),
-            expected = true
-        )
+        parameterTest("matrix:r/somewhere:example.org?foo=bar", parametersOf("foo" to listOf("bar")), expected = true)
     }
 
     @Test
@@ -594,7 +568,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:u/mario:esempio.it?actionaté=mammamia",
             parametersOf("actionaté" to listOf("mammamia")),
-            expected = true
+            expected = true,
         )
     }
 
@@ -603,7 +577,7 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:u/user:homeserver.рф?m.vector=matrix",
             parametersOf("m.vector" to listOf("matrix")),
-            expected = true
+            expected = true,
         )
     }
 
@@ -612,63 +586,60 @@ class FindReferencesTest : TrixnityBaseTest() {
         parameterTest(
             "matrix:u/user:example.com?foo=bar&actionaté=mammamia",
             parametersOf("foo" to listOf("bar"), "actionaté" to listOf("mammamia")),
-            expected = true
+            expected = true,
         )
     }
 
     @Test
     fun `ignores overlaps`() {
-        val content = "lorem @user:example.org ipsum https://matrix.to/#/@user:example.org?action=chat dolor matrix:u/user:example.org sit"
+        val content =
+            "lorem @user:example.org ipsum https://matrix.to/#/@user:example.org?action=chat dolor matrix:u/user:example.org sit"
         // Links
-        assertEquals(
-            expected = "https://matrix.to/#/@user:example.org?action=chat",
-            actual = content.substring(30..78),
-        )
-        assertEquals(
-            expected = "matrix:u/user:example.org",
-            actual = content.substring(86..110),
-        )
+        assertEquals(expected = "https://matrix.to/#/@user:example.org?action=chat", actual = content.substring(30..78))
+        assertEquals(expected = "matrix:u/user:example.org", actual = content.substring(86..110))
         // Ids
-        assertEquals(
-            expected = "@user:example.org",
-            actual = content.substring(6..22),
-        )
-        assertEquals(
-            expected = "@user:example.org",
-            actual = content.substring(50..66),
-        )
+        assertEquals(expected = "@user:example.org", actual = content.substring(6..22))
+        assertEquals(expected = "@user:example.org", actual = content.substring(50..66))
         // References
         assertEquals(
-            expected = mapOf(
-                30..78 to Reference.User(UserId("@user:example.org"), parametersOf("action", "chat")),
-                86..110 to Reference.User(UserId("@user:example.org")),
-                6..22 to Reference.User(UserId("@user:example.org")),
-            ),
-            actual = findReferences(content)
+            expected =
+                mapOf(
+                    30..78 to Reference.User(UserId("@user:example.org"), parametersOf("action", "chat")),
+                    86..110 to Reference.User(UserId("@user:example.org")),
+                    6..22 to Reference.User(UserId("@user:example.org")),
+                ),
+            actual = findReferences(content),
         )
         assertEquals(
-            expected = mapOf(
-                9..44 to Reference.User(userId=UserId("@user:matrix.org")),
-                92..171 to Reference.Room(roomId=RoomId("!WvOltebgJfkgHzhfpW:matrix.org"), parameters=parametersOf("via" to listOf("matrix.org", "imbitbu.de"))),
-                199..323 to Reference.Event(roomId=RoomId("!WvOltebgJfkgHzhfpW:matrix.org"), eventId=EventId("\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A"), parameters=parametersOf("via" to listOf("matrix.org", "imbitbu.de"))),
-            ),
-            actual = findReferences(
-                "<a href=\"https://matrix.to/#/@user:matrix.org\">Some Username</a>: This is a user mention<br>" +
+            expected =
+                mapOf(
+                    9..44 to Reference.User(userId = UserId("@user:matrix.org")),
+                    92..171 to
+                        Reference.Room(
+                            roomId = RoomId("!WvOltebgJfkgHzhfpW:matrix.org"),
+                            parameters = parametersOf("via" to listOf("matrix.org", "imbitbu.de")),
+                        ),
+                    199..323 to
+                        Reference.Event(
+                            roomId = RoomId("!WvOltebgJfkgHzhfpW:matrix.org"),
+                            eventId = EventId("\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A"),
+                            parameters = parametersOf("via" to listOf("matrix.org", "imbitbu.de")),
+                        ),
+                ),
+            actual =
+                findReferences(
+                    "<a href=\"https://matrix.to/#/@user:matrix.org\">Some Username</a>: This is a user mention<br>" +
                         "https://matrix.to/#/!WvOltebgJfkgHzhfpW:matrix.org?via=matrix.org&via=imbitbu.de This is a room mention<br>" +
                         "https://matrix.to/#/!WvOltebgJfkgHzhfpW:matrix.org/\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A?via=matrix.org&via=imbitbu.de This is an event mention"
-            )
+                ),
         )
     }
 
     @Test
     fun `finds regular links`() {
         assertEquals(
-            expected = mapOf(
-                19..65 to Reference.Link("https://en.wikipedia.org/wiki/Matrix_(protocol)"),
-            ),
-            actual = findReferences(
-                "I saw that online (https://en.wikipedia.org/wiki/Matrix_(protocol)), neat eh?"
-            )
+            expected = mapOf(19..65 to Reference.Link("https://en.wikipedia.org/wiki/Matrix_(protocol)")),
+            actual = findReferences("I saw that online (https://en.wikipedia.org/wiki/Matrix_(protocol)), neat eh?"),
         )
     }
 }

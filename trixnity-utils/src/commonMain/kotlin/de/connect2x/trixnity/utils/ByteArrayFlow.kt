@@ -25,23 +25,19 @@ suspend fun ByteArrayFlow.toByteArray(): ByteArray {
     return concatByteArray
 }
 
-/**
- * Returns null, when [maxSize] exceeded.
- */
+/** Returns null, when [maxSize] exceeded. */
 suspend fun ByteArrayFlow.toByteArray(maxSize: Long): ByteArray? =
     try {
         limitedSize(maxSize).toByteArray()
     } catch (e: Exception) {
-        if (e is MaxByteArrayFlowSizeException || e.cause is MaxByteArrayFlowSizeException) null
-        else throw e
+        if (e is MaxByteArrayFlowSizeException || e.cause is MaxByteArrayFlowSizeException) null else throw e
     }
 
 private fun ByteArrayFlow.limitedSize(maxSize: Long): ByteArrayFlow = flow {
     var size = 0
     collect { nextBytes ->
         size += nextBytes.size
-        if (size > maxSize) throw MaxByteArrayFlowSizeException()
-        else emit(nextBytes)
+        if (size > maxSize) throw MaxByteArrayFlowSizeException() else emit(nextBytes)
     }
 }
 

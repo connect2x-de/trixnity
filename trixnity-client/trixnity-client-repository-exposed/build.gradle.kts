@@ -32,10 +32,6 @@ kotlin {
                 api(libs.exposed.r2dbc)
             }
         }
-        jvmTest {
-            dependencies {
-                implementation(libs.r2dbc.h2)
-            }
-        }
+        jvmTest { dependencies { implementation(libs.r2dbc.h2) } }
     }
 }

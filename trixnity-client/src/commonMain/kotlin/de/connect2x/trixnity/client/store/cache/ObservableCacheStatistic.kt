@@ -2,12 +2,12 @@ package de.connect2x.trixnity.client.store.cache
 
 import de.connect2x.lognity.api.logger.Level
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.EventHandler
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.core.EventHandler
-import kotlin.time.Duration.Companion.seconds
 
 private val log = Logger("de.connect2x.trixnity.client.store.cache.ObservableCacheStatistic")
 
@@ -15,14 +15,10 @@ data class ObservableCacheStatistic(
     val name: String,
     val all: Int,
     val subscribed: Int,
-    val indexes: List<ObservableCacheIndexStatistic>
+    val indexes: List<ObservableCacheIndexStatistic>,
 )
 
-data class ObservableCacheIndexStatistic(
-    val name: String,
-    val all: Int,
-    val subscribed: Int,
-)
+data class ObservableCacheIndexStatistic(val name: String, val all: Int, val subscribed: Int)
 
 class ObservableCacheStatisticCollector : EventHandler {
     private val caches = mutableListOf<ObservableCache<*, *, *>>()
@@ -46,7 +42,8 @@ class ObservableCacheStatisticCollector : EventHandler {
                                 Mid usage (> 100): ${midUsageStatistics.map { it.name }}
                                 High usage (> 1_000): ${highUsageStatistics.map { it.name }}
                                 Extreme usage (> 10_000): ${extremeUsageStatistics.map { it.name }}
-                        """.trimIndent()
+                        """
+                            .trimIndent()
                     }
                     if (highUsageStatistics.isNotEmpty() || extremeUsageStatistics.isNotEmpty())
                         log.trace {
@@ -54,17 +51,19 @@ class ObservableCacheStatisticCollector : EventHandler {
                             cache details:
                             ${highUsageStatistics.format()}
                             ${extremeUsageStatistics.format()}
-                        """.trimIndent()
+                        """
+                                .trimIndent()
                         }
                 }
             }
     }
 
-    fun List<ObservableCacheStatistic>.format() = joinToString("\n") { statistic ->
-        val indexNames = statistic.indexes.map { it.name }.joinToString("|") { padMax(it) }
-        val indexAll = statistic.indexes.map { it.all }.joinToString("|") { padMax(it.toString()) }
-        val indexSubscribed = statistic.indexes.map { it.all }.joinToString("|") { padMax(it.toString()) }
-        """
+    fun List<ObservableCacheStatistic>.format() =
+        joinToString("\n") { statistic ->
+            val indexNames = statistic.indexes.map { it.name }.joinToString("|") { padMax(it) }
+            val indexAll = statistic.indexes.map { it.all }.joinToString("|") { padMax(it.toString()) }
+            val indexSubscribed = statistic.indexes.map { it.all }.joinToString("|") { padMax(it.toString()) }
+            """
             ------------------------------------------------------------
             Name:               ${statistic.name}
             All entries:        ${statistic.all}
@@ -73,8 +72,9 @@ class ObservableCacheStatisticCollector : EventHandler {
                 Name:               $indexNames
                 All entries:        $indexAll
                 Subscribed entries: $indexSubscribed
-        """.trimIndent()
-    }
+        """
+                .trimIndent()
+        }
 
     private fun padMax(input: String, length: Int = 16): String {
         return when {

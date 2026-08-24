@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.clientserverapi.client.oauth2
 
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KeepGeneratedSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.GrantType
-import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseType
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = ClientMetadata.Serializer::class)

@@ -5,26 +5,21 @@ import de.connect2x.trixnity.core.model.events.m.RelationType
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.INFINITE
 
-
 data class GetTimelineEventConfig(
-    /**
-     * Timeout for decrypting events.
-     */
+    /** Timeout for decrypting events. */
     var decryptionTimeout: Duration = INFINITE,
     /**
-     * When the event does not exist locally, it is searched by fetching [TimelineEvent]s:
-     * Timeout how long the [TimelineEvent] is searched.
+     * When the event does not exist locally, it is searched by fetching [TimelineEvent]s: Timeout how long the
+     * [TimelineEvent] is searched.
      */
     var fetchTimeout: Duration = INFINITE,
     /**
-     * When the event does not exist locally, it is searched by fetching [TimelineEvent]s:
-     * Maximum number of events fetched from the server at once.
+     * When the event does not exist locally, it is searched by fetching [TimelineEvent]s: Maximum number of events
+     * fetched from the server at once.
      */
     var fetchSize: Long = 20,
-    /**
-     * Define, if the content of a [TimelineEvent] will be replaced on a [RelationType.Replace].
-     */
-    var allowReplaceContent: Boolean = true
+    /** Define, if the content of a [TimelineEvent] will be replaced on a [RelationType.Replace]. */
+    var allowReplaceContent: Boolean = true,
 )
 
 fun GetTimelineEventConfig.apply(config: GetTimelineEventsConfig) = apply {
@@ -35,32 +30,26 @@ fun GetTimelineEventConfig.apply(config: GetTimelineEventsConfig) = apply {
 }
 
 data class GetTimelineEventsConfig(
-    /**
-     * Timeout for decrypting events.
-     */
+    /** Timeout for decrypting events. */
     var decryptionTimeout: Duration = INFINITE,
-    /**
-     * When the next event does not exist locally, it is fetched:
-     * Timeout for this fetch.
-     */
+    /** When the next event does not exist locally, it is fetched: Timeout for this fetch. */
     var fetchTimeout: Duration = INFINITE,
     /**
-     * When the next event does not exist locally, it is fetched:
-     * Maximum number of events fetched from the server at once.
+     * When the next event does not exist locally, it is fetched: Maximum number of events fetched from the server at
+     * once.
      */
     var fetchSize: Long = 20,
-    /**
-     * Define, if the content of a [TimelineEvent] will be replaced on a [RelationType.Replace].
-     */
+    /** Define, if the content of a [TimelineEvent] will be replaced on a [RelationType.Replace]. */
     var allowReplaceContent: Boolean = true,
     /**
-     * When set, the current [TimelineEvent] retrieving stops, when a gap is found and this size is reached (including the start event).
+     * When set, the current [TimelineEvent] retrieving stops, when a gap is found and this size is reached (including
+     * the start event).
      */
     var minSize: Long? = null,
     /**
      * When set, the current [TimelineEvent] retrieving stops, when this value is reached (including the start event).
      */
-    var maxSize: Long? = null
+    var maxSize: Long? = null,
 )
 
 fun GetTimelineEventsConfig.apply(config: GetTimelineEventConfig) = apply {

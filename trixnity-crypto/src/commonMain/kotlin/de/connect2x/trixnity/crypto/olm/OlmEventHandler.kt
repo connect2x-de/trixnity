@@ -36,6 +36,8 @@ import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.utils.AtomicUpdateAndRunResult
 import de.connect2x.trixnity.utils.atomicUpdateAndRun
 import de.connect2x.trixnity.utils.nextString
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -43,14 +45,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
 
 private val log = Logger("de.connect2x.trixnity.crypto.olm.OlmEventHandler")
 
 data class DecryptedOlmEventContainer(
     val encrypted: Event<OlmEncryptedToDeviceEventContent>,
-    val decrypted: PlaintextOlmEvent<*>
+    val decrypted: PlaintextOlmEvent<*>,
 )
 
 typealias DecryptedOlmEventSubscriber = suspend (DecryptedOlmEventContainer) -> Unit
@@ -58,7 +58,6 @@ typealias DecryptedOlmEventSubscriber = suspend (DecryptedOlmEventContainer) -> 
 interface OlmEventHandler : EventHandler {
     fun subscribe(eventSubscriber: DecryptedOlmEventSubscriber): Unsubscriber
 }
-
 
 class OlmEventHandlerImpl(
     private val userInfo: UserInfo,
@@ -73,7 +72,6 @@ class OlmEventHandlerImpl(
 ) : OlmEventHandler {
     private val eventSubscribers = MutableStateFlow<Set<DecryptedOlmEventSubscriber>>(setOf())
 
-
     override fun startInCoroutineScope(scope: CoroutineScope) {
         olmKeysChangeEmitter.subscribeOneTimeKeysCount(::handleOlmKeysChange).unsubscribeOnCompletion(scope)
         eventEmitter.subscribeEventList(subscriber = ::handleMemberEvents).unsubscribeOnCompletion(scope)
@@ -81,69 +79,79 @@ class OlmEventHandlerImpl(
         eventEmitter.subscribeEventList(Priority.TO_DEVICE_EVENTS, ::handleOlmEvents).unsubscribeOnCompletion(scope)
         eventEmitter.subscribe(Priority.LAST, ::forgetOldFallbackKey).unsubscribeOnCompletion(scope)
         subscribe(::handleOlmEncryptedRoomKeyEventContent).unsubscribeOnCompletion(scope)
-        scope.launch {
-            forgetOldFallbackKey()
-        }
+        scope.launch { forgetOldFallbackKey() }
     }
 
     override fun subscribe(eventSubscriber: DecryptedOlmEventSubscriber): Unsubscriber {
         eventSubscribers.update { it + eventSubscriber }
-        return {
-            eventSubscribers.update { it - eventSubscriber }
-        }
+        return { eventSubscribers.update { it - eventSubscriber } }
     }
 
     internal suspend fun handleOlmEvents(events: List<ToDeviceEvent<OlmEncryptedToDeviceEventContent>>) =
         coroutineScope {
-            val olmRecoveries = events.groupBy { it.sender to it.content.senderKey }
-                .map { (_, events) ->
-                    async {
-                        events.mapNotNull { event ->
-                            val decryptOlmResult = olmEncryptionService.decryptOlm(event)
-                            val olmRecovery =
-                                (decryptOlmResult.exceptionOrNull() as? OlmEncryptionService.DecryptOlmError)?.olmRecovery
-                            if (olmRecovery != null) return@mapNotNull olmRecovery
-                            val decryptedEvent = decryptOlmResult.getOrNull()
-                            if (decryptedEvent != null) {
-                                eventSubscribers.value.forEach {
-                                    it(DecryptedOlmEventContainer(event, decryptedEvent))
+            val olmRecoveries =
+                events
+                    .groupBy { it.sender to it.content.senderKey }
+                    .map { (_, events) ->
+                        async {
+                            events
+                                .mapNotNull { event ->
+                                    val decryptOlmResult = olmEncryptionService.decryptOlm(event)
+                                    val olmRecovery =
+                                        (decryptOlmResult.exceptionOrNull() as? OlmEncryptionService.DecryptOlmError)
+                                            ?.olmRecovery
+                                    if (olmRecovery != null) return@mapNotNull olmRecovery
+                                    val decryptedEvent = decryptOlmResult.getOrNull()
+                                    if (decryptedEvent != null) {
+                                        eventSubscribers.value.forEach {
+                                            it(DecryptedOlmEventContainer(event, decryptedEvent))
+                                        }
+                                    }
+                                    null
                                 }
-                            }
-                            null
-                        }.lastOrNull()
+                                .lastOrNull()
+                        }
                     }
-                }.awaitAll().filterNotNull()
+                    .awaitAll()
+                    .filterNotNull()
             if (olmRecoveries.isNotEmpty()) {
                 val olmRecoveryEvents =
                     olmRecoveries
                         .groupBy { olmRecovery -> olmRecovery.userId }
                         .mapValues { (_, olmRecoveriesByUser) ->
                             coroutineScope {
-                                olmRecoveriesByUser.map {
-                                    async {
-                                        val olmRecoveryEvent = olmEncryptionService.recoverOlm(it)
-                                            .onFailure { exception ->
-                                                when (exception as? OlmEncryptionService.EncryptOlmError) {
-                                                    is OlmEncryptionService.EncryptOlmError.NetworkError -> throw exception
-                                                    is OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable,
-                                                    is OlmEncryptionService.EncryptOlmError.CryptoDriverError,
-                                                    is OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned,
-                                                    is OlmEncryptionService.EncryptOlmError.NoOlmSupported,
-                                                    null -> {
-                                                        log.warn(exception) { "exception while recovering olm session" }
+                                olmRecoveriesByUser
+                                    .map {
+                                        async {
+                                            val olmRecoveryEvent =
+                                                olmEncryptionService
+                                                    .recoverOlm(it)
+                                                    .onFailure { exception ->
+                                                        when (exception as? OlmEncryptionService.EncryptOlmError) {
+                                                            is OlmEncryptionService.EncryptOlmError.NetworkError ->
+                                                                throw exception
+                                                            is OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable,
+                                                            is OlmEncryptionService.EncryptOlmError.CryptoDriverError,
+                                                            is OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned,
+                                                            is OlmEncryptionService.EncryptOlmError.NoOlmSupported,
+                                                            null -> {
+                                                                log.warn(exception) {
+                                                                    "exception while recovering olm session"
+                                                                }
+                                                            }
+                                                        }
                                                     }
-                                                }
-                                            }.getOrNull()
-                                            ?: return@async null
-                                        it.deviceId to olmRecoveryEvent
+                                                    .getOrNull() ?: return@async null
+                                            it.deviceId to olmRecoveryEvent
+                                        }
                                     }
-                                }.awaitAll().filterNotNull().toMap()
+                                    .awaitAll()
+                                    .filterNotNull()
+                                    .toMap()
                             }
-                        }.filterValues { it.isNotEmpty() }
-                requestHandler.sendToDevice(
-                    olmRecoveryEvents,
-                    SecureRandom.nextString(22)
-                ).getOrThrow()
+                        }
+                        .filterValues { it.isNotEmpty() }
+                requestHandler.sendToDevice(olmRecoveryEvents, SecureRandom.nextString(22)).getOrThrow()
             }
         }
 
@@ -169,72 +177,68 @@ class OlmEventHandlerImpl(
         val fallbackKeyTypes = change.fallbackKeyTypes
         val pickleKey = driver.key.pickleKey(store.getOlmPickleKey())
 
-        log.trace { "handle change of own olm keys server count (oneTimeKeysCount=$oneTimeKeysCount, fallbackKeyTypes=$fallbackKeyTypes)" }
+        log.trace {
+            "handle change of own olm keys server count (oneTimeKeysCount=$oneTimeKeysCount, fallbackKeyTypes=$fallbackKeyTypes)"
+        }
         val (newOneTimeKeys, newFallbackKeys) =
-            atomicUpdateAndRun(
-                getValue = { store.getOlmAccount() },
-                updateValue = { store.updateOlmAccount(it) },
-            ) { pickledOlmAccount ->
-                driver.olm.account.fromPickle(pickledOlmAccount, pickleKey)
-                    .use { olmAccount ->
-                        var newOneTimeKeys = olmAccount.oneTimeKeys.toCurve25519Keys()
-                        if (newOneTimeKeys != null) log.debug { "found one time keys marked as unpublished" }
-                        if (oneTimeKeysCount != null
-                            && newOneTimeKeys.isNullOrEmpty()
-                        ) {
-                            val generateOneTimeKeysCount =
-                                (olmAccount.maxNumberOfOneTimeKeys - (oneTimeKeysCount[KeyAlgorithm.SignedCurve25519]
-                                    ?: 0))
-                                    .coerceAtLeast(0)
-                            if (generateOneTimeKeysCount > 0) {
-                                val generateOneTimeKeysCountWithBuffer =
-                                    generateOneTimeKeysCount + olmAccount.maxNumberOfOneTimeKeys / 2
-                                log.debug { "generate $generateOneTimeKeysCountWithBuffer new one time key" }
-                                olmAccount.generateOneTimeKeys(generateOneTimeKeysCountWithBuffer)
-                                newOneTimeKeys = olmAccount.oneTimeKeys.toCurve25519Keys()
-                            }
+            atomicUpdateAndRun(getValue = { store.getOlmAccount() }, updateValue = { store.updateOlmAccount(it) }) {
+                pickledOlmAccount ->
+                driver.olm.account.fromPickle(pickledOlmAccount, pickleKey).use { olmAccount ->
+                    var newOneTimeKeys = olmAccount.oneTimeKeys.toCurve25519Keys()
+                    if (newOneTimeKeys != null) log.debug { "found one time keys marked as unpublished" }
+                    if (oneTimeKeysCount != null && newOneTimeKeys.isNullOrEmpty()) {
+                        val generateOneTimeKeysCount =
+                            (olmAccount.maxNumberOfOneTimeKeys - (oneTimeKeysCount[KeyAlgorithm.SignedCurve25519] ?: 0))
+                                .coerceAtLeast(0)
+                        if (generateOneTimeKeysCount > 0) {
+                            val generateOneTimeKeysCountWithBuffer =
+                                generateOneTimeKeysCount + olmAccount.maxNumberOfOneTimeKeys / 2
+                            log.debug { "generate $generateOneTimeKeysCountWithBuffer new one time key" }
+                            olmAccount.generateOneTimeKeys(generateOneTimeKeysCountWithBuffer)
+                            newOneTimeKeys = olmAccount.oneTimeKeys.toCurve25519Keys()
                         }
-
-                        var newFallbackKeys = olmAccount.fallbackKey?.let(::mapOf)?.toCurve25519Keys(fallback = true)
-                        if (newFallbackKeys != null) log.debug { "found fallback key marked as unpublished" }
-                        if (newFallbackKeys.isNullOrEmpty()
-                            && fallbackKeyTypes != null
-                            && fallbackKeyTypes.contains(KeyAlgorithm.SignedCurve25519).not()
-                        ) {
-                            log.debug { "generate new fallback key" }
-                            olmAccount.generateFallbackKey()
-                            newFallbackKeys = olmAccount.fallbackKey?.let(::mapOf)?.toCurve25519Keys(fallback = true)
-                        }
-                        AtomicUpdateAndRunResult(
-                            result = newOneTimeKeys to newFallbackKeys,
-                            update = olmAccount.pickle(pickleKey)
-                        )
                     }
+
+                    var newFallbackKeys = olmAccount.fallbackKey?.let(::mapOf)?.toCurve25519Keys(fallback = true)
+                    if (newFallbackKeys != null) log.debug { "found fallback key marked as unpublished" }
+                    if (
+                        newFallbackKeys.isNullOrEmpty() &&
+                            fallbackKeyTypes != null &&
+                            fallbackKeyTypes.contains(KeyAlgorithm.SignedCurve25519).not()
+                    ) {
+                        log.debug { "generate new fallback key" }
+                        olmAccount.generateFallbackKey()
+                        newFallbackKeys = olmAccount.fallbackKey?.let(::mapOf)?.toCurve25519Keys(fallback = true)
+                    }
+                    AtomicUpdateAndRunResult(
+                        result = newOneTimeKeys to newFallbackKeys,
+                        update = olmAccount.pickle(pickleKey),
+                    )
+                }
             }
         if (newOneTimeKeys != null || newFallbackKeys != null) {
-            log.debug { "upload ${newOneTimeKeys?.size ?: 0} one time keys and ${newFallbackKeys?.size ?: 0} fallback keys." }
-            requestHandler.setOneTimeKeys(
-                oneTimeKeys = newOneTimeKeys,
-                fallbackKeys = newFallbackKeys
-            ).onFailure {
+            log.debug {
+                "upload ${newOneTimeKeys?.size ?: 0} one time keys and ${newFallbackKeys?.size ?: 0} fallback keys."
+            }
+            requestHandler.setOneTimeKeys(oneTimeKeys = newOneTimeKeys, fallbackKeys = newFallbackKeys).onFailure {
                 if (it is MatrixServerException && it.statusCode.value in (400 until 500)) {
                     log.error(it) {
                         "Possibly detected OTKs on the server with key ids that have already been uploaded. " +
-                                "This is a severe misbehavior and must be fixed in Trixnity!!!"
+                            "This is a severe misbehavior and must be fixed in Trixnity!!!"
                     }
                 } else throw it
             }
 
             store.updateOlmAccount { pickledOlmAccount ->
-                driver.olm.account.fromPickle(pickledOlmAccount, pickleKey)
-                    .use { olmAccount ->
-                        log.debug { "mark keys as published" }
-                        olmAccount.markKeysAsPublished()
-                        olmAccount.pickle(pickleKey)
-                    }
+                driver.olm.account.fromPickle(pickledOlmAccount, pickleKey).use { olmAccount ->
+                    log.debug { "mark keys as published" }
+                    olmAccount.markKeysAsPublished()
+                    olmAccount.pickle(pickleKey)
+                }
             }
 
-            newFallbackKeys // we can forget the old fallback key, when we had to generate a new one and successfully set it
+            newFallbackKeys // we can forget the old fallback key, when we had to generate a new one and successfully
+                // set it
                 ?.also {
                     val forgetAfter = clock.now() + 1.hours
                     log.debug { "mark fallback key to be forget after $forgetAfter" }
@@ -246,12 +250,15 @@ class OlmEventHandlerImpl(
 
     private suspend fun Map<String, Curve25519PublicKey>.toCurve25519Keys(fallback: Boolean? = null) =
         map { (keyId, key) ->
-            signService.signCurve25519Key(
-                keyId = keyId, keyValue = key.use(Curve25519PublicKey::base64),
-                fallback = fallback
-            )
-        }.toSet().let(::Keys).ifEmpty { null }
-
+                signService.signCurve25519Key(
+                    keyId = keyId,
+                    keyValue = key.use(Curve25519PublicKey::base64),
+                    fallback = fallback,
+                )
+            }
+            .toSet()
+            .let(::Keys)
+            .ifEmpty { null }
 
     internal suspend fun handleOlmEncryptedRoomKeyEventContent(event: DecryptedOlmEventContainer) {
         val content = event.decrypted.content
@@ -263,29 +270,29 @@ class OlmEventHandlerImpl(
                 return
             }
             try {
-                val (firstKnownIndex, pickledSession) = useAll(
-                    { driver.megolm.sessionKey(content.sessionKey) },
-                    { driver.megolm.inboundGroupSession(it) }) { _, inboundGroupSession ->
-                    inboundGroupSession.firstKnownIndex.toLong() to inboundGroupSession.pickle(
-                        driver.key.pickleKey(
-                            store.getOlmPickleKey()
-                        )
-                    )
-                }
+                val (firstKnownIndex, pickledSession) =
+                    useAll(
+                        { driver.megolm.sessionKey(content.sessionKey) },
+                        { driver.megolm.inboundGroupSession(it) },
+                    ) { _, inboundGroupSession ->
+                        inboundGroupSession.firstKnownIndex.toLong() to
+                            inboundGroupSession.pickle(driver.key.pickleKey(store.getOlmPickleKey()))
+                    }
 
                 store.updateInboundMegolmSession(content.sessionId, content.roomId) {
                     if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                    else StoredInboundMegolmSession(
-                        senderKey = event.encrypted.content.senderKey,
-                        senderSigningKey = senderSigningKey.value,
-                        sessionId = content.sessionId,
-                        roomId = content.roomId,
-                        firstKnownIndex = firstKnownIndex,
-                        hasBeenBackedUp = false,
-                        isTrusted = true,
-                        forwardingCurve25519KeyChain = emptyList(),
-                        pickled = pickledSession,
-                    )
+                    else
+                        StoredInboundMegolmSession(
+                            senderKey = event.encrypted.content.senderKey,
+                            senderSigningKey = senderSigningKey.value,
+                            sessionId = content.sessionId,
+                            roomId = content.roomId,
+                            firstKnownIndex = firstKnownIndex,
+                            hasBeenBackedUp = false,
+                            isTrusted = true,
+                            forwardingCurve25519KeyChain = emptyList(),
+                            pickled = pickledSession,
+                        )
                 }
             } catch (exception: CryptoDriverException) {
                 log.warn { "ignore inbound megolm session due to: ${exception.message}" }
@@ -305,7 +312,9 @@ class OlmEventHandlerImpl(
                     val devices = store.getDeviceKeys(userId)?.keys
                     store.updateOutboundMegolmSession(roomId) {
                         if (it != null) {
-                            log.debug { "add new devices of $userId to megolm session of $roomId, because new membership does allow to share key" }
+                            log.debug {
+                                "add new devices of $userId to megolm session of $roomId, because new membership does allow to share key"
+                            }
                             if (!devices.isNullOrEmpty()) it.copy(newDevices = it.newDevices + (userId to devices))
                             else it
                         } else null

@@ -5,8 +5,6 @@ import de.connect2x.trixnity.clientserverapi.model.appservice.Ping
 
 interface AppserviceApiHandler {
 
-    /**
-     * @see [Ping]
-     */
+    /** @see [Ping] */
     suspend fun ping(context: MatrixEndpointContext<Ping, Ping.Request, Ping.Response>): Ping.Response
 }

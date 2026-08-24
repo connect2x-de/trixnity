@@ -36,7 +36,7 @@ actual class OlmUtility private constructor() : WantsToBeFree {
                 ptr,
                 key.encodeToByteArray(),
                 message.encodeToByteArray(),
-                signature.encodeToByteArray()
+                signature.encodeToByteArray(),
             )
         }
     }

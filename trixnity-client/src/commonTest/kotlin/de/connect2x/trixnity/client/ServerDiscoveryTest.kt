@@ -15,13 +15,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.headersOf
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.test.Test
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.runTest
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.test.Test
-import kotlin.test.fail
 
 class ServerDiscoveryTest : TrixnityBaseTest() {
 
@@ -30,28 +30,31 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
         val httpClientEngine = backgroundScope.scopedMockEngine {
             addHandler {
                 when (it.url) {
-                    Url("https://someHost.org/.well-known/matrix/client") -> respond(
-                        """
-                        {
-                          "m.homeserver": {
-                            "base_url": "https://matrix.someHost.org"
-                          }
-                        }
-                    """.trimIndent(),
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://someHost.org/.well-known/matrix/client") ->
+                        respond(
+                            """
+                            {
+                              "m.homeserver": {
+                                "base_url": "https://matrix.someHost.org"
+                              }
+                            }
+                            """
+                                .trimIndent(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
-                    Url("https://matrix.someHost.org/_matrix/client/versions") -> respond(
-                        "{}",
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://matrix.someHost.org/_matrix/client/versions") ->
+                        respond(
+                            "{}",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     else -> fail("unchecked request ${it.url}")
                 }
             }
         }
-        UserId("@someUser:someHost.org").serverDiscovery(httpClientEngine)
-            .getOrThrow() shouldBe Url("https://matrix.someHost.org")
+        UserId("@someUser:someHost.org").serverDiscovery(httpClientEngine).getOrThrow() shouldBe
+            Url("https://matrix.someHost.org")
     }
 
     @Test
@@ -59,28 +62,31 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
         val httpClientEngine = backgroundScope.scopedMockEngine {
             addHandler {
                 when (it.url) {
-                    Url("https://someHost.org/.well-known/matrix/client") -> respond(
-                        """
-                        {
-                          "m.homeserver": {
-                            "base_url": "https://matrix.someHost.org"
-                          }
-                        }
-                    """.trimIndent(),
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://someHost.org/.well-known/matrix/client") ->
+                        respond(
+                            """
+                            {
+                              "m.homeserver": {
+                                "base_url": "https://matrix.someHost.org"
+                              }
+                            }
+                            """
+                                .trimIndent(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
-                    Url("https://matrix.someHost.org/_matrix/client/versions") -> respond(
-                        "{}",
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://matrix.someHost.org/_matrix/client/versions") ->
+                        respond(
+                            "{}",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     else -> fail("unchecked request")
                 }
             }
         }
-        "https://someHost.org".serverDiscovery(httpClientEngine)
-            .getOrThrow() shouldBe Url("https://matrix.someHost.org")
+        "https://someHost.org".serverDiscovery(httpClientEngine).getOrThrow() shouldBe
+            Url("https://matrix.someHost.org")
     }
 
     @Test
@@ -88,28 +94,30 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
         val httpClientEngine = backgroundScope.scopedMockEngine {
             addHandler {
                 when (it.url) {
-                    Url("https://someHost:8008/.well-known/matrix/client") -> respond(
-                        """
-                        {
-                          "m.homeserver": {
-                            "base_url": "https://otherHost:8008"
-                          }
-                        }
-                    """.trimIndent(),
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://someHost:8008/.well-known/matrix/client") ->
+                        respond(
+                            """
+                            {
+                              "m.homeserver": {
+                                "base_url": "https://otherHost:8008"
+                              }
+                            }
+                            """
+                                .trimIndent(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
-                    Url("https://otherHost:8008/_matrix/client/versions") -> respond(
-                        "{}",
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://otherHost:8008/_matrix/client/versions") ->
+                        respond(
+                            "{}",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     else -> fail("unchecked request")
                 }
             }
         }
-        "https://someHost:8008".serverDiscovery(httpClientEngine)
-            .getOrThrow() shouldBe Url("https://otherHost:8008")
+        "https://someHost:8008".serverDiscovery(httpClientEngine).getOrThrow() shouldBe Url("https://otherHost:8008")
     }
 
     @Test
@@ -117,28 +125,30 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
         val httpClientEngine = backgroundScope.scopedMockEngine {
             addHandler {
                 when (it.url) {
-                    Url("http://someHost:8008/.well-known/matrix/client") -> respond(
-                        """
-                        {
-                          "m.homeserver": {
-                            "base_url": "http://otherHost:8008"
-                          }
-                        }
-                    """.trimIndent(),
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("http://someHost:8008/.well-known/matrix/client") ->
+                        respond(
+                            """
+                            {
+                              "m.homeserver": {
+                                "base_url": "http://otherHost:8008"
+                              }
+                            }
+                            """
+                                .trimIndent(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
-                    Url("http://otherHost:8008/_matrix/client/versions") -> respond(
-                        "{}",
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("http://otherHost:8008/_matrix/client/versions") ->
+                        respond(
+                            "{}",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     else -> fail("unchecked request")
                 }
             }
         }
-        "http://someHost:8008".serverDiscovery(httpClientEngine)
-            .getOrThrow() shouldBe Url("http://otherHost:8008")
+        "http://someHost:8008".serverDiscovery(httpClientEngine).getOrThrow() shouldBe Url("http://otherHost:8008")
     }
 
     @Test
@@ -147,17 +157,17 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
             addHandler {
                 when (it.url) {
                     Url("http://someHost:8008/.well-known/matrix/client") -> respondError(HttpStatusCode.NotFound)
-                    Url("http://someHost:8008/_matrix/client/versions") -> respond(
-                        "{}",
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("http://someHost:8008/_matrix/client/versions") ->
+                        respond(
+                            "{}",
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     else -> fail("unchecked request")
                 }
             }
         }
-        "http://someHost:8008".serverDiscovery(httpClientEngine)
-            .getOrThrow() shouldBe Url("http://someHost:8008")
+        "http://someHost:8008".serverDiscovery(httpClientEngine).getOrThrow() shouldBe Url("http://someHost:8008")
     }
 
     @Test
@@ -165,31 +175,36 @@ class ServerDiscoveryTest : TrixnityBaseTest() {
         val httpClientEngine = backgroundScope.scopedMockEngine {
             addHandler {
                 when (it.url) {
-                    Url("https://someHost:8008/.well-known/matrix/client") -> respond(
-                        """
-                        {
-                          "m.homeserver": {
-                            "base_url": "https://otherHost:8008"
-                          }
-                        }
-                    """.trimIndent(),
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-                    )
+                    Url("https://someHost:8008/.well-known/matrix/client") ->
+                        respond(
+                            """
+                            {
+                              "m.homeserver": {
+                                "base_url": "https://otherHost:8008"
+                              }
+                            }
+                            """
+                                .trimIndent(),
+                            headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                        )
 
                     Url("https://otherHost:8008/_matrix/client/versions") -> respondError(HttpStatusCode.NotFound)
                     else -> fail("unchecked request")
                 }
             }
         }
-        "https://someHost:8008".serverDiscovery(httpClientEngine)
+        "https://someHost:8008"
+            .serverDiscovery(httpClientEngine)
             .exceptionOrNull()
-            .shouldBeInstanceOf<ClientRequestException>().response.status shouldBe HttpStatusCode.NotFound
+            .shouldBeInstanceOf<ClientRequestException>()
+            .response
+            .status shouldBe HttpStatusCode.NotFound
     }
-
 
     private fun CoroutineScope.scopedMockEngine(config: MockEngineConfig.() -> Unit): HttpClientEngine =
         MockEngine.create {
-            dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
-            config()
-        }.also { engine -> coroutineContext.job.invokeOnCompletion { engine.close() } }
+                dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
+                config()
+            }
+            .also { engine -> coroutineContext.job.invokeOnCompletion { engine.close() } }
 }

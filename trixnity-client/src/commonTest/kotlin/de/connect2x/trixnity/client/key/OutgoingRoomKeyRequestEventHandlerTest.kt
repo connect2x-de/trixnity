@@ -48,16 +48,15 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-
 
 class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -79,32 +78,31 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = OutgoingRoomKeyRequestEventHandlerImpl(
-        userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api = api,
-        olmEventHandler = OlmEventHandlerMock(),
-        accountStore = accountStore,
-        keyStore = keyStore,
-        olmCryptoStore = olmCryptoStore,
-        tm = tm,
-        currentSyncState = CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
-        clock = testScope.testClock,
-        driver = driver,
-    )
+    private val cut =
+        OutgoingRoomKeyRequestEventHandlerImpl(
+            userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            api = api,
+            olmEventHandler = OlmEventHandlerMock(),
+            accountStore = accountStore,
+            keyStore = keyStore,
+            olmCryptoStore = olmCryptoStore,
+            tm = tm,
+            currentSyncState = CurrentSyncState(MutableStateFlow(SyncState.RUNNING)),
+            clock = testScope.testClock,
+            driver = driver,
+        )
 
-    private val encryptedEvent = ToDeviceEvent(
-        OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = forwardingSenderKey.value,
-        ), bob
-    )
+    private val encryptedEvent =
+        ToDeviceEvent(
+            OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = forwardingSenderKey.value),
+            bob,
+        )
 
     private val aliceDevice2Key = Key.Ed25519Key(aliceDevice, "aliceDevice2KeyValue")
     private val aliceDevice2 = "ALICEDEVICE_2"
     private val aliceDevice3 = "ALICEDEVICE_3"
     private val aliceDevice4Dehydrated = "ALICEDEVICE_4_dehydrated"
     private var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
-
 
     @Test
     fun `save new room key`() = runTest {
@@ -114,25 +112,22 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    forwardedRoomKeyEvent,
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                ),
+                PlaintextOlmEvent(forwardedRoomKeyEvent, alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
             )
         )
 
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe
-                StoredInboundMegolmSession(
-                    senderKey = forwardedRoomKeyEvent.senderKey,
-                    senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
-                    sessionId = forwardedRoomKeyEvent.sessionId,
-                    roomId = forwardedRoomKeyEvent.roomId,
-                    firstKnownIndex = 0,
-                    hasBeenBackedUp = false,
-                    isTrusted = false,
-                    forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
-                    pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
-                )
+            StoredInboundMegolmSession(
+                senderKey = forwardedRoomKeyEvent.senderKey,
+                senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
+                sessionId = forwardedRoomKeyEvent.sessionId,
+                roomId = forwardedRoomKeyEvent.roomId,
+                firstKnownIndex = 0,
+                hasBeenBackedUp = false,
+                isTrusted = false,
+                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
+            )
     }
 
     @Test
@@ -140,11 +135,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         clearOutdatedKeys { keyStore }
         var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room_key_request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room_key_request", "*")) { sendToDeviceEvents = it.messages }
         }
         setDeviceKeys(true)
         setRequest(setOf(aliceDevice, "OTHER_DEVICE"))
@@ -152,32 +143,25 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    forwardedRoomKeyEvent,
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                ),
+                PlaintextOlmEvent(forwardedRoomKeyEvent, alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
             )
         )
 
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe
-                StoredInboundMegolmSession(
-                    senderKey = forwardedRoomKeyEvent.senderKey,
-                    senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
-                    sessionId = forwardedRoomKeyEvent.sessionId,
-                    roomId = forwardedRoomKeyEvent.roomId,
-                    firstKnownIndex = 0,
-                    hasBeenBackedUp = false,
-                    isTrusted = false,
-                    forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
-                    pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
-                )
+            StoredInboundMegolmSession(
+                senderKey = forwardedRoomKeyEvent.senderKey,
+                senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
+                sessionId = forwardedRoomKeyEvent.sessionId,
+                roomId = forwardedRoomKeyEvent.roomId,
+                firstKnownIndex = 0,
+                hasBeenBackedUp = false,
+                isTrusted = false,
+                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
+            )
 
-        sendToDeviceEvents?.get(alice)?.get("OTHER_DEVICE") shouldBe RoomKeyRequestEventContent(
-            KeyRequestAction.REQUEST_CANCELLATION,
-            aliceDevice,
-            "requestId",
-            null
-        )
+        sendToDeviceEvents?.get(alice)?.get("OTHER_DEVICE") shouldBe
+            RoomKeyRequestEventContent(KeyRequestAction.REQUEST_CANCELLATION, aliceDevice, "requestId", null)
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
     }
 
@@ -186,28 +170,24 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         clearOutdatedKeys { keyStore }
         setDeviceKeys(true)
         val forwardedRoomKeyEvent = forwardedRoomKeyEvent()
-        val existingSession = StoredInboundMegolmSession(
-            senderKey = forwardedRoomKeyEvent.senderKey,
-            senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
-            sessionId = forwardedRoomKeyEvent.sessionId,
-            roomId = forwardedRoomKeyEvent.roomId,
-            firstKnownIndex = 0,
-            hasBeenBackedUp = false,
-            isTrusted = false,
-            forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
-            pickled = pickleToInbound(sessionKeys(1).last()),
-        )
-        tm.writeTransaction {
-            olmCryptoStore.updateInboundMegolmSession(sessionId, room) { existingSession }
-        }
+        val existingSession =
+            StoredInboundMegolmSession(
+                senderKey = forwardedRoomKeyEvent.senderKey,
+                senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
+                sessionId = forwardedRoomKeyEvent.sessionId,
+                roomId = forwardedRoomKeyEvent.roomId,
+                firstKnownIndex = 0,
+                hasBeenBackedUp = false,
+                isTrusted = false,
+                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                pickled = pickleToInbound(sessionKeys(1).last()),
+            )
+        tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, room) { existingSession } }
 
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    forwardedRoomKeyEvent,
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                ),
+                PlaintextOlmEvent(forwardedRoomKeyEvent, alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
             )
         )
 
@@ -223,7 +203,11 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 encryptedEvent,
                 PlaintextOlmEvent(
                     forwardedRoomKeyEvent().copy(sessionKey = ExportedSessionKeyValue("dino")),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
+                    alice,
+                    keysOf(aliceDevice2Key),
+                    null,
+                    alice,
+                    keysOf(),
                 ),
             )
         )
@@ -236,10 +220,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    forwardedRoomKeyEvent(),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                ),
+                PlaintextOlmEvent(forwardedRoomKeyEvent(), alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
             )
         )
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe null
@@ -252,45 +233,39 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         cut.handleOutgoingKeyRequestAnswer(
             DecryptedOlmEventContainer(
                 encryptedEvent,
-                PlaintextOlmEvent(
-                    forwardedRoomKeyEvent(),
-                    alice, keysOf(aliceDevice2Key), null, alice, keysOf()
-                ),
+                PlaintextOlmEvent(forwardedRoomKeyEvent(), alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
             )
         )
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe null
     }
 
-
     @Test
     fun `cancelOldOutgoingKeyRequests » only remove old requests and send cancel`() = runTest {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room_key_request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room_key_request", "*")) { sendToDeviceEvents = it.messages }
         }
-        val request1 = StoredRoomKeyRequest(
-            RoomKeyRequestEventContent(
-                KeyRequestAction.REQUEST,
-                "OWN_ALICE_DEVICE",
-                "requestId1",
-                null // not relevant for the test
-            ), setOf(), testClock.now()
-        )
-        val request2 = StoredRoomKeyRequest(
-            RoomKeyRequestEventContent(
-                KeyRequestAction.REQUEST,
-                "OWN_ALICE_DEVICE",
-                "requestId2",
-                RoomKeyRequestEventContent.RequestedKeyInfo(
-                    room,
-                    sessionId,
-                    EncryptionAlgorithm.Megolm,
-                )
-            ), setOf(aliceDevice), (testClock.now() - 1.days - 1.seconds)
-        )
+        val request1 =
+            StoredRoomKeyRequest(
+                RoomKeyRequestEventContent(
+                    KeyRequestAction.REQUEST,
+                    "OWN_ALICE_DEVICE",
+                    "requestId1",
+                    null, // not relevant for the test
+                ),
+                setOf(),
+                testClock.now(),
+            )
+        val request2 =
+            StoredRoomKeyRequest(
+                RoomKeyRequestEventContent(
+                    KeyRequestAction.REQUEST,
+                    "OWN_ALICE_DEVICE",
+                    "requestId2",
+                    RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                ),
+                setOf(aliceDevice),
+                (testClock.now() - 1.days - 1.seconds),
+            )
         tm.writeTransaction {
             keyStore.addRoomKeyRequest(request1)
             keyStore.addRoomKeyRequest(request2)
@@ -301,12 +276,12 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
 
         keyStore.getAllRoomKeyRequestsFlow().first { it.size == 1 } shouldBe setOf(request1)
         sendToDeviceEvents?.get(alice)?.get(aliceDevice) shouldBe
-                RoomKeyRequestEventContent(
-                    KeyRequestAction.REQUEST_CANCELLATION, // <- important!
-                    "OWN_ALICE_DEVICE",
-                    "requestId2",
-                    null // <- important!
-                )
+            RoomKeyRequestEventContent(
+                KeyRequestAction.REQUEST_CANCELLATION, // <- important!
+                "OWN_ALICE_DEVICE",
+                "requestId2",
+                null, // <- important!
+            )
     }
 
     @Test
@@ -323,26 +298,25 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 action shouldBe KeyRequestAction.REQUEST
                 requestingDeviceId shouldBe aliceDevice
                 requestId.shouldNotBeEmpty()
-                body shouldBe RoomKeyRequestEventContent.RequestedKeyInfo(
-                    roomId = room,
-                    sessionId = sessionId,
-                    algorithm = EncryptionAlgorithm.Megolm,
-                )
+                body shouldBe
+                    RoomKeyRequestEventContent.RequestedKeyInfo(
+                        roomId = room,
+                        sessionId = sessionId,
+                        algorithm = EncryptionAlgorithm.Megolm,
+                    )
             }
 
         sendToDeviceEvents.shouldNotBeNull().shouldHaveSize(1)
         sendToDeviceEvents?.get(alice)?.get(aliceDevice) shouldBe null
         sendToDeviceEvents?.get(alice)?.get(aliceDevice3) shouldBe null
         sendToDeviceEvents?.get(alice)?.get(aliceDevice4Dehydrated) shouldBe null
-        val requestToAlice2 = sendToDeviceEvents?.get(alice)?.get(aliceDevice2)
-            .shouldBeInstanceOf<RoomKeyRequestEventContent>()
+        val requestToAlice2 =
+            sendToDeviceEvents?.get(alice)?.get(aliceDevice2).shouldBeInstanceOf<RoomKeyRequestEventContent>()
 
         assertRequest(storedRequest.content)
         assertRequest(requestToAlice2)
 
-        tm.writeTransaction {
-            keyStore.deleteRoomKeyRequest(storedRequest.content.requestId)
-        }
+        tm.writeTransaction { keyStore.deleteRoomKeyRequest(storedRequest.content.requestId) }
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
         result.await()
     }
@@ -350,9 +324,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `requestRoomKeys » ignore when there is no verified device to send request to`() = runTest {
         requestRoomKeysSetup()
-        tm.writeTransaction {
-            keyStore.updateDeviceKeys(alice) { null }
-        }
+        tm.writeTransaction { keyStore.updateDeviceKeys(alice) { null } }
         cut.requestRoomKeys(room, sessionId)
         sendToDeviceEvents shouldBe null
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
@@ -365,9 +337,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         val result = async { cut.requestRoomKeys(room, sessionId) }
         delay(500.milliseconds)
         result.isActive shouldBe true
-        tm.writeTransaction {
-            keyStore.deleteRoomKeyRequest("requestId")
-        }
+        tm.writeTransaction { keyStore.deleteRoomKeyRequest("requestId") }
         keyStore.getAllRoomKeyRequestsFlow().first { it.isEmpty() }
         sendToDeviceEvents shouldBe null
         result.await()
@@ -376,32 +346,35 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private suspend fun TestScope.requestRoomKeysSetup() {
         clearOutdatedKeys { keyStore }
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room_key_request", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room_key_request", "*")) { sendToDeviceEvents = it.messages }
         }
 
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    ),
-                    aliceDevice2 to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice2, setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.Valid(true)
-                    ),
-                    aliceDevice3 to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice3, setOf(), keysOf()), mapOf()),
-                        KeySignatureTrustLevel.Valid(false)
-                    ),
-                    aliceDevice4Dehydrated to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice4Dehydrated, setOf(), keysOf(), true), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(true)
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
+                    aliceDevice2 to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice2, setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.Valid(true),
+                        ),
+                    aliceDevice3 to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice3, setOf(), keysOf()), mapOf()),
+                            KeySignatureTrustLevel.Valid(false),
+                        ),
+                    aliceDevice4Dehydrated to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(
+                                DeviceKeys(alice, aliceDevice4Dehydrated, setOf(), keysOf(), true),
+                                mapOf(),
+                            ),
+                            KeySignatureTrustLevel.CrossSigned(true),
+                        ),
                 )
             }
         }
@@ -415,17 +388,17 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
             add(ExportedSessionKeyValue.of(checkNotNull(inboundSession.exportAt(0))))
 
             for (i in 1..withIndexes) {
-                inboundSession.decrypt(
-                    outboundSession.encrypt("bla")
-                )
+                inboundSession.decrypt(outboundSession.encrypt("bla"))
                 add(ExportedSessionKeyValue.of(checkNotNull(inboundSession.exportAt(i))))
             }
         }
     }
 
     private fun sessionKey() = sessionKeys(0).first()
+
     private fun pickleToInbound(sessionKey: ExportedSessionKeyValue) =
-        driver.megolm.inboundGroupSession.import(sessionKey = driver.megolm.exportedSessionKey(sessionKey))
+        driver.megolm.inboundGroupSession
+            .import(sessionKey = driver.megolm.exportedSessionKey(sessionKey))
             .use(InboundGroupSession::pickle)
 
     private suspend fun TestScope.setRequest(receiverDeviceIds: Set<String>) {
@@ -436,12 +409,10 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                         KeyRequestAction.REQUEST,
                         aliceDevice,
                         "requestId",
-                        RoomKeyRequestEventContent.RequestedKeyInfo(
-                            room,
-                            sessionId,
-                            EncryptionAlgorithm.Megolm,
-                        )
-                    ), receiverDeviceIds, testClock.now()
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                    ),
+                    receiverDeviceIds,
+                    testClock.now(),
                 )
             )
         }
@@ -452,10 +423,11 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
-                        KeySignatureTrustLevel.CrossSigned(trusted)
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(aliceDevice2Key)), mapOf()),
+                            KeySignatureTrustLevel.CrossSigned(trusted),
+                        )
                 )
             }
         }

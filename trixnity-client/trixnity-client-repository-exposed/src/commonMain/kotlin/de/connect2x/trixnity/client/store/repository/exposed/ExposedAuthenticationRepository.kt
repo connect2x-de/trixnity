@@ -20,7 +20,8 @@ internal object ExposedAuthentication : LongIdTable("authentication") {
 internal class ExposedAuthenticationRepository(private val json: Json) : AuthenticationRepository {
     context(transaction: ReadTransaction)
     override suspend fun get(key: Long): Authentication? {
-        return ExposedAuthentication.selectAll().where { ExposedAuthentication.id eq key }
+        return ExposedAuthentication.selectAll()
+            .where { ExposedAuthentication.id eq key }
             .firstOrNull()
             ?.get(ExposedAuthentication.value)
             ?.let { json.decodeFromString(it) }
@@ -44,4 +45,3 @@ internal class ExposedAuthenticationRepository(private val json: Json) : Authent
         ExposedAuthentication.deleteAll()
     }
 }
-

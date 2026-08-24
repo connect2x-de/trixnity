@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.clientserverapi.model.room
 
-import io.ktor.resources.*
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.POST
 import de.connect2x.trixnity.core.MatrixEndpoint
@@ -12,10 +8,12 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.InitialStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import io.ktor.resources.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#post_matrixclientv3createroom">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#post_matrixclientv3createroom">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/client/v3/createRoom")
 @HttpMethod(POST)
@@ -41,24 +39,16 @@ data object CreateRoom : MatrixEndpoint<CreateRoom.Request, CreateRoom.Response>
             @SerialName("id_server") val identityServer: String,
             @SerialName("id_access_token") val identityServerAccessToken: String,
             @SerialName("medium") val medium: String,
-            @SerialName("address") val address: String
+            @SerialName("address") val address: String,
         )
 
         @Serializable
         enum class Preset {
-            @SerialName("private_chat")
-            PRIVATE,
-
-            @SerialName("public_chat")
-            PUBLIC,
-
-            @SerialName("trusted_private_chat")
-            TRUSTED_PRIVATE
+            @SerialName("private_chat") PRIVATE,
+            @SerialName("public_chat") PUBLIC,
+            @SerialName("trusted_private_chat") TRUSTED_PRIVATE,
         }
     }
 
-    @Serializable
-    data class Response(
-        @SerialName("room_id") val roomId: RoomId
-    )
+    @Serializable data class Response(@SerialName("room_id") val roomId: RoomId)
 }

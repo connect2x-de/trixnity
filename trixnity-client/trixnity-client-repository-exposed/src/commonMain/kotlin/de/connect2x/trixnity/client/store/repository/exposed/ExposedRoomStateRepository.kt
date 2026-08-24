@@ -32,8 +32,9 @@ internal object ExposedRoomState : Table("room_state") {
 internal class ExposedRoomStateRepository(private val json: Json) : RoomStateRepository {
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val serializer = json.serializersModule.getContextual(StateBaseEvent::class)
-        ?: throw IllegalArgumentException("could not find event serializer")
+    private val serializer =
+        json.serializersModule.getContextual(StateBaseEvent::class)
+            ?: throw IllegalArgumentException("could not find event serializer")
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomStateRepositoryKey): Map<String, StateBaseEvent<*>> {
@@ -46,31 +47,32 @@ internal class ExposedRoomStateRepository(private val json: Json) : RoomStateRep
 
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: RoomStateRepositoryKey, secondKey: String): StateBaseEvent<*>? {
-        return ExposedRoomState.selectAll().where {
-            ExposedRoomState.roomId.eq(firstKey.roomId.full) and
+        return ExposedRoomState.selectAll()
+            .where {
+                ExposedRoomState.roomId.eq(firstKey.roomId.full) and
                     ExposedRoomState.type.eq(firstKey.type) and
                     ExposedRoomState.stateKey.eq(secondKey)
-        }.firstOrNull()?.let {
-            json.decodeFromString(serializer, it[ExposedRoomState.event])
-        }
+            }
+            .firstOrNull()
+            ?.let { json.decodeFromString(serializer, it[ExposedRoomState.event]) }
     }
 
     context(transaction: ReadTransaction)
     override suspend fun getByRooms(roomIds: Set<RoomId>, type: String, stateKey: String): List<StateBaseEvent<*>> {
-        return ExposedRoomState.selectAll().where {
-            ExposedRoomState.roomId.inList(roomIds.map { it.full }) and
+        return ExposedRoomState.selectAll()
+            .where {
+                ExposedRoomState.roomId.inList(roomIds.map { it.full }) and
                     ExposedRoomState.type.eq(type) and
                     ExposedRoomState.stateKey.eq(stateKey)
-        }.map {
-            json.decodeFromString(serializer, it[ExposedRoomState.event])
-        }.toList()
+            }
+            .map { json.decodeFromString(serializer, it[ExposedRoomState.event]) }
+            .toList()
     }
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
         ExposedRoomState.deleteWhere { ExposedRoomState.roomId.eq(roomId.full) }
     }
-
 
     context(transaction: WriteTransaction)
     override suspend fun save(firstKey: RoomStateRepositoryKey, secondKey: String, value: StateBaseEvent<*>) {
@@ -85,9 +87,7 @@ internal class ExposedRoomStateRepository(private val json: Json) : RoomStateRep
     context(transaction: WriteTransaction)
     override suspend fun delete(firstKey: RoomStateRepositoryKey, secondKey: String) {
         ExposedRoomState.deleteWhere {
-            roomId.eq(firstKey.roomId.full) and
-                    type.eq(firstKey.type) and
-                    stateKey.eq(secondKey)
+            roomId.eq(firstKey.roomId.full) and type.eq(firstKey.type) and stateKey.eq(secondKey)
         }
     }
 

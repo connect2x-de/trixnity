@@ -26,7 +26,9 @@ sealed interface TokenTypeHint {
     object Serializer : KSerializer<TokenTypeHint> {
         @OptIn(InternalSerializationApi::class)
         override val descriptor: SerialDescriptor = buildSerialDescriptor("TokenTypeHint", PrimitiveKind.STRING)
+
         override fun serialize(encoder: Encoder, value: TokenTypeHint) = encoder.encodeString(value.value)
+
         override fun deserialize(decoder: Decoder): TokenTypeHint =
             when (val value = decoder.decodeString().lowercase()) {
                 RefreshToken.value -> RefreshToken

@@ -1,13 +1,12 @@
 package de.connect2x.trixnity.client.verification
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.core.model.events.m.key.verification.*
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
-import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes
@@ -20,18 +19,12 @@ class UtilsTest : TrixnityBaseTest() {
 
     @Test
     fun `isVerificationRequestActive » return false when older then 10 minutes`() = runTest {
-        isVerificationRequestActive(
-            (testClock.now() - 11.minutes).toEpochMilliseconds(),
-            testClock
-        ) shouldBe false
+        isVerificationRequestActive((testClock.now() - 11.minutes).toEpochMilliseconds(), testClock) shouldBe false
     }
 
     @Test
     fun `isVerificationRequestActive » return false when older newer 10 minutes`() = runTest {
-        isVerificationRequestActive(
-            (testClock.now() + 6.minutes).toEpochMilliseconds(),
-            testClock
-        ) shouldBe false
+        isVerificationRequestActive((testClock.now() + 6.minutes).toEpochMilliseconds(), testClock) shouldBe false
     }
 
     @Test
@@ -39,7 +32,7 @@ class UtilsTest : TrixnityBaseTest() {
         isVerificationRequestActive(
             testClock.now().toEpochMilliseconds(),
             testClock,
-            ActiveVerificationState.Cancel(VerificationCancelEventContent(Code.User, "", null, null), false)
+            ActiveVerificationState.Cancel(VerificationCancelEventContent(Code.User, "", null, null), false),
         ) shouldBe false
     }
 
@@ -48,7 +41,7 @@ class UtilsTest : TrixnityBaseTest() {
         isVerificationRequestActive(
             testClock.now().toEpochMilliseconds(),
             testClock,
-            ActiveVerificationState.Done
+            ActiveVerificationState.Done,
         ) shouldBe false
     }
 
@@ -57,7 +50,7 @@ class UtilsTest : TrixnityBaseTest() {
         isVerificationRequestActive(
             testClock.now().toEpochMilliseconds(),
             testClock,
-            ActiveVerificationState.Ready("", setOf(), null, "t") {}
+            ActiveVerificationState.Ready("", setOf(), null, "t") {},
         ) shouldBe true
     }
 
@@ -69,14 +62,12 @@ class UtilsTest : TrixnityBaseTest() {
                 "AAAAAA",
                 hashes = setOf(SasHash.Sha256),
                 keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(
-                    SasMessageAuthenticationCode.HkdfHmacSha256,
-                ),
+                messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                 transactionId = "transaction",
-                relatesTo = null
+                relatesTo = null,
             ),
-            createMatrixEventJson()
+            createMatrixEventJson(),
         ) shouldBe "+w/v2hp3vXNFmn3RKqUKzq/BzSRwE8WzX5fNC83LFLE"
     }
 }

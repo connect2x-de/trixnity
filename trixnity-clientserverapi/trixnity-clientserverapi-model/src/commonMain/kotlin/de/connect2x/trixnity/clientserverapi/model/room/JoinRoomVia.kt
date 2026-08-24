@@ -24,8 +24,5 @@ data class JoinRoomVia(
         @SerialName("third_party_signed") val thirdPartySigned: ThirdPartySigned? = null,
     )
 
-    @Serializable
-    data class Response(
-        @SerialName("room_id") val roomId: RoomId
-    )
+    @Serializable data class Response(@SerialName("room_id") val roomId: RoomId)
 }

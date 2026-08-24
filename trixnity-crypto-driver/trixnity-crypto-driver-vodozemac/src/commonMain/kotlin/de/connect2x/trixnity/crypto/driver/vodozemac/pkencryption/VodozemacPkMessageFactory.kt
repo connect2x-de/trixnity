@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.pkencryption
 
-import de.connect2x.trixnity.crypto.driver.vodozemac.UnpaddedBase64
 import de.connect2x.trixnity.crypto.driver.pkencryption.PkMessageFactory
+import de.connect2x.trixnity.crypto.driver.vodozemac.UnpaddedBase64
 import de.connect2x.trixnity.vodozemac.Curve25519PublicKey
 import de.connect2x.trixnity.vodozemac.pkencryption.PkEncryptionMessage
 

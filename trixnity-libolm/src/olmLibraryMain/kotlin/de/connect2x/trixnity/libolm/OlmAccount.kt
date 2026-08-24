@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.libolm
 
-import kotlinx.serialization.json.Json
 import de.connect2x.trixnity.libolm.OlmLibrary.account
 import de.connect2x.trixnity.libolm.OlmLibrary.account_forget_old_fallback_key
 import de.connect2x.trixnity.libolm.OlmLibrary.account_generate_fallback_key
@@ -25,6 +24,7 @@ import de.connect2x.trixnity.libolm.OlmLibrary.pickle_account
 import de.connect2x.trixnity.libolm.OlmLibrary.pickle_account_length
 import de.connect2x.trixnity.libolm.OlmLibrary.remove_one_time_keys
 import de.connect2x.trixnity.libolm.OlmLibrary.unpickle_account
+import kotlinx.serialization.json.Json
 
 actual class OlmAccount private constructor() : WantsToBeFree {
     internal actual val ptr: OlmAccountPointer = account()
@@ -110,9 +110,7 @@ actual class OlmAccount private constructor() : WantsToBeFree {
     }
 
     actual fun removeOneTimeKeys(session: OlmSession) {
-        checkResult {
-            remove_one_time_keys(ptr, session.ptr)
-        }
+        checkResult { remove_one_time_keys(ptr, session.ptr) }
     }
 
     actual fun generateFallbackKey() {

@@ -13,15 +13,14 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#get_matrixfederationv1event_authroomideventid">matrix spec</a>
+ * @see <a href="https://spec.matrix.org/v1.10/server-server-api/#get_matrixfederationv1event_authroomideventid">matrix
+ *   spec</a>
  */
 @Serializable
 @Resource("/_matrix/federation/v1/event_auth/{roomId}/{eventId}")
 @HttpMethod(GET)
-data class GetEventAuthChain(
-    @SerialName("roomId") val roomId: RoomId,
-    @SerialName("eventId") val eventId: EventId,
-) : MatrixEndpoint<Unit, GetEventAuthChain.Response> {
+data class GetEventAuthChain(@SerialName("roomId") val roomId: RoomId, @SerialName("eventId") val eventId: EventId) :
+    MatrixEndpoint<Unit, GetEventAuthChain.Response> {
     @Serializable
     data class Response(
         @SerialName("auth_chain") val authChain: List<Signed<@Contextual PersistentDataUnit<*>, String>>

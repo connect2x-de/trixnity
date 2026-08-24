@@ -54,16 +54,16 @@ import io.kotest.matchers.types.beInstanceOf
 import io.ktor.http.*
 import io.ktor.http.ContentType.Image.PNG
 import io.ktor.utils.io.core.*
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -75,68 +75,49 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     private val room = simpleRoom.roomId
 
     private val currentSyncState = MutableStateFlow(SyncState.RUNNING)
-    private val roomEventDecryptionServiceMock = RoomEventEncryptionServiceMock(useInput = true).apply {
-        scheduleSetup {
-            encryptCounter = 0
-            returnEncrypt = null
-            returnEncryptList.clear()
+    private val roomEventDecryptionServiceMock =
+        RoomEventEncryptionServiceMock(useInput = true).apply {
+            scheduleSetup {
+                encryptCounter = 0
+                returnEncrypt = null
+                returnEncryptList.clear()
+            }
         }
-    }
 
     private val mediaServiceMock = MediaServiceMock()
-    private val userService = UserServiceMock().apply {
-        scheduleSetup {
-            canSendEvent.clear()
-        }
-    }
-    private val roomServiceMock = RoomServiceMock().apply {
-        rooms.value = mapOf(room to MutableStateFlow(Room(room)))
-    }
+    private val userService = UserServiceMock().apply { scheduleSetup { canSendEvent.clear() } }
+    private val roomServiceMock = RoomServiceMock().apply { rooms.value = mapOf(room to MutableStateFlow(Room(room))) }
 
-    private val roomStore = getInMemoryRoomStore().apply {
-        scheduleSetup { tm.writeTransaction { update(room) { simpleRoom } } }
-    }
+    private val roomStore =
+        getInMemoryRoomStore().apply { scheduleSetup { tm.writeTransaction { update(room) { simpleRoom } } } }
     private val roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore()
 
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(config = apiConfig)
 
-    private val cut = OutboxMessageEventHandler(
-        config = MatrixClientConfiguration().apply {
-            deleteSentOutboxMessageDelay = 10.seconds
-        },
-        api = api,
-        roomStore = roomStore,
-        roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
-        userService = userService,
-        mediaService = mediaServiceMock,
-        roomOutboxMessageStore = roomOutboxMessageStore,
-        eventContentMediaMappings = EventContentMediaMappings.default,
-        currentSyncState = CurrentSyncState(currentSyncState),
-        userInfo = UserInfo(
-            UserId("user", "server"),
-            "device",
-            Key.Ed25519Key(null, ""),
-            Key.Curve25519Key(null, "")
-        ),
-        tm = tm,
-        clock = testScope.testClock,
-    )
+    private val cut =
+        OutboxMessageEventHandler(
+            config = MatrixClientConfiguration().apply { deleteSentOutboxMessageDelay = 10.seconds },
+            api = api,
+            roomStore = roomStore,
+            roomEventEncryptionServices = listOf(roomEventDecryptionServiceMock),
+            userService = userService,
+            mediaService = mediaServiceMock,
+            roomOutboxMessageStore = roomOutboxMessageStore,
+            eventContentMediaMappings = EventContentMediaMappings.default,
+            currentSyncState = CurrentSyncState(currentSyncState),
+            userInfo =
+                UserInfo(UserId("user", "server"), "device", Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            tm = tm,
+            clock = testScope.testClock,
+        )
 
     @Test
     fun `removeOldOutboxMessages » remove old outbox messages`() = runTest {
         val content = RoomMessageEventContent.TextBased.Text("")
         val outbox1 = RoomOutboxMessage(room, "transaction1", content, testClock.now())
-        val outbox2 =
-            RoomOutboxMessage(
-                room,
-                "transaction2",
-                content,
-                testClock.now(),
-                testClock.now() - 11.seconds
-            )
-        val outbox3 =
-            RoomOutboxMessage(room, "transaction3", content, testClock.now(), testClock.now())
+        val outbox2 = RoomOutboxMessage(room, "transaction2", content, testClock.now(), testClock.now() - 11.seconds)
+        val outbox3 = RoomOutboxMessage(room, "transaction3", content, testClock.now(), testClock.now())
 
         tm.writeTransaction {
             with(roomOutboxMessageStore) {
@@ -148,10 +129,7 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
 
         delay(1.seconds)
         cut.removeOldOutboxMessages()
-        roomOutboxMessageStore.getAll().flattenValues().first() shouldContainExactly listOf(
-            outbox1,
-            outbox3
-        )
+        roomOutboxMessageStore.getAll().flattenValues().first() shouldContainExactly listOf(outbox1, outbox3)
     }
 
     @Test
@@ -167,12 +145,7 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
                     testClock.now(),
                 )
             val message2 =
-                RoomOutboxMessage(
-                    room,
-                    "transaction2",
-                    RoomMessageEventContent.TextBased.Text("hi"),
-                    testClock.now()
-                )
+                RoomOutboxMessage(room, "transaction2", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
 
             tm.writeTransaction {
                 with(roomOutboxMessageStore) {
@@ -184,15 +157,11 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
             mediaServiceMock.returnUploadMedia = Result.success(mxcUrl)
             var sendMessageEventCalled = false
             apiConfig.endpoints {
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "transaction1"),
-                ) {
+                matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction1")) {
                     it shouldBe RoomMessageEventContent.FileBased.Image("hi.png", url = mxcUrl)
                     SendEventResponse(EventId("event"))
                 }
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "transaction2"),
-                ) {
+                matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction2")) {
                     it shouldBe RoomMessageEventContent.TextBased.Text("hi")
                     sendMessageEventCalled = true
                     SendEventResponse(EventId("event"))
@@ -218,27 +187,18 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     fun `processOutboxMessages » encrypt events in encrypted rooms`() = runTest {
         currentSyncState.value = SyncState.RUNNING
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         val megolmEventContent =
             MegolmEncryptedMessageEventContent(
                 MegolmMessageValue("cipher"),
                 Curve25519KeyValue("key"),
                 "device",
-                "session"
+                "session",
             )
         var sendMessageEventCalled = false
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.encrypted", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.encrypted", "transaction")) {
                 it shouldBe megolmEventContent
                 sendMessageEventCalled = true
                 SendEventResponse(EventId("event"))
@@ -260,19 +220,10 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     fun `processOutboxMessages » retry on unexpected encryption error`() = runTest {
         currentSyncState.value = SyncState.RUNNING
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.encrypted", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.encrypted", "transaction")) {
                 SendEventResponse(EventId("event"))
             }
         }
@@ -281,7 +232,7 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
                 MegolmMessageValue("cipher"),
                 Curve25519KeyValue("key"),
                 "device",
-                "session"
+                "session",
             )
 
         roomEventDecryptionServiceMock.returnEncryptList.add(Result.failure(RuntimeException("unexpected")))
@@ -297,15 +248,8 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     fun `processOutboxMessages » handle RoomEventEncryptionServiceError`() = runTest {
         currentSyncState.value = SyncState.RUNNING
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
 
         roomEventDecryptionServiceMock.returnEncrypt =
             Result.failure(RoomEventEncryptionServiceError(RuntimeException("expected")))
@@ -327,23 +271,19 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
                 RoomId("!unknown"),
                 "transaction",
                 RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
+                testClock.now(),
             )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         val megolmEventContent =
             MegolmEncryptedMessageEventContent(
                 MegolmMessageValue("cipher"),
                 Curve25519KeyValue("key"),
                 "device",
-                "session"
+                "session",
             )
         var sendMessageEventCalled = false
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.encrypted", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.encrypted", "transaction")) {
                 it shouldBe megolmEventContent
                 sendMessageEventCalled = true
                 SendEventResponse(EventId("event"))
@@ -358,20 +298,11 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `processOutboxMessages » not send messages multiple times`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction1",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now(),
-            )
+            RoomOutboxMessage(room, "transaction1", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
         val sendMessageEventCalled = MutableStateFlow(0)
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction1"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction1")) {
                 sendMessageEventCalled.value++
                 SendEventResponse(EventId("event"))
             }
@@ -381,52 +312,30 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
             cut.processOutboxMessages(
                 flowOf(
-                    mapOf(
-                        RoomOutboxMessageRepositoryKey(
-                            message.roomId,
-                            message.transactionId
-                        ) to flowOf(message)
-                    ),
-                    mapOf(
-                        RoomOutboxMessageRepositoryKey(
-                            message.roomId,
-                            message.transactionId
-                        ) to flowOf(message)
-                    ),
+                    mapOf(RoomOutboxMessageRepositoryKey(message.roomId, message.transactionId) to flowOf(message)),
+                    mapOf(RoomOutboxMessageRepositoryKey(message.roomId, message.transactionId) to flowOf(message)),
                 )
             )
         }
 
         currentSyncState.value = SyncState.RUNNING
         sendMessageEventCalled.first { it == 1 }
-        continually(50.milliseconds) {
-            sendMessageEventCalled.value shouldBe 1
-        }
+        continually(50.milliseconds) { sendMessageEventCalled.value shouldBe 1 }
     }
 
     @Test
     fun `processOutboxMessages » retry on sending error`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         var call = 0
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
                 call++
                 when (call) {
                     1 -> throw RuntimeException("http send failure")
                     else -> SendEventResponse(EventId("event"))
                 }
-
             }
         }
         currentSyncState.value = SyncState.RUNNING
@@ -442,30 +351,17 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `processOutboxMessages » not retry on MatrixServerException`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         var call = 0
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
                 call++
                 when (call) {
-                    1 -> throw MatrixServerException(
-                        HttpStatusCode.InternalServerError,
-                        ErrorResponse.Unknown("")
-                    )
+                    1 -> throw MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
 
                     else -> SendEventResponse(EventId("event"))
                 }
-
             }
         }
         currentSyncState.value = SyncState.RUNNING
@@ -482,24 +378,12 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `processOutboxMessages » not send without permissions`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         userService.canSendEvent[room to RoomMessageEventContent::class] = flowOf(false)
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction"),
-            ) {
-                throw MatrixServerException(
-                    HttpStatusCode.InternalServerError,
-                    ErrorResponse.Unknown("")
-                )
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
+                throw MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
             }
         }
         backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
@@ -514,26 +398,16 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `processOutboxMessages » should retry on non homeserver exception`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         var call = 0
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
                 call++
                 when (call) {
                     1 -> throw CustomErrorResponse(HttpStatusCode.BadGateway, "error")
                     else -> SendEventResponse(EventId("event"))
                 }
-
             }
         }
         currentSyncState.value = SyncState.RUNNING
@@ -550,31 +424,22 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     @Test
     fun `processOutboxMessages » retry on MatrixServerException rate limit`() = runTest {
         val message =
-            RoomOutboxMessage(
-                room,
-                "transaction",
-                RoomMessageEventContent.TextBased.Text("hi"),
-                testClock.now()
-            )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-        }
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
         var call = 0
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "transaction"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
                 call++
                 when (call) {
-                    1 -> throw MatrixServerException(
-                        HttpStatusCode.TooManyRequests,
-                        ErrorResponse.LimitExceeded(""),
-                        300,
-                    )
+                    1 ->
+                        throw MatrixServerException(
+                            HttpStatusCode.TooManyRequests,
+                            ErrorResponse.LimitExceeded(""),
+                            300,
+                        )
 
                     else -> SendEventResponse(EventId("event"))
                 }
-
             }
         }
         currentSyncState.value = SyncState.RUNNING
@@ -591,72 +456,62 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `processOutboxMessages » not send message if sending was cancelled during upload`() =
-        runTest {
-            val mxcUrl = "mxc://dino"
-            val cacheUrl = "cache://unicorn"
-            val message1 =
-                RoomOutboxMessage(
-                    room,
-                    "abortedMessage",
-                    RoomMessageEventContent.FileBased.Image("hi.png", url = cacheUrl),
-                    testClock.now(),
-                )
-            val message2 =
-                RoomOutboxMessage(
-                    room,
-                    "unabortedMessage",
-                    RoomMessageEventContent.TextBased.Text("Nachricht"),
-                    testClock.now(),
-                )
+    fun `processOutboxMessages » not send message if sending was cancelled during upload`() = runTest {
+        val mxcUrl = "mxc://dino"
+        val cacheUrl = "cache://unicorn"
+        val message1 =
+            RoomOutboxMessage(
+                room,
+                "abortedMessage",
+                RoomMessageEventContent.FileBased.Image("hi.png", url = cacheUrl),
+                testClock.now(),
+            )
+        val message2 =
+            RoomOutboxMessage(
+                room,
+                "unabortedMessage",
+                RoomMessageEventContent.TextBased.Text("Nachricht"),
+                testClock.now(),
+            )
 
-            tm.writeTransaction {
-                with(roomOutboxMessageStore) {
-                    deleteAll()
-                    update(message1.roomId, message1.transactionId) { message1 }
-                    update(message2.roomId, message2.transactionId) { message2 }
-                }
+        tm.writeTransaction {
+            with(roomOutboxMessageStore) {
+                deleteAll()
+                update(message1.roomId, message1.transactionId) { message1 }
+                update(message2.roomId, message2.transactionId) { message2 }
             }
-
-            mediaServiceMock.returnUploadMedia = Result.success(mxcUrl)
-            mediaServiceMock.uploadTimer.value = 3.seconds
-            apiConfig.endpoints {
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "abortedMessage"),
-                ) {
-                    it shouldBe RoomMessageEventContent.FileBased.Image("hi.png", url = mxcUrl)
-                    SendEventResponse(EventId("event"))
-                }
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "unabortedMessage"),
-                )
-                {
-                    it shouldBe RoomMessageEventContent.TextBased.Text("Nachricht")
-                    SendEventResponse(EventId("event"))
-                }
-            }
-            currentSyncState.value = SyncState.STARTED
-
-            backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                cut.processOutboxMessages(
-                    roomOutboxMessageStore.getAll()
-                )
-            }
-
-            backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
-                delay(100.milliseconds)
-                tm.writeTransaction {
-                    roomOutboxMessageStore.update(message1.roomId, message1.transactionId) { null }
-                }
-            }
-            currentSyncState.value = SyncState.RUNNING
-            mediaServiceMock.uploadMediaCalled.first { it == cacheUrl }
-
-            delay(1.seconds)
-            val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
-            outboxMessages shouldHaveSize 1
-            outboxMessages[0].sentAt shouldNotBe null
         }
+
+        mediaServiceMock.returnUploadMedia = Result.success(mxcUrl)
+        mediaServiceMock.uploadTimer.value = 3.seconds
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "abortedMessage")) {
+                it shouldBe RoomMessageEventContent.FileBased.Image("hi.png", url = mxcUrl)
+                SendEventResponse(EventId("event"))
+            }
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "unabortedMessage")) {
+                it shouldBe RoomMessageEventContent.TextBased.Text("Nachricht")
+                SendEventResponse(EventId("event"))
+            }
+        }
+        currentSyncState.value = SyncState.STARTED
+
+        backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            cut.processOutboxMessages(roomOutboxMessageStore.getAll())
+        }
+
+        backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            delay(100.milliseconds)
+            tm.writeTransaction { roomOutboxMessageStore.update(message1.roomId, message1.transactionId) { null } }
+        }
+        currentSyncState.value = SyncState.RUNNING
+        mediaServiceMock.uploadMediaCalled.first { it == cacheUrl }
+
+        delay(1.seconds)
+        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+        outboxMessages shouldHaveSize 1
+        outboxMessages[0].sentAt shouldNotBe null
+    }
 
     @Test
     fun `processOutboxMessages » monitor upload on a file with thumbnail correctly`() = runTest {
@@ -665,44 +520,40 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
         mediaServiceMock.returnPrepareUploadMedia.add("mediaCacheUrl")
         mediaServiceMock.returnPrepareUploadMedia.add("thumbnailCacheUrl")
         mediaServiceMock.returnUploadMedia = Result.success("mxc://success")
-        val message = MessageBuilder(room, roomServiceMock, mediaServiceMock, UserId("")).build {
-            image(
-                body = "image.png",
-                image = "fake_image_with_Thumbnail".toByteArray().toByteArrayFlow(),
-                format = null,
-                formattedBody = null,
-                fileName = null,
-                type = PNG,
-                size = 25,
-                height = 1024,
-                width = 1024,
-                thumbnail = "fake_Thumbnail".toByteArray().toByteArrayFlow(),
-                thumbnailInfo = thumbnailInfo,
-            )
-        }
+        val message =
+            MessageBuilder(room, roomServiceMock, mediaServiceMock, UserId("")).build {
+                image(
+                    body = "image.png",
+                    image = "fake_image_with_Thumbnail".toByteArray().toByteArrayFlow(),
+                    format = null,
+                    formattedBody = null,
+                    fileName = null,
+                    type = PNG,
+                    size = 25,
+                    height = 1024,
+                    width = 1024,
+                    thumbnail = "fake_Thumbnail".toByteArray().toByteArrayFlow(),
+                    thumbnailInfo = thumbnailInfo,
+                )
+            }
         message shouldNotBe null
-        val message1 = RoomOutboxMessage(
-            room, "message with thumbnail", message as MessageEventContent,
-            testClock.now()
-        )
-        tm.writeTransaction {
-            roomOutboxMessageStore.update(message1.roomId, message1.transactionId) { message1 }
-        }
+        val message1 =
+            RoomOutboxMessage(room, "message with thumbnail", message as MessageEventContent, testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message1.roomId, message1.transactionId) { message1 } }
         var sendEventCalled = false
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendMessageEvent(room, "m.room.message", "message with thumbnail"),
-            ) {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "message with thumbnail")) {
                 sendEventCalled = true
                 SendEventResponse(EventId("event"))
             }
         }
         currentSyncState.value = SyncState.STARTED
-        mediaServiceMock.uploadSizes.value = ArrayList<Long>().apply {
-            val content = message1.content as RoomMessageEventContent.FileBased.Image
-            this.add(content.info?.thumbnailInfo?.size ?: 0)
-            this.add(content.info?.size ?: 0)
-        }
+        mediaServiceMock.uploadSizes.value =
+            ArrayList<Long>().apply {
+                val content = message1.content as RoomMessageEventContent.FileBased.Image
+                this.add(content.info?.thumbnailInfo?.size ?: 0)
+                this.add(content.info?.size ?: 0)
+            }
 
         backgroundScope.launch(start = CoroutineStart.UNDISPATCHED) {
             cut.processOutboxMessages(roomOutboxMessageStore.getAll())
@@ -729,122 +580,95 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `processOutboxMessages » draft message is not send  » set to non draft  » message is send `() =
-        runTest {
-            val message =
-                RoomOutboxMessage(
-                    room,
-                    "transaction",
-                    RoomMessageEventContent.TextBased.Text("hi"),
-                    testClock.now(),
-                    isDraft = true
-                )
-            tm.writeTransaction {
-                roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
+    fun `processOutboxMessages » draft message is not send  » set to non draft  » message is send `() = runTest {
+        val message =
+            RoomOutboxMessage(
+                room,
+                "transaction",
+                RoomMessageEventContent.TextBased.Text("hi"),
+                testClock.now(),
+                isDraft = true,
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
+
+        var sendMessageEventCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
+                it shouldBe RoomMessageEventContent.TextBased.Text("hi")
+                sendMessageEventCalled = true
+                SendEventResponse(EventId("event"))
             }
-
-            var sendMessageEventCalled = false
-            apiConfig.endpoints {
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "transaction"),
-                ) {
-                    it shouldBe RoomMessageEventContent.TextBased.Text("hi")
-                    sendMessageEventCalled = true
-                    SendEventResponse(EventId("event"))
-                }
-            }
-
-            backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
-
-            delay(500)
-
-            sendMessageEventCalled shouldBe false
-
-            tm.writeTransaction {
-                roomOutboxMessageStore.update(
-                    message.roomId,
-                    message.transactionId
-                ) { message.copy(isDraft = false) }
-            }
-
-            delay(1.seconds)
-
-            sendMessageEventCalled shouldBe true
-
-            val outboxMessages =
-                roomOutboxMessageStore.getAll().flattenValues().first()
-            outboxMessages shouldHaveSize 1
-            outboxMessages.first().sentAt shouldNotBe null
         }
+
+        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+        delay(500)
+
+        sendMessageEventCalled shouldBe false
+
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message.copy(isDraft = false) }
+        }
+
+        delay(1.seconds)
+
+        sendMessageEventCalled shouldBe true
+
+        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+        outboxMessages shouldHaveSize 1
+        outboxMessages.first().sentAt shouldNotBe null
+    }
 
     @Test
-    fun `processOutboxMessages » message with error is not send » message with now removed error is send`() =
-        runTest {
-            val message =
-                RoomOutboxMessage(
-                    room,
-                    "transaction",
-                    RoomMessageEventContent.TextBased.Text("hi"),
-                    testClock.now(),
-                    sendError = RoomOutboxMessage.SendError.Unknown()
-                )
-            tm.writeTransaction {
-                roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
+    fun `processOutboxMessages » message with error is not send » message with now removed error is send`() = runTest {
+        val message =
+            RoomOutboxMessage(
+                room,
+                "transaction",
+                RoomMessageEventContent.TextBased.Text("hi"),
+                testClock.now(),
+                sendError = RoomOutboxMessage.SendError.Unknown(),
+            )
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
+
+        var sendMessageEventCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
+                it shouldBe RoomMessageEventContent.TextBased.Text("hi")
+                sendMessageEventCalled = true
+                SendEventResponse(EventId("event"))
             }
-
-            var sendMessageEventCalled = false
-            apiConfig.endpoints {
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "transaction"),
-                ) {
-                    it shouldBe RoomMessageEventContent.TextBased.Text("hi")
-                    sendMessageEventCalled = true
-                    SendEventResponse(EventId("event"))
-                }
-            }
-
-            backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
-
-            delay(500)
-
-            sendMessageEventCalled shouldBe false
-
-            tm.writeTransaction {
-                roomOutboxMessageStore.update(
-                    message.roomId,
-                    message.transactionId
-                ) { message.copy(sendError = null) }
-            }
-
-            delay(1.seconds)
-
-            sendMessageEventCalled shouldBe true
-
-            val outboxMessages =
-                roomOutboxMessageStore.getAll().flattenValues().first()
-            outboxMessages shouldHaveSize 1
-            outboxMessages.first().sentAt shouldNotBe null
         }
+
+        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+        delay(500)
+
+        sendMessageEventCalled shouldBe false
+
+        tm.writeTransaction {
+            roomOutboxMessageStore.update(message.roomId, message.transactionId) { message.copy(sendError = null) }
+        }
+
+        delay(1.seconds)
+
+        sendMessageEventCalled shouldBe true
+
+        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+        outboxMessages shouldHaveSize 1
+        outboxMessages.first().sentAt shouldNotBe null
+    }
 
     @Test
     fun `processOutboxMessages » message fails to send » messages sendError is set to null » message will retry send`() =
         runTest {
             val message =
-                RoomOutboxMessage(
-                    room,
-                    "transaction",
-                    RoomMessageEventContent.TextBased.Text("hi"),
-                    testClock.now()
-                )
-            tm.writeTransaction {
-                roomOutboxMessageStore.update(message.roomId, message.transactionId) { message }
-            }
+                RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+            tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
 
             var sendMessageEventCalled = false
             apiConfig.endpoints {
-                matrixJsonEndpoint(
-                    SendMessageEvent(room, "m.room.message", "transaction"),
-                ) {
+                matrixJsonEndpoint(SendMessageEvent(room, "m.room.message", "transaction")) {
                     it shouldBe RoomMessageEventContent.TextBased.Text("hi")
                     sendMessageEventCalled = true
                     SendEventResponse(EventId("event"))
@@ -858,26 +682,21 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
             delay(500)
 
             sendMessageEventCalled shouldBe false
-            val outboxMessages =
-                roomOutboxMessageStore.getAll().flattenValues().first()
+            val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
             outboxMessages shouldHaveSize 1
             outboxMessages.first().sendError shouldNotBe null
 
             userService.canSendEvent[room to RoomMessageEventContent::class] = flowOf(true)
 
             tm.writeTransaction {
-                roomOutboxMessageStore.update(
-                    message.roomId,
-                    message.transactionId
-                ) { message.copy(sendError = null) }
+                roomOutboxMessageStore.update(message.roomId, message.transactionId) { message.copy(sendError = null) }
             }
 
             delay(1.seconds)
 
             sendMessageEventCalled shouldBe true
 
-            val outboxMessages2 =
-                roomOutboxMessageStore.getAll().flattenValues().first()
+            val outboxMessages2 = roomOutboxMessageStore.getAll().flattenValues().first()
             outboxMessages2 shouldHaveSize 1
             outboxMessages2.first().sentAt shouldNotBe null
         }

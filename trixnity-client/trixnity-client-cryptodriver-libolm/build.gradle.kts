@@ -1,6 +1,4 @@
-plugins {
-    alias(sharedLibs.plugins.kotlin.multiplatform)
-}
+plugins { alias(sharedLibs.plugins.kotlin.multiplatform) }
 
 kotlin {
     addJvmTarget()

@@ -11,9 +11,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#getwell-knownmatrixclient">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#getwell-knownmatrixclient">matrix spec</a> */
 @Serializable
 @Resource("/.well-known/matrix/client")
 @HttpMethod(GET)
@@ -22,7 +20,7 @@ object GetClient : MatrixEndpoint<Unit, DiscoveryInformation> {
     override fun responseSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: DiscoveryInformation?
+        value: DiscoveryInformation?,
     ): KSerializer<DiscoveryInformation> = DiscoveryInformation.serializer()
 }
 

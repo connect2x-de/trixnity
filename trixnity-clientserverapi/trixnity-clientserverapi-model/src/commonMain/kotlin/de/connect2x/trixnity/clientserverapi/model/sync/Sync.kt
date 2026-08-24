@@ -27,6 +27,7 @@ import de.connect2x.trixnity.core.serialization.events.StateBaseEventSerializer
 import de.connect2x.trixnity.core.serialization.events.StateEventSerializer
 import de.connect2x.trixnity.core.serialization.events.StrippedStateEventSerializer
 import io.ktor.resources.*
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -50,11 +51,8 @@ import kotlinx.serialization.json.JsonTransformingSerializer
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.modules.overwriteWith
-import kotlin.jvm.JvmInline
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3sync">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientv3sync">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/client/v3/sync")
 @HttpMethod(GET)
@@ -69,7 +67,7 @@ data class Sync(
     override fun responseSerializerBuilder(
         mappings: EventContentSerializerMappings,
         json: Json,
-        value: Response?
+        value: Response?,
     ): KSerializer<Response> = SyncResponseSerializer(json, mappings)
 
     @Serializable
@@ -81,8 +79,7 @@ data class Sync(
         @SerialName("to_device") val toDevice: ToDevice? = null,
         @SerialName("device_lists") val deviceLists: DeviceLists? = null,
         @SerialName("device_one_time_keys_count") val oneTimeKeysCount: OneTimeKeysCount? = null,
-        @SerialName("device_unused_fallback_key_types")
-        val unusedFallbackKeyTypes: UnusedFallbackKeyTypes? = null,
+        @SerialName("device_unused_fallback_key_types") val unusedFallbackKeyTypes: UnusedFallbackKeyTypes? = null,
     ) {
 
         @Serializable
@@ -90,7 +87,7 @@ data class Sync(
             @SerialName("invite") val invite: @Contextual RoomMap<InvitedRoom>? = null,
             @SerialName("join") val join: @Contextual RoomMap<JoinedRoom>? = null,
             @SerialName("knock") val knock: @Contextual RoomMap<KnockedRoom>? = null,
-            @SerialName("leave") val leave: @Contextual RoomMap<LeftRoom>? = null
+            @SerialName("leave") val leave: @Contextual RoomMap<LeftRoom>? = null,
         ) {
             @JvmInline
             value class RoomMap<T>(private val delegate: Map<RoomId, T>) : Map<RoomId, T> by delegate {
@@ -99,10 +96,7 @@ data class Sync(
                 }
             }
 
-            @Serializable
-            data class KnockedRoom(
-                @SerialName("knock_state") val strippedState: StrippedState? = null
-            )
+            @Serializable data class KnockedRoom(@SerialName("knock_state") val strippedState: StrippedState? = null)
 
             @Serializable
             data class JoinedRoom(
@@ -118,7 +112,8 @@ data class Sync(
                 @SerialName("ephemeral") val ephemeral: Ephemeral? = null,
                 @SerialName("account_data") val accountData: RoomAccountData? = null,
                 @SerialName("unread_notifications") val unreadNotifications: UnreadNotificationCounts? = null,
-                @SerialName("unread_thread_notifications") val unreadThreadNotifications: Map<EventId, UnreadThreadNotificationCounts>? = null
+                @SerialName("unread_thread_notifications")
+                val unreadThreadNotifications: Map<EventId, UnreadThreadNotificationCounts>? = null,
             ) {
                 constructor(
                     summary: RoomSummary? = null,
@@ -128,7 +123,7 @@ data class Sync(
                     ephemeral: Ephemeral? = null,
                     accountData: RoomAccountData? = null,
                     unreadNotifications: UnreadNotificationCounts? = null,
-                    unreadThreadNotifications: Map<EventId, UnreadThreadNotificationCounts>? = null
+                    unreadThreadNotifications: Map<EventId, UnreadThreadNotificationCounts>? = null,
                 ) : this(
                     summary = summary,
                     state = state,
@@ -145,61 +140,49 @@ data class Sync(
                 data class RoomSummary(
                     @SerialName("m.heroes") val heroes: List<UserId>? = null,
                     @SerialName("m.joined_member_count") val joinedMemberCount: Long? = null,
-                    @SerialName("m.invited_member_count") val invitedMemberCount: Long? = null
+                    @SerialName("m.invited_member_count") val invitedMemberCount: Long? = null,
                 )
 
                 @Serializable
-                data class Ephemeral(
-                    @SerialName("events") val events: List<@Contextual EphemeralEvent<*>>? = null
-                )
+                data class Ephemeral(@SerialName("events") val events: List<@Contextual EphemeralEvent<*>>? = null)
 
                 @MSC4354
                 @Serializable
-                data class Sticky(
-                    @SerialName("events") val events: List<@Contextual RoomEvent<*>>? = null,
-                )
+                data class Sticky(@SerialName("events") val events: List<@Contextual RoomEvent<*>>? = null)
 
                 @Serializable
                 data class UnreadNotificationCounts(
                     @SerialName("highlight_count") val highlightCount: Long? = null,
-                    @SerialName("notification_count") val notificationCount: Long? = null
+                    @SerialName("notification_count") val notificationCount: Long? = null,
                 )
 
                 @Serializable
                 data class UnreadThreadNotificationCounts(
                     @SerialName("highlight_count") val highlightCount: Long? = null,
-                    @SerialName("notification_count") val notificationCount: Long? = null
+                    @SerialName("notification_count") val notificationCount: Long? = null,
                 )
             }
 
-            @Serializable
-            data class InvitedRoom(
-                @SerialName("invite_state") val strippedState: StrippedState? = null
-            )
+            @Serializable data class InvitedRoom(@SerialName("invite_state") val strippedState: StrippedState? = null)
 
             @Serializable
             data class LeftRoom(
                 @SerialName("state") val state: State? = null,
                 @SerialName("timeline") val timeline: Timeline? = null,
                 @SerialName("state_after") val stateAfter: State? = null,
-                @SerialName("account_data") val accountData: RoomAccountData? = null
+                @SerialName("account_data") val accountData: RoomAccountData? = null,
             )
 
-            @Serializable
-            data class State(
-                @SerialName("events") val events: List<@Contextual StateEvent<*>>? = null
-            )
+            @Serializable data class State(@SerialName("events") val events: List<@Contextual StateEvent<*>>? = null)
 
             @Serializable
-            data class StrippedState(
-                @SerialName("events") val events: List<@Contextual StrippedStateEvent<*>>? = null
-            )
+            data class StrippedState(@SerialName("events") val events: List<@Contextual StrippedStateEvent<*>>? = null)
 
             @Serializable
             data class Timeline(
                 @SerialName("events") val events: List<@Contextual RoomEvent<*>>? = null,
                 @SerialName("limited") val limited: Boolean? = null,
-                @SerialName("prev_batch") val previousBatch: String? = null
+                @SerialName("prev_batch") val previousBatch: String? = null,
             )
 
             @Serializable
@@ -208,10 +191,7 @@ data class Sync(
             )
         }
 
-        @Serializable
-        data class Presence(
-            @SerialName("events") val events: List<@Contextual EphemeralEvent<*>>? = null
-        )
+        @Serializable data class Presence(@SerialName("events") val events: List<@Contextual EphemeralEvent<*>>? = null)
 
         @Serializable
         data class GlobalAccountData(
@@ -221,17 +201,15 @@ data class Sync(
         @Serializable
         data class DeviceLists(
             @SerialName("changed") val changed: Set<UserId>? = null,
-            @SerialName("left") val left: Set<UserId>? = null
+            @SerialName("left") val left: Set<UserId>? = null,
         )
 
-        @Serializable
-        data class ToDevice(
-            @SerialName("events") val events: List<@Contextual ToDeviceEvent<*>>? = null
-        )
+        @Serializable data class ToDevice(@SerialName("events") val events: List<@Contextual ToDeviceEvent<*>>? = null)
     }
 }
 
 typealias OneTimeKeysCount = Map<KeyAlgorithm, Int>
+
 typealias UnusedFallbackKeyTypes = Set<KeyAlgorithm>
 
 @OptIn(MSC4354::class)
@@ -247,12 +225,8 @@ fun Sync.Response.allEvents(): List<ClientEvent<*>> = buildList {
         joinedRoom.ephemeral?.events?.forEach { add(it) }
         joinedRoom.accountData?.events?.forEach { add(it) }
     }
-    room?.invite?.forEach { (_, invitedRoom) ->
-        invitedRoom.strippedState?.events?.forEach { add(it) }
-    }
-    room?.knock?.forEach { (_, invitedRoom) ->
-        invitedRoom.strippedState?.events?.forEach { add(it) }
-    }
+    room?.invite?.forEach { (_, invitedRoom) -> invitedRoom.strippedState?.events?.forEach { add(it) } }
+    room?.knock?.forEach { (_, invitedRoom) -> invitedRoom.strippedState?.events?.forEach { add(it) } }
     room?.leave?.forEach { (_, leftRoom) ->
         leftRoom.state?.events?.forEach { add(it) }
         leftRoom.timeline?.events?.forEach { add(it) }
@@ -261,15 +235,14 @@ fun Sync.Response.allEvents(): List<ClientEvent<*>> = buildList {
     }
 }
 
-class SyncResponseSerializer(
-    json: Json,
-    mappings: EventContentSerializerMappings,
-) : ContextualSerializer<Sync.Response>(
-    json = Json(json) {
-        serializersModule = json.serializersModule.overwriteWith(buildRoomMapSerializerModule(mappings))
-    },
-    serializer = Sync.Response.serializer()
-)
+class SyncResponseSerializer(json: Json, mappings: EventContentSerializerMappings) :
+    ContextualSerializer<Sync.Response>(
+        json =
+            Json(json) {
+                serializersModule = json.serializersModule.overwriteWith(buildRoomMapSerializerModule(mappings))
+            },
+        serializer = Sync.Response.serializer(),
+    )
 
 private class RoomsMapSerializer<T>(
     valueDescriptor: SerialDescriptor,
@@ -279,15 +252,9 @@ private class RoomsMapSerializer<T>(
     private val keySerializer = RoomId.serializer()
 
     @OptIn(ExperimentalSerializationApi::class)
-    override val descriptor: SerialDescriptor = mapSerialDescriptor(
-        keySerializer.descriptor,
-        valueDescriptor,
-    )
+    override val descriptor: SerialDescriptor = mapSerialDescriptor(keySerializer.descriptor, valueDescriptor)
 
-    override fun serialize(
-        encoder: Encoder,
-        value: RoomMap<T>,
-    ) {
+    override fun serialize(encoder: Encoder, value: RoomMap<T>) {
         require(encoder is JsonEncoder)
         val mapSerializer = MapSerializer(keySerializer, valueSerializer(encoder.json))
         encoder.encodeSerializableValue(mapSerializer, value)
@@ -313,24 +280,26 @@ private class RoomsMapSerializer<T>(
                             else -> {
                                 requireNotNull(key)
                                 require(decoder is JsonDecoder)
-                                val json = Json(decoder.json) {
-                                    serializersModule = decoder.serializersModule
-                                        .overwriteWith(buildInjectRoomIdSerializersModule(key, mappings))
-                                }
-                                put(
-                                    key,
-                                    decodeSerializableElement(descriptor, index, valueSerializer(json))
-                                )
+                                val json =
+                                    Json(decoder.json) {
+                                        serializersModule =
+                                            decoder.serializersModule.overwriteWith(
+                                                buildInjectRoomIdSerializersModule(key, mappings)
+                                            )
+                                    }
+                                put(key, decodeSerializableElement(descriptor, index, valueSerializer(json)))
                             }
                         }
                     }
-                })
+                }
+            )
         }
     }
 }
 
 open class ContextualSerializer<T>(val json: Json, val serializer: KSerializer<T>) : KSerializer<T> {
-    override val descriptor: SerialDescriptor get() = serializer.descriptor
+    override val descriptor: SerialDescriptor
+        get() = serializer.descriptor
 
     override fun serialize(encoder: Encoder, value: T) {
         require(encoder is JsonEncoder)
@@ -352,78 +321,81 @@ private class WithRoomIdSerializer<T>(private val roomId: RoomId, serializer: KS
 }
 
 internal fun addRoomIdToEvent(event: JsonObject, roomId: RoomId): JsonObject {
-    return JsonObject(buildMap {
-        putAll(event)
-        put("room_id", JsonPrimitive(roomId.full))
-        val unsigned = event["unsigned"] as? JsonObject
-        if (unsigned != null) {
-            val aggregations = unsigned["m.relations"] as? JsonObject
-            val newAggregations =
-                if (aggregations != null) {
-                    val thread = aggregations["m.thread"] as? JsonObject
-                    if (thread != null) {
-                        val latestEvent = thread["latest_event"] as? JsonObject
-                        if (latestEvent != null) {
-                            JsonObject(buildMap {
-                                putAll(aggregations)
-                                put("m.thread", JsonObject(buildMap {
-                                    putAll(thread)
-                                    put("latest_event", addRoomIdToEvent(latestEvent, roomId))
-                                }))
-                            })
+    return JsonObject(
+        buildMap {
+            putAll(event)
+            put("room_id", JsonPrimitive(roomId.full))
+            val unsigned = event["unsigned"] as? JsonObject
+            if (unsigned != null) {
+                val aggregations = unsigned["m.relations"] as? JsonObject
+                val newAggregations =
+                    if (aggregations != null) {
+                        val thread = aggregations["m.thread"] as? JsonObject
+                        if (thread != null) {
+                            val latestEvent = thread["latest_event"] as? JsonObject
+                            if (latestEvent != null) {
+                                JsonObject(
+                                    buildMap {
+                                        putAll(aggregations)
+                                        put(
+                                            "m.thread",
+                                            JsonObject(
+                                                buildMap {
+                                                    putAll(thread)
+                                                    put("latest_event", addRoomIdToEvent(latestEvent, roomId))
+                                                }
+                                            ),
+                                        )
+                                    }
+                                )
+                            } else null
                         } else null
                     } else null
-                } else null
-            val redactedBecause = unsigned["redacted_because"] as? JsonObject
-            val newRedactedBecause =
-                if (redactedBecause != null) {
-                    addRoomIdToEvent(redactedBecause, roomId)
-                } else null
-            put("unsigned", JsonObject(buildMap {
-                putAll(unsigned)
-                if (newAggregations != null) {
-                    put("m.relations", newAggregations)
-                }
-                if (newRedactedBecause != null) {
-                    put("redacted_because", newRedactedBecause)
-                }
-            }))
+                val redactedBecause = unsigned["redacted_because"] as? JsonObject
+                val newRedactedBecause =
+                    if (redactedBecause != null) {
+                        addRoomIdToEvent(redactedBecause, roomId)
+                    } else null
+                put(
+                    "unsigned",
+                    JsonObject(
+                        buildMap {
+                            putAll(unsigned)
+                            if (newAggregations != null) {
+                                put("m.relations", newAggregations)
+                            }
+                            if (newRedactedBecause != null) {
+                                put("redacted_because", newRedactedBecause)
+                            }
+                        }
+                    ),
+                )
+            }
         }
-    })
+    )
 }
 
-private fun buildRoomMapSerializerModule(
-    mappings: EventContentSerializerMappings,
-): SerializersModule {
+private fun buildRoomMapSerializerModule(mappings: EventContentSerializerMappings): SerializersModule {
     return SerializersModule {
         contextual(RoomMap::class) { args ->
             val serializer = args[0]
-            RoomsMapSerializer(
-                serializer.descriptor,
-                { ContextualSerializer(it, serializer) },
-                mappings,
-            )
+            RoomsMapSerializer(serializer.descriptor, { ContextualSerializer(it, serializer) }, mappings)
         }
     }
 }
 
-
 private fun buildInjectRoomIdSerializersModule(
     roomId: RoomId,
-    mappings: EventContentSerializerMappings
+    mappings: EventContentSerializerMappings,
 ): SerializersModule {
-    val messageEventSerializer =
-        WithRoomIdSerializer(roomId, MessageEventSerializer(mappings.message))
-    val stateEventSerializer =
-        WithRoomIdSerializer(roomId, StateEventSerializer(mappings.state))
+    val messageEventSerializer = WithRoomIdSerializer(roomId, MessageEventSerializer(mappings.message))
+    val stateEventSerializer = WithRoomIdSerializer(roomId, StateEventSerializer(mappings.state))
     val roomEventSerializer =
         WithRoomIdSerializer(roomId, RoomEventSerializer(messageEventSerializer, stateEventSerializer))
-    val strippedStateEventSerializer =
-        WithRoomIdSerializer(roomId, StrippedStateEventSerializer(mappings.state))
+    val strippedStateEventSerializer = WithRoomIdSerializer(roomId, StrippedStateEventSerializer(mappings.state))
     val stateBaseEventSerializer =
         WithRoomIdSerializer(roomId, StateBaseEventSerializer(stateEventSerializer, strippedStateEventSerializer))
-    val ephemeralEventSerializer =
-        WithRoomIdSerializer(roomId, EphemeralEventSerializer(mappings.ephemeral))
+    val ephemeralEventSerializer = WithRoomIdSerializer(roomId, EphemeralEventSerializer(mappings.ephemeral))
     val roomAccountDataEventSerializer =
         WithRoomIdSerializer(roomId, RoomAccountDataEventSerializer(mappings.roomAccountData))
     return SerializersModule {

@@ -26,6 +26,8 @@ import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.TypingEventContent
+import kotlin.reflect.KClass
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,125 +39,117 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlin.reflect.KClass
-import kotlin.time.Duration
 
 class RoomServiceMock : RoomService {
     override val usersTyping: StateFlow<Map<RoomId, TypingEventContent>> = MutableStateFlow(mapOf())
+
     override suspend fun fillTimelineGaps(roomId: RoomId, startEventId: EventId, limit: Long) {
         throw NotImplementedError()
     }
 
     var returnGetTimelineEventList: MutableList<Flow<TimelineEvent?>>? = null
     var returnGetTimelineEvent: Flow<TimelineEvent?> = flowOf(null)
+
     override fun getTimelineEvent(
         roomId: RoomId,
         eventId: EventId,
-        config: GetTimelineEventConfig.() -> Unit
+        config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?> {
         return returnGetTimelineEventList?.removeFirst() ?: returnGetTimelineEvent
     }
 
     override fun getPreviousTimelineEvent(
         event: TimelineEvent,
-        config: GetTimelineEventConfig.() -> Unit
+        config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?>? {
         throw NotImplementedError()
     }
 
     override fun getNextTimelineEvent(
         event: TimelineEvent,
-        config: GetTimelineEventConfig.() -> Unit
+        config: GetTimelineEventConfig.() -> Unit,
     ): Flow<TimelineEvent?>? {
         throw NotImplementedError()
     }
 
     override fun getLastTimelineEvent(
         roomId: RoomId,
-        config: GetTimelineEventConfig.() -> Unit
+        config: GetTimelineEventConfig.() -> Unit,
     ): Flow<Flow<TimelineEvent>?> {
         throw NotImplementedError()
     }
 
     var returnGetTimelineEventsDisableDrop = false
     var returnGetTimelineEvents: Flow<Flow<TimelineEvent>> = flowOf()
-    var returnGetTimelineEventsCallback: ((
-        direction: GetEvents.Direction,
-    ) -> Flow<Flow<TimelineEvent>>)? = null
+    var returnGetTimelineEventsCallback: ((direction: GetEvents.Direction) -> Flow<Flow<TimelineEvent>>)? = null
     var getTimelineEventConfig: GetTimelineEventsConfig? = null
 
     override fun getTimelineEvents(
         roomId: RoomId,
         startFrom: EventId,
         direction: GetEvents.Direction,
-        config: GetTimelineEventsConfig.() -> Unit
+        config: GetTimelineEventsConfig.() -> Unit,
     ): Flow<Flow<TimelineEvent>> {
         getTimelineEventConfig =
             if (direction == GetEvents.Direction.BACKWARDS) GetTimelineEventsConfig().apply(config)
             else getTimelineEventConfig
         val returnGetTimelineEventsCallbackTmp = returnGetTimelineEventsCallback
         val timelineEvents =
-            if (returnGetTimelineEventsCallbackTmp != null)
-                returnGetTimelineEventsCallbackTmp(direction)
+            if (returnGetTimelineEventsCallbackTmp != null) returnGetTimelineEventsCallbackTmp(direction)
             else returnGetTimelineEvents
         return if (returnGetTimelineEventsDisableDrop) timelineEvents
-        else timelineEvents
-            .dropWhile { it.firstOrNull()?.eventId != startFrom }
+        else timelineEvents.dropWhile { it.firstOrNull()?.eventId != startFrom }
     }
 
     override fun getLastTimelineEvents(
         roomId: RoomId,
-        config: GetTimelineEventsConfig.() -> Unit
+        config: GetTimelineEventsConfig.() -> Unit,
     ): Flow<Flow<Flow<TimelineEvent>>?> {
         throw NotImplementedError()
     }
 
     var returnGetTimelineEventsFromNowOn: Flow<TimelineEvent> = flowOf()
+
     override fun getTimelineEventsFromNowOn(
         decryptionTimeout: Duration,
-        syncResponseBufferSize: Int
+        syncResponseBufferSize: Int,
     ): Flow<TimelineEvent> {
         return returnGetTimelineEventsFromNowOn
     }
 
     override fun <T> getTimeline(
         onStateChange: suspend (TimelineStateChange<T>) -> Unit,
-        transformer: suspend (Flow<TimelineEvent>) -> T
+        transformer: suspend (Flow<TimelineEvent>) -> T,
     ): Timeline<T> {
         throw NotImplementedError()
     }
 
     var returnGetTimelineEventsOnce: Flow<TimelineEvent> = flowOf()
-    override fun getTimelineEvents(
-        response: Sync.Response,
-        decryptionTimeout: Duration
-    ): Flow<TimelineEvent> {
+
+    override fun getTimelineEvents(response: Sync.Response, decryptionTimeout: Duration): Flow<TimelineEvent> {
         return returnGetTimelineEventsOnce
     }
 
     override fun getTimelineEventRelations(
         roomId: RoomId,
         eventId: EventId,
-        relationType: RelationType
+        relationType: RelationType,
     ): Flow<Map<EventId, Flow<TimelineEventRelation?>>?> {
         throw NotImplementedError()
     }
 
     var sentMessages = MutableStateFlow(listOf<Pair<RoomId, MessageEventContent>>())
+
     override suspend fun sendMessage(
         roomId: RoomId,
         keepMediaInCache: Boolean,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String {
         sentMessages.update {
-            it + (roomId to
+            it +
+                (roomId to
                     requireNotNull(
-                        MessageBuilder(
-                            roomId,
-                            RoomServiceMock(),
-                            MediaServiceMock(),
-                            UserId("own", "server")
-                        )
+                        MessageBuilder(roomId, RoomServiceMock(), MediaServiceMock(), UserId("own", "server"))
                             .build(builder)
                     ))
         }
@@ -167,7 +161,7 @@ class RoomServiceMock : RoomService {
         roomId: RoomId,
         keepMediaInCache: Boolean,
         stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String {
         throw NotImplementedError()
     }
@@ -181,20 +175,19 @@ class RoomServiceMock : RoomService {
     }
 
     var returnDraftMessage = flowOf(null)
+
     override fun getDraftMessage(roomId: RoomId): Flow<RoomOutboxMessage<*>?> {
         return returnDraftMessage
     }
 
-    override suspend fun deleteDraftMessage(
-        roomId: RoomId,
-    ) {
+    override suspend fun deleteDraftMessage(roomId: RoomId) {
         throw NotImplementedError()
     }
 
     override suspend fun setDraftMessage(
         roomId: RoomId,
         keepMediaInCache: Boolean,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String {
         throw NotImplementedError()
     }
@@ -204,7 +197,7 @@ class RoomServiceMock : RoomService {
         roomId: RoomId,
         keepMediaInCache: Boolean,
         stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit
+        builder: suspend MessageBuilder.() -> Unit,
     ): String {
         throw NotImplementedError()
     }
@@ -218,11 +211,13 @@ class RoomServiceMock : RoomService {
     }
 
     val rooms = MutableStateFlow(mapOf<RoomId, StateFlow<Room?>>())
+
     override fun getById(roomId: RoomId): StateFlow<Room?> {
         return checkNotNull(rooms.value[roomId])
     }
 
     val forgetRooms = MutableStateFlow(listOf<RoomId>())
+
     override suspend fun forgetRoom(roomId: RoomId, force: Boolean) {
         forgetRooms.update { it + roomId }
     }
@@ -236,32 +231,36 @@ class RoomServiceMock : RoomService {
     }
 
     val outbox = MutableStateFlow(listOf<Flow<RoomOutboxMessage<*>?>>())
+
     override fun getOutbox(): Flow<List<Flow<RoomOutboxMessage<*>?>>> = outbox
+
     override fun getOutbox(roomId: RoomId): Flow<List<Flow<RoomOutboxMessage<*>?>>> =
-        outbox.map { outbox ->
-            outbox.map { it.filterNotNull().first() to it }
-                .filter { it.first.roomId == roomId }
-                .map { it.second }
-        }.distinctUntilChanged()
+        outbox
+            .map { outbox ->
+                outbox.map { it.filterNotNull().first() to it }.filter { it.first.roomId == roomId }.map { it.second }
+            }
+            .distinctUntilChanged()
 
     override fun getOutbox(roomId: RoomId, transactionId: String): Flow<RoomOutboxMessage<*>?> =
-        outbox.flatten()
-            .map { it.find { it.roomId == roomId && it.transactionId == transactionId } }
+        outbox.flatten().map { it.find { it.roomId == roomId && it.transactionId == transactionId } }
 
     data class GetStateKey(
         val roomId: RoomId,
         val eventContentClass: KClass<out StateEventContent>,
-        val stateKey: String = ""
+        val stateKey: String = "",
     )
 
     val state = MutableStateFlow<Map<GetStateKey, StateBaseEvent<*>?>>(mapOf())
+
     override fun <C : StateEventContent> getState(
         roomId: RoomId,
         eventContentClass: KClass<C>,
-        stateKey: String
+        stateKey: String,
     ): Flow<StateBaseEvent<C>?> {
         @Suppress("UNCHECKED_CAST")
-        return flowOf(state.value.entries.find { it.key.eventContentClass == eventContentClass }?.value as StateBaseEvent<C>?)
+        return flowOf(
+            state.value.entries.find { it.key.eventContentClass == eventContentClass }?.value as StateBaseEvent<C>?
+        )
     }
 
     override fun <C : StateEventContent> getAllState(
@@ -276,7 +275,7 @@ class RoomServiceMock : RoomService {
         roomId: RoomId,
         eventContentClass: KClass<C>,
         sender: UserId,
-        stickyKey: String?
+        stickyKey: String?,
     ): Flow<ClientEvent.RoomEvent<C>?> {
         return flowOf(null)
     }
@@ -284,7 +283,7 @@ class RoomServiceMock : RoomService {
     @MSC4354
     override fun <C : StickyEventContent> getAllSticky(
         roomId: RoomId,
-        eventContentClass: KClass<C>
+        eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
         return flowOf(emptyMap())
     }

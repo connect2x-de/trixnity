@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.crypto.core
 
 import checkError
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import org.openssl.*
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 @OptIn(ExperimentalAtomicApi::class)
 private class OpenSslSha256 : Hasher {
@@ -22,9 +22,7 @@ private class OpenSslSha256 : Hasher {
         if (input.isEmpty()) return
         ensureReady()
 
-        input.usePinned {
-            checkError(EVP_DigestUpdate(context, it.addressOf(0), input.size.convert()))
-        }
+        input.usePinned { checkError(EVP_DigestUpdate(context, it.addressOf(0), input.size.convert())) }
     }
 
     override fun digest(): ByteArray {
@@ -32,9 +30,7 @@ private class OpenSslSha256 : Hasher {
         ensureReady()
 
         val digest = ByteArray(mdSize)
-        digest.asUByteArray().usePinned {
-            checkError(EVP_DigestFinal_ex(context, it.addressOf(0), null))
-        }
+        digest.asUByteArray().usePinned { checkError(EVP_DigestFinal_ex(context, it.addressOf(0), null)) }
         ready = false
 
         return digest

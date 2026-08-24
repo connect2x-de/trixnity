@@ -6,6 +6,7 @@ import okio.Path
 
 interface OkioPlatformMedia : PlatformMedia {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): OkioPlatformMedia
+
     override suspend fun getTemporaryFile(): Result<TemporaryFile>
 
     interface TemporaryFile : PlatformMedia.TemporaryFile {

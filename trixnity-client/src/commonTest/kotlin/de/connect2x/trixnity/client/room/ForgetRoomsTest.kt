@@ -39,9 +39,9 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.flow.first
 import kotlin.test.Test
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
 
 @OptIn(MSC4354::class, MSC4143::class)
 class ForgetRoomsTest : TrixnityBaseTest() {
@@ -57,23 +57,23 @@ class ForgetRoomsTest : TrixnityBaseTest() {
     private val roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore()
     private val notificationStore = getInMemoryNotificationStore()
 
-    private val cut = ForgetRoomServiceImpl(
-        roomStore = roomStore,
-        roomUserStore = roomUserStore,
-        roomStateStore = roomStateStore,
-        roomAccountDataStore = roomAccountDataStore,
-        roomTimelineStore = roomTimelineStore,
-        stickyEventStore = roomStickyEventStore,
-        roomOutboxMessageStore = roomOutboxMessageStore,
-        notificationStore = notificationStore,
-        tm = tm,
-    )
+    private val cut =
+        ForgetRoomServiceImpl(
+            roomStore = roomStore,
+            roomUserStore = roomUserStore,
+            roomStateStore = roomStateStore,
+            roomAccountDataStore = roomAccountDataStore,
+            roomTimelineStore = roomTimelineStore,
+            stickyEventStore = roomStickyEventStore,
+            roomOutboxMessageStore = roomOutboxMessageStore,
+            notificationStore = notificationStore,
+            tm = tm,
+        )
 
     @Test
     fun `invoke » forget rooms when membership is leave`() = runTest {
         tm.writeTransaction {
             roomStore.update(room) { simpleRoom.copy(room, membership = Membership.LEAVE) }
-
 
             fun timelineEvent(roomId: RoomId, i: Int) =
                 TimelineEvent(
@@ -111,11 +111,7 @@ class ForgetRoomsTest : TrixnityBaseTest() {
             roomStateStore.save(stateEvent(room, 2))
 
             fun roomAccountDataEvent(roomId: RoomId, i: Int) =
-                RoomAccountDataEvent(
-                    FullyReadEventContent(EventId("$i")),
-                    roomId,
-                    key = "$i",
-                )
+                RoomAccountDataEvent(FullyReadEventContent(EventId("$i")), roomId, key = "$i")
             roomAccountDataStore.save(roomAccountDataEvent(room, 1))
             roomAccountDataStore.save(roomAccountDataEvent(room, 2))
 
@@ -125,33 +121,27 @@ class ForgetRoomsTest : TrixnityBaseTest() {
             roomUserStore.update(UserId("2"), room) { roomUser(room, 2) }
 
             roomOutboxMessageStore.update(room, "t1") {
-                RoomOutboxMessage(
-                    room, "t1",
-                    RoomMessageEventContent.TextBased.Text("hi"),
-                    testClock.now(),
-                )
+                RoomOutboxMessage(room, "t1", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
             }
 
-
-            val stickyEvent = MessageEvent(
-                content = RtcMemberEventContent(slotId = "slot", stickyKey = "sticky_key") as StickyEventContent,
-                id = EventId("${'$'}sticky"),
-                sender = UserId("sender", "server"),
-                roomId = room,
-                originTimestamp = 1234L,
-                sticky = StickyEventData(durationMs = 24_000),
-            )
+            val stickyEvent =
+                MessageEvent(
+                    content = RtcMemberEventContent(slotId = "slot", stickyKey = "sticky_key") as StickyEventContent,
+                    id = EventId("${'$'}sticky"),
+                    sender = UserId("sender", "server"),
+                    roomId = room,
+                    originTimestamp = 1234L,
+                    sticky = StickyEventData(durationMs = 24_000),
+                )
             roomStickyEventStore.save(
                 StoredStickyEvent(
                     event = stickyEvent,
                     startTime = Instant.fromEpochMilliseconds(24),
-                    endTime = Instant.fromEpochMilliseconds(24)
+                    endTime = Instant.fromEpochMilliseconds(24),
                 )
             )
 
-            notificationStore.update("notif") {
-                StoredNotification.Message("s", room, EventId("notif"), setOf())
-            }
+            notificationStore.update("notif") { StoredNotification.Message("s", room, EventId("notif"), setOf()) }
         }
 
         roomStore.getAll().first { it.size == 1 }
@@ -163,10 +153,18 @@ class ForgetRoomsTest : TrixnityBaseTest() {
         roomTimelineStore.get(EventId("1"), room).first() shouldBe null
         roomTimelineStore.get(EventId("2"), room).first() shouldBe null
 
-        roomTimelineStore.getRelations(EventId("1"), room, RelationType.Replace)
-            .first().values.firstOrNull()?.first() shouldBe null
-        roomTimelineStore.getRelations(EventId("2"), room, RelationType.Replace)
-            .first().values.firstOrNull()?.first() shouldBe null
+        roomTimelineStore
+            .getRelations(EventId("1"), room, RelationType.Replace)
+            .first()
+            .values
+            .firstOrNull()
+            ?.first() shouldBe null
+        roomTimelineStore
+            .getRelations(EventId("2"), room, RelationType.Replace)
+            .first()
+            .values
+            .firstOrNull()
+            ?.first() shouldBe null
 
         roomStateStore.getByStateKey<MemberEventContent>(room, "1").first() shouldBe null
         roomStateStore.getByStateKey<MemberEventContent>(room, "2").first() shouldBe null
@@ -180,19 +178,14 @@ class ForgetRoomsTest : TrixnityBaseTest() {
         roomOutboxMessageStore.get(room, "t1").first() shouldBe null
         notificationStore.getById("notif").first() shouldBe null
 
-        roomStickyEventStore.getBySenderAndStickyKey(
-            room,
-            RtcMemberEventContent::class,
-            UserId("sender", "server"),
-            "sticky_key"
-        ).first() shouldBe null
+        roomStickyEventStore
+            .getBySenderAndStickyKey(room, RtcMemberEventContent::class, UserId("sender", "server"), "sticky_key")
+            .first() shouldBe null
     }
 
     @Test
     fun `invoke » not forget rooms when membership is not leave`() = runTest {
-        tm.writeTransaction {
-            roomStore.update(room) { simpleRoom.copy(room) }
-        }
+        tm.writeTransaction { roomStore.update(room) { simpleRoom.copy(room) } }
         roomStore.getAll().first { it.size == 1 }
         cut(room, false)
         roomStore.get(room).first() shouldNotBe null
@@ -200,12 +193,9 @@ class ForgetRoomsTest : TrixnityBaseTest() {
 
     @Test
     fun `invoke » forget rooms when membership is not leave if forced`() = runTest {
-        tm.writeTransaction {
-            roomStore.update(room) { simpleRoom.copy(room) }
-        }
+        tm.writeTransaction { roomStore.update(room) { simpleRoom.copy(room) } }
         roomStore.getAll().first { it.size == 1 }
         cut(room, true)
         roomStore.get(room).first() shouldBe null
     }
-
 }

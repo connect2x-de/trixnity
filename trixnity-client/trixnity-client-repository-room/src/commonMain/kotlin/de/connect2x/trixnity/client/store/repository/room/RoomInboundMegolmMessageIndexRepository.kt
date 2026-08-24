@@ -13,10 +13,7 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 
-@Entity(
-    tableName = "InboundMegolmMessageIndex",
-    primaryKeys = ["sessionId", "roomId", "messageIndex"],
-)
+@Entity(tableName = "InboundMegolmMessageIndex", primaryKeys = ["sessionId", "roomId", "messageIndex"])
 data class RoomInboundMegolmMessageIndex(
     val sessionId: String,
     val roomId: RoomId,
@@ -36,14 +33,9 @@ interface InboundMegolmMessageIndexDao {
         LIMIT 1
         """
     )
-    suspend fun get(
-        sessionId: String,
-        roomId: RoomId,
-        messageIndex: Long,
-    ): RoomInboundMegolmMessageIndex?
+    suspend fun get(sessionId: String, roomId: RoomId, messageIndex: Long): RoomInboundMegolmMessageIndex?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomInboundMegolmMessageIndex)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomInboundMegolmMessageIndex)
 
     @Query(
         """
@@ -53,40 +45,28 @@ interface InboundMegolmMessageIndexDao {
         AND messageIndex = :messageIndex
         """
     )
-    suspend fun delete(
-        sessionId: String,
-        roomId: RoomId,
-        messageIndex: Long,
-    ): Int
+    suspend fun delete(sessionId: String, roomId: RoomId, messageIndex: Long): Int
 
-    @Query("DELETE FROM InboundMegolmMessageIndex")
-    suspend fun deleteAll()
+    @Query("DELETE FROM InboundMegolmMessageIndex") suspend fun deleteAll()
 }
 
-internal class RoomInboundMegolmMessageIndexRepository(
-    db: TrixnityRoomDatabase,
-) : InboundMegolmMessageIndexRepository {
+internal class RoomInboundMegolmMessageIndexRepository(db: TrixnityRoomDatabase) : InboundMegolmMessageIndexRepository {
     private val dao = db.inboundMegolmMessageIndex()
 
     context(transaction: ReadTransaction)
     override suspend fun get(key: InboundMegolmMessageIndexRepositoryKey): StoredInboundMegolmMessageIndex? =
-        dao.get(key.sessionId, key.roomId, key.messageIndex)
-            ?.let { entity ->
-                StoredInboundMegolmMessageIndex(
-                    sessionId = entity.sessionId,
-                    roomId = entity.roomId,
-                    messageIndex = entity.messageIndex,
-                    eventId = entity.eventId,
-                    originTimestamp = entity.originTimestamp,
-                )
-            }
-
+        dao.get(key.sessionId, key.roomId, key.messageIndex)?.let { entity ->
+            StoredInboundMegolmMessageIndex(
+                sessionId = entity.sessionId,
+                roomId = entity.roomId,
+                messageIndex = entity.messageIndex,
+                eventId = entity.eventId,
+                originTimestamp = entity.originTimestamp,
+            )
+        }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        key: InboundMegolmMessageIndexRepositoryKey,
-        value: StoredInboundMegolmMessageIndex
-    ) =
+    override suspend fun save(key: InboundMegolmMessageIndexRepositoryKey, value: StoredInboundMegolmMessageIndex) =
         dao.insert(
             RoomInboundMegolmMessageIndex(
                 sessionId = key.sessionId,
@@ -103,6 +83,5 @@ internal class RoomInboundMegolmMessageIndexRepository(
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

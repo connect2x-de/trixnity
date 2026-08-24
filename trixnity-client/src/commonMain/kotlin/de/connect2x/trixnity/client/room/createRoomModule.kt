@@ -74,10 +74,7 @@ fun createRoomModule() = module {
             config = get(),
         )
     }
-    @OptIn(MSC4354::class)
-    singleOf(::ForgetRoomServiceImpl) {
-        bind<ForgetRoomService>()
-    }
+    @OptIn(MSC4354::class) singleOf(::ForgetRoomServiceImpl) { bind<ForgetRoomService>() }
     single<RoomEventEncryptionService>(named<MegolmRoomEventEncryptionService>()) {
         MegolmRoomEventEncryptionService(
             roomStore = get(),
@@ -114,7 +111,7 @@ fun createRoomModule() = module {
             currentSyncState = get(),
             scope = get(),
             matrixClientConfig = get(),
-            eventContentMediaMappings = get()
+            eventContentMediaMappings = get(),
         )
     }
 }

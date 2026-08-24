@@ -15,9 +15,7 @@ expect annotation class ModuleImport(val module: String, val name: String)
 @OptIn(ExperimentalMultiplatform::class)
 @OptionalExpectation
 @Target(AnnotationTarget.FILE)
-expect annotation class Import(
-    val import: String,
-)
+expect annotation class Import(val import: String)
 
 internal expect val InitHook: () -> Unit
 

@@ -1,5 +1,13 @@
 package de.connect2x.trixnity.applicationserviceapi.server
 
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -9,22 +17,13 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.json.Json
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.model.RoomAliasId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-
+import kotlinx.serialization.json.Json
 
 private fun Application.matrixApplicationServiceApiServerTestApplication(
-    applicationServiceApiServerHandler: ApplicationServiceApiServerHandler,
+    applicationServiceApiServerHandler: ApplicationServiceApiServerHandler
 ) {
     matrixApplicationServiceApiServer("validToken") {
         matrixApplicationServiceApiServerRoutes(applicationServiceApiServerHandler)
@@ -56,7 +55,6 @@ class TestApplicationServiceApiServerHandler : ApplicationServiceApiServerHandle
     override suspend fun ping(txnId: String?) {
         ping = txnId
     }
-
 }
 
 class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
@@ -76,10 +74,11 @@ class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
         val handler = TestApplicationServiceApiServerHandler()
         application { matrixApplicationServiceApiServerTestApplication(handler) }
 
-        val response = client.put("/_matrix/app/v1/transactions/1?access_token=validToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.put("/_matrix/app/v1/transactions/1?access_token=validToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "events": [
                         {
@@ -116,9 +115,10 @@ class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
                         }
                       ]
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("{}", response.body())
         assertSoftly(handler.addTransaction) {
@@ -148,11 +148,9 @@ class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
         application { matrixApplicationServiceApiServerTestApplication(handler) }
         handler.hasUser = false
 
-        val response =
-            client.get("/_matrix/app/v1/users/${"@user:server".encodeURLPath()}?access_token=validToken")
+        val response = client.get("/_matrix/app/v1/users/${"@user:server".encodeURLPath()}?access_token=validToken")
         response.status shouldBe HttpStatusCode.NotFound
-        Json.decodeFromString(ErrorResponse.Serializer, response.body())
-            .shouldBeInstanceOf<ErrorResponse.NotFound>()
+        Json.decodeFromString(ErrorResponse.Serializer, response.body()).shouldBeInstanceOf<ErrorResponse.NotFound>()
         handler.requestedUser shouldBe UserId("@user:server")
     }
 
@@ -174,11 +172,9 @@ class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
         application { matrixApplicationServiceApiServerTestApplication(handler) }
         handler.hasRoom = false
 
-        val response =
-            client.get("/_matrix/app/v1/rooms/${"#alias:server".encodeURLPath()}?access_token=validToken")
+        val response = client.get("/_matrix/app/v1/rooms/${"#alias:server".encodeURLPath()}?access_token=validToken")
         response.status shouldBe HttpStatusCode.NotFound
-        Json.decodeFromString(ErrorResponse.Serializer, response.body())
-            .shouldBeInstanceOf<ErrorResponse.NotFound>()
+        Json.decodeFromString(ErrorResponse.Serializer, response.body()).shouldBeInstanceOf<ErrorResponse.NotFound>()
         handler.requestedRoom shouldBe RoomAliasId("#alias:server")
     }
 
@@ -187,16 +183,18 @@ class MatrixApplicationServiceApiServerTest : TrixnityBaseTest() {
         val handler = TestApplicationServiceApiServerHandler()
         application { matrixApplicationServiceApiServerTestApplication(handler) }
 
-        val response = client.post("/_matrix/app/v1/ping?access_token=validToken") {
-            contentType(ContentType.Application.Json)
-            setBody(
-                """
+        val response =
+            client.post("/_matrix/app/v1/ping?access_token=validToken") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    """
                     {
                       "transaction_id": "1"
                     }
-                """.trimIndent()
-            )
-        }
+                    """
+                        .trimIndent()
+                )
+            }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("{}", response.body())
         handler.ping shouldBe "1"

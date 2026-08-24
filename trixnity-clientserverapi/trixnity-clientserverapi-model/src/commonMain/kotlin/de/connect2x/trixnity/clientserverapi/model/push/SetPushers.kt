@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.clientserverapi.model.push
 
+import de.connect2x.trixnity.core.HttpMethod
+import de.connect2x.trixnity.core.HttpMethodType.POST
+import de.connect2x.trixnity.core.MatrixEndpoint
 import io.ktor.resources.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -9,13 +12,8 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import de.connect2x.trixnity.core.HttpMethod
-import de.connect2x.trixnity.core.HttpMethodType.POST
-import de.connect2x.trixnity.core.MatrixEndpoint
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#post_matrixclientv3pushersset">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#post_matrixclientv3pushersset">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/client/v3/pushers/set")
 @HttpMethod(POST)
@@ -28,35 +26,23 @@ data object SetPushers : MatrixEndpoint<SetPushers.Request, Unit> {
 
         @Serializable
         data class Set(
-            @SerialName("app_id")
-            override val appId: String,
-            @SerialName("pushkey")
-            override val pushkey: String,
-            @SerialName("kind")
-            override val kind: String,
-            @SerialName("app_display_name")
-            val appDisplayName: String,
-            @SerialName("device_display_name")
-            val deviceDisplayName: String,
-            @SerialName("lang")
-            val lang: String,
-            @SerialName("data")
-            val data: PusherData,
-            @SerialName("append")
-            val append: Boolean? = null,
-            @SerialName("profile_tag")
-            val profileTag: String? = null,
+            @SerialName("app_id") override val appId: String,
+            @SerialName("pushkey") override val pushkey: String,
+            @SerialName("kind") override val kind: String,
+            @SerialName("app_display_name") val appDisplayName: String,
+            @SerialName("device_display_name") val deviceDisplayName: String,
+            @SerialName("lang") val lang: String,
+            @SerialName("data") val data: PusherData,
+            @SerialName("append") val append: Boolean? = null,
+            @SerialName("profile_tag") val profileTag: String? = null,
         ) : Request
 
         @Serializable
         data class Remove(
-            @SerialName("app_id")
-            override val appId: String,
-            @SerialName("pushkey")
-            override val pushkey: String,
+            @SerialName("app_id") override val appId: String,
+            @SerialName("pushkey") override val pushkey: String,
         ) : Request {
-            @SerialName("kind")
-            override val kind: String? = null
+            @SerialName("kind") override val kind: String? = null
         }
 
         object Serializer : KSerializer<Request> {
@@ -78,10 +64,12 @@ data object SetPushers : MatrixEndpoint<SetPushers.Request, Unit> {
                 when (value) {
                     is Remove -> {
                         encoder.encodeJsonElement(
-                            JsonObject(buildMap {
-                                putAll(encoder.json.encodeToJsonElement<Remove>(value).jsonObject)
-                                put("kind", JsonNull)
-                            })
+                            JsonObject(
+                                buildMap {
+                                    putAll(encoder.json.encodeToJsonElement<Remove>(value).jsonObject)
+                                    put("kind", JsonNull)
+                                }
+                            )
                         )
                     }
 

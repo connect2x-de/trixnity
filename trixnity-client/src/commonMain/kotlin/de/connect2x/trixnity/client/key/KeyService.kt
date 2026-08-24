@@ -59,6 +59,7 @@ import de.connect2x.trixnity.crypto.sign.sign
 import de.connect2x.trixnity.crypto.sign.signatures
 import de.connect2x.trixnity.utils.encodeBase64
 import de.connect2x.trixnity.utils.encodeUnpaddedBase64
+import kotlin.random.Random
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,17 +71,13 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlin.random.Random
 
 private val log = Logger("de.connect2x.trixnity.client.key.KeyService")
 
 interface KeyService {
     val bootstrapRunning: StateFlow<Boolean>
 
-    data class BootstrapCrossSigning(
-        val recoveryKey: String,
-        val result: Result<UIA<Unit>>,
-    )
+    data class BootstrapCrossSigning(val recoveryKey: String, val result: Result<UIA<Unit>>)
 
     /**
      * This allows you to bootstrap cross signing. Be aware, that this could override an existing cross signing setup of
@@ -103,36 +100,20 @@ interface KeyService {
      */
     suspend fun bootstrapCrossSigningFromPassphrase(passphrase: String): BootstrapCrossSigning
 
-    /**
-     * @return the trust level of a device.
-     */
-    fun getTrustLevel(
-        userId: UserId,
-        deviceId: String,
-    ): Flow<DeviceTrustLevel>
+    /** @return the trust level of a device. */
+    fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel>
 
-    /**
-     * @return the trust level of a device or null, if the timeline event is not a megolm encrypted event.
-     */
-    fun getTrustLevel(
-        roomId: RoomId,
-        eventId: EventId,
-    ): Flow<DeviceTrustLevel?>
+    /** @return the trust level of a device or null, if the timeline event is not a megolm encrypted event. */
+    fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?>
 
     /**
      * @return the trust level of a user. This will only be present, if the requested user has cross signing enabled.
      */
-    fun getTrustLevel(
-        userId: UserId,
-    ): Flow<UserTrustLevel>
+    fun getTrustLevel(userId: UserId): Flow<UserTrustLevel>
 
-    fun getDeviceKeys(
-        userId: UserId,
-    ): Flow<List<DeviceKeys>?>
+    fun getDeviceKeys(userId: UserId): Flow<List<DeviceKeys>?>
 
-    fun getCrossSigningKeys(
-        userId: UserId,
-    ): Flow<List<CrossSigningKeys>?>
+    fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?>
 }
 
 class KeyServiceImpl(
@@ -159,55 +140,61 @@ class KeyServiceImpl(
         log.debug { "bootstrap cross signing" }
         _bootstrapRunning.value = true
 
-        val keyId = generateSequence {
-            val alphabet = 'a'..'z'
-            generateSequence { alphabet.random() }.take(24).joinToString("")
-        }.first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
+        val keyId =
+            generateSequence {
+                    val alphabet = 'a'..'z'
+                    generateSequence { alphabet.random() }.take(24).joinToString("")
+                }
+                .first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
         val result = runCatching {
-            val (masterSigningPrivateKey, masterSigningPublicKey) = driver.key.ed25519SecretKey().use {
-                it.base64 to it.publicKey.use(Key::of)
-            }
-            val masterSigningKey = signService.sign(
-                CrossSigningKeys(
-                    userId = userInfo.userId,
-                    usage = setOf(MasterKey), keys = keysOf(masterSigningPublicKey)
-                ),
-                signWith = SignWith.KeyPair(
-                    privateKey = masterSigningPrivateKey,
-                    publicKey = masterSigningPublicKey.value.value,
+            val (masterSigningPrivateKey, masterSigningPublicKey) =
+                driver.key.ed25519SecretKey().use { it.base64 to it.publicKey.use(Key::of) }
+            val masterSigningKey =
+                signService.sign(
+                    CrossSigningKeys(
+                        userId = userInfo.userId,
+                        usage = setOf(MasterKey),
+                        keys = keysOf(masterSigningPublicKey),
+                    ),
+                    signWith =
+                        SignWith.KeyPair(
+                            privateKey = masterSigningPrivateKey,
+                            publicKey = masterSigningPublicKey.value.value,
+                        ),
                 )
-            )
-            val (selfSigningPrivateKey, selfSigningPublicKey) = driver.key.ed25519SecretKey().use {
-                it.base64 to it.publicKey.use(Key::of)
-            }
-            val selfSigningKey = signService.sign(
-                CrossSigningKeys(
-                    userId = userInfo.userId,
-                    usage = setOf(SelfSigningKey), keys = keysOf(selfSigningPublicKey)
-                ),
-                signWith = SignWith.KeyPair(
-                    privateKey = masterSigningPrivateKey,
-                    publicKey = masterSigningPublicKey.value.value,
+            val (selfSigningPrivateKey, selfSigningPublicKey) =
+                driver.key.ed25519SecretKey().use { it.base64 to it.publicKey.use(Key::of) }
+            val selfSigningKey =
+                signService.sign(
+                    CrossSigningKeys(
+                        userId = userInfo.userId,
+                        usage = setOf(SelfSigningKey),
+                        keys = keysOf(selfSigningPublicKey),
+                    ),
+                    signWith =
+                        SignWith.KeyPair(
+                            privateKey = masterSigningPrivateKey,
+                            publicKey = masterSigningPublicKey.value.value,
+                        ),
                 )
-            )
-            val (userSigningPrivateKey, userSigningPublicKey) = driver.key.ed25519SecretKey().use {
-                it.base64 to it.publicKey.use(Key::of)
-            }
-            val userSigningKey = signService.sign(
-                CrossSigningKeys(
-                    userId = userInfo.userId,
-                    usage = setOf(UserSigningKey),
-                    keys = keysOf(userSigningPublicKey),
-                ),
-                signWith = SignWith.KeyPair(
-                    privateKey = masterSigningPrivateKey,
-                    publicKey = masterSigningPublicKey.value.value,
+            val (userSigningPrivateKey, userSigningPublicKey) =
+                driver.key.ed25519SecretKey().use { it.base64 to it.publicKey.use(Key::of) }
+            val userSigningKey =
+                signService.sign(
+                    CrossSigningKeys(
+                        userId = userInfo.userId,
+                        usage = setOf(UserSigningKey),
+                        keys = keysOf(userSigningPublicKey),
+                    ),
+                    signWith =
+                        SignWith.KeyPair(
+                            privateKey = masterSigningPrivateKey,
+                            publicKey = masterSigningPublicKey.value.value,
+                        ),
                 )
-            )
 
-            val (keyBackupPrivateKey, keyBackupPublicKey) = driver.key.curve25519SecretKey().use {
-                it.base64 to it.publicKey.use(KeyValue::of)
-            }
+            val (keyBackupPrivateKey, keyBackupPublicKey) =
+                driver.key.curve25519SecretKey().use { it.base64 to it.publicKey.use(KeyValue::of) }
 
             @OptIn(MSC3814::class)
             val dehydratedDeviceKey =
@@ -215,42 +202,40 @@ class KeyServiceImpl(
                     Random.nextBytes(32).encodeUnpaddedBase64()
                 } else null
 
-            val masterKeyEventContent = MasterKeyEventContent(
-                encryptSecret(
-                    key = recoveryKey,
-                    keyId = keyId,
-                    secretName = SecretType.M_CROSS_SIGNING_MASTER.id,
-                    secret = masterSigningPrivateKey,
-                    json = api.json
+            val masterKeyEventContent =
+                MasterKeyEventContent(
+                    encryptSecret(
+                        key = recoveryKey,
+                        keyId = keyId,
+                        secretName = SecretType.M_CROSS_SIGNING_MASTER.id,
+                        secret = masterSigningPrivateKey,
+                        json = api.json,
+                    )
                 )
-            )
-            val userSigningKeyEventContent = UserSigningKeyEventContent(
-                encryptSecret(
-                    key = recoveryKey,
-                    keyId = keyId,
-                    secretName = SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
-                    secret = userSigningPrivateKey,
-                    json = api.json
+            val userSigningKeyEventContent =
+                UserSigningKeyEventContent(
+                    encryptSecret(
+                        key = recoveryKey,
+                        keyId = keyId,
+                        secretName = SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
+                        secret = userSigningPrivateKey,
+                        json = api.json,
+                    )
                 )
-            )
-            val selfSigningKeyEventContent = SelfSigningKeyEventContent(
-                encryptSecret(
-                    key = recoveryKey,
-                    keyId = keyId,
-                    secretName = SecretType.M_CROSS_SIGNING_SELF_SIGNING.id,
-                    secret = selfSigningPrivateKey,
-                    json = api.json
+            val selfSigningKeyEventContent =
+                SelfSigningKeyEventContent(
+                    encryptSecret(
+                        key = recoveryKey,
+                        keyId = keyId,
+                        secretName = SecretType.M_CROSS_SIGNING_SELF_SIGNING.id,
+                        secret = selfSigningPrivateKey,
+                        json = api.json,
+                    )
                 )
-            )
-            val megolmBackupV1EventContent = MegolmBackupV1EventContent(
-                encryptSecret(
-                    recoveryKey,
-                    keyId,
-                    SecretType.M_MEGOLM_BACKUP_V1.id,
-                    keyBackupPrivateKey,
-                    api.json
+            val megolmBackupV1EventContent =
+                MegolmBackupV1EventContent(
+                    encryptSecret(recoveryKey, keyId, SecretType.M_MEGOLM_BACKUP_V1.id, keyBackupPrivateKey, api.json)
                 )
-            )
             val dehydratedDeviceEventContent =
                 if (dehydratedDeviceKey != null) {
                     @OptIn(MSC3814::class)
@@ -260,7 +245,7 @@ class KeyServiceImpl(
                             keyId = keyId,
                             secretName = SecretType.M_DEHYDRATED_DEVICE.id,
                             secret = dehydratedDeviceKey,
-                            json = api.json
+                            json = api.json,
                         )
                     )
                 } else null
@@ -272,30 +257,24 @@ class KeyServiceImpl(
             api.user.setAccountData(selfSigningKeyEventContent, userInfo.userId).getOrThrow()
             api.key.setRoomKeysVersion(
                 SetRoomKeyBackupVersionRequest.V1(
-                    authData = with(
-                        RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(keyBackupPublicKey)
-                    ) {
-                        val ownDeviceSignature = signService.signatures(this)[userInfo.userId]
-                            ?.firstOrNull()
-                        val ownUsersSignature =
-                            signService.signatures(
-                                this,
-                                SignWith.KeyPair(
-                                    masterSigningPrivateKey,
-                                    masterSigningPublicKey.value.value
-                                )
-                            )[userInfo.userId]
-                                ?.firstOrNull()
-                        requireNotNull(ownUsersSignature)
-                        requireNotNull(ownDeviceSignature)
-                        copy(
-                            signatures = signatures + (userInfo.userId to keysOf(
-                                ownDeviceSignature,
-                                ownUsersSignature
-                            ))
-                        )
-                    },
-                    version = null // create new version
+                    authData =
+                        with(RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(keyBackupPublicKey)) {
+                            val ownDeviceSignature = signService.signatures(this)[userInfo.userId]?.firstOrNull()
+                            val ownUsersSignature =
+                                signService
+                                    .signatures(
+                                        this,
+                                        SignWith.KeyPair(masterSigningPrivateKey, masterSigningPublicKey.value.value),
+                                    )[userInfo.userId]
+                                    ?.firstOrNull()
+                            requireNotNull(ownUsersSignature)
+                            requireNotNull(ownDeviceSignature)
+                            copy(
+                                signatures =
+                                    signatures + (userInfo.userId to keysOf(ownDeviceSignature, ownUsersSignature))
+                            )
+                        },
+                    version = null, // create new version
                 )
             )
             api.user.setAccountData(megolmBackupV1EventContent, userInfo.userId).getOrThrow()
@@ -304,145 +283,144 @@ class KeyServiceImpl(
                 api.user.setAccountData(dehydratedDeviceEventContent, userInfo.userId).getOrThrow()
             tm.writeTransaction {
                 keyStore.updateSecrets {
-                    it + listOfNotNull(
-                        SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                            GlobalAccountDataEvent(userSigningKeyEventContent),
-                            userSigningPrivateKey
-                        ),
-                        SecretType.M_CROSS_SIGNING_SELF_SIGNING to StoredSecret(
-                            GlobalAccountDataEvent(selfSigningKeyEventContent),
-                            selfSigningPrivateKey
-                        ),
-                        SecretType.M_MEGOLM_BACKUP_V1 to StoredSecret(
-                            GlobalAccountDataEvent(megolmBackupV1EventContent),
-                            keyBackupPrivateKey
-                        ),
-                        @OptIn(MSC3814::class)
-                        if (dehydratedDeviceEventContent != null && dehydratedDeviceKey != null) {
-                            SecretType.M_DEHYDRATED_DEVICE to StoredSecret(
-                                GlobalAccountDataEvent(dehydratedDeviceEventContent),
-                                dehydratedDeviceKey
+                    it +
+                        listOfNotNull(
+                                SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                                    StoredSecret(
+                                        GlobalAccountDataEvent(userSigningKeyEventContent),
+                                        userSigningPrivateKey,
+                                    ),
+                                SecretType.M_CROSS_SIGNING_SELF_SIGNING to
+                                    StoredSecret(
+                                        GlobalAccountDataEvent(selfSigningKeyEventContent),
+                                        selfSigningPrivateKey,
+                                    ),
+                                SecretType.M_MEGOLM_BACKUP_V1 to
+                                    StoredSecret(
+                                        GlobalAccountDataEvent(megolmBackupV1EventContent),
+                                        keyBackupPrivateKey,
+                                    ),
+                                @OptIn(MSC3814::class)
+                                if (dehydratedDeviceEventContent != null && dehydratedDeviceKey != null) {
+                                    SecretType.M_DEHYDRATED_DEVICE to
+                                        StoredSecret(
+                                            GlobalAccountDataEvent(dehydratedDeviceEventContent),
+                                            dehydratedDeviceKey,
+                                        )
+                                } else null,
                             )
-                        } else null
-                    ).toMap()
+                            .toMap()
                 }
             }
-            api.key.setCrossSigningKeys(
-                masterKey = masterSigningKey,
-                selfSigningKey = selfSigningKey,
-                userSigningKey = userSigningKey
-            ).getOrThrow().injectOnSuccessIntoUIA {
-                tm.writeTransaction {
-                    keyStore.updateOutdatedKeys { oldOutdatedKeys -> oldOutdatedKeys + userInfo.userId } // ensure, we have updated keys
-                }
-                val masterKey =
-                    keyStore.getCrossSigningKey(userInfo.userId, MasterKey)?.value?.signed?.get<Ed25519Key>()
-                val ownDeviceKey =
-                    keyStore.getDeviceKey(userInfo.userId, userInfo.deviceId).first()?.value?.get<Ed25519Key>()
+            api.key
+                .setCrossSigningKeys(
+                    masterKey = masterSigningKey,
+                    selfSigningKey = selfSigningKey,
+                    userSigningKey = userSigningKey,
+                )
+                .getOrThrow()
+                .injectOnSuccessIntoUIA {
+                    tm.writeTransaction {
+                        keyStore.updateOutdatedKeys { oldOutdatedKeys ->
+                            oldOutdatedKeys + userInfo.userId
+                        } // ensure, we have updated keys
+                    }
+                    val masterKey =
+                        keyStore.getCrossSigningKey(userInfo.userId, MasterKey)?.value?.signed?.get<Ed25519Key>()
+                    val ownDeviceKey =
+                        keyStore.getDeviceKey(userInfo.userId, userInfo.deviceId).first()?.value?.get<Ed25519Key>()
 
-                keyTrustService.trustAndSignKeys(setOfNotNull(masterKey, ownDeviceKey), userInfo.userId)
-                log.debug { "wait for own device keys to be marked as cross signed and verified" }
-                tm.writeTransaction {
-                    keyStore.updateOutdatedKeys { oldOutdatedKeys -> oldOutdatedKeys + userInfo.userId } // ensure, we have updated keys
+                    keyTrustService.trustAndSignKeys(setOfNotNull(masterKey, ownDeviceKey), userInfo.userId)
+                    log.debug { "wait for own device keys to be marked as cross signed and verified" }
+                    tm.writeTransaction {
+                        keyStore.updateOutdatedKeys { oldOutdatedKeys ->
+                            oldOutdatedKeys + userInfo.userId
+                        } // ensure, we have updated keys
+                    }
+                    keyStore
+                        .getDeviceKey(userInfo.userId, userInfo.deviceId)
+                        .mapNotNull { it?.trustLevel }
+                        .first { it is KeySignatureTrustLevel.CrossSigned && it.verified }
+                    _bootstrapRunning.value = false
+                    log.debug { "finished bootstrapping" }
                 }
-                keyStore.getDeviceKey(userInfo.userId, userInfo.deviceId)
-                    .mapNotNull { it?.trustLevel }
-                    .first { it is KeySignatureTrustLevel.CrossSigned && it.verified }
-                _bootstrapRunning.value = false
-                log.debug { "finished bootstrapping" }
-            }
         }
-        return KeyService.BootstrapCrossSigning(
-            recoveryKey = encodeRecoveryKey(recoveryKey),
-            result = result
-        )
+        return KeyService.BootstrapCrossSigning(recoveryKey = encodeRecoveryKey(recoveryKey), result = result)
     }
 
     override suspend fun bootstrapCrossSigning(): KeyService.BootstrapCrossSigning {
         val recoveryKey = SecureRandom.nextBytes(32)
         val iv = SecureRandom.nextBytes(16)
-        val secretKeyEventContent = AesHmacSha2Key(
-            iv = iv.encodeBase64(),
-            mac = createAesHmacSha2MacFromKey(recoveryKey, iv)
-        )
+        val secretKeyEventContent =
+            AesHmacSha2Key(iv = iv.encodeBase64(), mac = createAesHmacSha2MacFromKey(recoveryKey, iv))
 
         return bootstrapCrossSigning(recoveryKey, secretKeyEventContent)
     }
 
-    override suspend fun bootstrapCrossSigningFromPassphrase(
-        passphrase: String,
-    ): KeyService.BootstrapCrossSigning {
-        val passphraseInfo = AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2(
-            salt = SecureRandom.nextBytes(32).encodeBase64(),
-            iterations = 210_000,
-            bits = 32 * 8
-        )
+    override suspend fun bootstrapCrossSigningFromPassphrase(passphrase: String): KeyService.BootstrapCrossSigning {
+        val passphraseInfo =
+            AesHmacSha2Key.SecretStorageKeyPassphrase.Pbkdf2(
+                salt = SecureRandom.nextBytes(32).encodeBase64(),
+                iterations = 210_000,
+                bits = 32 * 8,
+            )
         val iv = SecureRandom.nextBytes(16)
         val recoveryKey = recoveryKeyFromPassphrase(passphrase, passphraseInfo)
-        val secretKeyEventContent = AesHmacSha2Key(
-            passphrase = passphraseInfo,
-            iv = iv.encodeBase64(),
-            mac = createAesHmacSha2MacFromKey(key = recoveryKey, iv = iv)
-        )
+        val secretKeyEventContent =
+            AesHmacSha2Key(
+                passphrase = passphraseInfo,
+                iv = iv.encodeBase64(),
+                mac = createAesHmacSha2MacFromKey(key = recoveryKey, iv = iv),
+            )
         return bootstrapCrossSigning(recoveryKey, secretKeyEventContent)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getTrustLevel(
-        roomId: RoomId,
-        eventId: EventId,
-    ): Flow<DeviceTrustLevel?> =
+    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?> =
         roomService.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
             val event = timelineEvent?.event
             val content = event?.content
             if (event is MessageEvent && content is MegolmEncryptedMessageEventContent) {
                 combine(
-                    olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId),
-                    keyStore.getDeviceKeys(event.sender)
-                ) { megolmSession, deviceKeys ->
-                    when {
-                        megolmSession == null || deviceKeys == null -> flowOf(DeviceTrustLevel.Invalid("could not find session or device key"))
-                        megolmSession.isTrusted.not() -> flowOf(DeviceTrustLevel.NotTrusted)
-                        else -> {
-                            val deviceId =
-                                deviceKeys.values.find { it.value.signed.keys.keys.any { it.value == megolmSession.senderKey } }
-                                    ?.value?.signed?.deviceId
-                            if (deviceId != null) getTrustLevel(event.sender, deviceId)
-                            else flowOf(DeviceTrustLevel.Invalid("could not find device id"))
+                        olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId),
+                        keyStore.getDeviceKeys(event.sender),
+                    ) { megolmSession, deviceKeys ->
+                        when {
+                            megolmSession == null || deviceKeys == null ->
+                                flowOf(DeviceTrustLevel.Invalid("could not find session or device key"))
+                            megolmSession.isTrusted.not() -> flowOf(DeviceTrustLevel.NotTrusted)
+                            else -> {
+                                val deviceId =
+                                    deviceKeys.values
+                                        .find { it.value.signed.keys.keys.any { it.value == megolmSession.senderKey } }
+                                        ?.value
+                                        ?.signed
+                                        ?.deviceId
+                                if (deviceId != null) getTrustLevel(event.sender, deviceId)
+                                else flowOf(DeviceTrustLevel.Invalid("could not find device id"))
+                            }
                         }
                     }
-                }.flatMapLatest { it }
+                    .flatMapLatest { it }
             } else flowOf(null)
         }
 
-    override fun getTrustLevel(
-        userId: UserId,
-        deviceId: String,
-    ): Flow<DeviceTrustLevel> {
+    override fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel> {
         return keyStore.getDeviceKey(userId, deviceId).map { it?.trustLevel.toDeviceTrustLevel() }
     }
 
-    override fun getTrustLevel(
-        userId: UserId,
-    ): Flow<UserTrustLevel> {
-        return keyStore.getCrossSigningKeys(userId)
+    override fun getTrustLevel(userId: UserId): Flow<UserTrustLevel> {
+        return keyStore
+            .getCrossSigningKeys(userId)
             .map { keys -> keys?.firstOrNull { it.value.signed.usage.contains(MasterKey) } }
             .map { it?.trustLevel.toUserTrustLevel() }
     }
 
-    override fun getDeviceKeys(
-        userId: UserId,
-    ): Flow<List<DeviceKeys>?> {
-        return keyStore.getDeviceKeys(userId).map {
-            it?.values?.map { storedKeys -> storedKeys.value.signed }
-        }
+    override fun getDeviceKeys(userId: UserId): Flow<List<DeviceKeys>?> {
+        return keyStore.getDeviceKeys(userId).map { it?.values?.map { storedKeys -> storedKeys.value.signed } }
     }
 
-    override fun getCrossSigningKeys(
-        userId: UserId,
-    ): Flow<List<CrossSigningKeys>?> {
-        return keyStore.getCrossSigningKeys(userId).map {
-            it?.map { storedKeys -> storedKeys.value.signed }
-        }
+    override fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?> {
+        return keyStore.getCrossSigningKeys(userId).map { it?.map { storedKeys -> storedKeys.value.signed } }
     }
 }

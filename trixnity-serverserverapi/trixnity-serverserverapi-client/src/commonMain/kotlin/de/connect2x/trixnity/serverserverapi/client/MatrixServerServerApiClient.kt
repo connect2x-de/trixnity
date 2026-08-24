@@ -22,18 +22,20 @@ class MatrixServerServerApiClientImpl(
     getDelegatedDestination: (String, Int) -> Pair<String, Int>,
     sign: (String) -> Key.Ed25519Key,
     roomVersionStore: RoomVersionStore,
-    private val eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.defaultDataUnit,
+    private val eventContentSerializerMappings: EventContentSerializerMappings =
+        EventContentSerializerMappings.defaultDataUnit,
     json: Json = createMatrixEventAndDataUnitJson(roomVersionStore, eventContentSerializerMappings),
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
 ) : MatrixServerServerApiClient {
-    override val baseClient = MatrixApiClient(eventContentSerializerMappings, json, httpClientEngine) {
-        install(MatrixSignatureAuthPlugin(hostname, sign))
-        install(MatrixDestinationPlugin(getDelegatedDestination))
-        install(ConvertMediaPlugin)
+    override val baseClient =
+        MatrixApiClient(eventContentSerializerMappings, json, httpClientEngine) {
+            install(MatrixSignatureAuthPlugin(hostname, sign))
+            install(MatrixDestinationPlugin(getDelegatedDestination))
+            install(ConvertMediaPlugin)
 
-        httpClientConfig?.invoke(this)
-    }
+            httpClientConfig?.invoke(this)
+        }
 
     override val discovery = DiscoveryApiClientImpl(baseClient)
     override val federation = FederationApiClientImpl(baseClient)

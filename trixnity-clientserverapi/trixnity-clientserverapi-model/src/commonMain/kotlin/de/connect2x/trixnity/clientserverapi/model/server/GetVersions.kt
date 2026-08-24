@@ -1,17 +1,15 @@
 package de.connect2x.trixnity.clientserverapi.model.server
 
-import io.ktor.resources.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import de.connect2x.trixnity.core.Auth
 import de.connect2x.trixnity.core.AuthRequired
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
+import io.ktor.resources.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientversions">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#get_matrixclientversions">matrix spec</a> */
 @Serializable
 @Resource("/_matrix/client/versions")
 @HttpMethod(GET)
@@ -20,6 +18,6 @@ object GetVersions : MatrixEndpoint<Unit, GetVersions.Response> {
     @Serializable
     data class Response(
         @SerialName("versions") val versions: List<String> = listOf(),
-        @SerialName("unstable_features") val unstableFeatures: Map<String, Boolean> = mapOf()
+        @SerialName("unstable_features") val unstableFeatures: Map<String, Boolean> = mapOf(),
     )
 }

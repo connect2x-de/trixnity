@@ -27,18 +27,8 @@ class SelfVerificationMethodTest : TrixnityBaseTest() {
     fun `AesHmacSha2RecoveryKey » verify » decode recovery key and decrypt missing keys with it`() = runTest {
         val key = Random.nextBytes(32)
         val iv = Random.nextBytes(16)
-        val mac = encryptAesHmacSha2(
-            content = ByteArray(32),
-            key = key,
-            name = "",
-            initialisationVector = iv
-        ).mac
-        val info = SecretKeyEventContent.AesHmacSha2Key(
-            name = "",
-            passphrase = null,
-            mac = mac,
-            iv = iv.encodeBase64()
-        )
+        val mac = encryptAesHmacSha2(content = ByteArray(32), key = key, name = "", initialisationVector = iv).mac
+        val info = SecretKeyEventContent.AesHmacSha2Key(name = "", passphrase = null, mac = mac, iv = iv.encodeBase64())
         val cut = AesHmacSha2RecoveryKey(keySecretServiceMock, keyTrustServiceMock, "KEY", info)
         cut.verify(encodeRecoveryKey(key)).getOrThrow()
         assertSoftly(keySecretServiceMock.decryptMissingSecretsCalled.value) {
@@ -60,29 +50,26 @@ class SelfVerificationMethodTest : TrixnityBaseTest() {
         runTest {
             val iv = Random.nextBytes(16)
             val salt = Random.nextBytes(32).encodeBase64()
-            val key = generatePbkdf2Sha512(
-                password = "password",
-                salt = salt.encodeToByteArray(),
-                iterationCount = 1_000, // just a test, not secure
-                keyBitLength = 32 * 8
-            )
-            val mac = encryptAesHmacSha2(
-                content = ByteArray(32),
-                key = key,
-                name = "",
-                initialisationVector = iv
-            ).mac
-            val info = SecretKeyEventContent.AesHmacSha2Key(
-                passphrase = Pbkdf2(
-                    salt = salt,
-                    iterations = 1_000, // just a test, not secure
-                    bits = 32 * 8
-                ),
-                iv = iv.encodeBase64(),
-                mac = mac
-            )
-            val cut =
-                AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(keySecretServiceMock, keyTrustServiceMock, "KEY", info)
+            val key =
+                generatePbkdf2Sha512(
+                    password = "password",
+                    salt = salt.encodeToByteArray(),
+                    iterationCount = 1_000, // just a test, not secure
+                    keyBitLength = 32 * 8,
+                )
+            val mac = encryptAesHmacSha2(content = ByteArray(32), key = key, name = "", initialisationVector = iv).mac
+            val info =
+                SecretKeyEventContent.AesHmacSha2Key(
+                    passphrase =
+                        Pbkdf2(
+                            salt = salt,
+                            iterations = 1_000, // just a test, not secure
+                            bits = 32 * 8,
+                        ),
+                    iv = iv.encodeBase64(),
+                    mac = mac,
+                )
+            val cut = AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(keySecretServiceMock, keyTrustServiceMock, "KEY", info)
             cut.verify("password").getOrThrow()
             assertSoftly(keySecretServiceMock.decryptMissingSecretsCalled.value) {
                 assertNotNull(this)

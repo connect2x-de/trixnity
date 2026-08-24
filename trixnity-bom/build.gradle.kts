@@ -1,32 +1,13 @@
-plugins {
-    `java-platform`
-}
+plugins { `java-platform` }
 
-javaPlatform {
-    allowDependencies()
-}
+javaPlatform { allowDependencies() }
 
 val name = project.name
 
-val publishedProjects = rootProject.subprojects
-    .filter { it.plugins.hasPlugin(MavenPublishPlugin::class) }
-    .toSet()
+val publishedProjects = rootProject.subprojects.filter { it.plugins.hasPlugin(MavenPublishPlugin::class) }.toSet()
 
 val otherPublishedProjects = publishedProjects - this
 
+dependencies { constraints { otherPublishedProjects.forEach { api(it) } } }
 
-dependencies {
-    constraints {
-        otherPublishedProjects.forEach {
-            api(it)
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("trixnityPlatform") {
-            from(components["javaPlatform"])
-        }
-    }
-}
+publishing { publications { create<MavenPublication>("trixnityPlatform") { from(components["javaPlatform"]) } } }

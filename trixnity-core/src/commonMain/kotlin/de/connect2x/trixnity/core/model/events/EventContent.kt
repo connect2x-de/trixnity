@@ -16,28 +16,26 @@ sealed interface EventContent
  */
 sealed interface RoomEventContent : EventContent {
     /**
-     * @see <a href="https://spec.matrix.org/v1.10/application-service-api/#referencing-messages-from-a-third-party-network">matrix spec</a>
+     * @see <a
+     *   href="https://spec.matrix.org/v1.10/application-service-api/#referencing-messages-from-a-third-party-network">matrix
+     *   spec</a>
      */
     val externalUrl: String?
 }
 
-/**
- * Content of a matrix message event
- */
+/** Content of a matrix message event */
 interface MessageEventContent : RoomEventContent {
     val relatesTo: RelatesTo?
     val mentions: Mentions?
 
     /**
-     * This should return the same instance, but with the [relatesTo] property set to the given value.
-     * It is used for event content replacing.
+     * This should return the same instance, but with the [relatesTo] property set to the given value. It is used for
+     * event content replacing.
      */
     fun copyWith(relatesTo: RelatesTo?): MessageEventContent
 }
 
-/**
- * Content of a matrix state event
- */
+/** Content of a matrix state event */
 interface StateEventContent : RoomEventContent
 
 interface ToDeviceEventContent : EventContent
@@ -73,7 +71,8 @@ data class UnknownEventContent(
     val raw: JsonObject, // TODO remove when ExtensibleEventContent is the default
     override val blocks: EventContentBlocks,
     val eventType: String,
-) : EventContent,
+) :
+    EventContent,
     RoomEventContent,
     MessageEventContent,
     StateEventContent,

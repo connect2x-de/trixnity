@@ -16,52 +16,37 @@ suspend fun deriveKeys(key: ByteArray, name: String): DerivedKeys {
     return DerivedKeys(aesKey = aesKey, hmacKey = hmacKey)
 }
 
-data class AesHmacSha2EncryptedData(
-    val iv: String,
-    val ciphertext: String,
-    val mac: String
-)
+data class AesHmacSha2EncryptedData(val iv: String, val ciphertext: String, val mac: String)
 
 suspend fun encryptAesHmacSha2(
     content: ByteArray,
     key: ByteArray,
     name: String,
-    initialisationVector: ByteArray = SecureRandom.nextBytes(16)
+    initialisationVector: ByteArray = SecureRandom.nextBytes(16),
 ): AesHmacSha2EncryptedData {
     val iv = initialisationVector.copyOf()
     iv[8] = iv[8] and 0x7f
     val keys = deriveKeys(key, name)
-    val ciphertext = content.toByteArrayFlow().encryptAes256Ctr(
-        key = keys.aesKey,
-        initialisationVector = iv
-    ).toByteArray()
+    val ciphertext =
+        content.toByteArrayFlow().encryptAes256Ctr(key = keys.aesKey, initialisationVector = iv).toByteArray()
     return AesHmacSha2EncryptedData(
         iv = iv.encodeUnpaddedBase64(),
         ciphertext = ciphertext.encodeUnpaddedBase64(),
-        mac = hmacSha256(keys.hmacKey, ciphertext).encodeUnpaddedBase64()
+        mac = hmacSha256(keys.hmacKey, ciphertext).encodeUnpaddedBase64(),
     )
 }
 
-suspend fun decryptAesHmacSha2(
-    content: AesHmacSha2EncryptedData,
-    key: ByteArray,
-    name: String,
-): ByteArray {
+suspend fun decryptAesHmacSha2(content: AesHmacSha2EncryptedData, key: ByteArray, name: String): ByteArray {
     val keys = deriveKeys(key, name)
     val ciphertextBytes = content.ciphertext.decodeBase64()
     val hmac = hmacSha256(keys.hmacKey, ciphertextBytes)
     if (!hmac.contentEquals(content.mac.decodeBase64())) throw IllegalArgumentException("bad mac")
-    return ciphertextBytes.toByteArrayFlow().decryptAes256Ctr(
-        key = keys.aesKey,
-        initialisationVector = content.iv.decodeBase64()
-    ).toByteArray()
+    return ciphertextBytes
+        .toByteArrayFlow()
+        .decryptAes256Ctr(key = keys.aesKey, initialisationVector = content.iv.decodeBase64())
+        .toByteArray()
 }
 
 suspend fun createAesHmacSha2MacFromKey(key: ByteArray, iv: ByteArray): String {
-    return encryptAesHmacSha2(
-        content = ByteArray(32),
-        key = key,
-        name = "",
-        initialisationVector = iv
-    ).mac
+    return encryptAesHmacSha2(content = ByteArray(32), key = key, name = "", initialisationVector = iv).mac
 }

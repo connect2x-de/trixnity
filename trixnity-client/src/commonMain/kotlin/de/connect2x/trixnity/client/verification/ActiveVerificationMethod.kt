@@ -5,5 +5,6 @@ import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationSt
 
 abstract class ActiveVerificationMethod {
     abstract val startEventContent: VerificationStartEventContent
+
     internal abstract suspend fun handleVerificationStep(step: VerificationStep, isOurOwn: Boolean)
 }

@@ -49,22 +49,18 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
-    private val cut = IncomingSecretKeyRequestEventHandler(
-        UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
-        api,
-        OlmEventHandlerMock(),
-        olmEncryptionServiceMock,
-        keyStore
-    ).apply {
-        startInCoroutineScope(testScope.backgroundScope)
-    }
+    private val cut =
+        IncomingSecretKeyRequestEventHandler(
+                UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+                api,
+                OlmEventHandlerMock(),
+                olmEncryptionServiceMock,
+                keyStore,
+            )
+            .apply { startInCoroutineScope(testScope.backgroundScope) }
 
-    private val encryptedEvent = ToDeviceEvent(
-        OlmEncryptedToDeviceEventContent(
-            ciphertext = mapOf(),
-            senderKey = Curve25519KeyValue("")
-        ), bob
-    )
+    private val encryptedEvent =
+        ToDeviceEvent(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")), bob)
 
     private var sendToDeviceEvents: Map<UserId, Map<String, ToDeviceEventContent>>? = null
 
@@ -73,15 +69,20 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         bobDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    bob, keysOf(), null, alice, keysOf()
-                )
+                    bob,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -93,15 +94,20 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -113,28 +119,38 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         handleEncryptedIncomingKeyRequestsSetup()
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST_CANCELLATION,
                         aliceDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -173,62 +189,49 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
-                        KeySignatureTrustLevel.Valid(true)
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            Signed(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), null),
+                            KeySignatureTrustLevel.Valid(true),
+                        )
                 )
             }
         }
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) { sendToDeviceEvents = it.messages }
         }
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                        GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                        "secretUserSigningKey"
-                    )
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                        StoredSecret(
+                            GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
+                            "secretUserSigningKey",
+                        )
                 )
             }
         }
-        olmEncryptionServiceMock.returnEncryptOlm = Result.success(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("")
-            )
-        )
+        olmEncryptionServiceMock.returnEncryptOlm =
+            Result.success(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")))
     }
 
     private suspend fun processIncomingKeyRequestsSetup() {
         apiConfig.endpoints {
-            matrixJsonEndpoint(
-                SendToDevice("m.room.encrypted", "*"),
-            ) {
-                sendToDeviceEvents = it.messages
-            }
+            matrixJsonEndpoint(SendToDevice("m.room.encrypted", "*")) { sendToDeviceEvents = it.messages }
         }
         tm.writeTransaction {
             keyStore.updateSecrets {
                 mapOf(
-                    SecretType.M_CROSS_SIGNING_USER_SIGNING to StoredSecret(
-                        GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
-                        "secretUserSigningKey"
-                    )
+                    SecretType.M_CROSS_SIGNING_USER_SIGNING to
+                        StoredSecret(
+                            GlobalAccountDataEvent(UserSigningKeyEventContent(mapOf())),
+                            "secretUserSigningKey",
+                        )
                 )
             }
         }
-        olmEncryptionServiceMock.returnEncryptOlm = Result.success(
-            OlmEncryptedToDeviceEventContent(
-                ciphertext = mapOf(),
-                senderKey = Curve25519KeyValue("")
-            )
-        )
+        olmEncryptionServiceMock.returnEncryptOlm =
+            Result.success(OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("")))
     }
 
     private fun answerRequest(returnedTrustLevel: KeySignatureTrustLevel) = runTest {
@@ -236,24 +239,30 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        returnedTrustLevel
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            returnedTrustLevel,
+                        )
                 )
             }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
@@ -266,29 +275,34 @@ class IncomingSecretKeyRequestEventHandlerTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    aliceDevice to StoredDeviceKeys(
-                        SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
-                        returnedTrustLevel
-                    )
+                    aliceDevice to
+                        StoredDeviceKeys(
+                            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf()), mapOf()),
+                            returnedTrustLevel,
+                        )
                 )
             }
         }
         cut.handleEncryptedIncomingKeyRequests(
             DecryptedOlmEventContainer(
-                encryptedEvent, PlaintextOlmEvent(
+                encryptedEvent,
+                PlaintextOlmEvent(
                     SecretKeyRequestEventContent(
                         SecretType.M_CROSS_SIGNING_USER_SIGNING.id,
                         KeyRequestAction.REQUEST,
                         aliceDevice,
-                        "requestId"
+                        "requestId",
                     ),
-                    alice, keysOf(), null, alice, keysOf()
-                )
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
             )
         )
         cut.processIncomingKeyRequests()
         cut.processIncomingKeyRequests()
         sendToDeviceEvents shouldBe null
     }
-
 }

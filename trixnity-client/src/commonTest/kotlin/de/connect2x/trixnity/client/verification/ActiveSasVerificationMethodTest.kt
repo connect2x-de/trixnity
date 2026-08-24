@@ -56,10 +56,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.test.Test
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
-import kotlin.test.Test
 
 class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -77,15 +77,16 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
 
     private val cut by suspendLazy {
         ActiveSasVerificationMethod.create(
-            startEventContent = SasStartEventContent(
-                aliceDevice,
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null,
-                transactionId = "t"
-            ),
+            startEventContent =
+                SasStartEventContent(
+                    aliceDevice,
+                    hashes = setOf(SasHash.Sha256),
+                    keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                    messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
+                    shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                    relatesTo = null,
+                    transactionId = "t",
+                ),
             weStartedVerification = true,
             ownUserId = alice,
             ownDeviceId = aliceDevice,
@@ -103,29 +104,31 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
 
     @Test
     fun `create » cancel when key agreement protocol is not supported`() = runTest {
-        val method = ActiveSasVerificationMethod.create(
-            startEventContent = SasStartEventContent(
-                aliceDevice,
-                keyAgreementProtocols = setOf(),
+        val method =
+            ActiveSasVerificationMethod.create(
+                startEventContent =
+                    SasStartEventContent(
+                        aliceDevice,
+                        keyAgreementProtocols = setOf(),
+                        relatesTo = null,
+                        hashes = setOf(SasHash.Sha256),
+                        messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
+                        shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
+                        transactionId = "t",
+                    ),
+                weStartedVerification = true,
+                ownUserId = alice,
+                ownDeviceId = aliceDevice,
+                theirUserId = bob,
+                theirDeviceId = bobDevice,
                 relatesTo = null,
-                hashes = setOf(SasHash.Sha256),
-                messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
-                shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                transactionId = "t"
-            ),
-            weStartedVerification = true,
-            ownUserId = alice,
-            ownDeviceId = aliceDevice,
-            theirUserId = bob,
-            theirDeviceId = bobDevice,
-            relatesTo = null,
-            transactionId = "t",
-            sendVerificationStep = { sendVerificationStepFlow.emit(it) },
-            keyStore = keyStore,
-            keyTrustService = keyTrustService,
-            json = json,
-            driver = driver,
-        )
+                transactionId = "t",
+                sendVerificationStep = { sendVerificationStepFlow.emit(it) },
+                keyStore = keyStore,
+                keyTrustService = keyTrustService,
+                json = json,
+                driver = driver,
+            )
         method shouldBe null
         val result = sendVerificationStepFlow.first()
         result.shouldBeInstanceOf<VerificationCancelEventContent>()
@@ -134,29 +137,31 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
 
     @Test
     fun `create » cancel when short authentication string is not supported`() = runTest {
-        val method = ActiveSasVerificationMethod.create(
-            startEventContent = SasStartEventContent(
-                aliceDevice,
+        val method =
+            ActiveSasVerificationMethod.create(
+                startEventContent =
+                    SasStartEventContent(
+                        aliceDevice,
+                        relatesTo = null,
+                        transactionId = "t",
+                        shortAuthenticationString = setOf(),
+                        hashes = setOf(SasHash.Sha256),
+                        keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
+                        messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
+                    ),
+                weStartedVerification = true,
+                ownUserId = alice,
+                ownDeviceId = aliceDevice,
+                theirUserId = bob,
+                theirDeviceId = bobDevice,
                 relatesTo = null,
                 transactionId = "t",
-                shortAuthenticationString = setOf(),
-                hashes = setOf(SasHash.Sha256),
-                keyAgreementProtocols = setOf(SasKeyAgreementProtocol.Curve25519HkdfSha256),
-                messageAuthenticationCodes = setOf(SasMessageAuthenticationCode.HkdfHmacSha256),
-            ),
-            weStartedVerification = true,
-            ownUserId = alice,
-            ownDeviceId = aliceDevice,
-            theirUserId = bob,
-            theirDeviceId = bobDevice,
-            relatesTo = null,
-            transactionId = "t",
-            sendVerificationStep = { sendVerificationStepFlow.emit(it) },
-            keyStore = keyStore,
-            keyTrustService = keyTrustService,
-            json = json,
-            driver = driver,
-        )
+                sendVerificationStep = { sendVerificationStepFlow.emit(it) },
+                keyStore = keyStore,
+                keyTrustService = keyTrustService,
+                json = json,
+                driver = driver,
+            )
         method shouldBe null
         val result = sendVerificationStepFlow.first()
         result.shouldBeInstanceOf<VerificationCancelEventContent>()
@@ -182,8 +187,9 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                     messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                     shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                     relatesTo = null,
-                    transactionId = "t"
-                ), true
+                    transactionId = "t",
+                ),
+                true,
             )
             cut.state.value shouldBe Accept(true)
             sendVerificationStepFlow.replayCache.shouldBeEmpty()
@@ -199,8 +205,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                     keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                     messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                     shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                    relatesTo = null, transactionId = "t"
-                ), false
+                    relatesTo = null,
+                    transactionId = "t",
+                ),
+                false,
             )
             cut.state.value shouldBe Accept(false)
             val result = sendVerificationStepFlow.first()
@@ -223,8 +231,9 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                     messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                     shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                     relatesTo = null,
-                    transactionId = "t"
-                ), false
+                    transactionId = "t",
+                ),
+                false,
             )
             val result = sendVerificationStepFlow.first()
             result.shouldBeInstanceOf<VerificationCancelEventContent>()
@@ -242,8 +251,9 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                     keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                     messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                     relatesTo = null,
-                    transactionId = "t"
-                ), false
+                    transactionId = "t",
+                ),
+                false,
             )
             val result = sendVerificationStepFlow.first()
             result.shouldBeInstanceOf<VerificationCancelEventContent>()
@@ -259,16 +269,17 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsAcceptHandleUnexpectedSetup
+            ::currentStateIsAcceptHandleUnexpectedSetup,
         )
 
     @Test
     fun `handleVerificationStep » current state is Accept » handle unexpected » cancel unexpected message SasMacEventContent`() =
         checkNotAllowedStateChange(
             SasMacEventContent(MacValue("keys"), keysOf(), null, "t"),
-            ::currentStateIsAcceptHandleUnexpectedSetup
+            ::currentStateIsAcceptHandleUnexpectedSetup,
         )
 
     @Test
@@ -276,9 +287,8 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         runTest {
             currentStateIsAcceptAcceptFromThem(cut)
             cut.handleVerificationStep(
-                SasKeyEventContent(
-                    Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-                ), true
+                SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+                true,
             )
             cut.state.value shouldBe WaitForKeys(true)
         }
@@ -288,9 +298,8 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         runTest {
             currentStateIsAcceptAcceptFromUs(cut)
             cut.handleVerificationStep(
-                SasKeyEventContent(
-                    Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-                ), false
+                SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+                false,
             )
             cut.state.value shouldBe WaitForKeys(false)
             val result = sendVerificationStepFlow.first()
@@ -307,9 +316,8 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         runTest {
             currentStateIsAcceptAcceptFromUs(cut)
             cut.handleVerificationStep(
-                SasKeyEventContent(
-                    Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-                ), true
+                SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+                true,
             )
             val result = sendVerificationStepFlow.first()
             result.shouldBeInstanceOf<VerificationCancelEventContent>()
@@ -325,16 +333,17 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsWaitForKeys
+            ::currentStateIsWaitForKeys,
         )
 
     @Test
     fun `handleVerificationStep » current state is WaitForKeys » cancel unexpected message SasMacEventContent`() =
         checkNotAllowedStateChange(
             SasMacEventContent(MacValue("keys"), keysOf(), null, "t"),
-            ::currentStateIsWaitForKeys
+            ::currentStateIsWaitForKeys,
         )
 
     @Test
@@ -344,8 +353,9 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
             SasKeyEventContent(
                 Curve25519KeyValue("3vPVpNPsVYVYuozmCrihhndEvVZUHpoHBSb5+TdkaAA"),
                 relatesTo = null,
-                transactionId = "t"
-            ), false
+                transactionId = "t",
+            ),
+            false,
         )
         val state = cut.state.value
         state.shouldBeInstanceOf<ComparisonByUser>()
@@ -361,12 +371,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     fun `handleVerificationStep » current state is WaitForKeys » cancel when commitment does not match`() = runTest {
         currentStateIsWaitForKeys(cut)
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), false
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            false,
         )
-        val result =
-            sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
+        val result = sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
         result.code shouldBe MismatchedCommitment
     }
 
@@ -374,12 +382,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     fun `handleVerificationStep » current state is WaitForKeys » cancel when sender it not expected`() = runTest {
         currentStateIsWaitForKeys(cut)
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), true
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            true,
         )
-        val result =
-            sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
+        val result = sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
         result.code shouldBe UnexpectedMessage
     }
 
@@ -392,16 +398,17 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsComparisonByUserTheirMacNotReceivedYet
+            ::currentStateIsComparisonByUserTheirMacNotReceivedYet,
         )
 
     @Test
     fun `handleVerificationStep » current state is ComparisonByUser » their mac not received yet » cancel unexpected message SasKeyEventContent`() =
         checkNotAllowedStateChange(
             SasKeyEventContent(Curve25519KeyValue("key"), null, "t"),
-            ::currentStateIsComparisonByUserTheirMacNotReceivedYet
+            ::currentStateIsComparisonByUserTheirMacNotReceivedYet,
         )
 
     @Test
@@ -430,7 +437,8 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
             ::currentStateIsComparisonByUserTheirMacAlreadyReceived,
         )
@@ -461,16 +469,17 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
+                relatesTo = null,
+                transactionId = "t",
             ),
-            ::currentStateIsWaitForMacs
+            ::currentStateIsWaitForMacs,
         )
 
     @Test
     fun `handleVerificationStep » current state is WaitForMacs » cancel unexpected message SasKeyEventContent`() =
         checkNotAllowedStateChange(
             SasKeyEventContent(Curve25519KeyValue("key"), null, "t"),
-            ::currentStateIsWaitForMacs
+            ::currentStateIsWaitForMacs,
         )
 
     @Test
@@ -480,11 +489,8 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         require(sasMacEventContent is SasMacEventContent)
         cut.handleVerificationStep(sasMacEventContent, false)
         sendVerificationStepFlow.replayCache shouldContain VerificationDoneEventContent(null, "t")
-        keyTrustService.trustAndSignKeysCalled.value shouldBe (setOf(
-            Ed25519Key(bobDevice, "bobKey"),
-            Ed25519Key("HUHU", "buh"),
-            Ed25519Key("AAKey3", "key3")
-        ) to bob)
+        keyTrustService.trustAndSignKeysCalled.value shouldBe
+            (setOf(Ed25519Key(bobDevice, "bobKey"), Ed25519Key("HUHU", "buh"), Ed25519Key("AAKey3", "key3")) to bob)
     }
 
     @Test
@@ -493,8 +499,7 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         val sasMacEventContent = sasMacFromBob
         require(sasMacEventContent is SasMacEventContent)
         cut.handleVerificationStep(sasMacEventContent.copy(keys = MacValue("dino")), false)
-        val result =
-            sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
+        val result = sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
         result.code shouldBe KeyMismatch
         result.reason shouldBe "keys mac did not match"
     }
@@ -506,12 +511,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         require(sasMacEventContent is SasMacEventContent)
         val firstMac = sasMacEventContent.mac.first()
         cut.handleVerificationStep(
-            sasMacEventContent.copy(
-                mac = Keys(sasMacEventContent.mac - firstMac + Ed25519Key(firstMac.id, "dino"))
-            ), false
+            sasMacEventContent.copy(mac = Keys(sasMacEventContent.mac - firstMac + Ed25519Key(firstMac.id, "dino"))),
+            false,
         )
-        val result =
-            sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
+        val result = sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
         result.code shouldBe KeyMismatch
         result.reason shouldBe "macs did not match"
     }
@@ -522,8 +525,7 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
     ) = runTest {
         setup(cut)
         cut.handleVerificationStep(step, false)
-        val result =
-            sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
+        val result = sendVerificationStepFlow.replayCache.filterIsInstance<VerificationCancelEventContent>().first()
         result.code shouldBe UnexpectedMessage
     }
 
@@ -535,8 +537,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), true
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            true,
         )
         cut.state.value.shouldBeInstanceOf<Accept>()
     }
@@ -549,8 +553,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), false
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            false,
         )
         cut.state.value.shouldBeInstanceOf<Accept>()
     }
@@ -563,8 +569,10 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 keyAgreementProtocol = SasKeyAgreementProtocol.Curve25519HkdfSha256,
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
-                relatesTo = null, transactionId = "t"
-            ), true
+                relatesTo = null,
+                transactionId = "t",
+            ),
+            true,
         )
         cut.state.value.shouldBeInstanceOf<Accept>()
     }
@@ -578,13 +586,13 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                 relatesTo = null,
-                transactionId = "t"
-            ), false
+                transactionId = "t",
+            ),
+            false,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), true
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            true,
         )
         cut.state.value.shouldBeInstanceOf<WaitForKeys>()
     }
@@ -598,20 +606,21 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                 relatesTo = null,
-                transactionId = "t"
-            ), false
+                transactionId = "t",
+            ),
+            false,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), true
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            true,
         )
         cut.handleVerificationStep(
             SasKeyEventContent(
                 Curve25519KeyValue("3vPVpNPsVYVYuozmCrihhndEvVZUHpoHBSb5+TdkaAA"),
                 relatesTo = null,
-                transactionId = "t"
-            ), false
+                transactionId = "t",
+            ),
+            false,
         )
         cut.state.value.shouldBeInstanceOf<ComparisonByUser>()
     }
@@ -620,17 +629,19 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
                 mapOf(
-                    bobDevice to StoredDeviceKeys(
-                        Signed(
-                            DeviceKeys(
-                                alice, aliceDevice, setOf(Megolm),
-                                keysOf(
-                                    Ed25519Key(aliceDevice, "aliceKey"),
-                                    Ed25519Key("HUHU", "buh")
-                                )
-                            ), mapOf()
-                        ), Valid(true)
-                    )
+                    bobDevice to
+                        StoredDeviceKeys(
+                            Signed(
+                                DeviceKeys(
+                                    alice,
+                                    aliceDevice,
+                                    setOf(Megolm),
+                                    keysOf(Ed25519Key(aliceDevice, "aliceKey"), Ed25519Key("HUHU", "buh")),
+                                ),
+                                mapOf(),
+                            ),
+                            Valid(true),
+                        )
                 )
             }
             keyStore.updateCrossSigningKeys(alice) {
@@ -640,27 +651,29 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                             CrossSigningKeys(
                                 userId = alice,
                                 usage = setOf(CrossSigningKeysUsage.MasterKey),
-                                keys = keysOf(
-                                    Ed25519Key("AAKey3", "key3")
-                                )
-                            ), mapOf()
-                        ), Valid(false)
+                                keys = keysOf(Ed25519Key("AAKey3", "key3")),
+                            ),
+                            mapOf(),
+                        ),
+                        Valid(false),
                     )
                 )
             }
             keyStore.updateDeviceKeys(bob) {
                 mapOf(
-                    bobDevice to StoredDeviceKeys(
-                        Signed(
-                            DeviceKeys(
-                                bob, bobDevice, setOf(Megolm),
-                                keysOf(
-                                    Ed25519Key(bobDevice, "bobKey"),
-                                    Ed25519Key("HUHU", "buh")
-                                )
-                            ), mapOf()
-                        ), Valid(true)
-                    )
+                    bobDevice to
+                        StoredDeviceKeys(
+                            Signed(
+                                DeviceKeys(
+                                    bob,
+                                    bobDevice,
+                                    setOf(Megolm),
+                                    keysOf(Ed25519Key(bobDevice, "bobKey"), Ed25519Key("HUHU", "buh")),
+                                ),
+                                mapOf(),
+                            ),
+                            Valid(true),
+                        )
                 )
             }
             keyStore.updateCrossSigningKeys(bob) {
@@ -670,11 +683,11 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                             CrossSigningKeys(
                                 userId = bob,
                                 usage = setOf(CrossSigningKeysUsage.MasterKey),
-                                keys = keysOf(
-                                    Ed25519Key("BBKey3", "Bkey3")
-                                )
-                            ), mapOf()
-                        ), Valid(false)
+                                keys = keysOf(Ed25519Key("BBKey3", "Bkey3")),
+                            ),
+                            mapOf(),
+                        ),
+                        Valid(false),
                     )
                 )
             }
@@ -690,37 +703,39 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                 relatesTo = null,
-                transactionId = "t"
-            ), true
+                transactionId = "t",
+            ),
+            true,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(KeyValue.of(bobOlmSas.publicKey), relatesTo = null, transactionId = "t"), false
+            SasKeyEventContent(KeyValue.of(bobOlmSas.publicKey), relatesTo = null, transactionId = "t"),
+            false,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), true
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            true,
         )
 
         val alicePublicKey = sendVerificationStepFlow.filterIsInstance<SasKeyEventContent>().first().key
-        val establishedSas = bobOlmSas.diffieHellman(
-            driver.key.curve25519PublicKey(alicePublicKey)
-        )
+        val establishedSas = bobOlmSas.diffieHellman(driver.key.curve25519PublicKey(alicePublicKey))
 
         var sasMacFromBob: VerificationStep? = null
         ComparisonByUser(
-            listOf(),
-            listOf(),
-            bob,
-            bobDevice,
-            alice,
-            aliceDevice,
-            SasMessageAuthenticationCode.HkdfHmacSha256,
-            null,
-            "t",
-            establishedSas,
-            keyStore
-        ) { sasMacFromBob = it }.match()
+                listOf(),
+                listOf(),
+                bob,
+                bobDevice,
+                alice,
+                aliceDevice,
+                SasMessageAuthenticationCode.HkdfHmacSha256,
+                null,
+                "t",
+                establishedSas,
+                keyStore,
+            ) {
+                sasMacFromBob = it
+            }
+            .match()
         cut.handleVerificationStep(sasMacFromBob.shouldNotBeNull(), false)
     }
 
@@ -728,17 +743,19 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(bob) {
                 mapOf(
-                    bobDevice to StoredDeviceKeys(
-                        Signed(
-                            DeviceKeys(
-                                bob, bobDevice, setOf(Megolm),
-                                keysOf(
-                                    Ed25519Key(bobDevice, "bobKey"),
-                                    Ed25519Key("HUHU", "buh")
-                                )
-                            ), mapOf()
-                        ), Valid(true)
-                    )
+                    bobDevice to
+                        StoredDeviceKeys(
+                            Signed(
+                                DeviceKeys(
+                                    bob,
+                                    bobDevice,
+                                    setOf(Megolm),
+                                    keysOf(Ed25519Key(bobDevice, "bobKey"), Ed25519Key("HUHU", "buh")),
+                                ),
+                                mapOf(),
+                            ),
+                            Valid(true),
+                        )
                 )
             }
             keyStore.updateCrossSigningKeys(bob) {
@@ -748,11 +765,11 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                             CrossSigningKeys(
                                 userId = bob,
                                 usage = setOf(CrossSigningKeysUsage.MasterKey),
-                                keys = keysOf(
-                                    Ed25519Key("AAKey3", "key3")
-                                )
-                            ), mapOf()
-                        ), Valid(false)
+                                keys = keysOf(Ed25519Key("AAKey3", "key3")),
+                            ),
+                            mapOf(),
+                        ),
+                        Valid(false),
                     )
                 )
             }
@@ -768,37 +785,39 @@ class ActiveSasVerificationMethodTest : TrixnityBaseTest() {
                 messageAuthenticationCode = SasMessageAuthenticationCode.HkdfHmacSha256,
                 shortAuthenticationString = setOf(SasMethod.Decimal, SasMethod.Emoji),
                 relatesTo = null,
-                transactionId = "t"
-            ), true
+                transactionId = "t",
+            ),
+            true,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(KeyValue.of(bobOlmSas.publicKey), relatesTo = null, transactionId = "t"), false
+            SasKeyEventContent(KeyValue.of(bobOlmSas.publicKey), relatesTo = null, transactionId = "t"),
+            false,
         )
         cut.handleVerificationStep(
-            SasKeyEventContent(
-                Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"
-            ), true
+            SasKeyEventContent(Curve25519KeyValue("k"), relatesTo = null, transactionId = "t"),
+            true,
         )
         cut.handleVerificationStep(SasMacEventContent(MacValue("keys"), keysOf(), null, "t"), true)
         cut.state.value shouldBe WaitForMacs
         val alicePublicKey = sendVerificationStepFlow.filterIsInstance<SasKeyEventContent>().first().key
 
-        val establishedSas = bobOlmSas.diffieHellman(
-            driver.key.curve25519PublicKey(alicePublicKey)
-        )
+        val establishedSas = bobOlmSas.diffieHellman(driver.key.curve25519PublicKey(alicePublicKey))
 
         ComparisonByUser(
-            listOf(),
-            listOf(),
-            bob,
-            bobDevice,
-            alice,
-            aliceDevice,
-            SasMessageAuthenticationCode.HkdfHmacSha256,
-            null,
-            "t",
-            establishedSas,
-            keyStore
-        ) { sasMacFromBob = it }.match()
+                listOf(),
+                listOf(),
+                bob,
+                bobDevice,
+                alice,
+                aliceDevice,
+                SasMessageAuthenticationCode.HkdfHmacSha256,
+                null,
+                "t",
+                establishedSas,
+                keyStore,
+            ) {
+                sasMacFromBob = it
+            }
+            .match()
     }
 }

@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client.room
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.Gap.*
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class TimelineBuilderUtilsTest : TrixnityBaseTest() {
@@ -38,55 +38,31 @@ class TimelineBuilderUtilsTest : TrixnityBaseTest() {
                 gap("6to7")
                 +event7
             }
-        } shouldBe listOf(
-            TimelineEvent(
-                event = event0,
-                previousEventId = null,
-                nextEventId = event1.id,
-                gap = null
-            ),
-            TimelineEvent(
-                event = event1,
-                previousEventId = event0.id,
-                nextEventId = event2.id,
-                gap = null
-            ),
-            TimelineEvent(
-                event = event2,
-                previousEventId = event1.id,
-                nextEventId = null,
-                gap = GapAfter("2after")
-            ),
-            TimelineEvent(
-                event = event3,
-                previousEventId = null,
-                nextEventId = event4.id,
-                gap = GapBoth("3both1", "3both2")
-            ),
-            TimelineEvent(
-                event = event4,
-                previousEventId = event3.id,
-                nextEventId = event5.id,
-                gap = GapBefore("4before")
-            ),
-            TimelineEvent(
-                event = event5,
-                previousEventId = event4.id,
-                nextEventId = null,
-                gap = null
-            ),
-            TimelineEvent(
-                event = event6,
-                previousEventId = null,
-                nextEventId = event7.id,
-                gap = GapAfter("6to7")
-            ),
-            TimelineEvent(
-                event = event7,
-                previousEventId = event6.id,
-                nextEventId = null,
-                gap = GapBefore("6to7")
-            ),
-        )
+        } shouldBe
+            listOf(
+                TimelineEvent(event = event0, previousEventId = null, nextEventId = event1.id, gap = null),
+                TimelineEvent(event = event1, previousEventId = event0.id, nextEventId = event2.id, gap = null),
+                TimelineEvent(
+                    event = event2,
+                    previousEventId = event1.id,
+                    nextEventId = null,
+                    gap = GapAfter("2after"),
+                ),
+                TimelineEvent(
+                    event = event3,
+                    previousEventId = null,
+                    nextEventId = event4.id,
+                    gap = GapBoth("3both1", "3both2"),
+                ),
+                TimelineEvent(
+                    event = event4,
+                    previousEventId = event3.id,
+                    nextEventId = event5.id,
+                    gap = GapBefore("4before"),
+                ),
+                TimelineEvent(event = event5, previousEventId = event4.id, nextEventId = null, gap = null),
+                TimelineEvent(event = event6, previousEventId = null, nextEventId = event7.id, gap = GapAfter("6to7")),
+                TimelineEvent(event = event7, previousEventId = event6.id, nextEventId = null, gap = GapBefore("6to7")),
+            )
     }
 }

@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.clientserverapi.model.discovery
 
+import de.connect2x.trixnity.core.Auth
+import de.connect2x.trixnity.core.AuthRequired
+import de.connect2x.trixnity.core.HttpMethod
+import de.connect2x.trixnity.core.HttpMethodType.GET
+import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.model.UserId
 import io.ktor.resources.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -9,16 +15,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import de.connect2x.trixnity.core.Auth
-import de.connect2x.trixnity.core.AuthRequired
-import de.connect2x.trixnity.core.HttpMethod
-import de.connect2x.trixnity.core.HttpMethodType.GET
-import de.connect2x.trixnity.core.MatrixEndpoint
-import de.connect2x.trixnity.core.model.UserId
 
-/**
- * @see <a href="https://spec.matrix.org/v1.10/client-server-api/#getwell-knownmatrixsupport">matrix spec</a>
- */
+/** @see <a href="https://spec.matrix.org/v1.10/client-server-api/#getwell-knownmatrixsupport">matrix spec</a> */
 @Serializable
 @Resource("/.well-known/matrix/support")
 @HttpMethod(GET)
@@ -50,8 +48,7 @@ object GetSupport : MatrixEndpoint<Unit, GetSupport.Response> {
                 data class Unknown(override val name: String) : Role
 
                 object Serializer : KSerializer<Role> {
-                    override val descriptor: SerialDescriptor =
-                        PrimitiveSerialDescriptor("Role", PrimitiveKind.STRING)
+                    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Role", PrimitiveKind.STRING)
 
                     override fun deserialize(decoder: Decoder): Role {
                         return when (val name = decoder.decodeString()) {

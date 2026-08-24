@@ -6,6 +6,7 @@ import web.file.File
 
 interface OpfsPlatformMedia : PlatformMedia {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): OpfsPlatformMedia
+
     override suspend fun getTemporaryFile(): Result<TemporaryFile>
 
     interface TemporaryFile : PlatformMedia.TemporaryFile {

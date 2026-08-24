@@ -29,21 +29,23 @@ suspend fun Url.serverDiscovery(
 ): Result<Url> = kotlin.runCatching {
     require(protocol == URLProtocol.HTTP || protocol == URLProtocol.HTTPS) { "protocol must be http or https" }
     val hostnameBaseUrl = Url(URLBuilder(protocol, host, port))
-    val discoveryBaseUrl = MatrixClientServerApiClientImpl(
-        hostnameBaseUrl,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig
-    ).use {
-        it.discovery.getClient()
-            .map { Url(it.homeserver.baseUrl.removeSuffix("/")) }
-            .getOrElse { this } // fallback when no .well-known exists
-    }
+    val discoveryBaseUrl =
+        MatrixClientServerApiClientImpl(
+                hostnameBaseUrl,
+                httpClientEngine = httpClientEngine,
+                httpClientConfig = httpClientConfig,
+            )
+            .use {
+                it.discovery
+                    .getClient()
+                    .map { Url(it.homeserver.baseUrl.removeSuffix("/")) }
+                    .getOrElse { this } // fallback when no .well-known exists
+            }
     MatrixClientServerApiClientImpl(
-        discoveryBaseUrl,
-        httpClientEngine = httpClientEngine,
-        httpClientConfig = httpClientConfig
-    ).use {
-        it.server.getVersions().getOrThrow()
-    }
+            discoveryBaseUrl,
+            httpClientEngine = httpClientEngine,
+            httpClientConfig = httpClientConfig,
+        )
+        .use { it.server.getVersions().getOrThrow() }
     discoveryBaseUrl
 }

@@ -14,9 +14,10 @@ open class TrixnityBaseTest : CoroutineTest {
             level = Level.DEBUG
             consoleAppender(
                 "{{levelColor}}>> {{levelSymbol}} {{hh}}:{{mm}}:{{ss}}.{{SSS}} [{{threadId}}/{{coroutineName}}][{{name}}] {{message}}{{r}}",
-                filter = Filter { logger, _, _, _ ->
-                    logger.context[Logger.Name]?.name?.startsWith("de.connect2x.trixnity") ?: false
-                }
+                filter =
+                    Filter { logger, _, _, _ ->
+                        logger.context[Logger.Name]?.name?.startsWith("de.connect2x.trixnity") ?: false
+                    },
             )
         }
     }

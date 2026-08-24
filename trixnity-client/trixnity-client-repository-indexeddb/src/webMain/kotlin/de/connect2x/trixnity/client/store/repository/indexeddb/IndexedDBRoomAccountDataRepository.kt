@@ -17,13 +17,11 @@ internal class IndexedDBRoomAccountData(
     val roomId: String,
     val type: String,
     val key: String,
-    @Contextual
-    val value: RoomAccountDataEvent<*>,
+    @Contextual val value: RoomAccountDataEvent<*>,
 )
 
-internal class IndexedDBRoomAccountDataRepository(
-    json: Json
-) : RoomAccountDataRepository,
+internal class IndexedDBRoomAccountDataRepository(json: Json) :
+    RoomAccountDataRepository,
     IndexedDBMapRepository<RoomAccountDataRepositoryKey, String, RoomAccountDataEvent<*>, IndexedDBRoomAccountData>(
         objectStoreName = objectStoreName,
         firstKeyIndexName = "roomId|type",
@@ -37,6 +35,7 @@ internal class IndexedDBRoomAccountDataRepository(
     ) {
     companion object {
         const val objectStoreName = "room_account_data"
+
         fun WrappedTransaction.migrate(database: IDBDatabase, oldVersion: Int) {
             if (oldVersion < 1)
                 createIndexedDBTwoDimensionsStoreRepository(
@@ -53,10 +52,6 @@ internal class IndexedDBRoomAccountDataRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) = withWrite { store ->
-        store.index("roomId").openCursor(keyOf(roomId.full))
-            .collect {
-                store.delete(it.primaryKey)
-            }
-
+        store.index("roomId").openCursor(keyOf(roomId.full)).collect { store.delete(it.primaryKey) }
     }
 }

@@ -27,10 +27,11 @@ internal class ExposedTimelineEventRepository(private val json: Json) : Timeline
     context(transaction: ReadTransaction)
     override suspend fun get(key: TimelineEventKey): TimelineEvent? {
         return ExposedTimelineEvent.selectAll()
-            .where { ExposedTimelineEvent.eventId.eq(key.eventId.full) and ExposedTimelineEvent.roomId.eq(key.roomId.full) }
-            .firstOrNull()?.let {
-                json.decodeFromString(it[ExposedTimelineEvent.value])
+            .where {
+                ExposedTimelineEvent.eventId.eq(key.eventId.full) and ExposedTimelineEvent.roomId.eq(key.roomId.full)
             }
+            .firstOrNull()
+            ?.let { json.decodeFromString(it[ExposedTimelineEvent.value]) }
     }
 
     context(transaction: WriteTransaction)
@@ -49,9 +50,7 @@ internal class ExposedTimelineEventRepository(private val json: Json) : Timeline
 
     context(transaction: WriteTransaction)
     override suspend fun delete(key: TimelineEventKey) {
-        ExposedTimelineEvent.deleteWhere {
-            eventId.eq(key.eventId.full) and roomId.eq(key.roomId.full)
-        }
+        ExposedTimelineEvent.deleteWhere { eventId.eq(key.eventId.full) and roomId.eq(key.roomId.full) }
     }
 
     context(transaction: WriteTransaction)

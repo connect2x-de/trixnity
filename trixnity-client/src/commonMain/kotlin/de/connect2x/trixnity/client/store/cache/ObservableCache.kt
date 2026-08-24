@@ -6,6 +6,12 @@ import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.TransactionManager
 import de.connect2x.trixnity.utils.WriteTransaction
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlin.jvm.JvmInline
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
@@ -22,79 +28,56 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.jvm.JvmInline
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 private val log = Logger("de.connect2x.trixnity.client.store.cache.ObservableCache")
 
 internal sealed interface CacheValue<T> {
     class Init<T> : CacheValue<T>
 
-    @JvmInline
-    value class Value<T>(val value: T) : CacheValue<T>
+    @JvmInline value class Value<T>(val value: T) : CacheValue<T>
 
-    fun valueOrNull() = when (this) {
-        is Init -> null
-        is Value -> value
-    }
+    fun valueOrNull() =
+        when (this) {
+            is Init -> null
+            is Value -> value
+        }
 }
 
-/**
- * The actual source and sink of the data to be cached. This could be any database.
- */
+/** The actual source and sink of the data to be cached. This could be any database. */
 internal interface ObservableCacheStore<K, V> {
-    /**
-     * Retrieve value from store.
-     */
+    /** Retrieve value from store. */
     context(transaction: ReadTransaction)
     suspend fun get(key: K): V?
 
-    /**
-     * Save value to store.
-     */
+    /** Save value to store. */
     context(transaction: WriteTransaction)
     suspend fun persist(key: K, value: V?)
 
-    /**
-     * Delete all values from store.
-     */
+    /** Delete all values from store. */
     context(transaction: WriteTransaction)
     suspend fun deleteAll()
 }
 
-/**
- * An index to track which entries have been added to or removed from the cache.
- */
+/** An index to track which entries have been added to or removed from the cache. */
 internal interface ObservableCacheIndex<K> {
-    /**
-     * Called, when an entry is added to the cache.
-     */
+    /** Called, when an entry is added to the cache. */
     suspend fun onPut(key: K)
 
-    /**
-     * Called, when an entry has skipped the cache. Skipping is done, when there is no subscriber of a cache entry.
-     */
+    /** Called, when an entry has skipped the cache. Skipping is done, when there is no subscriber of a cache entry. */
     suspend fun onSkipPut(key: K)
 
     /**
      * Called, when an entry is removed from the cache.
      *
-     * @param stale means that the value has been deleted from the database. It is only set to true, when no-one listens to this specific key.
+     * @param stale means that the value has been deleted from the database. It is only set to true, when no-one listens
+     *   to this specific key.
      */
     suspend fun onRemove(key: K, stale: Boolean)
 
-    /**
-     * Called, when all entries are removed from the cache.
-     */
+    /** Called, when all entries are removed from the cache. */
     suspend fun onRemoveAll()
 
-    /**
-     * Get the subscription count on an index entry, which uses an entry of the cache.
-     */
+    /** Get the subscription count on an index entry, which uses an entry of the cache. */
     suspend fun getSubscriptionCount(key: K): Int
 
     suspend fun collectStatistic(): ObservableCacheIndexStatistic?
@@ -104,7 +87,8 @@ internal interface ObservableCacheIndex<K> {
  * Base class to create a coroutine and [StateFlow] based cache.
  *
  * @param name The name is just used for logging.
- * @param cacheScope A long living [CoroutineScope] to spawn coroutines, which remove entries from cache when not used anymore.
+ * @param cacheScope A long living [CoroutineScope] to spawn coroutines, which remove entries from cache when not used
+ *   anymore.
  * @param expireDuration Duration to wait until entries from cache are when not used anymore.
  */
 internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
@@ -119,8 +103,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
 ) {
     private val removerIndex =
         if (expireDuration.isInfinite().not()) {
-            RemoverJobExecutingIndex(name, values, clock, expireDuration)
-                .also { addIndex(it) }
+            RemoverJobExecutingIndex(name, values, clock, expireDuration).also { addIndex(it) }
         } else null
 
     init {
@@ -164,50 +147,34 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun set(
-        key: K,
-        value: V?,
-        onPersist: (newValue: V?) -> Unit = {},
-    ) {
-        set(
-            key = key,
-            value = value,
-            persist = { store.persist(key, value).also { onPersist(value) } }
-        )
+    suspend fun set(key: K, value: V?, onPersist: (newValue: V?) -> Unit = {}) {
+        set(key = key, value = value, persist = { store.persist(key, value).also { onPersist(value) } })
     }
 
     context(transaction: CacheTransaction)
-    suspend fun setCacheOnly(
-        key: K,
-        value: V?,
-    ) {
-        set(
-            key = key,
-            value = value,
-            persist = null
-        )
+    suspend fun setCacheOnly(key: K, value: V?) {
+        set(key = key, value = value, persist = null)
     }
 
     context(transaction: CacheTransaction)
-    private suspend fun set(
-        key: K,
-        value: V?,
-        persist: (suspend () -> Unit)?,
-    ) {
+    private suspend fun set(key: K, value: V?, persist: (suspend () -> Unit)?) {
         if (values.get(key) == null && values.getIndexSubscriptionCount(key) == 0) {
-            log.trace { "$name (set): skip cache and persist directly because there is no cache entry or subscriber for key $key" }
+            log.trace {
+                "$name (set): skip cache and persist directly because there is no cache entry or subscriber for key $key"
+            }
             persist?.invoke()
             values.skipPut(key)
             transaction.onCommitActions.write {
                 add {
                     val cacheEntry = values.get(key)
                     if (cacheEntry != null || values.getIndexSubscriptionCount(key) > 0) {
-                        log.trace { "$name (set): skip cache but found a cache entry or subscriber and therefore filling it for key $key" }
+                        log.trace {
+                            "$name (set): skip cache but found a cache entry or subscriber and therefore filling it for key $key"
+                        }
                         (cacheEntry ?: values.getOrPut(key) { MutableStateFlow(CacheValue.Init()) })
-                            .getAndUpdate { CacheValue.Value(value) }.valueOrNull()
-                            .also { oldValue ->
-                                possiblyRemoveFromCache(key, oldValue, value)
-                            }
+                            .getAndUpdate { CacheValue.Value(value) }
+                            .valueOrNull()
+                            .also { oldValue -> possiblyRemoveFromCache(key, oldValue, value) }
                     }
                 }
             }
@@ -222,11 +189,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun update(
-        key: K,
-        onPersist: (newValue: V?) -> Unit = {},
-        updater: (oldValue: V?) -> V?,
-    ) {
+    suspend fun update(key: K, onPersist: (newValue: V?) -> Unit = {}, updater: (oldValue: V?) -> V?) {
         update(
             key = key,
             get = { store.get(key) },
@@ -236,16 +199,8 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     }
 
     context(transaction: CacheTransaction)
-    suspend fun updateCacheOnly(
-        key: K,
-        updater: (oldValue: V?) -> V?,
-    ) {
-        update(
-            key = key,
-            get = { tm.readTransaction { store.get(key) } },
-            persist = null,
-            updater = updater,
-        )
+    suspend fun updateCacheOnly(key: K, updater: (oldValue: V?) -> V?) {
+        update(key = key, get = { tm.readTransaction { store.get(key) } }, persist = null, updater = updater)
     }
 
     context(transaction: CacheTransaction)
@@ -260,23 +215,17 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
                 log.trace { "$name (update): no cache hit for key $key" }
                 MutableStateFlow(CacheValue.Init())
             }
-        cacheEntry.update(
-            key = key,
-            updater = updater,
-            get = get,
-            persist = persist,
-        )
+        cacheEntry.update(key = key, updater = updater, get = get, persist = persist)
     }
 
-    private suspend inline fun <V> MutableStateFlow<CacheValue<V?>>.get(
-        noinline get: (suspend () -> V?),
-    ) {
+    private suspend inline fun <V> MutableStateFlow<CacheValue<V?>>.get(noinline get: (suspend () -> V?)) {
         while (true) {
             val oldRawValue = value
-            val oldValue = when (oldRawValue) {
-                is CacheValue.Init -> get()
-                is CacheValue.Value -> oldRawValue.value
-            }
+            val oldValue =
+                when (oldRawValue) {
+                    is CacheValue.Init -> get()
+                    is CacheValue.Value -> oldRawValue.value
+                }
             val newRawValue = CacheValue.Value(oldValue)
             if (compareAndSet(oldRawValue, newRawValue)) {
                 return
@@ -311,21 +260,24 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     ) {
         while (true) {
             val oldRawValue = value
-            val oldValue = when (oldRawValue) {
-                is CacheValue.Init -> get()
-                is CacheValue.Value -> oldRawValue.value
-            }
+            val oldValue =
+                when (oldRawValue) {
+                    is CacheValue.Init -> get()
+                    is CacheValue.Value -> oldRawValue.value
+                }
             val newValue = updater(oldValue)
             val newRawValue = CacheValue.Value(newValue)
-            if (compareAndSetPersisting(
+            if (
+                compareAndSetPersisting(
                     oldRawValue = oldRawValue,
                     newRawValue = newRawValue,
                     key = key,
                     persist = persist?.run { { persist(newValue) } },
                     oldValue = oldValue,
-                    newValue = newValue
+                    newValue = newValue,
                 )
-            ) break
+            )
+                break
         }
     }
 
@@ -336,20 +288,22 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
         key: K,
         persist: (suspend () -> Unit)?,
         oldValue: V?,
-        newValue: V?
+        newValue: V?,
     ): Boolean {
         if (compareAndSet(oldRawValue, newRawValue)) {
             addCacheTransactionSetActions(key, oldRawValue, newRawValue)
             when {
                 persist == null -> {}
                 oldValue != newValue -> persist()
-                else -> log.trace { "$name (compareSetPersist): skip cache persist for key $key because there was no change" }
+                else ->
+                    log.trace {
+                        "$name (compareSetPersist): skip cache persist for key $key because there was no change"
+                    }
             }
             return true
         }
         return false
     }
-
 
     context(transaction: CacheTransaction)
     private suspend fun MutableStateFlow<CacheValue<V?>>.addCacheTransactionSetActions(
@@ -358,15 +312,15 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
         newValue: CacheValue.Value<V?>,
     ) {
         transaction.onCommitActions.write {
-            add {
-                possiblyRemoveFromCache(key, oldValue.valueOrNull(), newValue.valueOrNull())
-            }
+            add { possiblyRemoveFromCache(key, oldValue.valueOrNull(), newValue.valueOrNull()) }
         }
         transaction.onRollbackActions.write {
             add {
                 log.trace { "$name (set): rollback cache update for key $key" }
                 if (compareAndSet(newValue, oldValue).not()) {
-                    log.warn { "$name (set): cache entry has been updated outside of this transaction. Force rollback for key $key" }
+                    log.warn {
+                        "$name (set): cache entry has been updated outside of this transaction. Force rollback for key $key"
+                    }
                     value = oldValue
                 }
             }
@@ -375,20 +329,20 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
 
     private suspend fun possiblyRemoveFromCache(key: K, oldValue: V?, newValue: V?): Boolean =
         if (removeFromCacheOnNull && newValue == null && oldValue != null) {
-            log.trace { "$name: remove value from cache with key $key because it is stale and is allowed to remove (will never be not-null again)" }
+            log.trace {
+                "$name: remove value from cache with key $key because it is stale and is allowed to remove (will never be not-null again)"
+            }
             values.remove(key, true)
             true
         } else false
 
     internal suspend fun collectStatistic(): ObservableCacheStatistic {
-        val (all, subscribed) = values.internalRead {
-            count() to values.count { it.subscriptionCount.value > 0 }
-        }
+        val (all, subscribed) = values.internalRead { count() to values.count { it.subscriptionCount.value > 0 } }
         return ObservableCacheStatistic(
             name = name,
             all = all,
             subscribed = subscribed,
-            indexes = values.indexes.value.mapNotNull { it.collectStatistic() }
+            indexes = values.indexes.value.mapNotNull { it.collectStatistic() },
         )
     }
 }
@@ -405,25 +359,22 @@ internal class RemoverJobExecutingIndex<K : Any, V>(
         if (removeAfter.read { isNotEmpty() }) {
             log.trace { "$name: start invalidate cache" }
             val now = clock.now()
-            val (unsubscribed, subscribed) = removeAfter.read {
-                val partition = entries.partition { (key, _) ->
-                    val cacheValue = cacheValues.get(key)
-                    (cacheValue?.subscriptionCount?.value ?: 0) == 0
-                            && (
-                            cacheValue?.value?.valueOrNull() == null
-                                    || cacheValues.getIndexSubscriptionCount(key) == 0
-                            )
+            val (unsubscribed, subscribed) =
+                removeAfter.read {
+                    val partition = entries.partition { (key, _) ->
+                        val cacheValue = cacheValues.get(key)
+                        (cacheValue?.subscriptionCount?.value ?: 0) == 0 &&
+                            (cacheValue?.value?.valueOrNull() == null ||
+                                cacheValues.getIndexSubscriptionCount(key) == 0)
+                    }
+                    // copy() is needed because, using Map.Entry from a mutable map is not safe to use.
+                    partition.first.map { it.copy() } to partition.second.map { it.key }
                 }
-                // copy() is needed because, using Map.Entry from a mutable map is not safe to use.
-                partition.first.map { it.copy() } to partition.second.map { it.key }
-            }
             coroutineScope {
                 launch {
                     val nextExpiration = now + expireDuration
                     log.trace { "$name: update invalidation to $nextExpiration for ${subscribed.size} entries" }
-                    removeAfter.write {
-                        putAll(subscribed.map { it to nextExpiration })
-                    }
+                    removeAfter.write { putAll(subscribed.map { it to nextExpiration }) }
                 }
                 launch {
                     log.trace { "$name: check invalidation at $now for ${unsubscribed.size} entries" }

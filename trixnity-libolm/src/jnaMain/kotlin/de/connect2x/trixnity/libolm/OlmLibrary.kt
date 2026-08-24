@@ -159,7 +159,7 @@ actual object OlmLibrary {
     actual fun pickle_inbound_group_session(
         session: OlmInboundGroupSessionPointer,
         key: ByteArray,
-        pickled: ByteArray
+        pickled: ByteArray,
     ): ULong = key.withNativeRead { keyPtr, keySize ->
         pickled.withNativeWrite { pickledPtr, pickledSize ->
             olm_pickle_inbound_group_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
@@ -176,36 +176,31 @@ actual object OlmLibrary {
         }
     }
 
-    actual fun init_inbound_group_session(
-        session: OlmInboundGroupSessionPointer,
-        key: ByteArray,
-    ): ULong = key.withNativeRead { sessionKeyPtr, sessionKeySize ->
-        olm_init_inbound_group_session(session, sessionKeyPtr, sessionKeySize).toULong()
-    }
+    actual fun init_inbound_group_session(session: OlmInboundGroupSessionPointer, key: ByteArray): ULong =
+        key.withNativeRead { sessionKeyPtr, sessionKeySize ->
+            olm_init_inbound_group_session(session, sessionKeyPtr, sessionKeySize).toULong()
+        }
 
-    actual fun import_inbound_group_session(
-        session: OlmInboundGroupSessionPointer,
-        key: ByteArray,
-    ): ULong = key.withNativeRead { sessionKeyPtr, sessionSize ->
-        olm_import_inbound_group_session(session, sessionKeyPtr, sessionSize).toULong()
-    }
+    actual fun import_inbound_group_session(session: OlmInboundGroupSessionPointer, key: ByteArray): ULong =
+        key.withNativeRead { sessionKeyPtr, sessionSize ->
+            olm_import_inbound_group_session(session, sessionKeyPtr, sessionSize).toULong()
+        }
 
-    actual fun group_decrypt_max_plaintext_length(
-        session: OlmInboundGroupSessionPointer,
-        message: ByteArray,
-    ): ULong = message.withNativeRead { messagePtr, messageSize ->
-        olm_group_decrypt_max_plaintext_length(session, messagePtr, messageSize).toULong()
-    }
+    actual fun group_decrypt_max_plaintext_length(session: OlmInboundGroupSessionPointer, message: ByteArray): ULong =
+        message.withNativeRead { messagePtr, messageSize ->
+            olm_group_decrypt_max_plaintext_length(session, messagePtr, messageSize).toULong()
+        }
 
     actual fun group_decrypt(
         session: OlmInboundGroupSessionPointer,
         message: ByteArray,
         plainText: ByteArray,
-        messageIndex: MutableWrapper<UInt>
+        messageIndex: MutableWrapper<UInt>,
     ): ULong = message.withNativeRead { messagePtr, messageSize ->
         plainText.withNativeWrite { plainTextPtr, plainTextSize ->
             val messageIndexPtr = IntByReference()
-            olm_group_decrypt(session, messagePtr, messageSize, plainTextPtr, plainTextSize, messageIndexPtr).toULong()
+            olm_group_decrypt(session, messagePtr, messageSize, plainTextPtr, plainTextSize, messageIndexPtr)
+                .toULong()
                 .also { messageIndex.value = messageIndexPtr.value.toUInt() }
         }
     }
@@ -213,12 +208,10 @@ actual object OlmLibrary {
     actual fun inbound_group_session_id_length(session: OlmInboundGroupSessionPointer): ULong =
         olm_inbound_group_session_id_length(session).toULong()
 
-    actual fun inbound_group_session_id(
-        session: OlmInboundGroupSessionPointer,
-        sessionId: ByteArray,
-    ): ULong = sessionId.withNativeWrite { sessionIdPtr, sessionSize ->
-        olm_inbound_group_session_id(session, sessionIdPtr, sessionSize).toULong()
-    }
+    actual fun inbound_group_session_id(session: OlmInboundGroupSessionPointer, sessionId: ByteArray): ULong =
+        sessionId.withNativeWrite { sessionIdPtr, sessionSize ->
+            olm_inbound_group_session_id(session, sessionIdPtr, sessionSize).toULong()
+        }
 
     actual fun inbound_group_session_first_known_index(session: OlmInboundGroupSessionPointer): UInt =
         olm_inbound_group_session_first_known_index(session).toUInt()
@@ -232,7 +225,7 @@ actual object OlmLibrary {
     actual fun export_inbound_group_session(
         session: OlmInboundGroupSessionPointer,
         key: ByteArray,
-        messageIndex: UInt
+        messageIndex: UInt,
     ): ULong = key.withNativeWrite { keyPtr, keySize ->
         olm_export_inbound_group_session(session, keyPtr, keySize, messageIndex.toInt()).toULong()
     }
@@ -252,7 +245,7 @@ actual object OlmLibrary {
     actual fun pickle_outbound_group_session(
         session: OlmOutboundGroupSessionPointer,
         key: ByteArray,
-        pickled: ByteArray
+        pickled: ByteArray,
     ): ULong = key.withNativeRead { keyPtr, keySize ->
         pickled.withNativeWrite { pickledPtr, pickledSize ->
             olm_pickle_outbound_group_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
@@ -272,37 +265,28 @@ actual object OlmLibrary {
     actual fun init_outbound_group_session_random_length(session: OlmOutboundGroupSessionPointer): ULong =
         olm_init_outbound_group_session_random_length(session).toULong()
 
-    actual fun init_outbound_group_session(
-        session: OlmOutboundGroupSessionPointer,
-        random: ByteArray?,
-    ): ULong = random.withNativeRead { randomPtr, randomSize ->
-        olm_init_outbound_group_session(session, randomPtr, randomSize).toULong()
-    }
-
-    actual fun group_encrypt_message_length(
-        session: OlmOutboundGroupSessionPointer,
-        plainTextLength: ULong
-    ): ULong = olm_group_encrypt_message_length(session, NativeSize(plainTextLength)).toULong()
-
-    actual fun group_encrypt(
-        session: OlmOutboundGroupSessionPointer,
-        plainText: ByteArray,
-        message: ByteArray,
-    ): ULong = plainText.withNativeRead { plainTextPtr, plainTextSize ->
-        message.withNativeWrite { messagePtr, messageSize ->
-            olm_group_encrypt(session, plainTextPtr, plainTextSize, messagePtr, messageSize).toULong()
+    actual fun init_outbound_group_session(session: OlmOutboundGroupSessionPointer, random: ByteArray?): ULong =
+        random.withNativeRead { randomPtr, randomSize ->
+            olm_init_outbound_group_session(session, randomPtr, randomSize).toULong()
         }
-    }
+
+    actual fun group_encrypt_message_length(session: OlmOutboundGroupSessionPointer, plainTextLength: ULong): ULong =
+        olm_group_encrypt_message_length(session, NativeSize(plainTextLength)).toULong()
+
+    actual fun group_encrypt(session: OlmOutboundGroupSessionPointer, plainText: ByteArray, message: ByteArray): ULong =
+        plainText.withNativeRead { plainTextPtr, plainTextSize ->
+            message.withNativeWrite { messagePtr, messageSize ->
+                olm_group_encrypt(session, plainTextPtr, plainTextSize, messagePtr, messageSize).toULong()
+            }
+        }
 
     actual fun outbound_group_session_id_length(session: OlmOutboundGroupSessionPointer): ULong =
         olm_outbound_group_session_id_length(session).toULong()
 
-    actual fun outbound_group_session_id(
-        session: OlmOutboundGroupSessionPointer,
-        sessionId: ByteArray,
-    ): ULong = sessionId.withNativeWrite { sessionIdPtr, sessionSize ->
-        olm_outbound_group_session_id(session, sessionIdPtr, sessionSize).toULong()
-    }
+    actual fun outbound_group_session_id(session: OlmOutboundGroupSessionPointer, sessionId: ByteArray): ULong =
+        sessionId.withNativeWrite { sessionIdPtr, sessionSize ->
+            olm_outbound_group_session_id(session, sessionIdPtr, sessionSize).toULong()
+        }
 
     actual fun outbound_group_session_message_index(session: OlmOutboundGroupSessionPointer): UInt =
         olm_outbound_group_session_message_index(session).toUInt()
@@ -310,17 +294,15 @@ actual object OlmLibrary {
     actual fun outbound_group_session_key_length(session: OlmOutboundGroupSessionPointer): ULong =
         olm_outbound_group_session_key_length(session).toULong()
 
-    actual fun outbound_group_session_key(
-        session: OlmOutboundGroupSessionPointer,
-        key: ByteArray,
-    ): ULong = key.withNativeWrite { keyPtr, keySize ->
-        olm_outbound_group_session_key(session, keyPtr, keySize).toULong()
-    }
+    actual fun outbound_group_session_key(session: OlmOutboundGroupSessionPointer, key: ByteArray): ULong =
+        key.withNativeWrite { keyPtr, keySize ->
+            olm_outbound_group_session_key(session, keyPtr, keySize).toULong()
+        }
 
     actual fun get_library_version(
         major: MutableWrapper<UInt>,
         minor: MutableWrapper<UInt>,
-        patch: MutableWrapper<UInt>
+        patch: MutableWrapper<UInt>,
     ) {
         val majorPtr = IntByReference()
         val minorPtr = IntByReference()
@@ -339,68 +321,53 @@ actual object OlmLibrary {
 
     actual fun pickle_account_length(account: OlmAccountPointer): ULong = olm_pickle_account_length(account).toULong()
 
-    actual fun pickle_account(
-        account: OlmAccountPointer,
-        key: ByteArray,
-        pickled: ByteArray,
-    ): ULong = key.withNativeRead { keyPtr, keySize ->
-        pickled.withNativeWrite { pickledPtr, pickledSize ->
-            olm_pickle_account(account, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+    actual fun pickle_account(account: OlmAccountPointer, key: ByteArray, pickled: ByteArray): ULong =
+        key.withNativeRead { keyPtr, keySize ->
+            pickled.withNativeWrite { pickledPtr, pickledSize ->
+                olm_pickle_account(account, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+            }
         }
-    }
 
-    actual fun unpickle_account(
-        account: OlmAccountPointer,
-        key: ByteArray,
-        pickled: ByteArray,
-    ): ULong = key.withNativeRead { keyPtr, keySize ->
-        pickled.withNativeRead { pickledPtr, pickledSize ->
-            olm_unpickle_account(account, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+    actual fun unpickle_account(account: OlmAccountPointer, key: ByteArray, pickled: ByteArray): ULong =
+        key.withNativeRead { keyPtr, keySize ->
+            pickled.withNativeRead { pickledPtr, pickledSize ->
+                olm_unpickle_account(account, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+            }
         }
-    }
 
     actual fun create_account_random_length(account: OlmAccountPointer): ULong =
         olm_create_account_random_length(account).toULong()
 
-    actual fun create_account(
-        account: OlmAccountPointer,
-        random: ByteArray?,
-    ): ULong = random.withNativeRead { randomPtr, randomSize ->
-        olm_create_account(account, randomPtr, randomSize).toULong()
-    }
+    actual fun create_account(account: OlmAccountPointer, random: ByteArray?): ULong =
+        random.withNativeRead { randomPtr, randomSize ->
+            olm_create_account(account, randomPtr, randomSize).toULong()
+        }
 
     actual fun account_identity_keys_length(account: OlmAccountPointer): ULong =
         olm_account_identity_keys_length(account).toULong()
 
-    actual fun account_identity_keys(
-        account: OlmAccountPointer,
-        identityKeys: ByteArray,
-    ): ULong = identityKeys.withNativeWrite { identityKeysPtr, identityKeysSize ->
-        olm_account_identity_keys(account, identityKeysPtr, identityKeysSize).toULong()
-    }
+    actual fun account_identity_keys(account: OlmAccountPointer, identityKeys: ByteArray): ULong =
+        identityKeys.withNativeWrite { identityKeysPtr, identityKeysSize ->
+            olm_account_identity_keys(account, identityKeysPtr, identityKeysSize).toULong()
+        }
 
     actual fun account_signature_length(account: OlmAccountPointer): ULong =
         olm_account_signature_length(account).toULong()
 
-    actual fun account_sign(
-        account: OlmAccountPointer,
-        message: ByteArray,
-        signature: ByteArray,
-    ): ULong = message.withNativeRead { messagePtr, messageSize ->
-        signature.withNativeWrite { signaturePtr, signatureSize ->
-            olm_account_sign(account, messagePtr, messageSize, signaturePtr, signatureSize).toULong()
+    actual fun account_sign(account: OlmAccountPointer, message: ByteArray, signature: ByteArray): ULong =
+        message.withNativeRead { messagePtr, messageSize ->
+            signature.withNativeWrite { signaturePtr, signatureSize ->
+                olm_account_sign(account, messagePtr, messageSize, signaturePtr, signatureSize).toULong()
+            }
         }
-    }
 
     actual fun account_one_time_keys_length(account: OlmAccountPointer): ULong =
         olm_account_one_time_keys_length(account).toULong()
 
-    actual fun account_one_time_keys(
-        account: OlmAccountPointer,
-        oneTimeKeys: ByteArray,
-    ): ULong = oneTimeKeys.withNativeWrite { oneTimeKeysPtr, oneTimeKeysSize ->
-        olm_account_one_time_keys(account, oneTimeKeysPtr, oneTimeKeysSize).toULong()
-    }
+    actual fun account_one_time_keys(account: OlmAccountPointer, oneTimeKeys: ByteArray): ULong =
+        oneTimeKeys.withNativeWrite { oneTimeKeysPtr, oneTimeKeysSize ->
+            olm_account_one_time_keys(account, oneTimeKeysPtr, oneTimeKeysSize).toULong()
+        }
 
     actual fun account_mark_keys_as_published(account: OlmAccountPointer): ULong =
         olm_account_mark_keys_as_published(account).toULong()
@@ -408,10 +375,8 @@ actual object OlmLibrary {
     actual fun account_max_number_of_one_time_keys(account: OlmAccountPointer): ULong =
         olm_account_max_number_of_one_time_keys(account).toULong()
 
-    actual fun account_generate_one_time_keys_random_length(
-        account: OlmAccountPointer,
-        numberOfKeys: ULong
-    ): ULong = olm_account_generate_one_time_keys_random_length(account, NativeSize(numberOfKeys)).toULong()
+    actual fun account_generate_one_time_keys_random_length(account: OlmAccountPointer, numberOfKeys: ULong): ULong =
+        olm_account_generate_one_time_keys_random_length(account, NativeSize(numberOfKeys)).toULong()
 
     actual fun account_generate_one_time_keys(
         account: OlmAccountPointer,
@@ -421,30 +386,24 @@ actual object OlmLibrary {
         olm_account_generate_one_time_keys(account, NativeSize(numberOfKeys), randomPtr, randomSize).toULong()
     }
 
-    actual fun account_generate_fallback_key_random_length(
-        account: OlmAccountPointer
-    ): ULong = olm_account_generate_fallback_key_random_length(account).toULong()
+    actual fun account_generate_fallback_key_random_length(account: OlmAccountPointer): ULong =
+        olm_account_generate_fallback_key_random_length(account).toULong()
 
-    actual fun account_generate_fallback_key(
-        account: OlmAccountPointer,
-        random: ByteArray?,
-    ): ULong = random.withNativeRead { randomPtr, randomSize ->
-        olm_account_generate_fallback_key(account, randomPtr, randomSize).toULong()
-    }
+    actual fun account_generate_fallback_key(account: OlmAccountPointer, random: ByteArray?): ULong =
+        random.withNativeRead { randomPtr, randomSize ->
+            olm_account_generate_fallback_key(account, randomPtr, randomSize).toULong()
+        }
 
     actual fun account_forget_old_fallback_key(account: OlmAccountPointer) =
         olm_account_forget_old_fallback_key(account)
 
-    actual fun account_unpublished_fallback_key_length(
-        account: OlmAccountPointer
-    ): ULong = olm_account_unpublished_fallback_key_length(account).toULong()
+    actual fun account_unpublished_fallback_key_length(account: OlmAccountPointer): ULong =
+        olm_account_unpublished_fallback_key_length(account).toULong()
 
-    actual fun account_unpublished_fallback_key(
-        account: OlmAccountPointer,
-        fallbackKey: ByteArray,
-    ): ULong = fallbackKey.withNativeWrite { fallbackKeyPtr, fallbackKeySize ->
-        olm_account_unpublished_fallback_key(account, fallbackKeyPtr, fallbackKeySize).toULong()
-    }
+    actual fun account_unpublished_fallback_key(account: OlmAccountPointer, fallbackKey: ByteArray): ULong =
+        fallbackKey.withNativeWrite { fallbackKeyPtr, fallbackKeySize ->
+            olm_account_unpublished_fallback_key(account, fallbackKeyPtr, fallbackKeySize).toULong()
+        }
 
     actual fun session(): OlmSessionPointer = genericInit(::olm_session, olm_session_size())
 
@@ -454,25 +413,19 @@ actual object OlmLibrary {
 
     actual fun pickle_session_length(session: OlmSessionPointer): ULong = olm_pickle_session_length(session).toULong()
 
-    actual fun pickle_session(
-        session: OlmSessionPointer,
-        key: ByteArray,
-        pickled: ByteArray,
-    ): ULong = key.withNativeRead { keyPtr, keySize ->
-        pickled.withNativeWrite { pickledPtr, pickledSize ->
-            olm_pickle_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+    actual fun pickle_session(session: OlmSessionPointer, key: ByteArray, pickled: ByteArray): ULong =
+        key.withNativeRead { keyPtr, keySize ->
+            pickled.withNativeWrite { pickledPtr, pickledSize ->
+                olm_pickle_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+            }
         }
-    }
 
-    actual fun unpickle_session(
-        session: OlmSessionPointer,
-        key: ByteArray,
-        pickled: ByteArray,
-    ): ULong = key.withNativeRead { keyPtr, keySize ->
-        pickled.withNativeRead { pickledPtr, pickledSize ->
-            olm_unpickle_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+    actual fun unpickle_session(session: OlmSessionPointer, key: ByteArray, pickled: ByteArray): ULong =
+        key.withNativeRead { keyPtr, keySize ->
+            pickled.withNativeRead { pickledPtr, pickledSize ->
+                olm_unpickle_session(session, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+            }
         }
-    }
 
     actual fun create_outbound_session_random_length(session: OlmSessionPointer): ULong =
         olm_create_outbound_session_random_length(session).toULong()
@@ -487,12 +440,16 @@ actual object OlmLibrary {
         theirOneTimeKey.withNativeRead { theirOneTimeKeyPtr, theirOneTimeKeySize ->
             random.withNativeRead { randomPtr, randomSize ->
                 olm_create_outbound_session(
-                    session,
-                    account,
-                    theirIdentityKeyPtr, theirIdentityKeySize,
-                    theirOneTimeKeyPtr, theirOneTimeKeySize,
-                    randomPtr, randomSize
-                ).toULong()
+                        session,
+                        account,
+                        theirIdentityKeyPtr,
+                        theirIdentityKeySize,
+                        theirOneTimeKeyPtr,
+                        theirOneTimeKeySize,
+                        randomPtr,
+                        randomSize,
+                    )
+                    .toULong()
             }
         }
     }
@@ -513,38 +470,34 @@ actual object OlmLibrary {
     ): ULong = theirIdentityKey.withNativeRead { theirIdentityKeyPtr, theirIdentityKeySize ->
         oneTimeKeyMessage.withNativeRead { oneTimeKeyMessagePtr, oneTimeKeyMessageSize ->
             olm_create_inbound_session_from(
-                session,
-                account,
-                theirIdentityKeyPtr, theirIdentityKeySize,
-                oneTimeKeyMessagePtr, oneTimeKeyMessageSize
-            ).toULong()
+                    session,
+                    account,
+                    theirIdentityKeyPtr,
+                    theirIdentityKeySize,
+                    oneTimeKeyMessagePtr,
+                    oneTimeKeyMessageSize,
+                )
+                .toULong()
         }
     }
 
     actual fun session_id_length(session: OlmSessionPointer): ULong = olm_session_id_length(session).toULong()
 
-    actual fun session_id(
-        session: OlmSessionPointer,
-        id: ByteArray,
-    ): ULong = id.withNativeWrite { idPtr, idSize ->
+    actual fun session_id(session: OlmSessionPointer, id: ByteArray): ULong = id.withNativeWrite { idPtr, idSize ->
         olm_session_id(session, idPtr, idSize).toULong()
     }
 
     actual fun session_has_received_message(session: OlmSessionPointer): Int = olm_session_has_received_message(session)
 
-    actual fun session_describe(
-        session: OlmSessionPointer,
-        description: ByteArray,
-    ) = description.withNativeWrite { descriptionPtr, descriptionSize ->
-        olm_session_describe(session, descriptionPtr, descriptionSize)
-    }
+    actual fun session_describe(session: OlmSessionPointer, description: ByteArray) =
+        description.withNativeWrite { descriptionPtr, descriptionSize ->
+            olm_session_describe(session, descriptionPtr, descriptionSize)
+        }
 
-    actual fun matches_inbound_session(
-        session: OlmSessionPointer,
-        oneTimeKeyMessage: ByteArray,
-    ): ULong = oneTimeKeyMessage.withNativeRead { oneTimeKeyMessagePtr, oneTimeKeyMessageSize ->
-        olm_matches_inbound_session(session, oneTimeKeyMessagePtr, oneTimeKeyMessageSize).toULong()
-    }
+    actual fun matches_inbound_session(session: OlmSessionPointer, oneTimeKeyMessage: ByteArray): ULong =
+        oneTimeKeyMessage.withNativeRead { oneTimeKeyMessagePtr, oneTimeKeyMessageSize ->
+            olm_matches_inbound_session(session, oneTimeKeyMessagePtr, oneTimeKeyMessageSize).toULong()
+        }
 
     actual fun matches_inbound_session_from(
         session: OlmSessionPointer,
@@ -553,10 +506,13 @@ actual object OlmLibrary {
     ): ULong = theirIdentityKey.withNativeRead { theirIdentityKeyPtr, theirIdentityKeySize ->
         oneTimeKeyMessage.withNativeRead { oneTimeKeyMessagePtr, oneTimeKeyMessageSize ->
             olm_matches_inbound_session_from(
-                session,
-                theirIdentityKeyPtr, theirIdentityKeySize,
-                oneTimeKeyMessagePtr, oneTimeKeyMessageSize
-            ).toULong()
+                    session,
+                    theirIdentityKeyPtr,
+                    theirIdentityKeySize,
+                    oneTimeKeyMessagePtr,
+                    oneTimeKeyMessageSize,
+                )
+                .toULong()
         }
     }
 
@@ -578,23 +534,16 @@ actual object OlmLibrary {
     ): ULong = plainText.withNativeRead { plainTextPtr, plainTextSize ->
         random.withNativeRead { randomPtr, randomSize ->
             message.withNativeWrite { messagePtr, messageSize ->
-                olm_encrypt(
-                    session,
-                    plainTextPtr, plainTextSize,
-                    randomPtr, randomSize,
-                    messagePtr, messageSize
-                ).toULong()
+                olm_encrypt(session, plainTextPtr, plainTextSize, randomPtr, randomSize, messagePtr, messageSize)
+                    .toULong()
             }
         }
     }
 
-    actual fun decrypt_max_plaintext_length(
-        session: OlmSessionPointer,
-        messageType: ULong,
-        message: ByteArray,
-    ): ULong = message.withNativeRead { messagePtr, messageSize ->
-        olm_decrypt_max_plaintext_length(session, NativeSize(messageType), messagePtr, messageSize).toULong()
-    }
+    actual fun decrypt_max_plaintext_length(session: OlmSessionPointer, messageType: ULong, message: ByteArray): ULong =
+        message.withNativeRead { messagePtr, messageSize ->
+            olm_decrypt_max_plaintext_length(session, NativeSize(messageType), messagePtr, messageSize).toULong()
+        }
 
     actual fun decrypt(
         session: OlmSessionPointer,
@@ -603,12 +552,8 @@ actual object OlmLibrary {
         plainText: ByteArray,
     ): ULong = message.withNativeRead { messagePtr, messageSize ->
         plainText.withNativeWrite { plainTextPtr, plainTextSize ->
-            olm_decrypt(
-                session,
-                NativeSize(messageType),
-                messagePtr, messageSize,
-                plainTextPtr, plainTextSize
-            ).toULong()
+            olm_decrypt(session, NativeSize(messageType), messagePtr, messageSize, plainTextPtr, plainTextSize)
+                .toULong()
         }
     }
 
@@ -620,15 +565,12 @@ actual object OlmLibrary {
 
     actual fun sha256_length(utility: OlmUtilityPointer): ULong = olm_sha256_length(utility).toULong()
 
-    actual fun sha256(
-        utility: OlmUtilityPointer,
-        input: ByteArray,
-        output: ByteArray,
-    ): ULong = input.withNativeRead { inputPtr, inputSize ->
-        output.withNativeWrite { outputPtr, outputSize ->
-            olm_sha256(utility, inputPtr, inputSize, outputPtr, outputSize).toULong()
+    actual fun sha256(utility: OlmUtilityPointer, input: ByteArray, output: ByteArray): ULong =
+        input.withNativeRead { inputPtr, inputSize ->
+            output.withNativeWrite { outputPtr, outputSize ->
+                olm_sha256(utility, inputPtr, inputSize, outputPtr, outputSize).toULong()
+            }
         }
-    }
 
     actual fun ed25519_verify(
         utility: OlmUtilityPointer,
@@ -638,12 +580,8 @@ actual object OlmLibrary {
     ): ULong = key.withNativeRead { keyPtr, keySize ->
         message.withNativeRead { messagePtr, messageSize ->
             signature.withNativeRead { signaturePtr, signatureSize ->
-                olm_ed25519_verify(
-                    utility,
-                    keyPtr, keySize,
-                    messagePtr, messageSize,
-                    signaturePtr, signatureSize
-                ).toULong()
+                olm_ed25519_verify(utility, keyPtr, keySize, messagePtr, messageSize, signaturePtr, signatureSize)
+                    .toULong()
             }
         }
     }
@@ -675,48 +613,34 @@ actual object OlmLibrary {
 
     actual fun sas_is_their_key_set(sas: OlmSASPointer): Int = olm_sas_is_their_key_set(sas)
 
-    actual fun sas_generate_bytes(
-        sas: OlmSASPointer,
-        info: ByteArray,
-        output: ByteArray
-    ): ULong = info.withNativeRead { infoPtr, infoSize ->
-        output.withNativeWrite { outputPtr, outputSize ->
-            olm_sas_generate_bytes(sas, infoPtr, infoSize, outputPtr, outputSize).toULong()
+    actual fun sas_generate_bytes(sas: OlmSASPointer, info: ByteArray, output: ByteArray): ULong =
+        info.withNativeRead { infoPtr, infoSize ->
+            output.withNativeWrite { outputPtr, outputSize ->
+                olm_sas_generate_bytes(sas, infoPtr, infoSize, outputPtr, outputSize).toULong()
+            }
         }
-    }
 
     actual fun sas_mac_length(sas: OlmSASPointer): ULong = olm_sas_mac_length(sas).toULong()
 
-    actual fun sas_calculate_mac(
-        sas: OlmSASPointer,
-        input: ByteArray,
-        info: ByteArray,
-        mac: ByteArray
-    ): ULong = input.withNativeRead { inputPtr, inputSize ->
-        info.withNativeRead { infoPtr, infoSize ->
-            mac.withNativeWrite { macPtr, macSize ->
-                olm_sas_calculate_mac(sas, inputPtr, inputSize, infoPtr, infoSize, macPtr, macSize).toULong()
+    actual fun sas_calculate_mac(sas: OlmSASPointer, input: ByteArray, info: ByteArray, mac: ByteArray): ULong =
+        input.withNativeRead { inputPtr, inputSize ->
+            info.withNativeRead { infoPtr, infoSize ->
+                mac.withNativeWrite { macPtr, macSize ->
+                    olm_sas_calculate_mac(sas, inputPtr, inputSize, infoPtr, infoSize, macPtr, macSize).toULong()
+                }
             }
         }
-    }
 
     actual fun sas_calculate_mac_fixed_base64(
         sas: OlmSASPointer,
         input: ByteArray,
         info: ByteArray,
-        mac: ByteArray
+        mac: ByteArray,
     ): ULong = input.withNativeRead { inputPtr, inputSize ->
         info.withNativeRead { infoPtr, infoSize ->
             mac.withNativeWrite { macPtr, macSize ->
-                olm_sas_calculate_mac_fixed_base64(
-                    sas,
-                    inputPtr,
-                    inputSize,
-                    infoPtr,
-                    infoSize,
-                    macPtr,
-                    macSize
-                ).toULong()
+                olm_sas_calculate_mac_fixed_base64(sas, inputPtr, inputSize, infoPtr, infoSize, macPtr, macSize)
+                    .toULong()
             }
         }
     }
@@ -725,7 +649,7 @@ actual object OlmLibrary {
         sas: OlmSASPointer,
         input: ByteArray,
         info: ByteArray,
-        mac: ByteArray
+        mac: ByteArray,
     ): ULong = input.withNativeRead { inputPtr, inputSize ->
         info.withNativeRead { infoPtr, infoSize ->
             mac.withNativeWrite { macPtr, macSize ->
@@ -742,17 +666,13 @@ actual object OlmLibrary {
     actual fun clear_pk_encryption(encryption: OlmPkEncryptionPointer): ULong =
         olm_clear_pk_encryption(encryption).toULong()
 
-    actual fun pk_encryption_set_recipient_key(
-        encryption: OlmPkEncryptionPointer,
-        publicKey: ByteArray
-    ): ULong = publicKey.withNativeRead { publicKeyPtr, publicKeySize ->
-        olm_pk_encryption_set_recipient_key(encryption, publicKeyPtr, publicKeySize).toULong()
-    }
+    actual fun pk_encryption_set_recipient_key(encryption: OlmPkEncryptionPointer, publicKey: ByteArray): ULong =
+        publicKey.withNativeRead { publicKeyPtr, publicKeySize ->
+            olm_pk_encryption_set_recipient_key(encryption, publicKeyPtr, publicKeySize).toULong()
+        }
 
-    actual fun pk_ciphertext_length(
-        encryption: OlmPkEncryptionPointer,
-        plainTextLength: ULong
-    ): ULong = olm_pk_ciphertext_length(encryption, NativeSize(plainTextLength)).toULong()
+    actual fun pk_ciphertext_length(encryption: OlmPkEncryptionPointer, plainTextLength: ULong): ULong =
+        olm_pk_ciphertext_length(encryption, NativeSize(plainTextLength)).toULong()
 
     actual fun pk_mac_length(encryption: OlmPkEncryptionPointer): ULong = olm_pk_mac_length(encryption).toULong()
 
@@ -767,20 +687,26 @@ actual object OlmLibrary {
         cipherText: ByteArray,
         mac: ByteArray,
         ephemeralKey: ByteArray,
-        random: ByteArray?
+        random: ByteArray?,
     ): ULong = plainText.withNativeRead { plainTextPtr, plainTextSize ->
         cipherText.withNativeWrite { cipherTextPtr, cipherTextSize ->
             mac.withNativeWrite { macPtr, macSize ->
                 ephemeralKey.withNativeWrite { ephemeralPtr, ephemeralSize ->
                     random.withNativeRead { randomPtr, randomSize ->
                         olm_pk_encrypt(
-                            encryption,
-                            plainTextPtr, plainTextSize,
-                            cipherTextPtr, cipherTextSize,
-                            macPtr, macSize,
-                            ephemeralPtr, ephemeralSize,
-                            randomPtr, randomSize
-                        ).toULong()
+                                encryption,
+                                plainTextPtr,
+                                plainTextSize,
+                                cipherTextPtr,
+                                cipherTextSize,
+                                macPtr,
+                                macSize,
+                                ephemeralPtr,
+                                ephemeralSize,
+                                randomPtr,
+                                randomSize,
+                            )
+                            .toULong()
                     }
                 }
             }
@@ -797,80 +723,71 @@ actual object OlmLibrary {
 
     actual fun pk_private_key_length(): ULong = olm_pk_private_key_length().toULong()
 
-    actual fun pk_key_from_private(
-        decryption: OlmPkDecryptionPointer,
-        pubkey: ByteArray,
-        privkey: ByteArray
-    ): ULong = pubkey.withNativeWrite { pubkeyPtr, pubkeySize ->
-        privkey.withNativeRead { privkeyPtr, privkeySize ->
-            olm_pk_key_from_private(decryption, pubkeyPtr, pubkeySize, privkeyPtr, privkeySize).toULong()
+    actual fun pk_key_from_private(decryption: OlmPkDecryptionPointer, pubkey: ByteArray, privkey: ByteArray): ULong =
+        pubkey.withNativeWrite { pubkeyPtr, pubkeySize ->
+            privkey.withNativeRead { privkeyPtr, privkeySize ->
+                olm_pk_key_from_private(decryption, pubkeyPtr, pubkeySize, privkeyPtr, privkeySize).toULong()
+            }
         }
-    }
 
     actual fun pickle_pk_decryption_length(decryption: OlmPkDecryptionPointer): ULong =
         olm_pickle_pk_decryption_length(decryption).toULong()
 
-    actual fun pickle_pk_decryption(
-        decryption: OlmPkDecryptionPointer,
-        key: ByteArray,
-        pickled: ByteArray
-    ): ULong = key.withNativeRead { keyPtr, keySize ->
-        pickled.withNativeWrite { pickledPtr, pickledSize ->
-            olm_pickle_pk_decryption(decryption, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+    actual fun pickle_pk_decryption(decryption: OlmPkDecryptionPointer, key: ByteArray, pickled: ByteArray): ULong =
+        key.withNativeRead { keyPtr, keySize ->
+            pickled.withNativeWrite { pickledPtr, pickledSize ->
+                olm_pickle_pk_decryption(decryption, keyPtr, keySize, pickledPtr, pickledSize).toULong()
+            }
         }
-    }
 
     actual fun unpickle_pk_decryption(
         decryption: OlmPkDecryptionPointer,
         key: ByteArray,
         pickled: ByteArray,
-        pubkey: ByteArray
+        pubkey: ByteArray,
     ): ULong = key.withNativeRead { keyPtr, keySize ->
         pickled.withNativeRead { pickledPtr, pickledSize ->
             pubkey.withNativeRead { pubkeyPtr, pubkeySize ->
-                olm_unpickle_pk_decryption(
-                    decryption,
-                    keyPtr, keySize,
-                    pickledPtr, pickledSize,
-                    pubkeyPtr, pubkeySize
-                ).toULong()
+                olm_unpickle_pk_decryption(decryption, keyPtr, keySize, pickledPtr, pickledSize, pubkeyPtr, pubkeySize)
+                    .toULong()
             }
         }
     }
 
-    actual fun pk_max_plaintext_length(
-        decryption: OlmPkDecryptionPointer,
-        cipherTextLength: ULong
-    ): ULong = olm_pk_max_plaintext_length(decryption, NativeSize(cipherTextLength)).toULong()
+    actual fun pk_max_plaintext_length(decryption: OlmPkDecryptionPointer, cipherTextLength: ULong): ULong =
+        olm_pk_max_plaintext_length(decryption, NativeSize(cipherTextLength)).toULong()
 
     actual fun pk_decrypt(
         decryption: OlmPkDecryptionPointer,
         ephemeralKey: ByteArray,
         mac: ByteArray,
         cipherText: ByteArray,
-        plainText: ByteArray
+        plainText: ByteArray,
     ): ULong = ephemeralKey.withNativeRead { ephemeralPtr, ephemeralSize ->
         mac.withNativeRead { macPtr, macSize ->
             cipherText.withNativeRead { cipherTextPtr, cipherTextSize ->
                 plainText.withNativeWrite { plainTextPtr, plainTextSize ->
                     olm_pk_decrypt(
-                        decryption,
-                        ephemeralPtr, ephemeralSize,
-                        macPtr, macSize,
-                        cipherTextPtr, cipherTextSize,
-                        plainTextPtr, plainTextSize,
-                    ).toULong()
+                            decryption,
+                            ephemeralPtr,
+                            ephemeralSize,
+                            macPtr,
+                            macSize,
+                            cipherTextPtr,
+                            cipherTextSize,
+                            plainTextPtr,
+                            plainTextSize,
+                        )
+                        .toULong()
                 }
             }
         }
     }
 
-    actual fun pk_get_private_key(
-        decryption: OlmPkDecryptionPointer,
-        privateKey: ByteArray
-    ): ULong = privateKey.withNativeWrite { privateKeyPtr, privateKeySize ->
-        olm_pk_get_private_key(decryption, privateKeyPtr, privateKeySize).toULong()
-    }
+    actual fun pk_get_private_key(decryption: OlmPkDecryptionPointer, privateKey: ByteArray): ULong =
+        privateKey.withNativeWrite { privateKeyPtr, privateKeySize ->
+            olm_pk_get_private_key(decryption, privateKeyPtr, privateKeySize).toULong()
+        }
 
     actual fun pk_signing(): OlmPkSigningPointer = genericInit(::olm_pk_signing, olm_pk_signing_size())
 
@@ -878,15 +795,12 @@ actual object OlmLibrary {
 
     actual fun clear_pk_signing(sign: OlmPkSigningPointer): ULong = olm_clear_pk_signing(sign).toULong()
 
-    actual fun pk_signing_key_from_seed(
-        sign: OlmPkSigningPointer,
-        pubkey: ByteArray,
-        seed: ByteArray
-    ): ULong = pubkey.withNativeWrite { pubkeyPtr, pubkeySize ->
-        seed.withNativeRead { seedPtr, seedSize ->
-            olm_pk_signing_key_from_seed(sign, pubkeyPtr, pubkeySize, seedPtr, seedSize).toULong()
+    actual fun pk_signing_key_from_seed(sign: OlmPkSigningPointer, pubkey: ByteArray, seed: ByteArray): ULong =
+        pubkey.withNativeWrite { pubkeyPtr, pubkeySize ->
+            seed.withNativeRead { seedPtr, seedSize ->
+                olm_pk_signing_key_from_seed(sign, pubkeyPtr, pubkeySize, seedPtr, seedSize).toULong()
+            }
         }
-    }
 
     actual fun pk_signing_seed_length(): ULong = olm_pk_signing_seed_length().toULong()
 
@@ -894,13 +808,10 @@ actual object OlmLibrary {
 
     actual fun pk_signature_length(): ULong = olm_pk_signature_length().toULong()
 
-    actual fun pk_sign(
-        sign: OlmPkSigningPointer,
-        message: ByteArray,
-        signature: ByteArray
-    ): ULong = message.withNativeRead { messagePtr, messageSize ->
-        signature.withNativeWrite { signaturePtr, signatureSize ->
-            olm_pk_sign(sign, messagePtr, messageSize, signaturePtr, signatureSize).toULong()
+    actual fun pk_sign(sign: OlmPkSigningPointer, message: ByteArray, signature: ByteArray): ULong =
+        message.withNativeRead { messagePtr, messageSize ->
+            signature.withNativeWrite { signaturePtr, signatureSize ->
+                olm_pk_sign(sign, messagePtr, messageSize, signaturePtr, signatureSize).toULong()
+            }
         }
-    }
 }

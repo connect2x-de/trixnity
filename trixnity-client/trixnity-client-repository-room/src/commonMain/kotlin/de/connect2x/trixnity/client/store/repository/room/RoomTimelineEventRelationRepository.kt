@@ -14,10 +14,7 @@ import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 
-@Entity(
-    tableName = "TimelineEventRelation",
-    primaryKeys = ["roomId", "eventId", "relationType", "relatedEventId"]
-)
+@Entity(tableName = "TimelineEventRelation", primaryKeys = ["roomId", "eventId", "relationType", "relatedEventId"])
 data class RoomTimelineEventRelation(
     val roomId: RoomId,
     val eventId: EventId,
@@ -54,14 +51,12 @@ interface TimelineEventRelationDao {
         relatedEventId: EventId,
         roomId: RoomId,
         relationType: RelationType,
-        eventId: EventId
+        eventId: EventId,
     ): RoomTimelineEventRelation?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(entity: RoomTimelineEventRelation)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomTimelineEventRelation)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(entities: List<RoomTimelineEventRelation>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertAll(entities: List<RoomTimelineEventRelation>)
 
     @Query(
         """
@@ -91,8 +86,7 @@ interface TimelineEventRelationDao {
     )
     suspend fun delete(relatedEventId: EventId, roomId: RoomId, relationType: RelationType, eventId: EventId)
 
-    @Query("DELETE FROM TimelineEventRelation")
-    suspend fun deleteAll()
+    @Query("DELETE FROM TimelineEventRelation") suspend fun deleteAll()
 }
 
 internal class RoomTimelineEventRelationRepository(db: TrixnityRoomDatabase) : TimelineEventRelationRepository {
@@ -102,23 +96,20 @@ internal class RoomTimelineEventRelationRepository(db: TrixnityRoomDatabase) : T
     context(transaction: ReadTransaction)
     override suspend fun get(firstKey: TimelineEventRelationKey): Map<EventId, TimelineEventRelation> =
         dao.get(firstKey.relatedEventId, firstKey.roomId, firstKey.relationType).associate {
-            it.eventId to TimelineEventRelation(
-                roomId = it.roomId,
-                eventId = it.eventId,
-                relationType = it.relationType,
-                relatedEventId = it.relatedEventId,
-            )
+            it.eventId to
+                TimelineEventRelation(
+                    roomId = it.roomId,
+                    eventId = it.eventId,
+                    relationType = it.relationType,
+                    relatedEventId = it.relatedEventId,
+                )
         }
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteByRoomId(roomId: RoomId) =
-        dao.delete(roomId)
+    override suspend fun deleteByRoomId(roomId: RoomId) = dao.delete(roomId)
 
     context(transaction: ReadTransaction)
-    override suspend fun get(
-        firstKey: TimelineEventRelationKey,
-        secondKey: EventId,
-    ): TimelineEventRelation? =
+    override suspend fun get(firstKey: TimelineEventRelationKey, secondKey: EventId): TimelineEventRelation? =
         dao.get(firstKey.relatedEventId, firstKey.roomId, firstKey.relationType, secondKey)?.let {
             TimelineEventRelation(
                 roomId = firstKey.roomId,
@@ -129,11 +120,7 @@ internal class RoomTimelineEventRelationRepository(db: TrixnityRoomDatabase) : T
         }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        firstKey: TimelineEventRelationKey,
-        secondKey: EventId,
-        value: TimelineEventRelation,
-    ) =
+    override suspend fun save(firstKey: TimelineEventRelationKey, secondKey: EventId, value: TimelineEventRelation) =
         dao.insert(
             RoomTimelineEventRelation(
                 roomId = value.roomId,
@@ -144,13 +131,9 @@ internal class RoomTimelineEventRelationRepository(db: TrixnityRoomDatabase) : T
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(
-        firstKey: TimelineEventRelationKey,
-        secondKey: EventId
-    ) =
+    override suspend fun delete(firstKey: TimelineEventRelationKey, secondKey: EventId) =
         dao.delete(firstKey.relatedEventId, firstKey.roomId, firstKey.relationType, secondKey)
 
     context(transaction: WriteTransaction)
-    override suspend fun deleteAll() =
-        dao.deleteAll()
+    override suspend fun deleteAll() = dao.deleteAll()
 }

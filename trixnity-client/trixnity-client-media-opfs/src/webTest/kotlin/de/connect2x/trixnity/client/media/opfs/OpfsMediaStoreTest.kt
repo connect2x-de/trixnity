@@ -12,6 +12,13 @@ import js.promise.await
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
 import js.typedarrays.toUint8Array
+import kotlin.js.JsAny
+import kotlin.js.JsArray
+import kotlin.js.js
+import kotlin.js.toList
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,13 +39,6 @@ import web.fs.write
 import web.navigator.navigator
 import web.storage.getDirectory
 import web.streams.close
-import kotlin.js.JsAny
-import kotlin.js.JsArray
-import kotlin.js.js
-import kotlin.js.toList
-import kotlin.test.Test
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 class OpfsMediaStoreTest : TrixnityBaseTest() {
 
@@ -81,18 +81,16 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
         cut.init(backgroundScope)
         cut.addMedia("url1", "hi".encodeToByteArray().toByteArrayFlow())
         basePath.values().toList()
-        Uint8Array(
-            basePath.getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=").getFile().arrayBuffer()
-        ).toByteArray().decodeToString() shouldBe "hi"
+        Uint8Array(basePath.getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=").getFile().arrayBuffer())
+            .toByteArray()
+            .decodeToString() shouldBe "hi"
     }
 
     @Test
     fun shouldNotAddMediaOnException() = test {
         cut.init(backgroundScope)
         val file = MutableSharedFlow<ByteArray>()
-        val job = backgroundScope.launch {
-            cut.addMedia("url1", file)
-        }
+        val job = backgroundScope.launch { cut.addMedia("url1", file) }
         file.emit("h".encodeToByteArray())
         job.cancelAndJoin()
         basePath.values().toList().size shouldBe 1
@@ -101,7 +99,8 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
     @Test
     fun shouldGetMedia() = test {
         cut.init(backgroundScope)
-        basePath.getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
+        basePath
+            .getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
             .createWritable()
             .apply {
                 write("hi".encodeToByteArray().toUint8Array())
@@ -119,7 +118,8 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
     @Test
     fun shouldDeleteMedia() = test {
         cut.init(backgroundScope)
-        basePath.getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
+        basePath
+            .getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
             .createWritable()
             .apply {
                 write("hi".encodeToByteArray().toUint8Array())
@@ -139,16 +139,17 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
     @Test
     fun shouldChangeMediaUrl() = test {
         cut.init(backgroundScope)
-        basePath.getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
+        basePath
+            .getFileHandle("K5pAaUF5iDoN1BsrFr4kJ0bP8ayM_Q_ftEtyeb_FY2I=", FileSystemGetFileOptions(create = true))
             .createWritable()
             .apply {
                 write("hi".encodeToByteArray().toUint8Array())
                 close()
             }
         cut.changeMediaUrl("url1", "url2")
-        Uint8Array(
-            basePath.getFileHandle("hnKdljIEgbx_eKM0uMgfIWYx_slrDvGQQFN8QUQ4QGg=").getFile().arrayBuffer()
-        ).toByteArray().decodeToString() shouldBe "hi"
+        Uint8Array(basePath.getFileHandle("hnKdljIEgbx_eKM0uMgfIWYx_slrDvGQQFN8QUQ4QGg=").getFile().arrayBuffer())
+            .toByteArray()
+            .decodeToString() shouldBe "hi"
     }
 
     @Test
@@ -160,11 +161,10 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
 
     @Test
     fun shouldDeleteTmpDirectoryOnStartup() = test {
-        tmpPath.getFileHandle("tmp_file_1", FileSystemGetFileOptions(create = true)).createWritable()
-            .apply {
-                write("hi".encodeToByteArray().toUint8Array())
-                close()
-            }
+        tmpPath.getFileHandle("tmp_file_1", FileSystemGetFileOptions(create = true)).createWritable().apply {
+            write("hi".encodeToByteArray().toUint8Array())
+            close()
+        }
         tmpPath.values().toList().size shouldBe 1
         cut.init(backgroundScope)
         tmpPath.values().toList().size shouldBe 0
@@ -176,16 +176,13 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
         val opfsScope = CoroutineScope(backgroundScope.coroutineContext + opfsJob)
 
         cut.init(opfsScope)
-        tmpPath.getFileHandle("tmp_file_1", FileSystemGetFileOptions(create = true)).createWritable()
-            .apply {
-                write("hi".encodeToByteArray().toUint8Array())
-                close()
-            }
+        tmpPath.getFileHandle("tmp_file_1", FileSystemGetFileOptions(create = true)).createWritable().apply {
+            write("hi".encodeToByteArray().toUint8Array())
+            close()
+        }
         tmpPath.values().toList().size shouldBe 1
         opfsJob.cancelAndJoin()
-        withContext(Dispatchers.Default) {
-            delay(1.seconds)
-        }
+        withContext(Dispatchers.Default) { delay(1.seconds) }
         tmpPath.values().toList().size shouldBe 0
     }
 
@@ -206,10 +203,11 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
         cut.addMedia("url1", "hi".encodeToByteArray().toByteArrayFlow())
         val platformMedia = cut.getMedia("url1").shouldNotBeNull()
         tmpPath.values().toList().size shouldBe 0
-        val tmpFile = platformMedia
-            .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
-            .getTemporaryFile()
-            .getOrThrow()
+        val tmpFile =
+            platformMedia
+                .transformByteArrayFlow { "###encrypted###".encodeToByteArray().toByteArrayFlow() }
+                .getTemporaryFile()
+                .getOrThrow()
         tmpPath.values().toList().size shouldBe 1
         Uint8Array(tmpFile.file.arrayBuffer()).toByteArray().decodeToString() shouldBe "###encrypted###"
     }
@@ -226,4 +224,5 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
 }
 
 private suspend fun <V : JsAny?> AsyncIterator<V>.toList(): List<V> = toJsArray(this).await().toList()
+
 private fun <V : JsAny?> toJsArray(self: AsyncIterator<V>): Promise<JsArray<V>> = js("""Array.fromAsync(self)""")

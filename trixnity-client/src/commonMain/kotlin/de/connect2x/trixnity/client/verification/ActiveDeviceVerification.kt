@@ -20,13 +20,14 @@ import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
-import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 
 private val log = Logger("de.connect2x.trixnity.client.verification.ActiveDeviceVerification")
 
 interface ActiveDeviceVerification : ActiveVerification
+
 class ActiveDeviceVerificationImpl(
     request: VerificationRequestToDeviceEventContent,
     requestIsOurs: Boolean,
@@ -43,22 +44,24 @@ class ActiveDeviceVerificationImpl(
     keyStore: KeyStore,
     private val clock: Clock,
     driver: CryptoDriver,
-) : ActiveDeviceVerification, ActiveVerificationImpl(
-    request,
-    requestIsOurs,
-    ownUserId,
-    ownDeviceId,
-    theirUserId,
-    theirDeviceId,
-    request.timestamp,
-    supportedMethods,
-    null,
-    request.transactionId,
-    keyStore,
-    keyTrust,
-    api.json,
-    driver,
-) {
+) :
+    ActiveDeviceVerification,
+    ActiveVerificationImpl(
+        request,
+        requestIsOurs,
+        ownUserId,
+        ownDeviceId,
+        theirUserId,
+        theirDeviceId,
+        request.timestamp,
+        supportedMethods,
+        null,
+        request.transactionId,
+        keyStore,
+        keyTrust,
+        api.json,
+        driver,
+    ) {
     override suspend fun sendVerificationStep(step: VerificationStep) {
         log.debug { "send verification step $step" }
         val theirDeviceId = this.theirDeviceId
@@ -68,9 +71,11 @@ class ActiveDeviceVerificationImpl(
 
         if (theirDeviceIds.isNotEmpty()) {
             val encryptedSteps =
-                olmEncryptionService.encryptOlm(step, theirDeviceIds.map { theirUserId to it }.toSet())
+                olmEncryptionService
+                    .encryptOlm(step, theirDeviceIds.map { theirUserId to it }.toSet())
                     .mapValues { it.value.getOrNull() ?: step }
-                    .entries.groupBy { it.key.first }
+                    .entries
+                    .groupBy { it.key.first }
                     .mapValues { it.value.associate { it.key.second to it.value } }
             api.user.sendToDevice(encryptedSteps).getOrThrow()
         }
@@ -106,8 +111,10 @@ class ActiveDeviceVerificationImpl(
 
     private suspend fun handleVerificationStepEvent(step: VerificationStep, sender: UserId) {
         val eventTransactionId = step.transactionId
-        if (eventTransactionId != null && eventTransactionId == transactionId
-            && isVerificationRequestActive(timestamp, clock, state.value)
+        if (
+            eventTransactionId != null &&
+                eventTransactionId == transactionId &&
+                isVerificationRequestActive(timestamp, clock, state.value)
         ) {
             if (step is VerificationReadyEventContent) {
                 val cancelDeviceIds = theirDeviceIds - step.fromDevice
@@ -116,12 +123,11 @@ class ActiveDeviceVerificationImpl(
                         VerificationCancelEventContent(Accepted, "accepted by other device", relatesTo, transactionId)
                     try {
                         val encryptedCancelEvents =
-                            olmEncryptionService.encryptOlm(
-                                cancelEvent,
-                                cancelDeviceIds.map { theirUserId to it }.toSet()
-                            )
+                            olmEncryptionService
+                                .encryptOlm(cancelEvent, cancelDeviceIds.map { theirUserId to it }.toSet())
                                 .mapValues { it.value.getOrNull() ?: cancelEvent }
-                                .entries.groupBy { it.key.first }
+                                .entries
+                                .groupBy { it.key.first }
                                 .mapValues { it.value.associate { it.key.second to it.value } }
                         api.user.sendToDevice(encryptedCancelEvents).getOrThrow()
                     } catch (error: Exception) {

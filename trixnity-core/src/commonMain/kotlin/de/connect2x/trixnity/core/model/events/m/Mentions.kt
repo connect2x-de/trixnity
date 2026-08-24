@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.core.model.events.m
 
+import de.connect2x.trixnity.core.model.UserId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.UserId
 
 @Serializable
 data class Mentions(

@@ -15,28 +15,30 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.collections.shouldContainExactly
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class RoomOutboxMessageStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val room = RoomId("!room:server")
 
     private val roomOutboxMessageRepository = InMemoryRoomOutboxMessageRepository() as RoomOutboxMessageRepository
-    private val cut = RoomOutboxMessageStore(
-        roomOutboxMessageRepository = roomOutboxMessageRepository,
-        tm = tm,
-        config = MatrixClientConfiguration().apply {
-            cacheExpireDurations = MatrixClientConfiguration.CacheExpireDurations.default(50.milliseconds)
-        },
-        statisticCollector = ObservableCacheStatisticCollector(),
-        storeScope = testScope.backgroundScope,
-        clock = testScope.testClock,
-    )
+    private val cut =
+        RoomOutboxMessageStore(
+            roomOutboxMessageRepository = roomOutboxMessageRepository,
+            tm = tm,
+            config =
+                MatrixClientConfiguration().apply {
+                    cacheExpireDurations = MatrixClientConfiguration.CacheExpireDurations.default(50.milliseconds)
+                },
+            statisticCollector = ObservableCacheStatisticCollector(),
+            storeScope = testScope.backgroundScope,
+            clock = testScope.testClock,
+        )
 
     @Test
     fun `init » fill cache with values from repository`() = runTest {
@@ -63,17 +65,13 @@ class RoomOutboxMessageStoreTest : TrixnityBaseTest() {
         }
         backgroundScope.launch {
             cut.getAll().flattenValues().collect { outbox ->
-                tm.writeTransaction {
-                    outbox.forEach { cut.update(it.roomId, it.transactionId) { null } }
-                }
+                tm.writeTransaction { outbox.forEach { cut.update(it.roomId, it.transactionId) { null } } }
                 delay(10)
             }
         }
         tm.writeTransaction {
             repeat(50) { i ->
-                cut.update(room, i.toString()) {
-                    RoomOutboxMessage(room, i.toString(), Text(""), Clock.System.now())
-                }
+                cut.update(room, i.toString()) { RoomOutboxMessage(room, i.toString(), Text(""), Clock.System.now()) }
             }
         }
         cut.getAll().flatten().first { it.isEmpty() } // we get a timeout if this never succeeds

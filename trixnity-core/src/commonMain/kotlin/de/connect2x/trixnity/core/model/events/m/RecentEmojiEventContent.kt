@@ -5,13 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class RecentEmojiEventContent(
-    @SerialName("recent_emoji")
-    val recentEmoji: List<RecentEmoji>
-) : GlobalAccountDataEventContent {
-    @Serializable
-    data class RecentEmoji(
-        val emoji: String,
-        val total: Long,
-    )
+data class RecentEmojiEventContent(@SerialName("recent_emoji") val recentEmoji: List<RecentEmoji>) :
+    GlobalAccountDataEventContent {
+    @Serializable data class RecentEmoji(val emoji: String, val total: Long)
 }
