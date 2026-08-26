@@ -714,7 +714,9 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
 
     override suspend fun closeSuspending() {
         val job = coroutineScope.coroutineContext.job
-        close()
+        started.delegate.value = false
+        api.closeSuspending()
+        coroutineScope.cancel("stopped MatrixClient")
         job.join()
     }
 

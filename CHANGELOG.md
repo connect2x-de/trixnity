@@ -29,6 +29,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed E2EE bug, where possibly new outbound megolm session are created without a need
 - Fixed serializing of Signed object may not contain signatures when signedRaw is present
 - Fixed key backup upload reacting to key backup version changes
+- Fixed MatrixClient::closeSuspending not waiting for ApiClient
 
 ### Security
 
