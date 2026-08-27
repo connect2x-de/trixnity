@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -191,7 +192,6 @@ class KeyBackupServiceImpl(
                 currentCoroutineContext().job.invokeOnCompletion {
                     currentlyLoadingMegolmSessions.update { it - runningKey }
                 }
-                val version = version.filterNotNull().first().version
                 retry(
                     scheduleBase = 1.seconds,
                     scheduleLimit = 6.hours,
@@ -207,6 +207,7 @@ class KeyBackupServiceImpl(
                         else log.warn(error) { "failed load megolm session from key backup, try again in $delay" }
                     },
                 ) {
+                    val version = version.filterNotNull().first().version
                     log.debug { "try to find key backup for roomId=$roomId, sessionId=$sessionId, version=$version" }
                     val encryptedSessionData = api.key.getRoomKeys(version, roomId, sessionId).getOrThrow().sessionData
                     require(encryptedSessionData is EncryptedRoomKeyBackupV1SessionData)
@@ -290,10 +291,13 @@ class KeyBackupServiceImpl(
         currentSyncState.retryLoop(
             onError = { error, delay -> log.warn(error) { "failed upload room key backup, try again in $delay" } }
         ) {
-            olmCryptoStore.notBackedUpInboundMegolmSessions
+            combine(version, olmCryptoStore.notBackedUpInboundMegolmSessions) {
+                    version,
+                    notBackedUpInboundMegolmSessions ->
+                    version to notBackedUpInboundMegolmSessions
+                }
                 .debounce(1.seconds)
-                .onEach { notBackedUpInboundMegolmSessions ->
-                    val version = version.value
+                .onEach { (version, notBackedUpInboundMegolmSessions) ->
                     if (version != null && notBackedUpInboundMegolmSessions.isNotEmpty()) {
                         log.debug { "upload room keys to key backup" }
                         api.key
