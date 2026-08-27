@@ -10,6 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - support room repositories in web
+- content block `relatesTo` for extensible events
 
 ### Changed
 
