@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.MSC3644
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
+import de.connect2x.trixnity.core.model.events.block.m.RelatesToContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TextContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TopicContentBlock
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
@@ -173,6 +175,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
 
     blockOf(TextContentBlock)
     blockOf(TopicContentBlock)
+    @OptIn(MSC3644::class) blockOf(RelatesToContentBlock)
 }
 
 val EventContentSerializerMappings.Companion.default
