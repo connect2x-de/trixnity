@@ -9432,6 +9432,7 @@ public final class de/connect2x/trixnity/clientserverapi/model/server/Capability
 	public static final fun getSetAvatarUrl-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$SetAvatarUrl;
 	public static final fun getSetDisplayName-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$SetDisplayName;
 	public static final fun getThirdPartyChanges-7k2RqeY (Ljava/util/Set;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ThirdPartyChanges;
+	public static final fun profileFields-1vE11Ik (Ljava/util/Set;Lde/connect2x/trixnity/clientserverapi/model/server/GetVersions$Response;)Lde/connect2x/trixnity/clientserverapi/model/server/Capability$ProfileFields;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/server/GetCapabilities : de/connect2x/trixnity/core/MatrixEndpoint {

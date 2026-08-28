@@ -209,18 +209,23 @@ val Capabilities.forgetForcedUponLeave: Capability.ForgetForcedUponLeave
 val Capabilities.roomVersion: Capability.RoomVersions?
     get() = filterIsInstance<Capability.RoomVersions>().firstOrNull()
 
-@Deprecated("use ProfileFields instead")
+@Deprecated("use profileFields instead")
 @Suppress("DEPRECATION")
 val Capabilities.setDisplayName: Capability.SetDisplayName
     get() = filterIsInstance<Capability.SetDisplayName>().firstOrNull() ?: Capability.SetDisplayName(true)
 
-@Deprecated("use ProfileFields instead")
+@Deprecated("use profileFields instead")
 @Suppress("DEPRECATION")
 val Capabilities.setAvatarUrl: Capability.SetAvatarUrl
     get() = filterIsInstance<Capability.SetAvatarUrl>().firstOrNull() ?: Capability.SetAvatarUrl(true)
 
+@Deprecated("use profileFields function instead")
 val Capabilities.profileFields: Capability.ProfileFields
     get() = filterIsInstance<Capability.ProfileFields>().firstOrNull() ?: Capability.ProfileFields(true)
+
+fun Capabilities.profileFields(versions: GetVersions.Response): Capability.ProfileFields =
+    filterIsInstance<Capability.ProfileFields>().firstOrNull()
+        ?: Capability.ProfileFields(versions.versions.contains("v1.16"))
 
 val Capabilities.thirdPartyChanges: Capability.ThirdPartyChanges
     get() = filterIsInstance<Capability.ThirdPartyChanges>().firstOrNull() ?: Capability.ThirdPartyChanges(true)

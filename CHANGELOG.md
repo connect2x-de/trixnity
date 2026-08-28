@@ -32,6 +32,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed MatrixClient::closeSuspending not waiting for ApiClient
 - When server does not support profile fields, delete displayname and avatarurl by setting it to null instead of empty
   string
+- Fixed wrong endpoint used when `MatrixClient::deleteProfileField` is used in old specs
 
 ### Security
 
