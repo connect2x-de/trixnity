@@ -739,8 +739,8 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
         } else {
             // the old spec only allows "deleting" the displayname and avatar_url by emptying the String.
             when (key) {
-                ProfileField.DisplayName -> setProfileField(ProfileField.DisplayName(""))
-                ProfileField.AvatarUrl -> setProfileField(ProfileField.AvatarUrl(""))
+                ProfileField.DisplayName -> setProfileField(ProfileField.DisplayName(null))
+                ProfileField.AvatarUrl -> setProfileField(ProfileField.AvatarUrl(null))
                 else ->
                     api.user.deleteProfileField(userId, key).map {
                         tm.writeTransaction {

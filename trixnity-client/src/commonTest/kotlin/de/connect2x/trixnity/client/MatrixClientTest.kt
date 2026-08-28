@@ -663,7 +663,7 @@ class MatrixClientTest : TrixnityBaseTest() {
 
         cut.syncOnce().getOrThrow()
         cut.profile.first {
-            it == Profile(ProfileField.DisplayName(""), ProfileField.AvatarUrl("mxc://localhost/123456"))
+            it == Profile(ProfileField.DisplayName(null), ProfileField.AvatarUrl("mxc://localhost/123456"))
         }
 
         cut.close()
@@ -680,7 +680,7 @@ class MatrixClientTest : TrixnityBaseTest() {
         cut.deleteProfileField(ProfileField.AvatarUrl).getOrThrow()
 
         cut.syncOnce().getOrThrow()
-        cut.profile.first { it == Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("")) }
+        cut.profile.first { it == Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl(null)) }
 
         cut.close()
     }

@@ -30,6 +30,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed serializing of Signed object may not contain signatures when signedRaw is present
 - Fixed key backup upload reacting to key backup version changes
 - Fixed MatrixClient::closeSuspending not waiting for ApiClient
+- When server does not support profile fields, delete displayname and avatarurl by setting it to null instead of empty
+  string
 
 ### Security
 
