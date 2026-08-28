@@ -730,9 +730,9 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
 
     override suspend fun deleteProfileField(key: ProfileField.Key<*>): Result<Unit> {
         val profileFieldsCapabilities =
-            serverData.value?.let { it.capabilities?.capabilities?.profileFields(it.versions) }
+            serverData.value?.let { it.capabilities?.capabilities?.profileFields(it.versions) }?.enabled
         val result =
-            if (profileFieldsCapabilities != null) {
+            if (profileFieldsCapabilities == true) {
                 log.debug { "delete profile field $key" }
                 api.user.deleteProfileField(userId, key)
             } else {
