@@ -636,9 +636,13 @@ class OlmEncryptionServiceImpl(
         senderUserId: UserId,
         senderIdentityKey: Curve25519KeyValue,
     ): OlmEncryptionService.OlmRecovery? {
-        val deviceId = store.findDeviceKeys(senderUserId, senderIdentityKey)?.signed?.deviceId
-        return if (!hasCreatedTooManyOlmOutboundSessions(storedSessions) && deviceId != null) {
-            OlmEncryptionService.OlmRecovery(senderUserId, deviceId, clock.now())
+        val deviceKeys = store.findDeviceKeys(senderUserId, senderIdentityKey)?.signed
+        return if (
+            !hasCreatedTooManyOlmOutboundSessions(storedSessions) &&
+                deviceKeys != null &&
+                @OptIn(MSC3814::class) deviceKeys.dehydrated != true
+        ) {
+            OlmEncryptionService.OlmRecovery(senderUserId, deviceKeys.deviceId, clock.now())
         } else {
             log.debug { "already created a recovery session recently and therefore skip creating a new one" }
             null

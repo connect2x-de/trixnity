@@ -9,7 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- INTERNAL,CI: Add ktfmt
+- Add ktfmt
 
 ### Changed
 
@@ -28,6 +28,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fixed E2EE bug, where a network error can prevent sending outbound megolm sessions
 - Fixed E2EE bug, where possibly new outbound megolm session are created without a need
 - Fixed serializing of Signed object may not contain signatures when signedRaw is present
+- Fixed key backup upload reacting to key backup version changes
+- Fixed MatrixClient::closeSuspending not waiting for ApiClient
+- When server does not support profile fields, delete displayname and avatarurl by setting it to null instead of empty
+  string
+- Fixed wrong endpoint used when `MatrixClient::deleteProfileField` is used in old specs
 
 ### Security
 

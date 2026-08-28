@@ -714,7 +714,9 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
 
     override suspend fun closeSuspending() {
         val job = coroutineScope.coroutineContext.job
-        close()
+        started.delegate.value = false
+        api.closeSuspending()
+        coroutineScope.cancel("stopped MatrixClient")
         job.join()
     }
 
@@ -727,25 +729,30 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
     }
 
     override suspend fun deleteProfileField(key: ProfileField.Key<*>): Result<Unit> {
-        val profileFieldsCapabilities = serverData.value?.capabilities?.capabilities?.profileFields
-        return if (profileFieldsCapabilities != null) {
-            api.user.deleteProfileField(userId, key).map {
-                tm.writeTransaction {
-                    accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) }
+        val profileFieldsCapabilities =
+            serverData.value?.let { it.capabilities?.capabilities?.profileFields(it.versions) }
+        val result =
+            if (profileFieldsCapabilities != null) {
+                log.debug { "delete profile field $key" }
+                api.user.deleteProfileField(userId, key)
+            } else {
+                when (key) {
+                    ProfileField.DisplayName -> {
+                        log.debug { "null profile field $key" }
+                        setProfileField(ProfileField.DisplayName(null))
+                    }
+                    ProfileField.AvatarUrl -> {
+                        log.debug { "null profile field $key" }
+                        setProfileField(ProfileField.AvatarUrl(null))
+                    }
+                    else -> {
+                        log.debug { "fallback delete profile field $key" }
+                        api.user.deleteProfileField(userId, key)
+                    }
                 }
             }
-        } else {
-            // the old spec only allows "deleting" the displayname and avatar_url by emptying the String.
-            when (key) {
-                ProfileField.DisplayName -> setProfileField(ProfileField.DisplayName(""))
-                ProfileField.AvatarUrl -> setProfileField(ProfileField.AvatarUrl(""))
-                else ->
-                    api.user.deleteProfileField(userId, key).map {
-                        tm.writeTransaction {
-                            accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) }
-                        }
-                    }
-            }
+        return result.map {
+            tm.writeTransaction { accountStore.updateAccount { it?.copy(profile = (it.profile ?: Profile()) - key) } }
         }
     }
 }

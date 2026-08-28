@@ -57,6 +57,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -430,7 +431,11 @@ class MatrixClientTest : TrixnityBaseTest() {
             cut.close()
         }
 
-    private suspend fun TestScope.deleteProfileFieldTestSetup(profile: Profile, hasCapability: Boolean): MatrixClient {
+    private suspend fun TestScope.deleteProfileFieldTestSetup(
+        profile: Profile,
+        hasCapability: Boolean,
+        spec: String? = null,
+    ): MatrixClient {
         val accountRepository =
             InMemoryAccountRepository().apply {
                 tm.writeTransaction {
@@ -520,6 +525,7 @@ class MatrixClientTest : TrixnityBaseTest() {
                                         }
 
                                         path == "/_matrix/client/v3/profile/${userId.full}/available" -> {
+                                            if (!hasCapability && spec != "v1.16") fail("not supported")
                                             assertEquals(HttpMethod.Delete, request.method)
                                             respond(
                                                 """{}""",
@@ -569,7 +575,7 @@ class MatrixClientTest : TrixnityBaseTest() {
 
                                         path == "/_matrix/client/versions" -> {
                                             respond(
-                                                """{}""",
+                                                """{"versions":[${spec?.let { """ "$it" """ }?:""}]}""",
                                                 HttpStatusCode.OK,
                                                 headersOf(
                                                     HttpHeaders.ContentType,
@@ -582,7 +588,7 @@ class MatrixClientTest : TrixnityBaseTest() {
                                             respond(
                                                 if (hasCapability)
                                                     """{"capabilities":{"m.profile_fields":{"enabled":true}}}"""
-                                                else """{"capabilities":{}""",
+                                                else """{"capabilities":{}}""",
                                                 HttpStatusCode.OK,
                                                 headersOf(
                                                     HttpHeaders.ContentType,
@@ -644,15 +650,50 @@ class MatrixClientTest : TrixnityBaseTest() {
         cut.deleteProfileField(availableProfileField.key).getOrThrow()
 
         cut.syncOnce().getOrThrow()
-        cut.profile.first {
-            it == Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456"))
-        }
+        delay(1.seconds)
+        cut.profile.value shouldBe
+            Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456"))
 
         cut.close()
     }
 
     @Test
-    fun `deleteProfileField » server has no capability » make displayname empty`() = runTest {
+    fun `deleteProfileField » server has no capability but high spec version`() = runTest {
+        val availableProfileField =
+            ProfileField.Unknown(
+                "available",
+                JsonObject(
+                    buildMap {
+                        set("from", JsonPrimitive("monday"))
+                        set("to", JsonPrimitive("friday"))
+                    }
+                ),
+            )
+
+        val cut =
+            deleteProfileFieldTestSetup(
+                profile =
+                    Profile(
+                        ProfileField.DisplayName("bob"),
+                        ProfileField.AvatarUrl("mxc://localhost/123456"),
+                        availableProfileField,
+                    ),
+                hasCapability = false,
+                spec = "v1.16",
+            )
+
+        cut.deleteProfileField(availableProfileField.key).getOrThrow()
+
+        cut.syncOnce().getOrThrow()
+        delay(1.seconds)
+        cut.profile.value shouldBe
+            Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456"))
+
+        cut.close()
+    }
+
+    @Test
+    fun `deleteProfileField » server has no capability » make displayname null`() = runTest {
         val cut =
             deleteProfileFieldTestSetup(
                 profile = Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456")),
@@ -662,15 +703,14 @@ class MatrixClientTest : TrixnityBaseTest() {
         cut.deleteProfileField(ProfileField.DisplayName).getOrThrow()
 
         cut.syncOnce().getOrThrow()
-        cut.profile.first {
-            it == Profile(ProfileField.DisplayName(""), ProfileField.AvatarUrl("mxc://localhost/123456"))
-        }
+        delay(1.seconds)
+        cut.profile.value shouldBe Profile(ProfileField.AvatarUrl("mxc://localhost/123456"))
 
         cut.close()
     }
 
     @Test
-    fun `deleteProfileField » server has no capability » make avatar_url empty`() = runTest {
+    fun `deleteProfileField » server has no capability » make avatar_url null`() = runTest {
         val cut =
             deleteProfileFieldTestSetup(
                 profile = Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456")),
@@ -680,7 +720,8 @@ class MatrixClientTest : TrixnityBaseTest() {
         cut.deleteProfileField(ProfileField.AvatarUrl).getOrThrow()
 
         cut.syncOnce().getOrThrow()
-        cut.profile.first { it == Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("")) }
+        delay(1.seconds)
+        cut.profile.value shouldBe Profile(ProfileField.DisplayName("bob"))
 
         cut.close()
     }

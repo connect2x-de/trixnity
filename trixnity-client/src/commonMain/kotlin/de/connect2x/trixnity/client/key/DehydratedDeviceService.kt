@@ -296,13 +296,23 @@ class DehydratedDeviceService(
                     updater(olmAccountPickle)
                 }
 
-                private val temporaryOlmSessions = MutableStateFlow<Set<StoredOlmSession>?>(null)
+                private val temporaryOlmSessions =
+                    MutableStateFlow<Map<KeyValue.Curve25519KeyValue, Set<StoredOlmSession>?>>(mapOf())
+
+                override suspend fun getOlmSessions(
+                    identityKeyValue: KeyValue.Curve25519KeyValue
+                ): Set<StoredOlmSession>? {
+                    return temporaryOlmSessions.value[identityKeyValue]
+                }
 
                 override suspend fun updateOlmSessions(
                     identityKeyValue: KeyValue.Curve25519KeyValue,
                     updater: (Set<StoredOlmSession>?) -> Set<StoredOlmSession>?,
                 ) {
-                    temporaryOlmSessions.update { updater.invoke(it) }
+                    temporaryOlmSessions.update { temporaryOlmSessionsValue ->
+                        temporaryOlmSessionsValue +
+                            (identityKeyValue to updater.invoke(temporaryOlmSessionsValue[identityKeyValue]))
+                    }
                 }
             }
         val eventEmitter = object : ClientEventEmitterImpl<List<ClientEvent<*>>>() {}

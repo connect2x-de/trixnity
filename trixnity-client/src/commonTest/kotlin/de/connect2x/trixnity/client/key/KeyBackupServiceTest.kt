@@ -513,6 +513,57 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `uploadRoomKeyBackup » start as soon version is not null`() = runTest {
+        uploadRoomKeyBackupSetup()
+        var setRoomKeyBackupVersionCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SetRoomKeyBackupVersion) {
+                setRoomKeyBackupVersionCalled = true
+                SetRoomKeyBackupVersion.Response("1")
+            }
+        }
+        delay(1.seconds)
+        setRoomKeyBackupVersionCalled shouldBe false
+        olmCryptoStore.notBackedUpInboundMegolmSessions.value.size shouldBe 2
+        session1.run { olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() }?.hasBeenBackedUp shouldBe
+            false
+        session2.run { olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first() }?.hasBeenBackedUp shouldBe
+            false
+
+        var setRoomKeyBackupDataCalled = false
+        apiConfig.endpoints {
+            matrixJsonEndpoint(SetRoomsKeyBackup("1")) {
+                it.rooms.keys shouldBe setOf(RoomId("!room1:server"), RoomId("!room2:server"))
+                assertSoftly(it.rooms[room1]?.sessions?.get(sessionId1)) {
+                    assertNotNull(this)
+                    this.firstMessageIndex shouldBe 2
+                    this.isVerified shouldBe true
+                    this.forwardedCount shouldBe 0
+                }
+                assertSoftly(it.rooms[room2]?.sessions?.get(sessionId2)) {
+                    assertNotNull(this)
+                    this.firstMessageIndex shouldBe 4
+                    this.isVerified shouldBe true
+                    this.forwardedCount shouldBe 1
+                }
+                setRoomKeyBackupDataCalled = true
+                SetRoomKeysResponse(2, "etag")
+            }
+        }
+        setVersion(validKeyBackup, "1")
+        delay(1.seconds)
+        setRoomKeyBackupDataCalled shouldBe true
+        session1.run {
+            delay(1.seconds)
+            olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()?.hasBeenBackedUp shouldBe true
+        }
+        session2.run {
+            delay(1.seconds)
+            olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first()?.hasBeenBackedUp shouldBe true
+        }
+    }
+
+    @Test
     fun `uploadRoomKeyBackup » do nothing when not backed up is empty`() = runTest {
         uploadRoomKeyBackupSetup()
         tm.writeTransaction {
