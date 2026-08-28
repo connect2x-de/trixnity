@@ -92,7 +92,7 @@ class MatrixClientServerApiServerTest : TrixnityBaseTest() {
         assertSoftly(response) {
             status shouldBe OK
             headers[AccessControlAllowOrigin] shouldBe "*"
-            headers[AccessControlAllowMethods] shouldBe "DELETE, OPTIONS, PUT"
+            headers[AccessControlAllowMethods] shouldBe "DELETE, GET, HEAD, OPTIONS, POST, PUT"
             headers[AccessControlAllowHeaders] shouldBe "Authorization, Content-Type, X-Requested-With"
         }
     }
