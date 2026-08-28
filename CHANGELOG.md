@@ -9,19 +9,22 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Add ktfmt
-
 ### Changed
-
-- Use new runner infrastructure
-- Use resource_group for publish CI jobs
-- Refactored E2EE to be more clean, testable and support clearly scoped database transactions
-- Refactored database transaction management to be more clean and safe
-- Include create-mr-discussions in CI
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+### Security
+
+## 5.8.0
+
+### Changed
+
+- Refactored E2EE to be more clean, testable and support clearly scoped database transactions
+- Refactored database transaction management to be more clean and safe
 
 ### Fixed
 
@@ -33,8 +36,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - When server does not support profile fields, delete displayname and avatarurl by setting it to null instead of empty
   string
 - Fixed wrong endpoint used when `MatrixClient::deleteProfileField` is used in old specs
-
-### Security
 
 ## 5.7.1
 
