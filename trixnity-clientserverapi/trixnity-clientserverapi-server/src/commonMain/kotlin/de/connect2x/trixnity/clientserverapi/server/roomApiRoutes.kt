@@ -57,4 +57,5 @@ internal fun Route.roomApiRoutes(handler: RoomApiHandler, json: Json, contentMap
     matrixEndpoint(json, contentMappings, handler::getHierarchy)
     matrixEndpoint(json, contentMappings, handler::timestampToEvent)
     matrixEndpoint(json, contentMappings, handler::getSummary)
+    matrixEndpoint(json, contentMappings, handler::getMutualRooms)
 }
