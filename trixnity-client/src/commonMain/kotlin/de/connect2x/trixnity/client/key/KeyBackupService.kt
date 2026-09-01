@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.trace
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
@@ -42,12 +43,13 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -55,9 +57,13 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -66,8 +72,8 @@ private val log = Logger("de.connect2x.trixnity.client.key.KeyBackupService")
 
 interface KeyBackupService {
     /**
-     * This is the active key backup version. Is null, when the backup algorithm is not supported or there is no
-     * existing backup.
+     * This is the active key backup version. Is null, when the backup algorithm is not supported, there is no existing
+     * backup, or it has been disabled explicitly.
      */
     val version: StateFlow<GetRoomKeysBackupVersionResponse.V1?>
 
@@ -85,6 +91,7 @@ class KeyBackupServiceImpl(
     private val api: MatrixClientServerApiClient,
     private val signService: SignService,
     private val currentSyncState: CurrentSyncState,
+    private val config: MatrixClientConfiguration,
     private val scope: CoroutineScope,
     private val driver: CryptoDriver,
 ) : KeyBackupService, EventHandler {
@@ -92,11 +99,17 @@ class KeyBackupServiceImpl(
     private val ownDeviceId = userInfo.deviceId
     private val currentBackupVersion = MutableStateFlow<GetRoomKeysBackupVersionResponse.V1?>(null)
 
-    /**
-     * This is the active key backup version. Is null, when the backup algorithm is not supported or there is no
-     * existing backup.
-     */
-    override val version = currentBackupVersion.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val version =
+        accountStore
+            .getAccountAsFlow()
+            .filterNotNull()
+            .map { it.keyBackupEnabled }
+            .distinctUntilChanged()
+            .flatMapLatest { localKeyBackupEnabled ->
+                if (localKeyBackupEnabled ?: config.defaultKeyBackupEnabled) currentBackupVersion else flowOf(null)
+            }
+            .stateIn(scope, SharingStarted.Eagerly, null)
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
         // we use UNDISPATCHED because we want to ensure, that collect is called immediately

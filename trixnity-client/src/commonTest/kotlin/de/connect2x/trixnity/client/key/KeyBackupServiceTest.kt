@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.continually
 import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
@@ -57,6 +58,7 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.getValue
 import de.connect2x.trixnity.test.utils.runTest
+import de.connect2x.trixnity.test.utils.scheduleSetup
 import de.connect2x.trixnity.test.utils.suspendLazy
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
@@ -88,7 +90,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     private val ownDeviceId = "DEV"
 
     private val accountStore = getInMemoryAccountStore {
-        tm.writeTransaction { updateAccount { it?.copy(syncBatchToken = "batch") } }
+        tm.writeTransaction { updateAccount { it?.copy(syncBatchToken = "batch", keyBackupEnabled = null) } }
     }
     private val olmCryptoStore = getInMemoryOlmStore()
     private val keyStore = getInMemoryKeyStore()
@@ -104,6 +106,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
 
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
 
+    private val config = MatrixClientConfiguration().apply { scheduleSetup { defaultKeyBackupEnabled = true } }
+
     private val cut =
         KeyBackupServiceImpl(
                 userInfo = UserInfo(ownUserId, ownDeviceId, Ed25519Key(null, ""), Curve25519Key(null, "")),
@@ -114,6 +118,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 api = api,
                 signService = olmSignMock,
                 currentSyncState = CurrentSyncState(currentSyncState),
+                config = config,
                 scope = testScope.backgroundScope,
                 driver = driver,
             )
@@ -194,6 +199,66 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         delay(1.seconds)
         cut.version.value shouldBe keyVersion
     }
+
+    @Test
+    fun `setAndSignNewKeyBackupVersion » key backup can be trusted » local key backup gets disabled and enabled » adapt public version`() =
+        runTest {
+            currentSyncState.value = RUNNING
+            apiConfig.endpoints { matrixJsonEndpoint(GetRoomKeyBackupVersion) { keyVersion } }
+            olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to
+                            StoredSecret(
+                                GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                                validKeyBackup.base64,
+                            )
+                    )
+                }
+            }
+            delay(1.seconds)
+            cut.version.value shouldBe keyVersion
+
+            tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = false) } }
+            delay(1.seconds)
+            cut.version.value shouldBe null
+
+            tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = true) } }
+            delay(1.seconds)
+            cut.version.value shouldBe keyVersion
+        }
+
+    @Test
+    fun `setAndSignNewKeyBackupVersion » key backup can be trusted » default config is disabled » adapt public version`() =
+        runTest {
+            config.defaultKeyBackupEnabled = false
+            tm.writeTransaction {
+                accountStore.updateAccount { it?.copy(keyBackupEnabled = true) } // trigger re-evaluation of config
+            }
+            delay(1.seconds)
+            tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = null) } }
+            currentSyncState.value = RUNNING
+            apiConfig.endpoints { matrixJsonEndpoint(GetRoomKeyBackupVersion) { keyVersion } }
+            olmSignMock.returnSignatures = listOf(mapOf(ownUserId to keysOf(Ed25519Key("DEV", "s1"))))
+            tm.writeTransaction {
+                keyStore.updateSecrets {
+                    mapOf(
+                        M_MEGOLM_BACKUP_V1 to
+                            StoredSecret(
+                                GlobalAccountDataEvent(MegolmBackupV1EventContent(mapOf())),
+                                validKeyBackup.base64,
+                            )
+                    )
+                }
+            }
+            delay(1.seconds)
+            cut.version.value shouldBe null
+
+            tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = true) } }
+            delay(1.seconds)
+            cut.version.value shouldBe keyVersion
+        }
 
     @Test
     fun `setAndSignNewKeyBackupVersion » key backup can be trusted » set version and sign when not signed by own device`() =

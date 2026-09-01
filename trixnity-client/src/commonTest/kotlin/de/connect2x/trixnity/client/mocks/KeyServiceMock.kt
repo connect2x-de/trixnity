@@ -12,6 +12,7 @@ import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
 class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = MutableStateFlow(false)) : KeyService {
     override suspend fun bootstrapCrossSigning(
@@ -46,6 +47,16 @@ class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = Mutable
     }
 
     override fun getCrossSigningKeys(userId: UserId): StateFlow<List<CrossSigningKeys>?> {
+        throw NotImplementedError()
+    }
+
+    override val keyBackupEnabled: Flow<Boolean?> = flowOf(null)
+
+    override suspend fun enableKeyBackup() {
+        throw NotImplementedError()
+    }
+
+    override suspend fun disableKeyBackup() {
         throw NotImplementedError()
     }
 }

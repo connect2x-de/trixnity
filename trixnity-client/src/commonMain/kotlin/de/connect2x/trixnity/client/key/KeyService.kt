@@ -3,6 +3,7 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeyStore
@@ -24,6 +25,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
+import de.connect2x.trixnity.core.model.events.m.KeyBackupEventContent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.MasterKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
@@ -114,10 +116,34 @@ interface KeyService {
     fun getDeviceKeys(userId: UserId): Flow<List<DeviceKeys>?>
 
     fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?>
+
+    /**
+     * Indicates if key backup for this logged in local MatrixClient is enabled. Is null, when no decision has been made
+     * and [MatrixClientConfiguration.defaultKeyBackupEnabled] is used instead. To get an account default, read global
+     * account data [KeyBackupEventContent].
+     */
+    val keyBackupEnabled: Flow<Boolean?>
+
+    /**
+     * Allows to enable key backup for this logged in local MatrixClient. To set an account default, set global account
+     * data [KeyBackupEventContent].
+     *
+     * Usually, this should be called before key backup is set up via bootstrap or self verification.
+     */
+    suspend fun enableKeyBackup()
+
+    /**
+     * Allows to disable key backup for this logged in local MatrixClient. To set an account default, set global account
+     * data [KeyBackupEventContent].
+     *
+     * Usually, this should be called before key backup is set up via bootstrap or self verification.
+     */
+    suspend fun disableKeyBackup()
 }
 
 class KeyServiceImpl(
     private val userInfo: UserInfo,
+    private val accountStore: AccountStore,
     private val keyStore: KeyStore,
     private val olmCryptoStore: OlmCryptoStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
@@ -427,5 +453,15 @@ class KeyServiceImpl(
 
     override fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?> {
         return keyStore.getCrossSigningKeys(userId).map { it?.map { storedKeys -> storedKeys.value.signed } }
+    }
+
+    override val keyBackupEnabled: Flow<Boolean?> = accountStore.getAccountAsFlow().map { it?.keyBackupEnabled }
+
+    override suspend fun enableKeyBackup() {
+        tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = true) } }
+    }
+
+    override suspend fun disableKeyBackup() {
+        tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = false) } }
     }
 }

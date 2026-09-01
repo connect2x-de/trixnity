@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
@@ -79,6 +80,7 @@ class KeyServiceTest : TrixnityBaseTest() {
     private val roomServiceMock = RoomServiceMock()
     private val keyTrustServiceMock = KeyTrustServiceMock()
 
+    private val accountStore = getInMemoryAccountStore { tm.writeTransaction { deleteAll() } }
     private val keyStore = getInMemoryKeyStore { tm.writeTransaction { deleteAll() } }
     private val olmCryptoStore = getInMemoryOlmStore { tm.writeTransaction { deleteAll() } }
     private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { tm.writeTransaction { deleteAll() } }
@@ -89,6 +91,7 @@ class KeyServiceTest : TrixnityBaseTest() {
     private val cut =
         KeyServiceImpl(
             userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            accountStore = accountStore,
             keyStore = keyStore,
             olmCryptoStore = olmCryptoStore,
             globalAccountDataStore = globalAccountDataStore,

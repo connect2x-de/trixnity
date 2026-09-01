@@ -52,6 +52,7 @@ fun createKeyModule() = module {
     single<KeyService> {
         KeyServiceImpl(
             userInfo = get(),
+            accountStore = get(),
             keyStore = get(),
             olmCryptoStore = get(),
             globalAccountDataStore = get(),
