@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.client.cryptodriver
+package de.connect2x.trixnity.client.crypto
 
 import de.connect2x.trixnity.client.key.getDeviceKey
 import de.connect2x.trixnity.client.store.AccountStore

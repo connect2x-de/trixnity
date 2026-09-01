@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.client.cryptodriver
+package de.connect2x.trixnity.client.crypto
 
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.EventHandler

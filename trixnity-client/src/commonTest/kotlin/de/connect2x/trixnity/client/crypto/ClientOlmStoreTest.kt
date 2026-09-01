@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.client.cryptodriver
+package de.connect2x.trixnity.client.crypto
 
 import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
