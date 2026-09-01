@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.client.cryptodriver.ClientOlmStore
+import de.connect2x.trixnity.client.crypto.ClientOlmStore
 import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
@@ -90,6 +90,8 @@ abstract class DehydratedDeviceServiceTest(protected val driver: CryptoDriver) :
             roomStateStore = getInMemoryRoomStateStore(),
             tm = tm,
             loadMembersService = { _, _ -> },
+            signService = signServiceMock,
+            userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Curve25519Key(null, "")),
         )
 
     protected val apiConfig = PortableMockEngineConfig()

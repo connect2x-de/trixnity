@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client
 
-import de.connect2x.trixnity.client.cryptodriver.createCryptoModule
+import de.connect2x.trixnity.client.crypto.createCryptoModule
 import de.connect2x.trixnity.client.key.KeyBackupService
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.key.OutgoingRoomKeyRequestEventHandler

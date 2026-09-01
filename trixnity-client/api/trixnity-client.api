@@ -359,29 +359,29 @@ public final class de/connect2x/trixnity/client/UtilsKt {
 	public static final fun toMxcUri (Ljava/lang/String;)Lio/ktor/http/Url;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientMegolmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceRequestHandler {
+public final class de/connect2x/trixnity/client/crypto/ClientMegolmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/MegolmEncryptionServiceRequestHandler {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
 	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler {
+public final class de/connect2x/trixnity/client/crypto/ClientOlmEncryptionServiceRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
 	public fun claimKeys-gIAlu-s (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmEventHandlerRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler {
+public final class de/connect2x/trixnity/client/crypto/ClientOlmEventHandlerRequestHandler : de/connect2x/trixnity/crypto/olm/OlmEventHandlerRequestHandler {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
 	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setOneTimeKeys-984nOFY (Ljava/util/Set;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmKeysChangeEmitter : de/connect2x/trixnity/crypto/olm/OlmKeysChangeEmitter {
+public final class de/connect2x/trixnity/client/crypto/ClientOlmKeysChangeEmitter : de/connect2x/trixnity/crypto/olm/OlmKeysChangeEmitter {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;)V
 	public fun subscribeOneTimeKeysCount (Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function0;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmStore : de/connect2x/trixnity/crypto/olm/OlmStore {
-	public fun <init> (Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/user/LoadMembersService;Lde/connect2x/trixnity/client/store/StoreTransactionManager;)V
+public final class de/connect2x/trixnity/client/crypto/ClientOlmStore : de/connect2x/trixnity/crypto/olm/OlmStore {
+	public fun <init> (Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/user/LoadMembersService;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/core/UserInfo;)V
 	public fun getDeviceKeys-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getForgetFallbackKeyAfter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getHistoryVisibility-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -401,13 +401,13 @@ public final class de/connect2x/trixnity/client/cryptodriver/ClientOlmStore : de
 	public fun updateOutboundMegolmSession-RNkTX0s (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/ClientSignServiceStore : de/connect2x/trixnity/crypto/sign/SignServiceStore {
+public final class de/connect2x/trixnity/client/crypto/ClientSignServiceStore : de/connect2x/trixnity/crypto/sign/SignServiceStore {
 	public fun <init> (Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/AccountStore;)V
 	public fun getOlmAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getOlmPickleKey (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/cryptodriver/CreateCryptoModuleKt {
+public final class de/connect2x/trixnity/client/crypto/CreateCryptoModuleKt {
 	public static final fun createCryptoModule ()Lorg/koin/core/module/Module;
 }
 
