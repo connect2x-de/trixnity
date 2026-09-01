@@ -28,11 +28,11 @@ val ConvertMediaPlugin =
                 is MultipartEvent.MultipartPart -> {
                     val bodyJson = part1.body.readRemaining().use { it.readText() }
                     if (bodyJson != "{}") log.warn { "part1 of media should be empty json but was '$bodyJson'" }
-                    part1.release()
+                    part1.releaseSuspend()
                 }
 
                 else -> {
-                    part1.release()
+                    part1.releaseSuspend()
                 }
             }
             when (val part2 = multipartBody.receive()) {
@@ -54,7 +54,7 @@ val ConvertMediaPlugin =
                 }
 
                 else -> {
-                    part2.release()
+                    part2.releaseSuspend()
                 }
             }
         }

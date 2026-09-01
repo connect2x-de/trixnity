@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.store
 
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.core.model.Profile
 import de.connect2x.trixnity.core.model.UserId
 import kotlinx.serialization.Serializable
 

@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.clientserverapi.model.server
 
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test

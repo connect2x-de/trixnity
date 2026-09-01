@@ -7,8 +7,6 @@ import de.connect2x.trixnity.clientserverapi.model.user.GetGlobalAccountData
 import de.connect2x.trixnity.clientserverapi.model.user.GetPresence
 import de.connect2x.trixnity.clientserverapi.model.user.GetProfile
 import de.connect2x.trixnity.clientserverapi.model.user.GetProfileField
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.ReportUser
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
 import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
@@ -16,6 +14,8 @@ import de.connect2x.trixnity.clientserverapi.model.user.SetFilter
 import de.connect2x.trixnity.clientserverapi.model.user.SetGlobalAccountData
 import de.connect2x.trixnity.clientserverapi.model.user.SetPresence
 import de.connect2x.trixnity.clientserverapi.model.user.SetProfileField
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent

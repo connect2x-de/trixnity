@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.clientserverapi.model.server
 
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.MSC4140
+import de.connect2x.trixnity.core.model.ProfileField
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.serverserverapi.server
 
 import de.connect2x.trixnity.api.server.MatrixEndpointContext
 import de.connect2x.trixnity.core.MSC4195
+import de.connect2x.trixnity.core.model.Profile
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentStateDataUnit
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.keys.Signed
@@ -110,9 +111,7 @@ interface FederationApiHandler {
     ): QueryDirectory.Response
 
     /** @see [QueryProfile] */
-    suspend fun queryProfile(
-        context: MatrixEndpointContext<QueryProfile, Unit, QueryProfile.Response>
-    ): QueryProfile.Response
+    suspend fun queryProfile(context: MatrixEndpointContext<QueryProfile, Unit, Profile>): Profile
 
     /** @see [GetOIDCUserInfo] */
     suspend fun getOIDCUserInfo(

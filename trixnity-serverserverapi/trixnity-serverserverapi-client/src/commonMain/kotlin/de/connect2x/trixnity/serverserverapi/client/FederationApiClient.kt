@@ -3,6 +3,8 @@ package de.connect2x.trixnity.serverserverapi.client
 import de.connect2x.trixnity.api.client.MatrixApiClient
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -135,11 +137,7 @@ interface FederationApiClient {
     suspend fun queryDirectory(baseUrl: Url, roomAlias: RoomAliasId): Result<QueryDirectory.Response>
 
     /** @see [QueryProfile] */
-    suspend fun queryProfile(
-        baseUrl: Url,
-        userId: UserId,
-        field: QueryProfile.Field? = null,
-    ): Result<QueryProfile.Response>
+    suspend fun queryProfile(baseUrl: Url, userId: UserId, field: ProfileField.Key<*>? = null): Result<Profile>
 
     /** @see [GetOIDCUserInfo] */
     suspend fun getOIDCUserInfo(baseUrl: Url, accessToken: String): Result<GetOIDCUserInfo.Response>
@@ -303,11 +301,8 @@ class FederationApiClientImpl(private val baseClient: MatrixApiClient) : Federat
     override suspend fun queryDirectory(baseUrl: Url, roomAlias: RoomAliasId): Result<QueryDirectory.Response> =
         baseClient.request(QueryDirectory(roomAlias)) { mergeUrl(baseUrl) }
 
-    override suspend fun queryProfile(
-        baseUrl: Url,
-        userId: UserId,
-        field: QueryProfile.Field?,
-    ): Result<QueryProfile.Response> = baseClient.request(QueryProfile(userId, field)) { mergeUrl(baseUrl) }
+    override suspend fun queryProfile(baseUrl: Url, userId: UserId, field: ProfileField.Key<*>?): Result<Profile> =
+        baseClient.request(QueryProfile(userId, field)) { mergeUrl(baseUrl) }
 
     override suspend fun getOIDCUserInfo(baseUrl: Url, accessToken: String): Result<GetOIDCUserInfo.Response> =
         baseClient.request(GetOIDCUserInfo(accessToken)) { mergeUrl(baseUrl) }
