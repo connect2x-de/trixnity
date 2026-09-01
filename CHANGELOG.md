@@ -17,9 +17,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
-- Use manually signed own device keys when stored keys do not contain signatures due to the json bug fixed in 5.8.0
-
 ### Security
+
+## 5.8.1
+
+### Fixed
+
+- Use manually signed own device keys when stored keys do not contain signatures due to the json bug fixed in 5.8.0
 
 ## 5.8.0
 
