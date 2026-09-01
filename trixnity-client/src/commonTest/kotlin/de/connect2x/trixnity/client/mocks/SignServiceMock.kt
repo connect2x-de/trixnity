@@ -12,8 +12,10 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonObject
 
 class SignServiceMock : SignService {
+    lateinit var returnGetSelfSignedDeviceKeys: Signed<DeviceKeys, UserId>
+
     override suspend fun getSelfSignedDeviceKeys(): Signed<DeviceKeys, UserId> {
-        throw NotImplementedError()
+        return returnGetSelfSignedDeviceKeys
     }
 
     override suspend fun signatures(jsonObject: JsonObject, signWith: SignWith): Signatures<UserId> {

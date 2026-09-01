@@ -4,9 +4,11 @@ import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.getInMemoryRoomStateStore
+import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.Key
@@ -26,6 +28,7 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
     private val aliceDevice = "ALICEDEVICE"
 
     private val keyStore = getInMemoryKeyStore()
+    private val signServiceMock = SignServiceMock()
 
     private val cut =
         ClientOlmStore(
@@ -35,12 +38,17 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
             roomStateStore = getInMemoryRoomStateStore(),
             tm = tm,
             loadMembersService = { _, _ -> },
+            signService = signServiceMock,
+            userInfo = UserInfo(alice, aliceDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
         )
 
     @Test
     fun `getDeviceKeys » identity key is present » return identity key`() = runTest {
         val deviceKeys =
-            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
+            SignedDeviceKeys(
+                DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))),
+                signatures = mapOf(alice to keysOf(Key.Ed25519Key(null, "key"))),
+            )
 
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
@@ -53,7 +61,10 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
     @Test
     fun `getDeviceKeys » identity key is not present » fetch and return identity key when found`() = runTest {
         val deviceKeys =
-            SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
+            SignedDeviceKeys(
+                DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))),
+                signatures = mapOf(alice to keysOf(Key.Ed25519Key(null, "key"))),
+            )
 
         val result = async { cut.getDeviceKeys(alice) }
         keyStore.getOutdatedKeysFlow().first { it.contains(alice) }
@@ -73,4 +84,26 @@ class ClientOlmStoreTest : TrixnityBaseTest() {
         tm.writeTransaction { keyStore.updateOutdatedKeys { setOf() } }
         result.await() shouldBe null
     }
+
+    @Test
+    fun `fallback to self signed devices keys when missing signature in database due to a historical json bug`() =
+        runTest {
+            val deviceKeys =
+                SignedDeviceKeys(DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))))
+            val signedDeviceKeys =
+                SignedDeviceKeys(
+                    DeviceKeys(alice, aliceDevice, setOf(), keysOf(Key.Curve25519Key(null, "key"))),
+                    signatures = mapOf(alice to keysOf(Key.Ed25519Key(null, "key"))),
+                )
+
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(aliceDevice to StoredDeviceKeys(deviceKeys, KeySignatureTrustLevel.Valid(true)))
+                }
+            }
+
+            signServiceMock.returnGetSelfSignedDeviceKeys = signedDeviceKeys
+
+            cut.getDeviceKeys(alice)?.get(aliceDevice) shouldBe signedDeviceKeys
+        }
 }

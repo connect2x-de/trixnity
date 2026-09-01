@@ -90,6 +90,8 @@ abstract class DehydratedDeviceServiceTest(protected val driver: CryptoDriver) :
             roomStateStore = getInMemoryRoomStateStore(),
             tm = tm,
             loadMembersService = { _, _ -> },
+            signService = signServiceMock,
+            userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Curve25519Key(null, "")),
         )
 
     protected val apiConfig = PortableMockEngineConfig()
