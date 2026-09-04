@@ -89,7 +89,11 @@ interface UserApiClient {
     suspend fun setAccountData(content: GlobalAccountDataEventContent, userId: UserId, key: String = ""): Result<Unit>
 
     /** @see [SearchUsers] */
-    suspend fun searchUsers(searchTerm: String, acceptLanguage: String, limit: Long? = 10): Result<SearchUsers.Response>
+    suspend fun searchUsers(
+        searchTerm: String,
+        acceptLanguage: String? = null,
+        limit: Long? = 10,
+    ): Result<SearchUsers.Response>
 
     /** @see [ReportUser] */
     suspend fun reportUser(userId: UserId, reason: String): Result<Unit>
@@ -196,11 +200,11 @@ class UserApiClientImpl(
 
     override suspend fun searchUsers(
         searchTerm: String,
-        acceptLanguage: String,
+        acceptLanguage: String?,
         limit: Long?,
     ): Result<SearchUsers.Response> =
         baseClient.request(SearchUsers, SearchUsers.Request(searchTerm, limit)) {
-            header(HttpHeaders.AcceptLanguage, acceptLanguage)
+            acceptLanguage?.let { header(HttpHeaders.AcceptLanguage, acceptLanguage) }
         }
 
     override suspend fun reportUser(userId: UserId, reason: String): Result<Unit> =
