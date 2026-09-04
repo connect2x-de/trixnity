@@ -25,6 +25,7 @@ import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
 import de.connect2x.trixnity.core.model.events.m.RecentEmojiEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyBundleEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.StickerEventContent
@@ -152,6 +153,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     toDeviceOf<SasMacEventContent>("m.key.verification.mac")
     toDeviceOf<SecretKeyRequestEventContent>("m.secret.request")
     toDeviceOf<SecretKeySendEventContent>("m.secret.send")
+    toDeviceOf<RoomKeyBundleEventContent>(" m.room_key_bundle")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("org.matrix.msc4143.rtc.encryption_key")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("m.rtc.encryption_key")
 
