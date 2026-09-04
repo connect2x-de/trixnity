@@ -14,4 +14,5 @@ data class RoomKeyEventContent(
     @SerialName("session_id") val sessionId: String,
     @SerialName("session_key") val sessionKey: SessionKeyValue,
     @SerialName("algorithm") val algorithm: EncryptionAlgorithm,
+    @SerialName("shared_history") val sharedHistory: Boolean? = null,
 ) : ToDeviceEventContent

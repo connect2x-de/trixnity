@@ -127,6 +127,9 @@ class MegolmEncryptionServiceImpl(
                     getValue = { store.getOutboundMegolmSession(roomId) },
                     updateValue = { store.updateOutboundMegolmSession(roomId, it) },
                 ) { storedMegolmSession ->
+                    val historyVisibility = store.getHistoryVisibility(roomId)
+                    val sharedHistory = historyVisibility.sharedHistory
+
                     if (
                         storedMegolmSession != null &&
                             (rotationPeriodMs == null ||
@@ -142,6 +145,7 @@ class MegolmEncryptionServiceImpl(
                                     outboundSession.encrypt(
                                         content = content,
                                         roomId = roomId,
+                                        sharedHistory = sharedHistory,
                                         newDevices =
                                             storedMegolmSession.newDevices
                                                 .flatMap { (userId, deviceIds) -> deviceIds.map { userId to it } }
@@ -163,8 +167,7 @@ class MegolmEncryptionServiceImpl(
                     }
 
                     log.debug { "encrypt megolm event with new session" }
-                    val newUserDevices =
-                        store.getDevices(roomId, store.getHistoryVisibility(roomId).membershipsAllowedToReceiveKey)
+                    val newUserDevices = store.getDevices(roomId, historyVisibility.membershipsAllowedToReceiveKey)
                     val (encryptionResult, pickledSession, storedInboundMegolmSession) =
                         try {
                             useAll(
@@ -175,6 +178,7 @@ class MegolmEncryptionServiceImpl(
                                     outboundSession.encrypt(
                                         content = content,
                                         roomId = roomId,
+                                        sharedHistory = sharedHistory,
                                         newDevices = newUserDevices,
                                     ),
                                     outboundSession.pickle(pickleKey),
@@ -187,6 +191,7 @@ class MegolmEncryptionServiceImpl(
                                         isTrusted = true,
                                         senderSigningKey = ownEd25519Key.value,
                                         forwardingCurve25519KeyChain = listOf(),
+                                        sharedHistory = sharedHistory,
                                         pickled = inboundSession.pickle(pickleKey),
                                     ),
                                 )
@@ -216,6 +221,7 @@ class MegolmEncryptionServiceImpl(
     private suspend fun GroupSession.encrypt(
         content: MessageEventContent,
         roomId: RoomId,
+        sharedHistory: Boolean,
         newDevices: Set<Pair<UserId, String>>,
     ): MegolmEncryptedMessageEventContent {
         val newDevicesWithoutUs = newDevices - (ownUserId to ownDeviceId)
@@ -227,6 +233,7 @@ class MegolmEncryptionServiceImpl(
                     sessionId = sessionId,
                     sessionKey = SessionKeyValue.of(sessionKey),
                     algorithm = Megolm,
+                    sharedHistory = sharedHistory,
                 )
 
             val eventsToSend =

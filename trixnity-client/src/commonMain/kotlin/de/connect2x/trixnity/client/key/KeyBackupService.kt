@@ -260,6 +260,7 @@ class KeyBackupServiceImpl(
                                     hasBeenBackedUp = true, // because it comes from backup
                                     senderSigningKey = senderSigningKey.value,
                                     forwardingCurve25519KeyChain = data.forwardingKeyChain,
+                                    sharedHistory = data.sharedHistory == true,
                                     pickled = pickledSession,
                                 )
                         }
@@ -334,10 +335,15 @@ class KeyBackupServiceImpl(
                                                     val sessionData =
                                                         api.json.encodeToString(
                                                             RoomKeyBackupV1SessionData(
-                                                                session.senderKey,
-                                                                session.forwardingCurve25519KeyChain,
-                                                                Keys(Key.Ed25519Key(null, session.senderSigningKey)),
-                                                                ExportedSessionKeyValue.of(sessionKey),
+                                                                senderKey = session.senderKey,
+                                                                forwardingKeyChain =
+                                                                    session.forwardingCurve25519KeyChain,
+                                                                senderClaimedKeys =
+                                                                    Keys(
+                                                                        Key.Ed25519Key(null, session.senderSigningKey)
+                                                                    ),
+                                                                sessionKey = ExportedSessionKeyValue.of(sessionKey),
+                                                                sharedHistory = session.sharedHistory,
                                                             )
                                                         )
 

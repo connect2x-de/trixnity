@@ -107,6 +107,7 @@ class IncomingRoomKeyRequestEventHandler(
                                     senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
                                     forwardingKeyChain = foundInboundMegolmSession.forwardingCurve25519KeyChain,
                                     algorithm = EncryptionAlgorithm.Megolm,
+                                    sharedHistory = foundInboundMegolmSession.sharedHistory,
                                 ),
                                 ownUserId,
                                 requestingDeviceId,

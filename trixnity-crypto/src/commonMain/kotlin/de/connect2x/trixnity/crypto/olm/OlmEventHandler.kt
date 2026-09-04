@@ -291,6 +291,7 @@ class OlmEventHandlerImpl(
                             hasBeenBackedUp = false,
                             isTrusted = true,
                             forwardingCurve25519KeyChain = emptyList(),
+                            sharedHistory = content.sharedHistory == true,
                             pickled = pickledSession,
                         )
                 }

@@ -20,5 +20,6 @@ data class StoredInboundMegolmSession(
      */
     val isTrusted: Boolean,
     val forwardingCurve25519KeyChain: List<Curve25519KeyValue>,
+    val sharedHistory: Boolean = false, // default value for backwards compatibility
     val pickled: String,
 )

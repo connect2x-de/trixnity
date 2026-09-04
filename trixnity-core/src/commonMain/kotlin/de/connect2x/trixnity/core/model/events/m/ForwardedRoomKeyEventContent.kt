@@ -19,4 +19,5 @@ data class ForwardedRoomKeyEventContent(
     @SerialName("sender_claimed_ed25519_key") val senderClaimedKey: Ed25519KeyValue,
     @SerialName("forwarding_curve25519_key_chain") val forwardingKeyChain: List<Curve25519KeyValue>,
     @SerialName("algorithm") val algorithm: EncryptionAlgorithm,
+    @SerialName("shared_history") val sharedHistory: Boolean? = null, // this has been forgotten in the spec 1.19
 ) : ToDeviceEventContent
