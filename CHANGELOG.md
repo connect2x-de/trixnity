@@ -23,6 +23,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- Finish cache (especially ConcurrentObservableMap) updates on cancellation to prevent the cache gets out of sync with
+  the database
+
 ### Security
 
 ## 5.8.1

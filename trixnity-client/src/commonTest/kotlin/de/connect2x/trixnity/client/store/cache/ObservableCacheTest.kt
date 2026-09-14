@@ -623,7 +623,7 @@ class ObservableCacheTest : TrixnityBaseTest() {
     @Test
     fun `index » call onRemoveALl on clear`() = runTest {
         tm.writeTransaction { indexedCut.set("key", "value") }
-        indexedCut.clear()
+        withCacheTransaction { indexedCut.clear() }
         indexedCut.index.onRemoveAllCalled.value shouldBe true
     }
 
@@ -677,25 +677,30 @@ private class TestObservableCacheIndex<T> : ObservableCacheIndex<T> {
     val onRemoveAllCalled = MutableStateFlow(false)
     var subscriptionCount = 0
 
+    context(transaction: CacheTransaction)
     override suspend fun onPut(key: T) {
         onPut.value = key
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onSkipPut(key: T) {
         onSkipPut.value = key
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemove(key: T, stale: Boolean) {
         onRemove.value = key to stale
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemoveAll() {
         onRemoveAllCalled.value = true
     }
 
-    override suspend fun collectStatistic(): ObservableCacheIndexStatistic? = null
-
+    context(transaction: CacheTransaction)
     override suspend fun getSubscriptionCount(key: T): Int = subscriptionCount
+
+    override suspend fun collectStatistic(): ObservableCacheIndexStatistic? = null
 }
 
 private class TestIndexedObservableCache(

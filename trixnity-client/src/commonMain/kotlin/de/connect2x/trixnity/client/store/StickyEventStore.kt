@@ -112,7 +112,7 @@ class StickyEventStore(
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<StoredStickyEvent<C>?>>> {
         val eventType = findType(eventContentClass)
-        return stickyEventCache.readByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
+        return stickyEventCache.getByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
             value
                 .mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid() }
                 .mapKeys { it.key.sender to it.key.stickyKey }

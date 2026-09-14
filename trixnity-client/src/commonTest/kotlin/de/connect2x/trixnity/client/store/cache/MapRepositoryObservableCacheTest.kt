@@ -24,8 +24,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelAndJoin
@@ -40,6 +42,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.withContext
 
 class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
@@ -85,7 +89,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 clock = testScope.testClock,
                 expireDuration = 1.minutes,
             )
-            .also { scheduleSetup { it.clear() } }
+            .also { scheduleSetup { withCacheTransaction { it.clear() } } }
 
     @Test
     fun `write » save into database without reading old value`() = runTest {
@@ -293,34 +297,34 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `readByFirstKey » load from database when not exists in cache`() = runTest {
+    fun `getByFirstKey » load from database when not exists in cache`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
     }
 
     @Test
-    fun `readByFirstKey » load from database when cache values removed`() = runTest {
+    fun `getByFirstKey » load from database when cache values removed`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        val startedCollectReadByFirstKey = MutableStateFlow(false)
+        val startedCollectgetByFirstKey = MutableStateFlow(false)
         val collectRead =
             launch(start = CoroutineStart.LAZY) {
                 cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1"))
-                    .onEach { startedCollectReadByFirstKey.value = true }
+                    .onEach { startedCollectgetByFirstKey.value = true }
                     .collect()
             }
-        val collectReadByFirstKey = launch {
-            cut.readByFirstKey("firstKey").flatten().onEach { collectRead.start() }.collect()
+        val collectgetByFirstKey = launch {
+            cut.getByFirstKey("firstKey").flatten().onEach { collectRead.start() }.collect()
         }
-        startedCollectReadByFirstKey.first { it }
+        startedCollectgetByFirstKey.first { it }
         delay(1.minutes + 1.milliseconds)
         cut.invalidate() // should not remove secondKey1
-        collectReadByFirstKey.cancelAndJoin()
+        collectgetByFirstKey.cancelAndJoin()
         delay(50.milliseconds) // wait for cancel to take effect
 
         delay(1.minutes + 1.milliseconds)
@@ -330,12 +334,12 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "new2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "new2")
         collectRead.cancel()
     }
 
     @Test
-    fun `readByFirstKey » load from database when only partially exists in cache`() = runTest {
+    fun `getByFirstKey » load from database when only partially exists in cache`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
@@ -343,67 +347,67 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         cut.get(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")).first() shouldBe "old1"
         cut.invalidate()
         readTransactionCalled.value = 0
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         readTransactionCalled.value shouldBe 1
     }
 
     @Test
-    fun `readByFirstKey » prefer cache`() = runTest {
+    fun `getByFirstKey » prefer cache`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
             repository.save("firstKey", "secondKey3", "new3")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
     }
 
     @Test
-    fun `readByFirstKey » prefer cache even when values are added in cache`() = runTest {
+    fun `getByFirstKey » prefer cache even when values are added in cache`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1", "secondKey2" to "old2")
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "new1")
             repository.save("firstKey", "secondKey2", "new2")
         }
         tm.writeTransaction { cut.set(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey3"), "new3") }
-        cut.readByFirstKey("firstKey").flatten().first() shouldBe
+        cut.getByFirstKey("firstKey").flatten().first() shouldBe
             mapOf("secondKey1" to "old1", "secondKey2" to "old2", "secondKey3" to "new3")
     }
 
     @Test
-    fun `readByFirstKey » remove from cache when not used anymore`() = runTest {
+    fun `getByFirstKey » remove from cache when not used anymore`() = runTest {
         noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "old1") }
 
-        val readByFirstJob = backgroundScope.launch { cut.readByFirstKey(key = "firstKey").flatten().collect() }
+        val getByFirstJob = backgroundScope.launch { cut.getByFirstKey(key = "firstKey").flatten().collect() }
 
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
+        cut.getByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
         noOpTm.writeTransaction { repository.save("firstKey", "secondKey1", "new1") }
-        readByFirstJob.cancel()
+        getByFirstJob.cancel()
 
         delay(1.minutes)
         cut.invalidate()
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
+        cut.getByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "old1")
 
         delay(1.milliseconds)
         cut.invalidate()
-        cut.readByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "new1")
+        cut.getByFirstKey(key = "firstKey").flatten().first() shouldBe mapOf("secondKey1" to "new1")
     }
 
     @Test
-    fun `readByFirstKey » remove from cache when stale`() = runTest {
+    fun `getByFirstKey » remove from cache when stale`() = runTest {
         noOpTm.writeTransaction {
             repository.save("firstKey", "secondKey1", "old1")
             repository.save("firstKey", "secondKey2", "old2")
         }
-        val byFirstKey = cut.readByFirstKey(key = "firstKey").map { it.keys }.stateIn(backgroundScope)
+        val byFirstKey = cut.getByFirstKey(key = "firstKey").map { it.keys }.stateIn(backgroundScope)
 
         byFirstKey.value shouldBe setOf("secondKey1", "secondKey2")
         tm.writeTransaction { cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondKey1")) { null } }
@@ -414,7 +418,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `readByFirstKey » handle parallel read and write`() = runTest {
+    fun `getByFirstKey » handle parallel read and write`() = runTest {
         val repository =
             object : InMemoryMapRepository<String, String, String>() {
                 context(transaction: WriteTransaction)
@@ -433,13 +437,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                     cut.update(MapRepositoryCoroutinesCacheKey("firstKey", "secondsKey2")) { "value2" }
                 }
             }
-            launch { cut.readByFirstKey("firstKey").filterNotNull().first() }
+            launch { cut.getByFirstKey("firstKey").filterNotNull().first() }
         }
-        cut.readByFirstKey("firstKey").filterNotNull().first() shouldHaveSize 2
+        cut.getByFirstKey("firstKey").filterNotNull().first() shouldHaveSize 2
     }
 
     @Test
-    fun `readByFirstKey » don't invalidate when subscribed`() = runTest {
+    fun `getByFirstKey » don't invalidate when subscribed`() = runTest {
         val observeK1 = backgroundScope.async { cut.get(MapRepositoryCoroutinesCacheKey("fk1", "sk1")).collect() }
         delay(10.milliseconds)
         tm.writeTransaction {
@@ -449,7 +453,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         observeK1.cancel()
 
         repository.continueGetFirstKey.value = false // this forces a delay in the repository (so it will return k1, k2)
-        val result = async { cut.readByFirstKey("fk1").flatten().first() }
+        val result = async { cut.getByFirstKey("fk1").flatten().first() }
 
         delay(2.minutes) // invalidate cache (removes k1,k2)
 
@@ -478,11 +482,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 values = values,
             )
 
-        suspend fun subscriptionCount1() =
+        suspend fun subscriptionCount1() = withCacheTransaction {
             values.getIndexSubscriptionCount(MapRepositoryCoroutinesCacheKey("firstKey1", "secondsKey1"))
+        }
 
-        suspend fun subscriptionCount2() =
+        suspend fun subscriptionCount2() = withCacheTransaction {
             values.getIndexSubscriptionCount(MapRepositoryCoroutinesCacheKey("firstKey2", "secondsKey1"))
+        }
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
 
@@ -490,14 +496,85 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
 
-        val readByFirstJob = backgroundScope.launch { cut.readByFirstKey("firstKey1").flatten().collect {} }
+        val getByFirstJob = backgroundScope.launch { cut.getByFirstKey("firstKey1").flatten().collect {} }
         delay(50.milliseconds)
         subscriptionCount1() shouldBe 1
         subscriptionCount2() shouldBe 0
 
-        readByFirstJob.cancel()
+        getByFirstJob.cancel()
         delay(50.milliseconds)
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
+    }
+
+    @Test
+    fun `getByFirstKey » cancellation while indexing a middle entry does not lose its key`() = runTest {
+        cancellationWhileIndexing("secondKey2")
+    }
+
+    @Test
+    fun `getByFirstKey » cancellation while indexing the newest entry does not lose its key`() = runTest {
+        cancellationWhileIndexing("secondKey3")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun TestScope.cancellationWhileIndexing(interruptedKey: String) {
+        val tm = NoOpStoreTransactionManager
+        val repository =
+            object : InMemoryMapRepository<String, String, String>() {
+                override fun serializeKey(firstKey: String, secondKey: String) = firstKey + secondKey
+            }
+        val expected = linkedMapOf("secondKey1" to "value1", "secondKey2" to "value2", "secondKey3" to "value3")
+        tm.writeTransaction { expected.forEach { (key, value) -> repository.save("firstKey", key, value) } }
+        val indexingStarted = CompletableDeferred<Unit>()
+        val continueIndexing = CompletableDeferred<Unit>()
+        val values =
+            ConcurrentObservableMap<
+                MapRepositoryCoroutinesCacheKey<String, String>,
+                MutableStateFlow<CacheValue<String?>>,
+            >()
+        values.indexes.value =
+            listOf(
+                object : ObservableCacheIndex<MapRepositoryCoroutinesCacheKey<String, String>> {
+                    context(transaction: CacheTransaction)
+                    override suspend fun onPut(key: MapRepositoryCoroutinesCacheKey<String, String>) {
+                        if (key.secondKey == interruptedKey) {
+                            indexingStarted.complete(Unit)
+                            continueIndexing.await()
+                        }
+                    }
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onSkipPut(key: MapRepositoryCoroutinesCacheKey<String, String>) {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onRemove(
+                        key: MapRepositoryCoroutinesCacheKey<String, String>,
+                        stale: Boolean,
+                    ) {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onRemoveAll() {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun getSubscriptionCount(key: MapRepositoryCoroutinesCacheKey<String, String>) = 0
+
+                    override suspend fun collectStatistic(): ObservableCacheIndexStatistic? = null
+                }
+            )
+        val cache = MapRepositoryObservableCache(repository, tm, backgroundScope, testClock, values = values)
+        val loading = launch { cache.getByFirstKey("firstKey").flatten().collect() }
+        indexingStarted.await()
+        loading.cancel()
+        runCurrent()
+        continueIndexing.complete(Unit)
+        loading.join()
+
+        cache.getByFirstKey("firstKey").flatten().first() shouldBe expected
+        cache.getByFirstKey("firstKey").flatten().first() shouldBe expected
+        val observed = cache.getByFirstKey("firstKey").flatten().stateIn(backgroundScope)
+        tm.writeTransaction { cache.set(MapRepositoryCoroutinesCacheKey("firstKey", interruptedKey), "updated") }
+        runCurrent()
+        observed.value shouldBe expected + (interruptedKey to "updated")
     }
 }

@@ -17,13 +17,16 @@ private class DeleteByRoomIdRepositoryObservableCacheIndex<K>(private val keyMap
 
     private val values = ConcurrentObservableMap<RoomId, ConcurrentObservableSet<K>>()
 
+    context(transaction: CacheTransaction)
     override suspend fun onPut(key: K) {
         val roomId = keyMapper(key)
         values.getOrPut(roomId) { ConcurrentObservableSet() }.add(key)
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onSkipPut(key: K) {}
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemove(key: K, stale: Boolean) {
         val roomId = keyMapper(key)
         values.update(roomId) { mapping ->
@@ -32,12 +35,15 @@ private class DeleteByRoomIdRepositoryObservableCacheIndex<K>(private val keyMap
         }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemoveAll() {
         values.removeAll()
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun getSubscriptionCount(key: K): Int = 0
 
+    context(transaction: CacheTransaction)
     suspend fun getMapping(roomId: RoomId): Set<K> =
         values.getOrPut(roomId) { ConcurrentObservableSet() }.values.first()
 
