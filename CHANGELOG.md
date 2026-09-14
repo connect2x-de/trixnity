@@ -9,16 +9,27 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Support MSC4140 Cancellable delayed events (including stickiness)
-- Added events and endpoints for MSC4195 (LiveKit Transport for MatrixRTC) and MSC4196 (Voice and video calling
-  application for
-  MatrixRTC)
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 5.9.1
+
+### Added
+
+- Support MSC4140 (Cancellable delayed events)
+- Added events and endpoints for MSC4195 (LiveKit Transport for MatrixRTC)
+- Added events and endpoints for MSC4196 (Voice and video calling application for MatrixRTC)
 
 ### Changed
 
 - Updated MSC4143 (MatrixRTC) events and endpoints
-
-### Deprecated
 
 ### Removed
 
@@ -28,8 +39,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Finish cache (especially ConcurrentObservableMap) updates on cancellation to prevent the cache gets out of sync with
   the database
-
-### Security
 
 ## 5.8.1
 
