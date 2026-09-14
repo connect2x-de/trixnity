@@ -156,16 +156,6 @@ class RoomServiceMock : RoomService {
         return sentMessages.value.size.toString()
     }
 
-    @MSC4354
-    override suspend fun sendMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean,
-        stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit,
-    ): String {
-        throw NotImplementedError()
-    }
-
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
         throw NotImplementedError()
     }
@@ -187,16 +177,6 @@ class RoomServiceMock : RoomService {
     override suspend fun setDraftMessage(
         roomId: RoomId,
         keepMediaInCache: Boolean,
-        builder: suspend MessageBuilder.() -> Unit,
-    ): String {
-        throw NotImplementedError()
-    }
-
-    @MSC4354
-    override suspend fun setDraftMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean,
-        stickyDuration: Duration?,
         builder: suspend MessageBuilder.() -> Unit,
     ): String {
         throw NotImplementedError()

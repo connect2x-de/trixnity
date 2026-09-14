@@ -21,6 +21,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Removed
 
+- Removed experimental sticky duration from outbox
+
 ### Fixed
 
 - Finish cache (especially ConcurrentObservableMap) updates on cancellation to prevent the cache gets out of sync with
