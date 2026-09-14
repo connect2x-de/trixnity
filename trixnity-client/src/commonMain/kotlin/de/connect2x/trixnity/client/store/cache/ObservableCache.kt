@@ -13,7 +13,6 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private val log = Logger("de.connect2x.trixnity.client.store.cache.ObservableCache")
 
@@ -61,9 +59,11 @@ internal interface ObservableCacheStore<K, V> {
 /** An index to track which entries have been added to or removed from the cache. */
 internal interface ObservableCacheIndex<K> {
     /** Called, when an entry is added to the cache. */
+    context(transaction: CacheTransaction)
     suspend fun onPut(key: K)
 
     /** Called, when an entry has skipped the cache. Skipping is done, when there is no subscriber of a cache entry. */
+    context(transaction: CacheTransaction)
     suspend fun onSkipPut(key: K)
 
     /**
@@ -72,12 +72,15 @@ internal interface ObservableCacheIndex<K> {
      * @param stale means that the value has been deleted from the database. It is only set to true, when no-one listens
      *   to this specific key.
      */
+    context(transaction: CacheTransaction)
     suspend fun onRemove(key: K, stale: Boolean)
 
     /** Called, when all entries are removed from the cache. */
+    context(transaction: CacheTransaction)
     suspend fun onRemoveAll()
 
     /** Get the subscription count on an index entry, which uses an entry of the cache. */
+    context(transaction: CacheTransaction)
     suspend fun getSubscriptionCount(key: K): Int
 
     suspend fun collectStatistic(): ObservableCacheIndexStatistic?
@@ -111,7 +114,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
             cacheScope.launch {
                 while (isActive) {
                     delay(2.seconds)
-                    removerIndex.invalidateCache()
+                    withCacheTransaction { removerIndex.invalidateCache() }
                 }
             }
     }
@@ -121,9 +124,10 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     }
 
     suspend fun invalidate() {
-        removerIndex?.invalidateCache()
+        withCacheTransaction { removerIndex?.invalidateCache() }
     }
 
+    context(transaction: CacheTransaction)
     suspend fun clear() {
         values.removeAll()
     }
@@ -135,13 +139,12 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
     }
 
     fun get(key: K): Flow<V?> = flow {
-        val cacheEntry =
-            withContext(NonCancellable) {
-                values.getOrPut(key) {
-                    log.trace { "$name (get): no cache hit for key $key" }
-                    MutableStateFlow(CacheValue.Init())
-                }
+        val cacheEntry = withCacheTransaction {
+            values.getOrPut(key) {
+                log.trace { "$name (get): no cache hit for key $key" }
+                MutableStateFlow(CacheValue.Init())
             }
+        }
         cacheEntry.get { tm.readTransaction { store.get(key) } }
         emitAll(cacheEntry.filterIsInstance<CacheValue.Value<V?>>().map { it.value })
     }
@@ -332,7 +335,7 @@ internal open class ObservableCache<K : Any, V, S : ObservableCacheStore<K, V>>(
             log.trace {
                 "$name: remove value from cache with key $key because it is stale and is allowed to remove (will never be not-null again)"
             }
-            values.remove(key, true)
+            withCacheTransaction { values.remove(key, true) }
             true
         } else false
 
@@ -355,6 +358,7 @@ internal class RemoverJobExecutingIndex<K : Any, V>(
 ) : ObservableCacheIndex<K> {
     private val removeAfter = concurrentMutableMap<K, Instant>()
 
+    context(transaction: CacheTransaction)
     suspend fun invalidateCache() {
         if (removeAfter.read { isNotEmpty() }) {
             log.trace { "$name: start invalidate cache" }
@@ -384,7 +388,7 @@ internal class RemoverJobExecutingIndex<K : Any, V>(
                             if (cacheValue != null) {
                                 val stale = cacheValue.value.valueOrNull() == null
                                 log.trace { "$name: remove value from cache with key $key (stale=$stale)" }
-                                cacheValues.remove(key, stale)
+                                withCacheTransaction { cacheValues.remove(key, stale) }
                             }
                         }
                     }
@@ -394,21 +398,26 @@ internal class RemoverJobExecutingIndex<K : Any, V>(
         }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onPut(key: K) {
         removeAfter.write { put(key, clock.now() + expireDuration) }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onSkipPut(key: K) {}
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemove(key: K, stale: Boolean) {
         removeAfter.write { remove(key) }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemoveAll() {
         removeAfter.write { clear() }
     }
 
     override suspend fun collectStatistic(): ObservableCacheIndexStatistic? = null
 
+    context(transaction: CacheTransaction)
     override suspend fun getSubscriptionCount(key: K): Int = 0
 }

@@ -4,7 +4,6 @@ import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 
@@ -41,23 +40,28 @@ internal class ConcurrentObservableMap<K : Any, V> {
         }
     }
 
+    context(transaction: CacheTransaction)
     suspend fun getOrPut(key: K, defaultValue: () -> V): V =
         _values.read { get(key) } ?: checkNotNull(internalUpdate(key) { it ?: defaultValue() })
 
+    context(transaction: CacheTransaction)
     suspend fun skipPut(key: K) {
         indexes.first().forEach { it.onSkipPut(key) }
     }
 
+    context(transaction: CacheTransaction)
     @OptIn(ExperimentalContracts::class)
     suspend fun update(key: K, updater: suspend (V?) -> V?): V? {
         contract { callsInPlace(updater, InvocationKind.AT_LEAST_ONCE) }
         return internalUpdate(key, updater = updater)
     }
 
+    context(transaction: CacheTransaction)
     suspend fun remove(key: K, stale: Boolean = false) {
         internalUpdate(key, stale) { null }
     }
 
+    context(transaction: CacheTransaction)
     @OptIn(ExperimentalContracts::class)
     private suspend fun internalUpdate(key: K, stale: Boolean = false, updater: suspend (V?) -> V?): V? {
         contract { callsInPlace(updater, InvocationKind.AT_LEAST_ONCE) }
@@ -90,11 +94,12 @@ internal class ConcurrentObservableMap<K : Any, V> {
 
     internal suspend fun <R> internalRead(reader: Map<K, V>.() -> R) = _values.read(reader)
 
+    context(transaction: CacheTransaction)
     suspend fun removeAll() = _values.write {
         clear()
         indexes.value.forEach { index -> index.onRemoveAll() }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    context(transaction: CacheTransaction)
     suspend fun getIndexSubscriptionCount(key: K): Int = indexes.first().sumOf { it.getSubscriptionCount(key) }
 }

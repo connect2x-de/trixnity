@@ -32,11 +32,13 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
 
     private val values = ConcurrentObservableMap<K1, MapRepositoryObservableMapIndexValue<K2>>()
 
+    context(transaction: CacheTransaction)
     override suspend fun onPut(key: MapRepositoryCoroutinesCacheKey<K1, K2>) {
         log.trace { "$name: put key $key into map index" }
         values.getOrPut(key.firstKey) { MapRepositoryObservableMapIndexValue() }.keys.add(key.secondKey)
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onSkipPut(key: MapRepositoryCoroutinesCacheKey<K1, K2>) {
         values.update(key.firstKey) { mapping ->
             if (mapping != null && mapping.fullyLoadedFromStore) {
@@ -46,6 +48,7 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
         }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemove(key: MapRepositoryCoroutinesCacheKey<K1, K2>, stale: Boolean) {
         values.update(key.firstKey) { mapping ->
             if (mapping != null) {
@@ -61,30 +64,32 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
         }
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemoveAll() {
         values.removeAll()
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun getSubscriptionCount(key: MapRepositoryCoroutinesCacheKey<K1, K2>): Int =
         values.getOrPut(key.firstKey) { MapRepositoryObservableMapIndexValue() }.subscribers.value
 
-    fun getMapping(key: K1): Flow<Set<K2>> = flow {
-        val value = values.update(key) { it ?: MapRepositoryObservableMapIndexValue(fullyLoadedFromStore = false) }
-        checkNotNull(value)
-        emitAll(
-            flow {
-                val fullyLoadedFromStore = values.get(key)?.fullyLoadedFromStore
-                if (fullyLoadedFromStore != true) {
+    fun getMapping(key: K1): Flow<Set<K2>> =
+        flow {
+                val value = withCacheTransaction { values.getOrPut(key) { MapRepositoryObservableMapIndexValue() } }
+                val fullyLoadedFromStore = value.fullyLoadedFromStore
+                if (!fullyLoadedFromStore) {
                     log.trace { "$name: not fully loaded from store. load now for key $key" }
                     loadFromStore(key)
+                    withCacheTransaction { values.update(key) { it?.copy(fullyLoadedFromStore = true) } }
                 }
-                values.update(key) { it?.copy(fullyLoadedFromStore = true) }
                 emitAll(value.keys.values)
             }
-                .onStart { value.subscribers.update { it + 1 } }
-                .onCompletion { value.subscribers.update { it - 1 } }
-        )
-    }
+            .onStart {
+                withCacheTransaction { values.getOrPut(key) { MapRepositoryObservableMapIndexValue() } }
+                    .subscribers
+                    .update { it + 1 }
+            }
+            .onCompletion { values.get(key)?.subscribers?.update { it - 1 } }
 
     override suspend fun collectStatistic(): ObservableCacheIndexStatistic {
         val (all, subscribed) = values.internalRead { count() to values.count { it.subscribers.value > 0 } }

@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.cache.CacheValue
 import de.connect2x.trixnity.client.store.cache.ConcurrentObservableMap
 import de.connect2x.trixnity.client.store.cache.RemoverJobExecutingIndex
+import de.connect2x.trixnity.client.store.cache.withCacheTransaction
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.KeyedMutex
 import de.connect2x.trixnity.utils.toByteArray
@@ -36,7 +37,7 @@ abstract class CachedMediaStore(coroutineScope: CoroutineScope, config: MatrixCl
             coroutineScope.launch {
                 while (isActive) {
                     delay(2.seconds)
-                    mediaCacheRemoverJobExecutingIndex.invalidateCache()
+                    withCacheTransaction { mediaCacheRemoverJobExecutingIndex.invalidateCache() }
                 }
             }
     }
@@ -45,7 +46,7 @@ abstract class CachedMediaStore(coroutineScope: CoroutineScope, config: MatrixCl
 
     final override suspend fun deleteAll() {
         deleteAllFromStore()
-        mediaCache.removeAll()
+        withCacheTransaction { mediaCache.removeAll() }
     }
 
     protected suspend fun toByteArray(
@@ -59,7 +60,9 @@ abstract class CachedMediaStore(coroutineScope: CoroutineScope, config: MatrixCl
             if (cacheDisabled) {
                 if (maxSize != null) media.toByteArray(maxSize) else media.toByteArray()
             } else {
-                val cacheValue = mediaCache.getOrPut(uri) { MutableStateFlow(CacheValue.Init()) }
+                val cacheValue = withCacheTransaction {
+                    mediaCache.getOrPut(uri) { MutableStateFlow(CacheValue.Init()) }
+                }
                 coroutineScope?.launch { cacheValue.collect() }
                 cacheValue.value.valueOrNull().also { if (it != null) log.trace { "cache hit for $uri" } }
                     ?: mediaCacheMutex.withLock(uri) {

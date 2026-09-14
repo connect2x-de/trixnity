@@ -89,7 +89,7 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 clock = testScope.testClock,
                 expireDuration = 1.minutes,
             )
-            .also { scheduleSetup { it.clear() } }
+            .also { scheduleSetup { withCacheTransaction { it.clear() } } }
 
     @Test
     fun `write » save into database without reading old value`() = runTest {
@@ -152,13 +152,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                         .map { i ->
                             async {
                                 measureTimedValue {
-                                    tm.writeTransaction {
-                                        cut.update(
-                                            key = MapRepositoryCoroutinesCacheKey("key", "key"),
-                                            updater = { "$i" },
-                                        )
+                                        tm.writeTransaction {
+                                            cut.update(
+                                                key = MapRepositoryCoroutinesCacheKey("key", "key"),
+                                                updater = { "$i" },
+                                            )
+                                        }
                                     }
-                                }
                                     .duration
                             }
                         }
@@ -202,13 +202,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                             .map { i ->
                                 async {
                                     measureTimedValue {
-                                        tm.writeTransaction {
-                                            cut.update(
-                                                key = MapRepositoryCoroutinesCacheKey("key", "$i"),
-                                                updater = { "value" },
-                                            )
+                                            tm.writeTransaction {
+                                                cut.update(
+                                                    key = MapRepositoryCoroutinesCacheKey("key", "$i"),
+                                                    updater = { "value" },
+                                                )
+                                            }
                                         }
-                                    }
                                         .duration
                                 }
                             }
@@ -482,11 +482,13 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
                 values = values,
             )
 
-        suspend fun subscriptionCount1() =
+        suspend fun subscriptionCount1() = withCacheTransaction {
             values.getIndexSubscriptionCount(MapRepositoryCoroutinesCacheKey("firstKey1", "secondsKey1"))
+        }
 
-        suspend fun subscriptionCount2() =
+        suspend fun subscriptionCount2() = withCacheTransaction {
             values.getIndexSubscriptionCount(MapRepositoryCoroutinesCacheKey("firstKey2", "secondsKey1"))
+        }
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
 
@@ -503,5 +505,76 @@ class MapRepositoryObservableCacheTest : TrixnityBaseTest() {
         delay(50.milliseconds)
         subscriptionCount1() shouldBe 0
         subscriptionCount2() shouldBe 0
+    }
+
+    @Test
+    fun `getByFirstKey » cancellation while indexing a middle entry does not lose its key`() = runTest {
+        cancellationWhileIndexing("secondKey2")
+    }
+
+    @Test
+    fun `getByFirstKey » cancellation while indexing the newest entry does not lose its key`() = runTest {
+        cancellationWhileIndexing("secondKey3")
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun TestScope.cancellationWhileIndexing(interruptedKey: String) {
+        val tm = NoOpStoreTransactionManager
+        val repository =
+            object : InMemoryMapRepository<String, String, String>() {
+                override fun serializeKey(firstKey: String, secondKey: String) = firstKey + secondKey
+            }
+        val expected = linkedMapOf("secondKey1" to "value1", "secondKey2" to "value2", "secondKey3" to "value3")
+        tm.writeTransaction { expected.forEach { (key, value) -> repository.save("firstKey", key, value) } }
+        val indexingStarted = CompletableDeferred<Unit>()
+        val continueIndexing = CompletableDeferred<Unit>()
+        val values =
+            ConcurrentObservableMap<
+                MapRepositoryCoroutinesCacheKey<String, String>,
+                MutableStateFlow<CacheValue<String?>>,
+            >()
+        values.indexes.value =
+            listOf(
+                object : ObservableCacheIndex<MapRepositoryCoroutinesCacheKey<String, String>> {
+                    context(transaction: CacheTransaction)
+                    override suspend fun onPut(key: MapRepositoryCoroutinesCacheKey<String, String>) {
+                        if (key.secondKey == interruptedKey) {
+                            indexingStarted.complete(Unit)
+                            continueIndexing.await()
+                        }
+                    }
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onSkipPut(key: MapRepositoryCoroutinesCacheKey<String, String>) {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onRemove(
+                        key: MapRepositoryCoroutinesCacheKey<String, String>,
+                        stale: Boolean,
+                    ) {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun onRemoveAll() {}
+
+                    context(transaction: CacheTransaction)
+                    override suspend fun getSubscriptionCount(key: MapRepositoryCoroutinesCacheKey<String, String>) = 0
+
+                    override suspend fun collectStatistic(): ObservableCacheIndexStatistic? = null
+                }
+            )
+        val cache = MapRepositoryObservableCache(repository, tm, backgroundScope, testClock, values = values)
+        val loading = launch { cache.getByFirstKey("firstKey").flatten().collect() }
+        indexingStarted.await()
+        loading.cancel()
+        runCurrent()
+        continueIndexing.complete(Unit)
+        loading.join()
+
+        cache.getByFirstKey("firstKey").flatten().first() shouldBe expected
+        cache.getByFirstKey("firstKey").flatten().first() shouldBe expected
+        val observed = cache.getByFirstKey("firstKey").flatten().stateIn(backgroundScope)
+        tm.writeTransaction { cache.set(MapRepositoryCoroutinesCacheKey("firstKey", interruptedKey), "updated") }
+        runCurrent()
+        observed.value shouldBe expected + (interruptedKey to "updated")
     }
 }

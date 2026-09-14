@@ -22,34 +22,40 @@ private class FullRepositoryObservableCacheIndex<K>(private val loadFromStore: s
     private val subscribers = MutableStateFlow(0)
     private val fullyLoadedFromRepository = MutableStateFlow(false)
 
+    context(transaction: CacheTransaction)
     override suspend fun onPut(key: K) {
         allKeys.add(key)
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onSkipPut(key: K) {
         fullyLoadedFromRepository.value = false
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemove(key: K, stale: Boolean) {
         fullyLoadedFromRepository.update { it && stale }
         allKeys.remove(key)
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun onRemoveAll() {
         allKeys.removeAll()
     }
 
+    context(transaction: CacheTransaction)
     override suspend fun getSubscriptionCount(key: K): Int = subscribers.value
 
-    fun getAllKeys(): Flow<Set<K>> = flow {
-        if (!fullyLoadedFromRepository.value) {
-            loadFromStore()
-            fullyLoadedFromRepository.value = true
-        }
-        emitAll(allKeys.values)
-    }
-        .onStart { subscribers.update { it + 1 } }
-        .onCompletion { subscribers.update { it - 1 } }
+    fun getAllKeys(): Flow<Set<K>> =
+        flow {
+                if (!fullyLoadedFromRepository.value) {
+                    loadFromStore()
+                    fullyLoadedFromRepository.value = true
+                }
+                emitAll(allKeys.values)
+            }
+            .onStart { subscribers.update { it + 1 } }
+            .onCompletion { subscribers.update { it - 1 } }
 
     override suspend fun collectStatistic(): ObservableCacheIndexStatistic =
         ObservableCacheIndexStatistic(

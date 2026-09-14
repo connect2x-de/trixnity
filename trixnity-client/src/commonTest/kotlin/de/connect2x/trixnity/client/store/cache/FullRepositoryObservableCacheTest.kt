@@ -51,7 +51,7 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
             ) {
                 it.key
             }
-            .also { scheduleSetup { it.clear() } }
+            .also { scheduleSetup { withCacheTransaction { it.clear() } } }
 
     @Test
     fun `getAll » read all values`() = runTest {
