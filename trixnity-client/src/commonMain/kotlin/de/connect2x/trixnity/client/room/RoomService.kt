@@ -65,7 +65,6 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.INFINITE
 import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -197,14 +196,6 @@ interface RoomService {
         builder: suspend MessageBuilder.() -> Unit,
     ): String
 
-    @MSC4354
-    suspend fun sendMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean = true,
-        stickyDuration: Duration? = null,
-        builder: suspend MessageBuilder.() -> Unit,
-    ): String
-
     suspend fun cancelSendMessage(roomId: RoomId, transactionId: String)
 
     suspend fun retrySendMessage(roomId: RoomId, transactionId: String)
@@ -221,14 +212,6 @@ interface RoomService {
     suspend fun setDraftMessage(
         roomId: RoomId,
         keepMediaInCache: Boolean = true,
-        builder: suspend MessageBuilder.() -> Unit,
-    ): String
-
-    @MSC4354
-    suspend fun setDraftMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean = true,
-        stickyDuration: Duration? = null,
         builder: suspend MessageBuilder.() -> Unit,
     ): String
 
@@ -855,7 +838,6 @@ class RoomServiceImpl(
         builder: suspend MessageBuilder.() -> Unit,
         isDraft: Boolean,
         createdAt: Instant,
-        stickyDuration: Duration?,
         useTransactionId: String? = null,
     ): String {
         val content = MessageBuilder(roomId, this, mediaService, userInfo.userId).build(builder)
@@ -871,7 +853,6 @@ class RoomServiceImpl(
                     sentAt = null,
                     keepMediaInCache = keepMediaInCache,
                     isDraft = isDraft,
-                    stickyDuration = stickyDuration?.coerceIn(ZERO..1.hours),
                 )
             }
         }
@@ -882,14 +863,6 @@ class RoomServiceImpl(
         roomId: RoomId,
         keepMediaInCache: Boolean,
         builder: suspend MessageBuilder.() -> Unit,
-    ): String = sendMessage(roomId, keepMediaInCache, null, builder)
-
-    @MSC4354
-    override suspend fun sendMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean,
-        stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit,
     ): String =
         setOutboxMessage(
             roomId = roomId,
@@ -897,7 +870,6 @@ class RoomServiceImpl(
             builder = builder,
             isDraft = false,
             createdAt = clock.now(),
-            stickyDuration = stickyDuration,
         )
 
     override suspend fun cancelSendMessage(roomId: RoomId, transactionId: String) {
@@ -960,14 +932,6 @@ class RoomServiceImpl(
         roomId: RoomId,
         keepMediaInCache: Boolean,
         builder: suspend MessageBuilder.() -> Unit,
-    ): String = setDraftMessage(roomId, keepMediaInCache, null, builder)
-
-    @MSC4354
-    override suspend fun setDraftMessage(
-        roomId: RoomId,
-        keepMediaInCache: Boolean,
-        stickyDuration: Duration?,
-        builder: suspend MessageBuilder.() -> Unit,
     ): String =
         draftMutex.withLock(roomId) {
             val draftMessage = getDraftMessage(roomId).first()
@@ -978,7 +942,6 @@ class RoomServiceImpl(
                 isDraft = true,
                 useTransactionId = draftMessage?.transactionId,
                 createdAt = clock.now(),
-                stickyDuration = stickyDuration,
             )
         }
 

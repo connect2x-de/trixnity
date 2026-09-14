@@ -2,11 +2,9 @@ package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -26,7 +24,6 @@ data class RoomOutboxMessage<T : MessageEventContent>(
     val sendError: SendError? = null,
     val keepMediaInCache: Boolean = true,
     val isDraft: Boolean = false,
-    @MSC4354 val stickyDuration: Duration? = null,
 ) {
     @Transient val mediaUploadProgress: MutableStateFlow<FileTransferProgress?> = MutableStateFlow(null)
 

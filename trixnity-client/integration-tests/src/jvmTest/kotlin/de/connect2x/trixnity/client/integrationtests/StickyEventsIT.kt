@@ -3,7 +3,9 @@ package de.connect2x.trixnity.client.integrationtests
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.encrypt
 import de.connect2x.trixnity.client.room.getAllSticky
+import de.connect2x.trixnity.client.roomEventEncryptionServices
 import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
 import de.connect2x.trixnity.client.user
@@ -106,9 +108,14 @@ class StickyEventsIT : TrixnityBaseTest() {
                         member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}")),
                         stickyKey = "{member_id}",
                     )
-                startedClient1.client.room.sendMessage(roomId, stickyDuration = 1.minutes) {
-                    content(stickyContent)
-                }
+                startedClient1.client.api.room
+                    .sendMessageEvent(
+                        roomId,
+                        checkNotNull(startedClient1.client.roomEventEncryptionServices.encrypt(stickyContent, roomId))
+                            .getOrThrow(),
+                        stickyDurationMs = 1.minutes.inWholeMilliseconds,
+                    )
+                    .getOrThrow()
 
                 startedClient2.client.room
                     .getAllSticky<RtcMemberEventContent>(roomId)

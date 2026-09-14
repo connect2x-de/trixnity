@@ -21,6 +21,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Removed
 
+- Removed experimental sticky duration from outbox
+
 ### Fixed
 
 ### Security
