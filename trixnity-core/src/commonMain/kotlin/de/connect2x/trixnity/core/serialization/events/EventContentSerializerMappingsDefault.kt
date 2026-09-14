@@ -4,7 +4,6 @@ import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
-import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.events.block.m.TextContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TopicContentBlock
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
@@ -94,8 +93,11 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     messageOf<CallEventContent.Reject>("m.call.reject")
     messageOf<CallEventContent.SelectAnswer>("m.call.select_answer")
     messageOf<CallEventContent.SdpStreamMetadataChanged>("m.call.sdp_stream_metadata_changed")
-    @OptIn(MSC4143::class, MSC4354::class) messageOf<RtcMemberEventContent>("org.matrix.msc4143.rtc.member")
-    @OptIn(MSC4143::class, MSC4354::class) messageOf<RtcMemberEventContent>("m.rtc.member")
+    // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
+    @OptIn(MSC4143::class)
+    messageOf<RtcMemberEventContent>("org.matrix.msc4143.rtc.member", RtcMemberEventContent.Serializer)
+    // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
+    @OptIn(MSC4143::class) messageOf<RtcMemberEventContent>("m.rtc.member", RtcMemberEventContent.Serializer)
 
     stateOf<AvatarEventContent>("m.room.avatar")
     stateOf<CanonicalAliasEventContent>("m.room.canonical_alias")
@@ -118,8 +120,10 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ParentEventContent>("m.space.parent")
     stateOf<ChildEventContent>("m.space.child")
     stateOf<PolicyEventContent>("m.room.policy")
-    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot")
-    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("m.rtc.slot")
+    // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
+    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContent.Serializer)
+    // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
+    @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("m.rtc.slot", RtcSlotEventContent.Serializer)
 
     ephemeralOf<PresenceEventContent>("m.presence")
     ephemeralOf<TypingEventContent>("m.typing")

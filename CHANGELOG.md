@@ -21,6 +21,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## 5.9.1
 
+### Fixed
+
+- Fixed EventContentSerializerMappings.default fails on Wasm runtime
+
+## 5.9.0
+
 ### Added
 
 - Support MSC4140 (Cancellable delayed events)

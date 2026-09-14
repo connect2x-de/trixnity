@@ -2,7 +2,6 @@ package de.connect2x.trixnity.core.serialization.m.rtc
 
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
-import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -23,7 +22,7 @@ import kotlin.test.Test
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-@OptIn(MSC4143::class, MSC4354::class, MSC4193::class)
+@OptIn(MSC4143::class, MSC4193::class)
 class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
 
     private val json = createMatrixEventJson()
