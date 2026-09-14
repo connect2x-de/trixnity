@@ -10,12 +10,13 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Added
 
 - Support MSC4140 Cancellable delayed events (including stickiness)
-- Support for MSC4195 (LiveKit Transport for MatrixRTC)
-- Support MSC4196 Voice and video calling application for MatrixRTC
+- Added events and endpoints for MSC4195 (LiveKit Transport for MatrixRTC) and MSC4196 (Voice and video calling
+  application for
+  MatrixRTC)
 
 ### Changed
 
-- Updated MSC4143 MatrixRTC model
+- Updated MSC4143 (MatrixRTC) events and endpoints
 
 ### Deprecated
 
