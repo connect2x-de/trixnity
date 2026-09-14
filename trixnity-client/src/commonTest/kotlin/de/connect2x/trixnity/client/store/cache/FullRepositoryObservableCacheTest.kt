@@ -54,44 +54,44 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
             .also { scheduleSetup { it.clear() } }
 
     @Test
-    fun `readAll » read all values`() = runTest {
+    fun `getAll » read all values`() = runTest {
         tm.writeTransaction {
             repository.save("key1", Entry("key1", "old1"))
             repository.save("key2", Entry("key2", "old2"))
         }
-        cut.readAll().flatten().map { it.mapValues { it.value?.value } }.first() shouldBe
+        cut.getAll().flatten().map { it.mapValues { it.value?.value } }.first() shouldBe
             mapOf("key1" to "old1", "key2" to "old2")
     }
 
     @Test
-    fun `readAll » remove from cache when stale`() = runTest {
+    fun `getAll » remove from cache when stale`() = runTest {
         tm.writeTransaction {
             repository.save("key1", Entry("key1", "old1"))
             repository.save("key2", Entry("key2", "old2"))
         }
-        val all = cut.readAll().flatten().map { it.keys }.stateIn(backgroundScope)
+        val all = cut.getAll().flatten().map { it.keys }.stateIn(backgroundScope)
         all.value shouldBe setOf("key1", "key2")
         tm.writeTransaction { cut.update("key1") { null } }
         all.first { it == setOf("key2") }
     }
 
     @Test
-    fun `readAll » don't forget fully loaded state`() = runTest {
+    fun `getAll » don't forget fully loaded state`() = runTest {
         tm.writeTransaction {
             repository.save("key1", Entry("key1", "old1"))
             repository.save("key2", Entry("key2", "old2"))
         }
-        cut.readAll().first().keys shouldBe setOf("key1", "key2")
+        cut.getAll().first().keys shouldBe setOf("key1", "key2")
         tm.writeTransaction {
             cut.set("key3", Entry("key3", "old3"))
             cut.update("key1") { null }
         }
         cut.invalidate()
-        cut.readAll().first().keys shouldBe setOf("key2", "key3")
+        cut.getAll().first().keys shouldBe setOf("key2", "key3")
     }
 
     @Test
-    fun `readAll » don't invalidate when subscribed`() = runTest {
+    fun `getAll » don't invalidate when subscribed`() = runTest {
         val observeK1 = backgroundScope.async { cut.get("k1").collect() }
         delay(10.milliseconds)
         tm.writeTransaction {
@@ -101,7 +101,7 @@ class FullRepositoryObservableCacheTest : TrixnityBaseTest() {
         observeK1.cancel()
 
         repository.continueGetAll.value = false // this forces a delay in the repository (so it will return k1, k2)
-        val result = async { cut.readAll().flattenValues().first().toSet() }
+        val result = async { cut.getAll().flattenValues().first().toSet() }
 
         delay(2.minutes) // invalidate cache (removes k1,k2)
 

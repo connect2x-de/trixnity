@@ -41,16 +41,15 @@ private class FullRepositoryObservableCacheIndex<K>(private val loadFromStore: s
 
     override suspend fun getSubscriptionCount(key: K): Int = subscribers.value
 
-    fun getAllKeys(): Flow<Set<K>> =
-        flow {
-                if (!fullyLoadedFromRepository.value) {
-                    loadFromStore()
-                    fullyLoadedFromRepository.value = true
-                }
-                emitAll(allKeys.values)
-            }
-            .onStart { subscribers.update { it + 1 } }
-            .onCompletion { subscribers.update { it - 1 } }
+    fun getAllKeys(): Flow<Set<K>> = flow {
+        if (!fullyLoadedFromRepository.value) {
+            loadFromStore()
+            fullyLoadedFromRepository.value = true
+        }
+        emitAll(allKeys.values)
+    }
+        .onStart { subscribers.update { it + 1 } }
+        .onCompletion { subscribers.update { it - 1 } }
 
     override suspend fun collectStatistic(): ObservableCacheIndexStatistic =
         ObservableCacheIndexStatistic(
@@ -95,5 +94,5 @@ internal open class FullRepositoryObservableCache<K : Any, V>(
         addIndex(subscribersIndex)
     }
 
-    fun readAll(): Flow<Map<K, Flow<V?>>> = subscribersIndex.getAllKeys().map { keys -> keys.associateWith { get(it) } }
+    fun getAll(): Flow<Map<K, Flow<V?>>> = subscribersIndex.getAllKeys().map { keys -> keys.associateWith { get(it) } }
 }

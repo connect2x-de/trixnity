@@ -65,13 +65,13 @@ class RoomUserStore(
         roomUserReceiptsCache.deleteByRoomId(roomId)
     }
 
-    fun getAll(roomId: RoomId): Flow<Map<UserId, Flow<RoomUser?>>> = roomUserCache.readByFirstKey(roomId)
+    fun getAll(roomId: RoomId): Flow<Map<UserId, Flow<RoomUser?>>> = roomUserCache.getByFirstKey(roomId)
 
     fun get(userId: UserId, roomId: RoomId): Flow<RoomUser?> =
         roomUserCache.get(MapRepositoryCoroutinesCacheKey(roomId, userId))
 
     fun getAllReceipts(roomId: RoomId): Flow<Map<UserId, Flow<RoomUserReceipts?>>> =
-        roomUserReceiptsCache.readByFirstKey(roomId)
+        roomUserReceiptsCache.getByFirstKey(roomId)
 
     fun getReceipts(userId: UserId, roomId: RoomId): Flow<RoomUserReceipts?> =
         roomUserReceiptsCache.get(MapRepositoryCoroutinesCacheKey(roomId, userId))

@@ -112,7 +112,7 @@ class StickyEventStore(
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<StoredStickyEvent<C>?>>> {
         val eventType = findType(eventContentClass)
-        return stickyEventCache.readByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
+        return stickyEventCache.getByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
             value
                 .mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid() }
                 .mapKeys { it.key.sender to it.key.stickyKey }
@@ -139,13 +139,13 @@ class StickyEventStore(
 
     private fun <C : StickyEventContent> Flow<StoredStickyEvent<*>?>.filterIsContent(eventContentClass: KClass<C>) =
         map {
-                val event = it?.event
-                if (event?.content?.instanceOf(eventContentClass) == true) it else null
-            }
-            .let {
-                @Suppress("UNCHECKED_CAST")
-                it as Flow<StoredStickyEvent<C>?>
-            }
+            val event = it?.event
+            if (event?.content?.instanceOf(eventContentClass) == true) it else null
+        }
+        .let {
+            @Suppress("UNCHECKED_CAST")
+            it as Flow<StoredStickyEvent<C>?>
+        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun <C : StickyEventContent> Flow<StoredStickyEvent<C>?>.filterValid(): Flow<StoredStickyEvent<C>?> =

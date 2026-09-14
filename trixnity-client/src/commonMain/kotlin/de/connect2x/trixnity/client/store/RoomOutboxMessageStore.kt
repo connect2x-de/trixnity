@@ -40,7 +40,7 @@ class RoomOutboxMessageStore(
     }
 
     fun getAll(): Flow<Map<RoomOutboxMessageRepositoryKey, Flow<RoomOutboxMessage<*>?>>> =
-        roomOutboxMessageCache.readAll()
+        roomOutboxMessageCache.getAll()
 
     context(transaction: StoreWriteTransaction)
     suspend fun update(

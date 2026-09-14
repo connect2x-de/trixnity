@@ -31,7 +31,7 @@ class RoomStore(
         roomCache.deleteAll()
     }
 
-    fun getAll(): Flow<Map<RoomId, Flow<Room?>>> = roomCache.readAll()
+    fun getAll(): Flow<Map<RoomId, Flow<Room?>>> = roomCache.getAll()
 
     fun get(roomId: RoomId): Flow<Room?> = roomCache.get(roomId)
 

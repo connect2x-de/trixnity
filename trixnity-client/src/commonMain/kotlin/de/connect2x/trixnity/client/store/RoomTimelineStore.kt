@@ -92,7 +92,7 @@ class RoomTimelineStore(
         roomId: RoomId,
         relationType: RelationType,
     ): Flow<Map<EventId, Flow<TimelineEventRelation?>>> =
-        timelineEventRelationCache.readByFirstKey(TimelineEventRelationKey(relatedEventId, roomId, relationType))
+        timelineEventRelationCache.getByFirstKey(TimelineEventRelationKey(relatedEventId, roomId, relationType))
 
     context(transaction: StoreWriteTransaction)
     suspend fun addRelation(relation: TimelineEventRelation) {
@@ -119,7 +119,7 @@ class RoomTimelineStore(
     context(transaction: StoreWriteTransaction)
     suspend fun deleteRelations(relatedEventId: EventId, roomId: RoomId, relationType: RelationType) {
         timelineEventRelationCache
-            .readByFirstKey(TimelineEventRelationKey(relatedEventId, roomId, relationType))
+            .getByFirstKey(TimelineEventRelationKey(relatedEventId, roomId, relationType))
             .first()
             .values
             .mapNotNull { it.first() }

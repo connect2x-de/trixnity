@@ -70,11 +70,11 @@ class NotificationStore(
         notificationStateCache.deleteAll()
     }
 
-    fun getAll(): Flow<Map<String, Flow<StoredNotification?>>> = notificationCache.readAll()
+    fun getAll(): Flow<Map<String, Flow<StoredNotification?>>> = notificationCache.getAll()
 
-    fun getAllUpdates(): Flow<Map<String, Flow<StoredNotificationUpdate?>>> = notificationUpdateCache.readAll()
+    fun getAllUpdates(): Flow<Map<String, Flow<StoredNotificationUpdate?>>> = notificationUpdateCache.getAll()
 
-    fun getAllState() = notificationStateCache.readAll()
+    fun getAllState() = notificationStateCache.getAll()
 
     fun getById(id: String): Flow<StoredNotification?> = notificationCache.get(id)
 
@@ -115,7 +115,7 @@ class NotificationStore(
         //                  just to evict them again. Ideally the cache would have a way to just synchronously
         //                  remove values from it.
         //                  The throttle has to be zero to not actually yield inside a transaction.
-        notificationCache.readAll().flattenNotNull(Duration.ZERO).first().forEach { (key, value) ->
+        notificationCache.getAll().flattenNotNull(Duration.ZERO).first().forEach { (key, value) ->
             if (value.roomId == roomId) notificationCache.setCacheOnly(key, null)
         }
     }
@@ -127,7 +127,7 @@ class NotificationStore(
         //                  just to evict them again. Ideally the cache would have a way to just synchronously
         //                  remove values from it.
         //                  The throttle has to be zero to not actually yield inside a transaction.
-        notificationUpdateCache.readAll().flattenNotNull(Duration.ZERO).first().forEach { (key, value) ->
+        notificationUpdateCache.getAll().flattenNotNull(Duration.ZERO).first().forEach { (key, value) ->
             if (value.roomId == roomId) notificationUpdateCache.setCacheOnly(key, null)
         }
     }

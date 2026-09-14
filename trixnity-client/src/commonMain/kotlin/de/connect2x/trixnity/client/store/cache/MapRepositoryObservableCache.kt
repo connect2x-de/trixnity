@@ -73,14 +73,14 @@ private class MapRepositoryObservableCacheIndex<K1 : Any, K2>(
         checkNotNull(value)
         emitAll(
             flow {
-                    val fullyLoadedFromStore = values.get(key)?.fullyLoadedFromStore
-                    if (fullyLoadedFromStore != true) {
-                        log.trace { "$name: not fully loaded from store. load now for key $key" }
-                        loadFromStore(key)
-                    }
-                    values.update(key) { it?.copy(fullyLoadedFromStore = true) }
-                    emitAll(value.keys.values)
+                val fullyLoadedFromStore = values.get(key)?.fullyLoadedFromStore
+                if (fullyLoadedFromStore != true) {
+                    log.trace { "$name: not fully loaded from store. load now for key $key" }
+                    loadFromStore(key)
                 }
+                values.update(key) { it?.copy(fullyLoadedFromStore = true) }
+                emitAll(value.keys.values)
+            }
                 .onStart { value.subscribers.update { it + 1 } }
                 .onCompletion { value.subscribers.update { it - 1 } }
         )
@@ -125,7 +125,7 @@ internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
         addIndex(mapRepositoryIndex)
     }
 
-    fun readByFirstKey(key: K1): Flow<Map<K2, Flow<V?>>> =
+    fun getByFirstKey(key: K1): Flow<Map<K2, Flow<V?>>> =
         mapRepositoryIndex.getMapping(key).map { mapping ->
             mapping.associateWith { secondKey -> get(MapRepositoryCoroutinesCacheKey(key, secondKey)) }
         }

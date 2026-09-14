@@ -230,7 +230,7 @@ class KeyStore(
     suspend fun deleteKeyChainLinksBySignedKey(userId: UserId, signedKey: Key.Ed25519Key) =
         keyChainLinkRepository.deleteBySignedKey(userId, signedKey)
 
-    fun getAllSecretKeyRequestsFlow() = secretKeyRequestCache.readAll().flattenValues()
+    fun getAllSecretKeyRequestsFlow() = secretKeyRequestCache.getAll().flattenValues()
 
     suspend fun getAllSecretKeyRequests() = getAllSecretKeyRequestsFlow().first()
 
@@ -244,7 +244,7 @@ class KeyStore(
         secretKeyRequestCache.set(requestId, null)
     }
 
-    fun getAllRoomKeyRequestsFlow() = roomKeyRequestCache.readAll().flattenValues()
+    fun getAllRoomKeyRequestsFlow() = roomKeyRequestCache.getAll().flattenValues()
 
     suspend fun getAllRoomKeyRequests() = getAllRoomKeyRequestsFlow().first()
 
