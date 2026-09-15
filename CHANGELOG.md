@@ -17,6 +17,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- Set empty instead of null displayname and avatarUrl when deleting profile fields in old Matrix specs
+
 ### Security
 
 ## 5.9.1

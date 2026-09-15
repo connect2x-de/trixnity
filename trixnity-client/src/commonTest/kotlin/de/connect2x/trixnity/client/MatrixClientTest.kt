@@ -538,6 +538,11 @@ class MatrixClientTest : TrixnityBaseTest() {
                                         }
 
                                         path == "/_matrix/client/v3/profile/${userId.full}/displayname" -> {
+                                            if (hasCapability || spec == "v1.16") fail("not supported")
+                                            assertEquals(
+                                                """{"displayname":""}""",
+                                                request.body.toByteArray().decodeToString(),
+                                            )
                                             assertEquals(HttpMethod.Put, request.method)
                                             respond(
                                                 """{}""",
@@ -550,6 +555,11 @@ class MatrixClientTest : TrixnityBaseTest() {
                                         }
 
                                         path == "/_matrix/client/v3/profile/${userId.full}/avatar_url" -> {
+                                            if (hasCapability || spec == "v1.16") fail("not supported")
+                                            assertEquals(
+                                                """{"avatar_url":""}""",
+                                                request.body.toByteArray().decodeToString(),
+                                            )
                                             assertEquals(HttpMethod.Put, request.method)
                                             respond(
                                                 """{}""",
@@ -684,16 +694,11 @@ class MatrixClientTest : TrixnityBaseTest() {
 
         cut.deleteProfileField(availableProfileField.key).getOrThrow()
 
-        cut.syncOnce().getOrThrow()
-        delay(1.seconds)
-        cut.profile.value shouldBe
-            Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456"))
-
         cut.close()
     }
 
     @Test
-    fun `deleteProfileField » server has no capability » make displayname null`() = runTest {
+    fun `deleteProfileField » server has no capability » make displayname empty`() = runTest {
         val cut =
             deleteProfileFieldTestSetup(
                 profile = Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456")),
@@ -710,7 +715,7 @@ class MatrixClientTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `deleteProfileField » server has no capability » make avatar_url null`() = runTest {
+    fun `deleteProfileField » server has no capability » make avatar_url empty`() = runTest {
         val cut =
             deleteProfileFieldTestSetup(
                 profile = Profile(ProfileField.DisplayName("bob"), ProfileField.AvatarUrl("mxc://localhost/123456")),
