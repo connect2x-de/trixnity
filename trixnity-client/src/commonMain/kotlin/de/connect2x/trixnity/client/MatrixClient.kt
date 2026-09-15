@@ -739,11 +739,11 @@ class MatrixClientImpl internal constructor(override val baseUrl: Url, override 
                 when (key) {
                     ProfileField.DisplayName -> {
                         log.debug { "null profile field $key" }
-                        setProfileField(ProfileField.DisplayName(null))
+                        setProfileField(ProfileField.DisplayName(""))
                     }
                     ProfileField.AvatarUrl -> {
                         log.debug { "null profile field $key" }
-                        setProfileField(ProfileField.AvatarUrl(null))
+                        setProfileField(ProfileField.AvatarUrl(""))
                     }
                     else -> {
                         log.debug { "fallback delete profile field $key" }
