@@ -28,6 +28,7 @@ import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.subscribe
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
 import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -227,16 +228,25 @@ class OutboxMessageEventHandler(
 
                 encryptedContent.isFailure -> {
                     val exception = encryptedContent.exceptionOrNull()
-                    if (exception == null || exception is RoomEventEncryptionServiceError) {
-                        val sendError = SendError.EncryptionError(exception?.message)
-                        log.warn(encryptedContent.exceptionOrNull()) { "cannot send message" }
-                        tm.writeTransaction {
-                            roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                                it?.copy(sendError = sendError)
+                    val cause = (exception as? RoomEventEncryptionServiceError)?.cause
+                    when (cause) {
+                        is MegolmEncryptionService.EncryptMegolmError -> {
+                            when (cause) {
+                                is MegolmEncryptionService.EncryptMegolmError.NetworkError -> throw exception
+                                is MegolmEncryptionService.EncryptMegolmError.CryptoDriverError -> {}
                             }
                         }
-                        return sendError
-                    } else throw exception
+                        else -> {}
+                    }
+
+                    val sendError = SendError.EncryptionError(cause?.message)
+                    log.warn(encryptedContent.exceptionOrNull()) { "cannot send message" }
+                    tm.writeTransaction {
+                        roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                            it?.copy(sendError = sendError)
+                        }
+                    }
+                    return sendError
                 }
 
                 else -> encryptedContent.getOrThrow()
