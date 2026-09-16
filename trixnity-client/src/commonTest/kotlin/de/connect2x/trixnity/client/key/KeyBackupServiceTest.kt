@@ -6,15 +6,18 @@ import de.connect2x.trixnity.client.continually
 import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
+import de.connect2x.trixnity.client.getInMemoryRoomStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.SyncState.RUNNING
+import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeyBackup
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeyBackupData
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeyBackupVersion
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
@@ -39,6 +42,7 @@ import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackup
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAlgorithm
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAuthData.RoomKeyBackupV1AuthData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupData
@@ -63,7 +67,9 @@ import de.connect2x.trixnity.test.utils.suspendLazy
 import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.maps.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -71,6 +77,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.minutes
@@ -94,6 +101,12 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
     }
     private val olmCryptoStore = getInMemoryOlmStore()
     private val keyStore = getInMemoryKeyStore()
+    private val roomStore = getInMemoryRoomStore {
+        tm.writeTransaction {
+            deleteAll()
+            update(roomId) { Room(roomId, keyBackupLoaded = false) }
+        }
+    }
 
     private val json = createMatrixEventJson()
     private val apiConfig = PortableMockEngineConfig()
@@ -114,6 +127,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 accountStore = accountStore,
                 olmCryptoStore = olmCryptoStore,
                 keyStore = keyStore,
+                roomStore = roomStore,
                 tm = tm,
                 api = api,
                 signService = olmSignMock,
@@ -385,35 +399,83 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             matrixJsonEndpoint(GetRoomKeyBackupData(roomId, sessionId, version)) {
                 RoomKeyBackupData(1, 0, false, encryptedRoomKeyBackupV1SessionData)
             }
+            matrixJsonEndpoint(GetRoomKeyBackup(roomId, version)) {
+                RoomKeyBackup(
+                    mapOf(
+                        sessionId1 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                        sessionId2 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                    )
+                )
+            }
         }
     }
 
-    private val allLoadMegolmSessionsCalled = MutableStateFlow(false)
+    private val continueGetRoomKeyBackupData = MutableStateFlow(false)
+    private val continueGetRoomKeyBackup = MutableStateFlow(false)
     private var getRoomKeyBackupDataCalled = false
+    private var getRoomKeyBackupCalled = false
     private var call = 0
+
+    @BeforeTest
+    fun reset() {
+        continueGetRoomKeyBackupData.value = false
+        continueGetRoomKeyBackup.value = false
+        getRoomKeyBackupDataCalled = false
+        getRoomKeyBackupCalled = false
+        call = 0
+    }
 
     private suspend fun megolmSessionOnServerWithDelaySetup() {
         megolmSessionOnServerSetup()
         apiConfig.endpoints {
             matrixJsonEndpoint(GetRoomKeyBackupData(roomId, sessionId, version)) {
-                allLoadMegolmSessionsCalled.first { it }
+                continueGetRoomKeyBackupData.first { it }
                 getRoomKeyBackupDataCalled = true
                 RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData)
+            }
+            matrixJsonEndpoint(GetRoomKeyBackup(roomId, version)) {
+                continueGetRoomKeyBackup.first { it }
+                getRoomKeyBackupCalled = true
+                RoomKeyBackup(
+                    mapOf(
+                        sessionId1 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                        sessionId2 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                    )
+                )
             }
         }
     }
 
-    private suspend fun megolmSessionOnServerWithError() {
+    private suspend fun megolmSessionOnServerWithError(
+        error: MatrixServerException =
+            MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
+    ) {
         megolmSessionOnServerSetup()
         apiConfig.endpoints {
             matrixJsonEndpoint(GetRoomKeyBackupData(roomId, sessionId, version)) {
                 call++
                 when (call) {
-                    1 -> throw MatrixServerException(HttpStatusCode.InternalServerError, ErrorResponse.Unknown(""))
+                    1 -> throw error
 
                     else -> {
                         getRoomKeyBackupDataCalled = true
                         RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData)
+                    }
+                }
+            }
+            matrixJsonEndpoint(GetRoomKeyBackup(roomId, version)) {
+                call++
+                when (call) {
+                    1 -> throw error
+
+                    else -> {
+                        getRoomKeyBackupCalled = true
+                        RoomKeyBackup(
+                            mapOf(
+                                sessionId1 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                                sessionId2 to RoomKeyBackupData(0, 0, false, encryptedRoomKeyBackupV1SessionData),
+                            )
+                        )
                     }
                 }
             }
@@ -483,7 +545,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         runTest {
             megolmSessionOnServerWithDelaySetup()
             repeat(20) { launch { cut.loadMegolmSession(roomId, sessionId) } }
-            allLoadMegolmSessionsCalled.value = true
+            continueGetRoomKeyBackupData.value = true
             delay(1.seconds)
             olmCryptoStore.getInboundMegolmSession(sessionId, roomId).first().shouldNotBeNull()
 
@@ -507,6 +569,147 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             this.pickled shouldNot beEmpty()
         }
         getRoomKeyBackupDataCalled shouldBe true
+    }
+
+    @Test
+    fun `loadMegolmSessions » megolm session on server » without error » fetch megolm session and save when index is older than known index`() =
+        runTest {
+            megolmSessionOnServerWithoutErrorSetup()
+            val currentSession1 =
+                StoredInboundMegolmSession(
+                    senderKey = senderKey,
+                    sessionId = sessionId1,
+                    roomId = roomId,
+                    firstKnownIndex = 24,
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    senderSigningKey = Ed25519KeyValue("edKey"),
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = "pickle",
+                )
+            tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId1, roomId) { currentSession1 } }
+
+            cut.loadMegolmSessions(roomId)
+            delay(1.seconds)
+            olmCryptoStore
+                .getInboundMegolmSession(sessionId1, roomId)
+                .first()
+                .shouldNotBeNull()
+                .firstKnownIndex shouldBe 1
+            assertSoftly(olmCryptoStore.getInboundMegolmSession(sessionId1, roomId).first()) {
+                assertNotNull(this)
+                this.senderKey shouldBe senderKey
+                this.sessionId shouldBe sessionId1
+                this.roomId shouldBe roomId
+                this.firstKnownIndex shouldBe 1
+                this.hasBeenBackedUp shouldBe true
+                this.isTrusted shouldBe false
+                this.pickled shouldNotBe "pickle"
+            }
+            assertSoftly(olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first()) {
+                assertNotNull(this)
+                this.senderKey shouldBe senderKey
+                this.sessionId shouldBe sessionId2
+                this.roomId shouldBe roomId
+                this.firstKnownIndex shouldBe 1
+                this.hasBeenBackedUp shouldBe true
+                this.isTrusted shouldBe false
+                this.pickled shouldNotBe "pickle"
+            }
+            roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
+        }
+
+    @Test
+    fun `loadMegolmSessions » megolm session on server » without error » fetch megolm session but keep old session when index is older than known index`() =
+        runTest {
+            megolmSessionOnServerWithoutErrorSetup()
+            val currentSession1 =
+                StoredInboundMegolmSession(
+                    senderKey = senderKey,
+                    sessionId = sessionId1,
+                    roomId = roomId,
+                    firstKnownIndex = 0,
+                    hasBeenBackedUp = true,
+                    isTrusted = true,
+                    senderSigningKey = Ed25519KeyValue("key"),
+                    forwardingCurve25519KeyChain = listOf(),
+                    pickled = "pickle",
+                )
+            tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId1, roomId) { currentSession1 } }
+
+            cut.loadMegolmSessions(roomId)
+            delay(1.seconds)
+            olmCryptoStore.getInboundMegolmSession(sessionId1, roomId).first() shouldBe currentSession1
+            assertSoftly(olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first()) {
+                assertNotNull(this)
+                this.senderKey shouldBe senderKey
+                this.sessionId shouldBe sessionId2
+                this.roomId shouldBe roomId
+                this.firstKnownIndex shouldBe 1
+                this.hasBeenBackedUp shouldBe true
+                this.isTrusted shouldBe false
+                this.pickled shouldNotBe "pickle"
+            }
+            roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
+        }
+
+    @Test
+    fun `loadMegolmSessions » megolm session on server » with error » retry fetch megolm session`() = runTest {
+        megolmSessionOnServerWithError()
+        cut.loadMegolmSessions(roomId)
+        delay(1.seconds)
+        val session1 = olmCryptoStore.getInboundMegolmSession(sessionId1, roomId).first().shouldNotBeNull()
+        val session2 = olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first().shouldNotBeNull()
+
+        assertSoftly(session1) {
+            assertNotNull(this)
+            this.senderKey shouldBe senderKey
+            this.sessionId shouldBe sessionId1
+            this.roomId shouldBe roomId
+            this.firstKnownIndex shouldBe 1
+            this.hasBeenBackedUp shouldBe true
+            this.pickled shouldNot beEmpty()
+        }
+        assertSoftly(session2) {
+            assertNotNull(this)
+            this.senderKey shouldBe senderKey
+            this.sessionId shouldBe sessionId2
+            this.roomId shouldBe roomId
+            this.firstKnownIndex shouldBe 1
+            this.hasBeenBackedUp shouldBe true
+            this.pickled shouldNot beEmpty()
+        }
+        getRoomKeyBackupCalled shouldBe true
+        roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
+    }
+
+    @Test
+    fun `loadMegolmSessions » megolm session on server » with not found error » stop fetch megolm session`() = runTest {
+        megolmSessionOnServerWithError(
+            MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("no keys on server for this room"))
+        )
+        cut.loadMegolmSessions(roomId)
+        delay(1.seconds)
+        olmCryptoStore.getInboundMegolmSession(sessionId1, roomId).first().shouldBeNull()
+        olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first().shouldBeNull()
+
+        call shouldBe 1
+        getRoomKeyBackupCalled shouldBe false
+        roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
+    }
+
+    @Test
+    fun `loadMegolmSessions » megolm session on server » already loaded » stop fetch megolm session`() = runTest {
+        tm.writeTransaction { roomStore.update(roomId) { it?.copy(keyBackupLoaded = true) } }
+        megolmSessionOnServerSetup()
+        cut.loadMegolmSessions(roomId)
+        delay(1.seconds)
+        olmCryptoStore.getInboundMegolmSession(sessionId1, roomId).first().shouldBeNull()
+        olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first().shouldBeNull()
+
+        call shouldBe 0
+        getRoomKeyBackupCalled shouldBe false
+        roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
     }
 
     private val room1 = RoomId("!room1:server")
@@ -749,19 +952,15 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
         ) shouldBe false
     }
 
-    /*
-      @Test
-      fun `return false, when there is no signature we trust`() = runTest {
-           deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
-           masterKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
-           keyBackupCanBeTrusted(
-               roomKeyVersion,
-               privateKey,
-               ownUserId,
-               store
-           ) shouldBe false
-       }
-    */
+    @Test
+    fun `return false when there is no signature we trust`() = runTest {
+        deviceKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
+        masterKeyTrustLevel(KeySignatureTrustLevel.Valid(false))
+        cut.keyBackupCanBeTrusted(
+            roomKeyVersion(),
+            driver.pk.decryption().use(PkDecryption::secretKey).use(Curve25519SecretKey::base64),
+        ) shouldBe false
+    }
 
     @Test
     fun `return true when there is a device key is valid+verified`() = runTest {

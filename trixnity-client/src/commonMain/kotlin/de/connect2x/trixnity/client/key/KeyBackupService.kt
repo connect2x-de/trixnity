@@ -8,6 +8,7 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -23,6 +24,7 @@ import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Keys
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackup
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupData
+import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupSessionData.EncryptedRoomKeyBackupV1SessionData.RoomKeyBackupV1SessionData
 import de.connect2x.trixnity.core.model.keys.RoomsKeyBackup
@@ -77,7 +79,16 @@ interface KeyBackupService {
      */
     val version: StateFlow<GetRoomKeysBackupVersionResponse.V1?>
 
+    /*
+     * Starts a job, that repeatedly tries to load a key from room key backup until it has been found.
+     */
     suspend fun loadMegolmSession(roomId: RoomId, sessionId: String)
+
+    /*
+     * Starts a job, that repeatedly tries to load all keys from room key backup.
+     * It stops when the homeserver does not have any and does not run, when this has been called successfully in the past.
+     */
+    suspend fun loadMegolmSessions(roomId: RoomId)
 
     suspend fun keyBackupCanBeTrusted(keyBackupVersion: GetRoomKeysBackupVersionResponse, privateKey: String): Boolean
 }
@@ -87,6 +98,7 @@ class KeyBackupServiceImpl(
     private val accountStore: AccountStore,
     private val olmCryptoStore: OlmCryptoStore,
     private val keyStore: KeyStore,
+    private val roomStore: RoomStore,
     private val tm: StoreTransactionManager,
     private val api: MatrixClientServerApiClient,
     private val signService: SignService,
@@ -196,14 +208,14 @@ class KeyBackupServiceImpl(
         currentBackupVersion.value = currentVersion
     }
 
-    private val currentlyLoadingMegolmSessions = MutableStateFlow<Set<Pair<RoomId, String>>>(setOf())
+    private val currentlyLoadingSingleMegolmSessions = MutableStateFlow<Set<Pair<RoomId, String>>>(setOf())
 
     override suspend fun loadMegolmSession(roomId: RoomId, sessionId: String): Unit = coroutineScope {
         val runningKey = Pair(roomId, sessionId)
-        if (currentlyLoadingMegolmSessions.getAndUpdate { it + runningKey }.contains(runningKey).not()) {
+        if (currentlyLoadingSingleMegolmSessions.getAndUpdate { it + runningKey }.contains(runningKey).not()) {
             scope.launch {
                 currentCoroutineContext().job.invokeOnCompletion {
-                    currentlyLoadingMegolmSessions.update { it - runningKey }
+                    currentlyLoadingSingleMegolmSessions.update { it - runningKey }
                 }
                 retry(
                     scheduleBase = 1.seconds,
@@ -215,61 +227,134 @@ class KeyBackupServiceImpl(
                                 error.errorResponse is ErrorResponse.NotFound
                         )
                             log.trace(error) {
-                                "megolm session from key backup not found on server, try again in $delay"
+                                "megolm session from key backup for roomId=$roomId, sessionId=$sessionId, version=${version.value} not found on server, try again in $delay"
                             }
-                        else log.warn(error) { "failed load megolm session from key backup, try again in $delay" }
+                        else
+                            log.warn(error) {
+                                "failed load megolm session from key backup for roomId=$roomId, sessionId=$sessionId, version=${version.value}, try again in $delay"
+                            }
                     },
                 ) {
                     val version = version.filterNotNull().first().version
                     log.debug { "try to find key backup for roomId=$roomId, sessionId=$sessionId, version=$version" }
                     val encryptedSessionData = api.key.getRoomKeys(version, roomId, sessionId).getOrThrow().sessionData
-                    require(encryptedSessionData is EncryptedRoomKeyBackupV1SessionData)
-                    val storedSecret = checkNotNull(keyStore.getSecrets()[SecretType.M_MEGOLM_BACKUP_V1])
-
-                    val decryptedJson =
-                        useAll(
-                            { driver.pk.decryption(storedSecret.decryptedPrivateKey) },
-                            { driver.pk.message(encryptedSessionData) },
-                        ) { decryption, encryptedMessage ->
-                            decryption.decrypt(encryptedMessage)
-                        }
-
-                    val data = api.json.decodeFromString<RoomKeyBackupV1SessionData>(decryptedJson)
-                    val account = checkNotNull(accountStore.getAccount())
-                    val (firstKnownIndex, pickledSession) =
-                        useAll(
-                            { driver.megolm.exportedSessionKey(data.sessionKey) },
-                            { driver.megolm.inboundGroupSession.import(it) },
-                        ) { _, inboundGroupSession ->
-                            inboundGroupSession.firstKnownIndex to
-                                inboundGroupSession.pickle(driver.key.pickleKey(account.olmPickleKey))
-                        }
-                    val senderSigningKey =
-                        data.senderClaimedKeys.filterIsInstance<Key.Ed25519Key>().firstOrNull()
-                            ?: throw IllegalArgumentException("sender claimed key should not be empty")
+                    val storedInboundMegolmSession =
+                        encryptedSessionData.toStoredInboundMegolmSession(sessionId, roomId)
                     tm.writeTransaction {
                         olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) {
-                            if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                            else
-                                StoredInboundMegolmSession(
-                                    senderKey = data.senderKey,
-                                    sessionId = sessionId,
-                                    roomId = roomId,
-                                    firstKnownIndex = firstKnownIndex.toLong(),
-                                    isTrusted = false, // because it comes from backup
-                                    hasBeenBackedUp = true, // because it comes from backup
-                                    senderSigningKey = senderSigningKey.value,
-                                    forwardingCurve25519KeyChain = data.forwardingKeyChain,
-                                    sharedHistory = data.sharedHistory == true,
-                                    pickled = pickledSession,
-                                )
+                            if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) it
+                            else storedInboundMegolmSession
                         }
                     }
                 }
-                log.debug { "found key backup for roomId=$roomId, sessionId=$sessionId" }
+                log.debug {
+                    "loaded megolm session from key backup for for roomId=$roomId, sessionId=$sessionId, version=$version"
+                }
             }
         }
-        currentlyLoadingMegolmSessions.first { it.contains(runningKey).not() }
+        currentlyLoadingSingleMegolmSessions.first { it.contains(runningKey).not() }
+    }
+
+    private val currentlyLoadingAllMegolmSessions = MutableStateFlow<Set<RoomId>>(setOf())
+
+    override suspend fun loadMegolmSessions(roomId: RoomId) {
+        if (currentlyLoadingAllMegolmSessions.getAndUpdate { it + roomId }.contains(roomId).not()) {
+            scope.launch {
+                currentCoroutineContext().job.invokeOnCompletion {
+                    currentlyLoadingAllMegolmSessions.update { it - roomId }
+                }
+                if (roomStore.get(roomId).first()?.keyBackupLoaded != false) {
+                    log.trace {
+                        "skipped load megolm sessions from key backup for roomId=$roomId, version=${version.value}"
+                    }
+                    return@launch
+                }
+                retry(
+                    scheduleBase = 1.seconds,
+                    scheduleLimit = 6.hours,
+                    onError = { error, delay ->
+                        log.warn(error) {
+                            "failed load megolm sessions from key backup for roomId=$roomId, version=${version.value}, try again in $delay"
+                        }
+                    },
+                ) {
+                    val version = version.filterNotNull().first().version
+                    log.debug { "try to find key backup for roomId=$roomId, version=$version" }
+                    val encryptedSessions =
+                        try {
+                            api.key.getRoomKeys(version, roomId).getOrThrow().sessions
+                        } catch (matrixServerException: MatrixServerException) {
+                            if (
+                                matrixServerException.statusCode == HttpStatusCode.NotFound &&
+                                    matrixServerException.errorResponse is ErrorResponse.NotFound
+                            ) {
+                                log.trace(matrixServerException) {
+                                    "megolm sessions from key backup for roomId=$roomId, version=${version} not found on server, stop"
+                                }
+                                tm.writeTransaction { roomStore.update(roomId) { it?.copy(keyBackupLoaded = true) } }
+                                return@retry
+                            }
+                            throw matrixServerException
+                        }
+                    val storedInboundMegolmSessions = encryptedSessions.map { (sessionId, encryptedSession) ->
+                        encryptedSession.sessionData.toStoredInboundMegolmSession(sessionId, roomId)
+                    }
+                    if (storedInboundMegolmSessions.isEmpty()) return@retry
+                    tm.writeTransaction {
+                        storedInboundMegolmSessions.forEach { storedInboundMegolmSession ->
+                            olmCryptoStore.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
+                                if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) it
+                                else storedInboundMegolmSession
+                            }
+                        }
+                        roomStore.update(roomId) { it?.copy(keyBackupLoaded = true) }
+                    }
+                }
+                log.debug { "loaded megolm sessions from key backup for roomId=$roomId, version=$version" }
+            }
+        }
+        currentlyLoadingAllMegolmSessions.first { it.contains(roomId).not() }
+    }
+
+    private suspend fun RoomKeyBackupSessionData.toStoredInboundMegolmSession(
+        sessionId: String,
+        roomId: RoomId,
+    ): StoredInboundMegolmSession {
+        require(this is EncryptedRoomKeyBackupV1SessionData)
+        val storedSecret = checkNotNull(keyStore.getSecrets()[SecretType.M_MEGOLM_BACKUP_V1])
+
+        val decryptedJson =
+            useAll({ driver.pk.decryption(storedSecret.decryptedPrivateKey) }, { driver.pk.message(this) }) {
+                decryption,
+                encryptedMessage ->
+                decryption.decrypt(encryptedMessage)
+            }
+
+        val data = api.json.decodeFromString<RoomKeyBackupV1SessionData>(decryptedJson)
+        val account = checkNotNull(accountStore.getAccount())
+        val (firstKnownIndex, pickledSession) =
+            useAll(
+                { driver.megolm.exportedSessionKey(data.sessionKey) },
+                { driver.megolm.inboundGroupSession.import(it) },
+            ) { _, inboundGroupSession ->
+                inboundGroupSession.firstKnownIndex to
+                    inboundGroupSession.pickle(driver.key.pickleKey(account.olmPickleKey))
+            }
+        val senderSigningKey =
+            data.senderClaimedKeys.filterIsInstance<Key.Ed25519Key>().firstOrNull()
+                ?: throw IllegalArgumentException("sender claimed key should not be empty")
+        return StoredInboundMegolmSession(
+            senderKey = data.senderKey,
+            sessionId = sessionId,
+            roomId = roomId,
+            firstKnownIndex = firstKnownIndex.toLong(),
+            isTrusted = false, // because it comes from backup
+            hasBeenBackedUp = true, // because it comes from backup
+            senderSigningKey = senderSigningKey.value,
+            forwardingCurve25519KeyChain = data.forwardingKeyChain,
+            sharedHistory = data.sharedHistory == true,
+            pickled = pickledSession,
+        )
     }
 
     override suspend fun keyBackupCanBeTrusted(
