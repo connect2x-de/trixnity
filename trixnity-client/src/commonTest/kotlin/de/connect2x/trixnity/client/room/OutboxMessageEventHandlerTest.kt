@@ -37,6 +37,7 @@ import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
@@ -217,7 +218,7 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `processOutboxMessages » retry on unexpected encryption error`() = runTest {
+    fun `processOutboxMessages » retry on network error`() = runTest {
         currentSyncState.value = SyncState.RUNNING
         val message =
             RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
@@ -235,7 +236,13 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
                 "session",
             )
 
-        roomEventDecryptionServiceMock.returnEncryptList.add(Result.failure(RuntimeException("unexpected")))
+        roomEventDecryptionServiceMock.returnEncryptList.add(
+            Result.failure(
+                RoomEventEncryptionServiceError(
+                    MegolmEncryptionService.EncryptMegolmError.NetworkError(RuntimeException("404"))
+                )
+            )
+        )
         roomEventDecryptionServiceMock.returnEncryptList.add(Result.success(megolmEventContent))
 
         backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
@@ -245,7 +252,25 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `processOutboxMessages » handle RoomEventEncryptionServiceError`() = runTest {
+    fun `processOutboxMessages » not retry on unexpected error`() = runTest {
+        currentSyncState.value = SyncState.RUNNING
+        val message =
+            RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
+        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
+
+        roomEventDecryptionServiceMock.returnEncrypt = Result.failure(RuntimeException("expected"))
+
+        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+        delay(1.seconds)
+        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+        outboxMessages shouldHaveSize 1
+        outboxMessages.first().sendError should beInstanceOf<RoomOutboxMessage.SendError.EncryptionError>()
+        roomEventDecryptionServiceMock.encryptCounter shouldBe 1
+    }
+
+    @Test
+    fun `processOutboxMessages » not retry on unexpected RoomEventEncryptionServiceError`() = runTest {
         currentSyncState.value = SyncState.RUNNING
         val message =
             RoomOutboxMessage(room, "transaction", RoomMessageEventContent.TextBased.Text("hi"), testClock.now())
