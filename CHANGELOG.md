@@ -19,6 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Set empty instead of null displayname and avatarUrl when deleting profile fields in old Matrix specs
 - Outbox did not retry on network error
+- Secrets were accidentially removed
 
 ### Security
 
