@@ -255,28 +255,33 @@ class KeyServiceImpl(
             api.user.setAccountData(masterKeyEventContent, userInfo.userId).getOrThrow()
             api.user.setAccountData(userSigningKeyEventContent, userInfo.userId).getOrThrow()
             api.user.setAccountData(selfSigningKeyEventContent, userInfo.userId).getOrThrow()
-            api.key.setRoomKeysVersion(
-                SetRoomKeyBackupVersionRequest.V1(
-                    authData =
-                        with(RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(keyBackupPublicKey)) {
-                            val ownDeviceSignature = signService.signatures(this)[userInfo.userId]?.firstOrNull()
-                            val ownUsersSignature =
-                                signService
-                                    .signatures(
-                                        this,
-                                        SignWith.KeyPair(masterSigningPrivateKey, masterSigningPublicKey.value.value),
-                                    )[userInfo.userId]
-                                    ?.firstOrNull()
-                            requireNotNull(ownUsersSignature)
-                            requireNotNull(ownDeviceSignature)
-                            copy(
-                                signatures =
-                                    signatures + (userInfo.userId to keysOf(ownDeviceSignature, ownUsersSignature))
-                            )
-                        },
-                    version = null, // create new version
+            api.key
+                .setRoomKeysVersion(
+                    SetRoomKeyBackupVersionRequest.V1(
+                        authData =
+                            with(RoomKeyBackupAuthData.RoomKeyBackupV1AuthData(keyBackupPublicKey)) {
+                                val ownDeviceSignature = signService.signatures(this)[userInfo.userId]?.firstOrNull()
+                                val ownUsersSignature =
+                                    signService
+                                        .signatures(
+                                            this,
+                                            SignWith.KeyPair(
+                                                masterSigningPrivateKey,
+                                                masterSigningPublicKey.value.value,
+                                            ),
+                                        )[userInfo.userId]
+                                        ?.firstOrNull()
+                                requireNotNull(ownUsersSignature)
+                                requireNotNull(ownDeviceSignature)
+                                copy(
+                                    signatures =
+                                        signatures + (userInfo.userId to keysOf(ownDeviceSignature, ownUsersSignature))
+                                )
+                            },
+                        version = null, // create new version
+                    )
                 )
-            )
+                .getOrThrow()
             api.user.setAccountData(megolmBackupV1EventContent, userInfo.userId).getOrThrow()
             @OptIn(MSC3814::class)
             if (dehydratedDeviceEventContent != null)

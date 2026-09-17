@@ -46,7 +46,6 @@ import de.connect2x.trixnity.crypto.SecretType.M_DEHYDRATED_DEVICE
 import de.connect2x.trixnity.crypto.SecretType.M_MEGOLM_BACKUP_V1
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
-import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
@@ -160,24 +159,21 @@ class KeyServiceTest : TrixnityBaseTest() {
                 dehydratedDeviceEventContentCalled = true
             }
             matrixJsonEndpoint(SetGlobalAccountData(alice, "m.megolm_backup.v1")) { keyBackupEventContentCalled = true }
-            apiConfig.endpoints {
-                matrixJsonEndpoint(SetRoomKeyBackupVersion) {
-                    setRoomKeyBackupVersionCalled = true
-                    it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
-                    it.authData.publicKey.value shouldNot beEmpty()
-                    it.authData.signatures[alice]?.keys shouldBe
-                        setOf(Ed25519Key(aliceDevice, "s1"), Key.of(driver.key.ed25519SecretKey().use { it.publicKey }))
-                    it.version shouldBe null
-                    SetRoomKeyBackupVersion.Response("1")
-                }
-                matrixJsonEndpoint(GetRoomKeyBackupVersionByVersion("1")) {
-                    GetRoomKeysBackupVersionResponse.V1(
-                        authData = RoomKeyBackupV1AuthData(publicKey = Curve25519KeyValue("keyBackupPublicKey")),
-                        count = 1,
-                        etag = "etag",
-                        version = "1",
-                    )
-                }
+            matrixJsonEndpoint(SetRoomKeyBackupVersion) {
+                setRoomKeyBackupVersionCalled = true
+                it.shouldBeInstanceOf<SetRoomKeyBackupVersionRequest.V1>()
+                it.authData.publicKey.value shouldNot beEmpty()
+                it.authData.signatures[alice]?.keys shouldBe setOf(Ed25519Key("DEV", "s1"))
+                it.version shouldBe null
+                SetRoomKeyBackupVersion.Response("1")
+            }
+            matrixJsonEndpoint(GetRoomKeyBackupVersionByVersion("1")) {
+                GetRoomKeysBackupVersionResponse.V1(
+                    authData = RoomKeyBackupV1AuthData(publicKey = Curve25519KeyValue("keyBackupPublicKey")),
+                    count = 1,
+                    etag = "etag",
+                    version = "1",
+                )
             }
             matrixJsonEndpoint(SetCrossSigningKeys) {
                 it.request.masterKey shouldNotBe null

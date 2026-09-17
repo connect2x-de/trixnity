@@ -3,7 +3,13 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoredSecret
+import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
+import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.device.DehydratedDeviceData
@@ -291,7 +297,9 @@ class OutgoingSecretKeyRequestEventHandler(
                     .getAllSecretKeyRequests()
                     .filter { it.content.name == secretType.id }
                     .forEach { it.cancelRequest() }
-                tm.writeTransaction { keyStore.updateSecrets { it - secretType } }
+                tm.writeTransaction {
+                    keyStore.updateSecrets { if (it[secretType]?.event != event) it - secretType else it }
+                }
             }
         }
     }
