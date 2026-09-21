@@ -30,7 +30,6 @@ import de.connect2x.trixnity.client.store.repository.GlobalAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
@@ -482,14 +481,13 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
     @Test
     fun `InboundMegolmSessionRepository - save get and delete`() = runTestWithSetup {
         val cut = di.get<InboundMegolmSessionRepository>()
-        val roomId = RoomId("!room:server")
-        val inboundSessionKey1 = InboundMegolmSessionRepositoryKey("session1", roomId)
-        val inboundSessionKey2 = InboundMegolmSessionRepositoryKey("session2", roomId)
+        val roomId1 = RoomId("!room:server")
+        val roomId2 = RoomId("!room1:server")
         val inboundSession1 =
             StoredInboundMegolmSession(
                 senderKey = Curve25519KeyValue("curve1"),
                 sessionId = "session1",
-                roomId = roomId,
+                roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = false,
                 isTrusted = false,
@@ -505,7 +503,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
             StoredInboundMegolmSession(
                 senderKey = Curve25519KeyValue("curve2"),
                 sessionId = "session2",
-                roomId = roomId,
+                roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = true,
                 isTrusted = false,
@@ -514,17 +512,34 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 pickled = "pickle2",
             )
         val inboundSession2Copy = inboundSession2.copy(pickled = "pickle2Copy")
+        val inboundSession3 =
+            StoredInboundMegolmSession(
+                senderKey = Curve25519KeyValue("curve2"),
+                sessionId = "session1",
+                roomId = roomId2,
+                firstKnownIndex = 1,
+                hasBeenBackedUp = true,
+                isTrusted = false,
+                senderSigningKey = Ed25519KeyValue("ed2"),
+                forwardingCurve25519KeyChain = listOf(),
+                pickled = "pickle3",
+            )
 
         rtm.writeTransaction {
-            cut.save(inboundSessionKey1, inboundSession1)
-            cut.save(inboundSessionKey2, inboundSession2)
-            cut.get(inboundSessionKey1) shouldBe inboundSession1
-            cut.get(inboundSessionKey2) shouldBe inboundSession2
+            cut.save(inboundSession1.roomId, inboundSession1.sessionId, inboundSession1)
+            cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2)
+            cut.save(inboundSession3.roomId, inboundSession3.sessionId, inboundSession3)
+            cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe inboundSession1
+            cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2
+            cut.get(roomId1) shouldBe
+                mapOf(inboundSession1.sessionId to inboundSession1, inboundSession2.sessionId to inboundSession2)
+            cut.getAll() shouldBe setOf(inboundSession1, inboundSession2, inboundSession3)
             cut.getByNotBackedUp() shouldBe setOf(inboundSession1)
-            cut.save(inboundSessionKey2, inboundSession2Copy)
-            cut.get(inboundSessionKey2) shouldBe inboundSession2Copy
-            cut.delete(inboundSessionKey1)
-            cut.get(inboundSessionKey1) shouldBe null
+            cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2Copy)
+            cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2Copy
+            cut.delete(inboundSession1.roomId, inboundSession1.sessionId)
+            cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe null
+            cut.get(roomId1) shouldBe mapOf(inboundSession2.sessionId to inboundSession2Copy)
         }
     }
 

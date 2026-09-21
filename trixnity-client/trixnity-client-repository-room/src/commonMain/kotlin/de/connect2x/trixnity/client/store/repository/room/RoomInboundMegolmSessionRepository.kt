@@ -6,7 +6,6 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
@@ -33,6 +32,9 @@ interface InboundMegolmSessionDao {
     @Query("SELECT * FROM InboundMegolmSession WHERE sessionId = :sessionId AND roomId = :roomId LIMIT 1")
     suspend fun get(sessionId: String, roomId: RoomId): RoomInboundMegolmSession?
 
+    @Query("SELECT * FROM InboundMegolmSession WHERE roomId = :roomId")
+    suspend fun get(roomId: RoomId): List<RoomInboundMegolmSession>
+
     @Query("SELECT * FROM InboundMegolmSession") suspend fun getAll(): List<RoomInboundMegolmSession>
 
     @Query("SELECT * FROM InboundMegolmSession WHERE hasBeenBackedUp = 0")
@@ -51,23 +53,28 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
     private val dao = db.inboundMegolmSession()
 
     context(transaction: ReadTransaction)
-    override suspend fun get(key: InboundMegolmSessionRepositoryKey): StoredInboundMegolmSession? =
-        dao.get(key.sessionId, key.roomId)?.toModel()
+    override suspend fun get(firstKey: RoomId): Map<String, StoredInboundMegolmSession> =
+        dao.get(firstKey).associate { it.sessionId to it.toModel() }
 
     context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<StoredInboundMegolmSession> = dao.getAll().map { it.toModel() }
+    override suspend fun get(firstKey: RoomId, secondKey: String): StoredInboundMegolmSession? =
+        dao.get(secondKey, firstKey)?.toModel()
 
     context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
         dao.getNotBackedUp().map { entity -> entity.toModel() }.toSet()
 
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): Set<StoredInboundMegolmSession> =
+        dao.getAll().map { entity -> entity.toModel() }.toSet()
+
     context(transaction: WriteTransaction)
-    override suspend fun save(key: InboundMegolmSessionRepositoryKey, value: StoredInboundMegolmSession) =
+    override suspend fun save(firstKey: RoomId, secondKey: String, value: StoredInboundMegolmSession) =
         dao.insert(
             RoomInboundMegolmSession(
                 senderKey = value.senderKey.value,
-                sessionId = key.sessionId,
-                roomId = key.roomId,
+                sessionId = value.sessionId,
+                roomId = value.roomId,
                 firstKnownIndex = value.firstKnownIndex,
                 hasBeenBackedUp = value.hasBeenBackedUp,
                 isTrusted = value.isTrusted,
@@ -78,7 +85,7 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: InboundMegolmSessionRepositoryKey) = dao.delete(key.sessionId, key.roomId)
+    override suspend fun delete(firstKey: RoomId, secondKey: String) = dao.delete(secondKey, firstKey)
 
     context(transaction: WriteTransaction)
     override suspend fun deleteAll() = dao.deleteAll()

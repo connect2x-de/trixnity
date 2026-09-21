@@ -7,6 +7,7 @@ import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.named
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 fun createKeyModule() = module {
@@ -67,8 +68,30 @@ fun createKeyModule() = module {
     }
 
     @OptIn(MSC3814::class)
-    singleOf(::DehydratedDeviceService) {
+    singleOf(::DehydratedDeviceServiceImpl) {
         bind<EventHandler>()
         named<DehydratedDeviceService>()
+        bind<DehydratedDeviceService>()
     }
+    single<KeyShareServiceImpl> {
+            KeyShareServiceImpl(
+                accountStore = get(),
+                olmCryptoStore = get(),
+                keyStore = get(),
+                keyBackupService = get(named<KeyBackupService>()),
+                dehydratedDeviceService = get(named<DehydratedDeviceService>()),
+                olmEncryptionService = get(),
+                mediaService = get(),
+                api = get(),
+                currentSyncState = get(),
+                cryptoDriver = get(),
+                json = get(),
+                userInfo = get(),
+            )
+        }
+        .apply {
+            bind<EventHandler>()
+            named<KeyShareService>()
+            bind<KeyShareService>()
+        }
 }

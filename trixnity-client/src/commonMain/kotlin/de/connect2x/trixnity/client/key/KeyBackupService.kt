@@ -403,7 +403,7 @@ class KeyBackupServiceImpl(
                             .setRoomKeys(
                                 version.version,
                                 RoomsKeyBackup(
-                                    notBackedUpInboundMegolmSessions.values
+                                    notBackedUpInboundMegolmSessions
                                         .groupBy { it.roomId }
                                         .mapValues { roomEntries ->
                                             RoomKeyBackup(
@@ -464,7 +464,7 @@ class KeyBackupServiceImpl(
                                 }
                             }
                             .getOrThrow()
-                        val notBackedUpInboundMegolmSessionsValues = notBackedUpInboundMegolmSessions.values
+                        val notBackedUpInboundMegolmSessionsValues = notBackedUpInboundMegolmSessions
                         if (notBackedUpInboundMegolmSessionsValues.isNotEmpty()) {
                             tm.writeTransaction {
                                 notBackedUpInboundMegolmSessionsValues.forEach {

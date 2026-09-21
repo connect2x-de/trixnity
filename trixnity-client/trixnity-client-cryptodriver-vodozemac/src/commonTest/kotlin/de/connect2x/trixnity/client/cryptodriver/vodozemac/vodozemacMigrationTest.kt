@@ -8,7 +8,6 @@ import de.connect2x.trixnity.client.store.Account as StoredAccount
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
@@ -82,11 +81,8 @@ class MigrationTest {
             members.olmSessionRepository.save(key = db.olmSession.senderKey, value = setOf(db.olmSession))
             members.outboundMegolmSessionRepository.save(key = db.groupSession.roomId, value = db.groupSession)
             members.inboundMegolmSessionRepository.save(
-                key =
-                    InboundMegolmSessionRepositoryKey(
-                        roomId = db.inboundGroupSession.roomId,
-                        sessionId = db.inboundGroupSession.sessionId,
-                    ),
+                firstKey = db.inboundGroupSession.roomId,
+                secondKey = db.inboundGroupSession.sessionId,
                 value = db.inboundGroupSession,
             )
         }

@@ -108,7 +108,7 @@ abstract class DehydratedDeviceServiceTest(protected val driver: CryptoDriver) :
     protected val matrixClientConfiguration = MatrixClientConfiguration()
 
     protected val cut =
-        DehydratedDeviceService(
+        DehydratedDeviceServiceImpl(
             api = api,
             keyStore = keyStore,
             userInfo = userInfo,

@@ -15,8 +15,10 @@ class KeyBackupServiceMock : KeyBackupService {
         loadMegolmSessionCalled.update { it + Pair(roomId, sessionId) }
     }
 
+    var loadMegolmSessionsCalled = false
+
     override suspend fun loadMegolmSessions(roomId: RoomId) {
-        throw NotImplementedError()
+        loadMegolmSessionsCalled = true
     }
 
     var returnKeyBackupCanBeTrusted: Boolean = true

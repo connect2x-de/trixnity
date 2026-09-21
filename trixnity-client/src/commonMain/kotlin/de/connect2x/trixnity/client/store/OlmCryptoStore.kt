@@ -1,9 +1,17 @@
 package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
+import de.connect2x.trixnity.client.store.cache.MapRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MinimalRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
-import de.connect2x.trixnity.client.store.repository.*
+import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
+import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
+import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
+import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
+import de.connect2x.trixnity.client.store.repository.OlmForgetFallbackKeyAfterRepository
+import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
+import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
@@ -42,16 +50,15 @@ class OlmCryptoStore(
         MinimalRepositoryObservableCache(olmForgetFallbackKeyAfterRepository, tm, storeScope, clock, Duration.INFINITE)
             .also(statisticCollector::addCache)
 
-    private val _notBackedUpInboundMegolmSessions =
-        MutableStateFlow<Map<InboundMegolmSessionRepositoryKey, StoredInboundMegolmSession>>(mapOf())
+    private val _notBackedUpInboundMegolmSessions = MutableStateFlow<Set<StoredInboundMegolmSession>>(setOf())
 
     val notBackedUpInboundMegolmSessions = _notBackedUpInboundMegolmSessions.asStateFlow()
 
     override suspend fun init(coroutineScope: CoroutineScope) {
         storeScope.launch(start = UNDISPATCHED) {
-            _notBackedUpInboundMegolmSessions.value =
-                tm.readTransaction { inboundMegolmSessionRepository.getByNotBackedUp() }
-                    .associateBy { InboundMegolmSessionRepositoryKey(it.sessionId, it.roomId) }
+            _notBackedUpInboundMegolmSessions.value = tm.readTransaction {
+                inboundMegolmSessionRepository.getByNotBackedUp()
+            }
         }
     }
 
@@ -60,7 +67,7 @@ class OlmCryptoStore(
 
     context(transaction: StoreWriteTransaction)
     override suspend fun deleteAll() {
-        _notBackedUpInboundMegolmSessions.value = mapOf()
+        _notBackedUpInboundMegolmSessions.value = setOf()
         olmAccountCache.deleteAll()
         olmForgetFallbackKeyAfterCache.deleteAll()
         olmSessionsCache.deleteAll()
@@ -99,7 +106,7 @@ class OlmCryptoStore(
     ) = olmSessionsCache.update(senderKey, updater = updater)
 
     private val inboundMegolmSessionCache =
-        MinimalRepositoryObservableCache(
+        MapRepositoryObservableCache(
                 inboundMegolmSessionRepository,
                 tm,
                 storeScope,
@@ -109,7 +116,10 @@ class OlmCryptoStore(
             .also(statisticCollector::addCache)
 
     fun getInboundMegolmSession(sessionId: String, roomId: RoomId): Flow<StoredInboundMegolmSession?> =
-        inboundMegolmSessionCache.get(InboundMegolmSessionRepositoryKey(sessionId, roomId))
+        inboundMegolmSessionCache.get(MapRepositoryCoroutinesCacheKey(roomId, sessionId))
+
+    fun getInboundMegolmSessions(roomId: RoomId): Flow<Map<String, Flow<StoredInboundMegolmSession?>>> =
+        inboundMegolmSessionCache.getByFirstKey(roomId)
 
     context(transaction: StoreWriteTransaction)
     suspend fun updateInboundMegolmSession(
@@ -118,12 +128,13 @@ class OlmCryptoStore(
         updater: (oldInboundMegolmSession: StoredInboundMegolmSession?) -> StoredInboundMegolmSession?,
     ) =
         inboundMegolmSessionCache.update(
-            InboundMegolmSessionRepositoryKey(sessionId, roomId),
+            MapRepositoryCoroutinesCacheKey(roomId, sessionId),
             updater = updater,
             onPersist = { newValue ->
-                val key = InboundMegolmSessionRepositoryKey(sessionId, roomId)
                 _notBackedUpInboundMegolmSessions.update {
-                    if (newValue == null || newValue.hasBeenBackedUp) it - key else it + (key to newValue)
+                    if (newValue == null || newValue.hasBeenBackedUp)
+                        it.filterNot { it.roomId == roomId && it.sessionId == sessionId }.toSet()
+                    else it + newValue
                 }
             },
         )

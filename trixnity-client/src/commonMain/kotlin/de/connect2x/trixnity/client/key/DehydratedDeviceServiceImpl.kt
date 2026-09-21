@@ -62,6 +62,8 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -79,8 +81,13 @@ import kotlinx.serialization.json.Json
 
 private val log = Logger("de.connect2x.trixnity.client.key.DehydratedDeviceService")
 
+interface DehydratedDeviceService {
+    /** Indicates that a rehydration check or rehydration is ongoing. */
+    val pendingRehydration: StateFlow<Boolean>
+}
+
 @MSC3814
-class DehydratedDeviceService(
+class DehydratedDeviceServiceImpl(
     private val api: MatrixClientServerApiClient,
     private val keyStore: KeyStore,
     private val userInfo: UserInfo,
@@ -91,7 +98,10 @@ class DehydratedDeviceService(
     private val clock: Clock,
     private val config: MatrixClientConfiguration,
     private val driver: CryptoDriver,
-) : EventHandler {
+) : DehydratedDeviceService, EventHandler {
+
+    private val _pendingRehydration = MutableStateFlow(false)
+    override val pendingRehydration = _pendingRehydration.asStateFlow()
 
     override fun startInCoroutineScope(scope: CoroutineScope) {
         if (config.experimentalFeatures.enableMSC3814) {
@@ -100,6 +110,7 @@ class DehydratedDeviceService(
     }
 
     private suspend fun handleChanges() { // TODO unit test
+        _pendingRehydration.value = true
         keyStore
             .getSecretsFlow()
             .map { it[SecretType.M_DEHYDRATED_DEVICE] }
@@ -107,10 +118,12 @@ class DehydratedDeviceService(
             .scan(listOf<StoredSecret?>()) { acc, new -> if (acc.isEmpty()) listOf(new) else listOf(new) + acc[0] }
             .filter { it.isNotEmpty() }
             .collect { encodedDehydratedDeviceSecrets ->
+                _pendingRehydration.value = true
                 try {
                     val currentEncodedDehydratedDeviceSecret = encodedDehydratedDeviceSecrets[0]
                     if (currentEncodedDehydratedDeviceSecret == null) {
                         log.warn { "skip device dehydration, because dehydrated device private key not present" }
+                        _pendingRehydration.value = false
                         return@collect
                     }
                     val dehydratedDeviceSecret =
@@ -123,6 +136,7 @@ class DehydratedDeviceService(
                         log.warn {
                             "skip device dehydration, because dehydrated device private key could not be decoded"
                         }
+                        _pendingRehydration.value = false
                         return@collect
                     }
                     val dehydratedTrustLevel =
@@ -156,11 +170,13 @@ class DehydratedDeviceService(
                     when {
                         dehydratedTrustLevel == null -> {
                             log.debug { "create new dehydrate device because missing" }
+                            _pendingRehydration.value = false
                             tryDehydrateDevice(dehydratedDeviceSecret)
                         }
 
                         dehydratedTrustLevel !is CrossSigned || dehydratedTrustLevel.isVerified.not() -> {
                             log.debug { "create new dehydrate device because current one is untrusted" }
+                            _pendingRehydration.value = false
                             tryDehydrateDevice(dehydratedDeviceSecret)
                         }
 
@@ -170,6 +186,7 @@ class DehydratedDeviceService(
                                 log.debug { "rehydrate device because verification or bootstrap finished" }
                                 tryRehydrateDevice(dehydratedDeviceSecret)
                             }
+                            _pendingRehydration.value = false
                             log.debug { "dehydrate device because secret has changed locally" }
                             tryDehydrateDevice(dehydratedDeviceSecret)
                         }
@@ -181,6 +198,8 @@ class DehydratedDeviceService(
                 } catch (e: Throwable) {
                     if (e is CancellationException) throw e
                     log.error(e) { "unexpected exception during device dehydration" }
+                } finally {
+                    _pendingRehydration.value = false
                 }
             }
     }

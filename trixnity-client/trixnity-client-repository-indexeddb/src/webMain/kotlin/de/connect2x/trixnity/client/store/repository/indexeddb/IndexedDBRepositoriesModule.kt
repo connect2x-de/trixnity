@@ -130,7 +130,7 @@ internal val allStoreNames =
     )
 
 internal suspend fun createDatabase(databaseName: String) =
-    IDBUtils.openDatabase(databaseName, 10) { database, oldVersion, _ ->
+    IDBUtils.openDatabase(databaseName, 11) { database, oldVersion, _ ->
         IndexedDBAccountRepository.apply { migrate(database, oldVersion) }
         IndexedDBAuthenticationRepository.apply { migrate(database, oldVersion) }
         IndexedServerDataRepository.apply { migrate(database, oldVersion) }

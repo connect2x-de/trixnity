@@ -10,7 +10,6 @@ import de.connect2x.trixnity.client.store.repository.InMemoryOlmForgetFallbackKe
 import de.connect2x.trixnity.client.store.repository.InMemoryOlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryOutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.core.model.RoomId
@@ -75,7 +74,8 @@ class OlmStoreTest : TrixnityBaseTest() {
     fun `init » start job which saves changes to database and fills notBackedUp inbound megolm sessions`() = runTest {
         tm.writeTransaction {
             inboundMegolmSessionRepository.save(
-                InboundMegolmSessionRepositoryKey(sessionId = "session1", roomId = RoomId("!room:server")),
+                RoomId("!room:server"),
+                "session1",
                 StoredInboundMegolmSession(
                     senderKey = Curve25519KeyValue("senderCurve1"),
                     senderSigningKey = Ed25519KeyValue("senderEd1"),
@@ -89,7 +89,8 @@ class OlmStoreTest : TrixnityBaseTest() {
                 ),
             )
             inboundMegolmSessionRepository.save(
-                InboundMegolmSessionRepositoryKey(sessionId = "session2", roomId = RoomId("!room:server")),
+                RoomId("!room:server"),
+                "session2",
                 StoredInboundMegolmSession(
                     senderKey = Curve25519KeyValue("senderCurve2"),
                     senderSigningKey = Ed25519KeyValue("senderEd2"),
@@ -118,10 +119,10 @@ class OlmStoreTest : TrixnityBaseTest() {
     fun `updateInboundMegolmSession » add and remove to notBackedUpInboundMegolmSessions`() = runTest {
         tm.writeTransaction {
             cut.updateInboundMegolmSession(session.sessionId, session.roomId) { session }
-            cut.notBackedUpInboundMegolmSessions.value.values shouldBe setOf(session)
+            cut.notBackedUpInboundMegolmSessions.value shouldBe setOf(session)
             cut.updateInboundMegolmSession(session.sessionId, session.roomId) { session.copy(hasBeenBackedUp = true) }
         }
-        cut.notBackedUpInboundMegolmSessions.value.values.shouldBeEmpty()
+        cut.notBackedUpInboundMegolmSessions.value.shouldBeEmpty()
     }
 
     @Test

@@ -1,16 +1,15 @@
 package de.connect2x.trixnity.client.store.repository.exposed
 
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.associate
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -37,19 +36,22 @@ internal object ExposedInboundMegolmSession : Table("inbound_megolm_session") {
 
 internal class ExposedInboundMegolmSessionRepository(private val json: Json) : InboundMegolmSessionRepository {
     context(transaction: ReadTransaction)
-    override suspend fun get(key: InboundMegolmSessionRepositoryKey): StoredInboundMegolmSession? {
+    override suspend fun get(firstKey: RoomId): Map<String, StoredInboundMegolmSession> {
         return ExposedInboundMegolmSession.selectAll()
-            .where {
-                ExposedInboundMegolmSession.sessionId.eq(key.sessionId) and
-                    ExposedInboundMegolmSession.roomId.eq(key.roomId.full)
-            }
-            .firstOrNull()
-            ?.mapToStoredInboundMegolmSession()
+            .where { ExposedInboundMegolmSession.roomId.eq(firstKey.full) }
+            .map { it.mapToStoredInboundMegolmSession() }
+            .associate { it.sessionId to it }
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<StoredInboundMegolmSession> {
-        return ExposedInboundMegolmSession.selectAll().map { it.mapToStoredInboundMegolmSession() }.toList()
+    override suspend fun get(firstKey: RoomId, secondKey: String): StoredInboundMegolmSession? {
+        return ExposedInboundMegolmSession.selectAll()
+            .where {
+                ExposedInboundMegolmSession.sessionId.eq(secondKey) and
+                    ExposedInboundMegolmSession.roomId.eq(firstKey.full)
+            }
+            .firstOrNull()
+            ?.mapToStoredInboundMegolmSession()
     }
 
     context(transaction: ReadTransaction)
@@ -58,6 +60,11 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
             .where { ExposedInboundMegolmSession.hasBeenBackedUp.eq(false) }
             .map { it.mapToStoredInboundMegolmSession() }
             .toSet()
+    }
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): Set<StoredInboundMegolmSession> {
+        return ExposedInboundMegolmSession.selectAll().map { it.mapToStoredInboundMegolmSession() }.toSet()
     }
 
     private fun ResultRow.mapToStoredInboundMegolmSession() =
@@ -75,7 +82,7 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
         )
 
     context(transaction: WriteTransaction)
-    override suspend fun save(key: InboundMegolmSessionRepositoryKey, value: StoredInboundMegolmSession) {
+    override suspend fun save(firstKey: RoomId, secondKey: String, value: StoredInboundMegolmSession) {
         ExposedInboundMegolmSession.upsert {
             it[senderKey] = value.senderKey.value
             it[sessionId] = value.sessionId
@@ -90,8 +97,8 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: InboundMegolmSessionRepositoryKey) {
-        ExposedInboundMegolmSession.deleteWhere { sessionId.eq(key.sessionId) and roomId.eq(key.roomId.full) }
+    override suspend fun delete(firstKey: RoomId, secondKey: String) {
+        ExposedInboundMegolmSession.deleteWhere { sessionId.eq(secondKey) and roomId.eq(firstKey.full) }
     }
 
     context(transaction: WriteTransaction)
