@@ -139,6 +139,12 @@ interface KeyService {
      * Usually, this should be called before key backup is set up via bootstrap or self verification.
      */
     suspend fun disableKeyBackup()
+
+    /**
+     * Allows to share a room key bundle. This must only be called before an invitation of the user. The invite should
+     * not be called, when sharing the room key bundle was not successful.
+     */
+    suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit>
 }
 
 class KeyServiceImpl(
@@ -151,6 +157,7 @@ class KeyServiceImpl(
     private val roomService: RoomService,
     private val signService: SignService,
     private val keyTrustService: KeyTrustService,
+    private val keyShareService: KeyShareService,
     private val api: MatrixClientServerApiClient,
     private val matrixClientConfiguration: MatrixClientConfiguration,
     private val driver: CryptoDriver,
@@ -464,4 +471,7 @@ class KeyServiceImpl(
     override suspend fun disableKeyBackup() {
         tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = false) } }
     }
+
+    override suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit> =
+        keyShareService.shareRoomKeyBundle(roomId, userId)
 }

@@ -60,6 +60,7 @@ fun createKeyModule() = module {
             tm = get(),
             roomService = get(),
             signService = get(),
+            keyShareService = get(),
             keyTrustService = get(),
             api = get(),
             matrixClientConfiguration = get(),
@@ -73,7 +74,7 @@ fun createKeyModule() = module {
         named<DehydratedDeviceService>()
         bind<DehydratedDeviceService>()
     }
-    single<KeyShareServiceImpl> {
+    single {
             KeyShareServiceImpl(
                 accountStore = get(),
                 olmCryptoStore = get(),
@@ -90,8 +91,8 @@ fun createKeyModule() = module {
             )
         }
         .apply {
+            bind<KeyShareService>()
             bind<EventHandler>()
             named<KeyShareService>()
-            bind<KeyShareService>()
         }
 }

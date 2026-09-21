@@ -7,7 +7,6 @@ import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
-import de.connect2x.trixnity.client.mocks.KeyServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.Valid
@@ -114,7 +113,6 @@ abstract class DehydratedDeviceServiceTest(protected val driver: CryptoDriver) :
             userInfo = userInfo,
             json = json,
             olmStore = olmStore,
-            keyService = KeyServiceMock(),
             signService = signServiceMock,
             clock = testScope.testClock,
             config = matrixClientConfiguration,

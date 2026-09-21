@@ -59,4 +59,8 @@ class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = Mutable
     override suspend fun disableKeyBackup() {
         throw NotImplementedError()
     }
+
+    override suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit> {
+        throw NotImplementedError()
+    }
 }

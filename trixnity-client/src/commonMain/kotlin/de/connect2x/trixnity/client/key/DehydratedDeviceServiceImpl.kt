@@ -64,7 +64,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -93,7 +92,6 @@ class DehydratedDeviceServiceImpl(
     private val userInfo: UserInfo,
     private val json: Json,
     private val olmStore: OlmStore,
-    private val keyService: KeyService,
     private val signService: SignService,
     private val clock: Clock,
     private val config: MatrixClientConfiguration,
@@ -140,24 +138,15 @@ class DehydratedDeviceServiceImpl(
                         return@collect
                     }
                     val dehydratedTrustLevel =
-                        combine(
-                                keyStore
-                                    .getDeviceKeys(userInfo.userId)
-                                    .filterNotNull()
-                                    .map { deviceKeys ->
-                                        deviceKeys[userInfo.deviceId]?.trustLevel to
-                                            deviceKeys.values.find { it.value.signed.dehydrated == true }?.trustLevel
-                                    }
-                                    .distinctUntilChanged(),
-                                keyService.bootstrapRunning,
-                            ) { trustLevels, bootstrapRunning ->
-                                Pair(trustLevels, bootstrapRunning)
+                        keyStore
+                            .getDeviceKeys(userInfo.userId)
+                            .filterNotNull()
+                            .map { deviceKeys ->
+                                deviceKeys[userInfo.deviceId]?.trustLevel to
+                                    deviceKeys.values.find { it.value.signed.dehydrated == true }?.trustLevel
                             }
-                            .transform { (trustLevels, bootstrapRunning) ->
-                                if (bootstrapRunning) {
-                                    log.debug { "skip device dehydration, because bootstrap still running" }
-                                    return@transform
-                                }
+                            .distinctUntilChanged()
+                            .transform { trustLevels ->
                                 val ownTrustLevel = trustLevels.first
                                 if (ownTrustLevel !is CrossSigned || ownTrustLevel.isVerified.not()) {
                                     log.debug { "skip device dehydration, because own device key not signed (yet)" }

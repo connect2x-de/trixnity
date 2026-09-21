@@ -6,6 +6,7 @@ import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
+import de.connect2x.trixnity.client.mocks.KeyShareServiceMock
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
@@ -98,6 +99,7 @@ class KeyServiceTest : TrixnityBaseTest() {
             tm = tm,
             roomService = roomServiceMock,
             signService = signServiceMock,
+            keyShareService = KeyShareServiceMock(),
             keyTrustService = keyTrustServiceMock,
             api = api,
             matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true },
