@@ -5,3 +5,5 @@ vulnerabilities:
     statement: Only affects local dev tools (JS, websocket-driver, used in webpack-dev-server)
   - id: CVE-2026-75595
     statement: Ktor dependency
+  - id: CVE-2026-8763
+    statement: unused part of bouncy castle
