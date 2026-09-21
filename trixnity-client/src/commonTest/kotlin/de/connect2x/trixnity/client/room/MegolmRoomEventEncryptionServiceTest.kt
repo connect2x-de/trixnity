@@ -23,6 +23,7 @@ import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.core.model.keys.RoomKeyBackupAuthData
 import de.connect2x.trixnity.crypto.driver.CryptoDriverException
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.DecryptMegolmError
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.EncryptMegolmError
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
@@ -91,8 +92,8 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
             room,
             1,
             hasBeenBackedUp = false,
-            isTrusted = false,
-            forwardingCurve25519KeyChain = listOf(),
+            source = InboundMegolmSessionSource.Creator,
+            sharedHistory = true,
             pickled = "pickle",
         )
     private val encryptedEvent =

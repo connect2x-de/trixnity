@@ -15,6 +15,7 @@ import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -55,9 +56,9 @@ class OlmStoreTest : TrixnityBaseTest() {
             roomId = RoomId("!room:server"),
             firstKnownIndex = 24,
             hasBeenBackedUp = false,
-            isTrusted = true,
+            source = InboundMegolmSessionSource.Creator,
+            sharedHistory = true,
             senderSigningKey = Ed25519KeyValue("edKey"),
-            forwardingCurve25519KeyChain = listOf(),
             pickled = "pickle",
         )
 
@@ -83,8 +84,8 @@ class OlmStoreTest : TrixnityBaseTest() {
                     roomId = RoomId("!room:server"),
                     firstKnownIndex = 1,
                     hasBeenBackedUp = false,
-                    isTrusted = true,
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = true,
                     pickled = "pickled1",
                 ),
             )
@@ -98,8 +99,8 @@ class OlmStoreTest : TrixnityBaseTest() {
                     roomId = RoomId("!room:server"),
                     firstKnownIndex = 1,
                     hasBeenBackedUp = false,
-                    isTrusted = true,
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = true,
                     pickled = "pickled2",
                 ),
             )

@@ -280,8 +280,10 @@ class OlmEventHandlerImpl(
                     }
 
                 store.updateInboundMegolmSession(content.sessionId, content.roomId) {
-                    if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                    else
+                    if (it != null && it.firstKnownIndex <= firstKnownIndex) {
+                        // TODO theoretically we could lift the source to Creator (e.g. by compare export at an index)
+                        it
+                    } else {
                         StoredInboundMegolmSession(
                             senderKey = event.encrypted.content.senderKey,
                             senderSigningKey = senderSigningKey.value,
@@ -289,11 +291,11 @@ class OlmEventHandlerImpl(
                             roomId = content.roomId,
                             firstKnownIndex = firstKnownIndex,
                             hasBeenBackedUp = false,
-                            isTrusted = true,
-                            forwardingCurve25519KeyChain = emptyList(),
+                            source = InboundMegolmSessionSource.Creator,
                             sharedHistory = content.sharedHistory == true,
                             pickled = pickledSession,
                         )
+                    }
                 }
             } catch (exception: CryptoDriverException) {
                 log.warn { "ignore inbound megolm session due to: ${exception.message}" }

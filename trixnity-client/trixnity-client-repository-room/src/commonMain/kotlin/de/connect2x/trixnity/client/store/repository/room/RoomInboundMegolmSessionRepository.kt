@@ -19,12 +19,13 @@ data class RoomInboundMegolmSession(
     val senderKey: String,
     val sessionId: String,
     val roomId: RoomId,
-    val firstKnownIndex: Long,
+    val firstKnownIndex: Long?,
     val hasBeenBackedUp: Boolean,
-    val isTrusted: Boolean,
-    val senderSigningKey: String,
-    val forwardingCurve25519KeyChain: String,
-    val pickled: String,
+    val isTrusted: Boolean?,
+    val senderSigningKey: String?,
+    val forwardingCurve25519KeyChain: String?,
+    val pickled: String?,
+    val value: String?,
 )
 
 @Dao
@@ -75,12 +76,13 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
                 senderKey = value.senderKey.value,
                 sessionId = value.sessionId,
                 roomId = value.roomId,
-                firstKnownIndex = value.firstKnownIndex,
+                firstKnownIndex = null,
                 hasBeenBackedUp = value.hasBeenBackedUp,
-                isTrusted = value.isTrusted,
-                senderSigningKey = value.senderSigningKey.value,
-                forwardingCurve25519KeyChain = json.encodeToString(value.forwardingCurve25519KeyChain),
-                pickled = value.pickled,
+                isTrusted = null,
+                senderSigningKey = null,
+                forwardingCurve25519KeyChain = null,
+                pickled = null,
+                value = json.encodeToString(value),
             )
         )
 
@@ -91,15 +93,18 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
     override suspend fun deleteAll() = dao.deleteAll()
 
     private fun RoomInboundMegolmSession.toModel(): StoredInboundMegolmSession =
-        StoredInboundMegolmSession(
-            senderKey = Curve25519KeyValue(senderKey),
-            sessionId = sessionId,
-            roomId = roomId,
-            firstKnownIndex = firstKnownIndex,
-            hasBeenBackedUp = hasBeenBackedUp,
-            isTrusted = isTrusted,
-            senderSigningKey = KeyValue.Ed25519KeyValue(senderSigningKey),
-            forwardingCurve25519KeyChain = json.decodeFromString(forwardingCurve25519KeyChain),
-            pickled = pickled,
-        )
+        if (value == null)
+            @OptIn(StoredInboundMegolmSession.BackwardsCompatible::class)
+            StoredInboundMegolmSession(
+                senderKey = Curve25519KeyValue(senderKey),
+                sessionId = sessionId,
+                roomId = roomId,
+                firstKnownIndex = checkNotNull(firstKnownIndex),
+                hasBeenBackedUp = hasBeenBackedUp,
+                isTrusted = checkNotNull(isTrusted),
+                senderSigningKey = KeyValue.Ed25519KeyValue(checkNotNull(senderSigningKey)),
+                forwardingCurve25519KeyChain = json.decodeFromString(checkNotNull(forwardingCurve25519KeyChain)),
+                pickled = checkNotNull(pickled),
+            )
+        else json.decodeFromString(value)
 }

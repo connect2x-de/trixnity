@@ -104,6 +104,7 @@ import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.crypto.SecretType
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
@@ -490,13 +491,15 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = false,
-                isTrusted = false,
                 senderSigningKey = Ed25519KeyValue("ed1"),
-                forwardingCurve25519KeyChain =
-                    listOf(
-                        Curve25519KeyValue("curveExt1"),
-                        Curve25519KeyValue("curveExt2"),
+                source =
+                    InboundMegolmSessionSource.KeyRequest(
+                        listOf(
+                            Curve25519KeyValue("curveExt1"),
+                            Curve25519KeyValue("curveExt2"),
+                        )
                     ),
+                sharedHistory = false,
                 pickled = "pickle1",
             )
         val inboundSession2 =
@@ -506,9 +509,9 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = true,
-                isTrusted = false,
                 senderSigningKey = Ed25519KeyValue("ed2"),
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = true,
                 pickled = "pickle2",
             )
         val inboundSession2Copy = inboundSession2.copy(pickled = "pickle2Copy")
@@ -519,9 +522,20 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 roomId = roomId2,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = true,
-                isTrusted = false,
                 senderSigningKey = Ed25519KeyValue("ed2"),
-                forwardingCurve25519KeyChain = listOf(),
+                source =
+                    InboundMegolmSessionSource.KeyBundle(
+                        setOf(
+                            InboundMegolmSessionSource.KeyBundle.Sender(
+                                UserId(
+                                    "user",
+                                    "domain",
+                                ),
+                                "device",
+                            )
+                        )
+                    ),
+                sharedHistory = true,
                 pickled = "pickle3",
             )
 

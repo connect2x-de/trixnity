@@ -36,6 +36,7 @@ import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.driver.CryptoDriverException
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
@@ -110,9 +111,8 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 roomId = roomId,
                 firstKnownIndex = 24,
                 hasBeenBackedUp = true,
-                isTrusted = true,
                 senderSigningKey = Ed25519KeyValue("edKey"),
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
                 pickled = inboundSession1.pickle(),
                 sharedHistory = true,
             )
@@ -123,9 +123,8 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 roomId = roomId,
                 firstKnownIndex = 24,
                 hasBeenBackedUp = true,
-                isTrusted = true,
                 senderSigningKey = Ed25519KeyValue("edKey"),
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
                 pickled = inboundSession1.pickle(),
                 sharedHistory = false,
             )

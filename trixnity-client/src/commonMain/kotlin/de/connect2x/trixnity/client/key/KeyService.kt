@@ -55,6 +55,7 @@ import de.connect2x.trixnity.crypto.key.encryptSecret
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.key.recoveryKeyFromPassphrase
 import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.crypto.sign.SignWith
 import de.connect2x.trixnity.crypto.sign.sign
@@ -426,7 +427,8 @@ class KeyServiceImpl(
                         when {
                             megolmSession == null || deviceKeys == null ->
                                 flowOf(DeviceTrustLevel.Invalid("could not find session or device key"))
-                            megolmSession.isTrusted.not() -> flowOf(DeviceTrustLevel.NotTrusted)
+                            megolmSession.source !is InboundMegolmSessionSource.Creator ->
+                                flowOf(DeviceTrustLevel.NotTrusted)
                             else -> {
                                 val deviceId =
                                     deviceKeys.values

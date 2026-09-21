@@ -58,6 +58,7 @@ import de.connect2x.trixnity.crypto.driver.keys.Curve25519SecretKey
 import de.connect2x.trixnity.crypto.driver.pkencryption.PkDecryption
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.getValue
@@ -493,9 +494,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                     roomId = roomId,
                     firstKnownIndex = 24,
                     hasBeenBackedUp = true,
-                    isTrusted = true,
                     senderSigningKey = Ed25519KeyValue("edKey"),
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = false,
                     pickled = "pickle",
                 )
             tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession } }
@@ -511,7 +512,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 this.roomId shouldBe roomId
                 this.firstKnownIndex shouldBe 1
                 this.hasBeenBackedUp shouldBe true
-                this.isTrusted shouldBe false
+                this.source shouldBe InboundMegolmSessionSource.UnauthenticatedBackup()
+                this.sharedHistory shouldBe false
                 this.pickled shouldNotBe "pickle"
             }
         }
@@ -527,9 +529,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                     roomId = roomId,
                     firstKnownIndex = 0,
                     hasBeenBackedUp = true,
-                    isTrusted = true,
                     senderSigningKey = Ed25519KeyValue("key"),
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = false,
                     pickled = "pickle",
                 )
             tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) { currentSession } }
@@ -582,9 +584,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                     roomId = roomId,
                     firstKnownIndex = 24,
                     hasBeenBackedUp = true,
-                    isTrusted = true,
                     senderSigningKey = Ed25519KeyValue("edKey"),
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = false,
                     pickled = "pickle",
                 )
             tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId1, roomId) { currentSession1 } }
@@ -603,7 +605,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 this.roomId shouldBe roomId
                 this.firstKnownIndex shouldBe 1
                 this.hasBeenBackedUp shouldBe true
-                this.isTrusted shouldBe false
+                this.source shouldBe InboundMegolmSessionSource.UnauthenticatedBackup()
+                this.sharedHistory shouldBe false
                 this.pickled shouldNotBe "pickle"
             }
             assertSoftly(olmCryptoStore.getInboundMegolmSession(sessionId2, roomId).first()) {
@@ -613,7 +616,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 this.roomId shouldBe roomId
                 this.firstKnownIndex shouldBe 1
                 this.hasBeenBackedUp shouldBe true
-                this.isTrusted shouldBe false
+                this.source shouldBe InboundMegolmSessionSource.UnauthenticatedBackup()
+                this.sharedHistory shouldBe false
                 this.pickled shouldNotBe "pickle"
             }
             roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
@@ -630,9 +634,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                     roomId = roomId,
                     firstKnownIndex = 0,
                     hasBeenBackedUp = true,
-                    isTrusted = true,
                     senderSigningKey = Ed25519KeyValue("key"),
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = false,
                     pickled = "pickle",
                 )
             tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId1, roomId) { currentSession1 } }
@@ -647,7 +651,8 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 this.roomId shouldBe roomId
                 this.firstKnownIndex shouldBe 1
                 this.hasBeenBackedUp shouldBe true
-                this.isTrusted shouldBe false
+                this.source shouldBe InboundMegolmSessionSource.UnauthenticatedBackup()
+                this.sharedHistory shouldBe false
                 this.pickled shouldNotBe "pickle"
             }
             roomStore.get(roomId).first()?.keyBackupLoaded shouldBe true
@@ -732,9 +737,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             roomId = room1,
             firstKnownIndex = 2,
             hasBeenBackedUp = false,
-            isTrusted = true,
             senderSigningKey = Ed25519KeyValue("ed1"),
-            forwardingCurve25519KeyChain = listOf(),
+            source = InboundMegolmSessionSource.Creator,
+            sharedHistory = false,
             pickled = pickle1,
         )
     }
@@ -745,9 +750,9 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
             roomId = room2,
             firstKnownIndex = 4,
             hasBeenBackedUp = false,
-            isTrusted = true,
             senderSigningKey = Ed25519KeyValue("ed2"),
-            forwardingCurve25519KeyChain = listOf(Curve25519KeyValue("curve2")),
+            source = InboundMegolmSessionSource.KeyRequest(listOf(Curve25519KeyValue("curve2"))),
+            sharedHistory = false,
             pickled = pickle2,
         )
     }
@@ -811,7 +816,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 assertSoftly(it.rooms[room2]?.sessions?.get(sessionId2)) {
                     assertNotNull(this)
                     this.firstMessageIndex shouldBe 4
-                    this.isVerified shouldBe true
+                    this.isVerified shouldBe false
                     this.forwardedCount shouldBe 1
                 }
                 setRoomKeyBackupDataCalled = true
@@ -870,7 +875,7 @@ class KeyBackupServiceTest : TrixnityBaseTest() {
                 assertSoftly(it.rooms[room2]?.sessions?.get(sessionId2)) {
                     assertNotNull(this)
                     this.firstMessageIndex shouldBe 4
-                    this.isVerified shouldBe true
+                    this.isVerified shouldBe false
                     this.forwardedCount shouldBe 1
                 }
                 setRoomKeyBackupDataCalled = true

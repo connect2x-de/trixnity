@@ -36,6 +36,7 @@ import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.crypto.sign.signatures
@@ -348,10 +349,10 @@ class KeyBackupServiceImpl(
             sessionId = sessionId,
             roomId = roomId,
             firstKnownIndex = firstKnownIndex.toLong(),
-            isTrusted = false, // because it comes from backup
+            source =
+                InboundMegolmSessionSource.UnauthenticatedBackup(data.forwardingKeyChain.takeIf { it.isNotEmpty() }),
             hasBeenBackedUp = true, // because it comes from backup
             senderSigningKey = senderSigningKey.value,
-            forwardingCurve25519KeyChain = data.forwardingKeyChain,
             sharedHistory = data.sharedHistory == true,
             pickled = pickledSession,
         )
@@ -417,12 +418,20 @@ class KeyBackupServiceImpl(
                                                             )
                                                             .use(InboundGroupSession::exportAtFirstKnownIndex)
 
+                                                    val forwardingKeyChain =
+                                                        when (val source = session.source) {
+                                                            is InboundMegolmSessionSource.UnauthenticatedBackup ->
+                                                                source.forwardingKeyChain.orEmpty()
+                                                            is InboundMegolmSessionSource.KeyRequest ->
+                                                                source.forwardingKeyChain
+                                                            is InboundMegolmSessionSource.KeyBundle,
+                                                            InboundMegolmSessionSource.Creator -> emptyList()
+                                                        }
                                                     val sessionData =
                                                         api.json.encodeToString(
                                                             RoomKeyBackupV1SessionData(
                                                                 senderKey = session.senderKey,
-                                                                forwardingKeyChain =
-                                                                    session.forwardingCurve25519KeyChain,
+                                                                forwardingKeyChain = forwardingKeyChain,
                                                                 senderClaimedKeys =
                                                                     Keys(
                                                                         Key.Ed25519Key(null, session.senderSigningKey)
@@ -440,8 +449,9 @@ class KeyBackupServiceImpl(
                                                     session.sessionId to
                                                         RoomKeyBackupData(
                                                             firstMessageIndex = session.firstKnownIndex,
-                                                            forwardedCount = session.forwardingCurve25519KeyChain.size,
-                                                            isVerified = session.isTrusted,
+                                                            forwardedCount = forwardingKeyChain.size,
+                                                            isVerified =
+                                                                session.source is InboundMegolmSessionSource.Creator,
                                                             sessionData =
                                                                 EncryptedRoomKeyBackupV1SessionData.of(
                                                                     encryptedSessionData

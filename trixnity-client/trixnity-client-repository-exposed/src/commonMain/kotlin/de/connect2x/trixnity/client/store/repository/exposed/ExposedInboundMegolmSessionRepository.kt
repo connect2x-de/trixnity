@@ -26,12 +26,13 @@ internal object ExposedInboundMegolmSession : Table("inbound_megolm_session") {
     val sessionId = varchar("session_id", length = 255)
     val roomId = varchar("room_id", length = 255)
     override val primaryKey = PrimaryKey(senderKey, sessionId, roomId)
-    val firstKnownIndex = long("first_known_index")
+    val firstKnownIndex = long("first_known_index").nullable()
     val hasBeenBackedUp = bool("has_been_backed_up")
-    val isTrusted = bool("is_trusted")
-    val senderSigningKey = text("sender_signing_key")
-    val forwardingCurve25519KeyChain = text("forwarding_curve25519_key_chain")
-    val pickled = text("pickled")
+    val isTrusted = bool("is_trusted").nullable()
+    val senderSigningKey = text("sender_signing_key").nullable()
+    val forwardingCurve25519KeyChain = text("forwarding_curve25519_key_chain").nullable()
+    val pickled = text("pickled").nullable()
+    val value = text("value").nullable()
 }
 
 internal class ExposedInboundMegolmSessionRepository(private val json: Json) : InboundMegolmSessionRepository {
@@ -67,19 +68,26 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
         return ExposedInboundMegolmSession.selectAll().map { it.mapToStoredInboundMegolmSession() }.toSet()
     }
 
-    private fun ResultRow.mapToStoredInboundMegolmSession() =
-        StoredInboundMegolmSession(
-            senderKey = Curve25519KeyValue(this[ExposedInboundMegolmSession.senderKey]),
-            sessionId = this[ExposedInboundMegolmSession.sessionId],
-            roomId = RoomId(this[ExposedInboundMegolmSession.roomId]),
-            firstKnownIndex = this[ExposedInboundMegolmSession.firstKnownIndex],
-            hasBeenBackedUp = this[ExposedInboundMegolmSession.hasBeenBackedUp],
-            isTrusted = this[ExposedInboundMegolmSession.isTrusted],
-            senderSigningKey = Ed25519KeyValue(this[ExposedInboundMegolmSession.senderSigningKey]),
-            forwardingCurve25519KeyChain =
-                json.decodeFromString(this[ExposedInboundMegolmSession.forwardingCurve25519KeyChain]),
-            pickled = this[ExposedInboundMegolmSession.pickled],
-        )
+    private fun ResultRow.mapToStoredInboundMegolmSession(): StoredInboundMegolmSession {
+        val value = this[ExposedInboundMegolmSession.value]
+        return if (value == null) {
+            @OptIn(StoredInboundMegolmSession.BackwardsCompatible::class)
+            StoredInboundMegolmSession(
+                senderKey = Curve25519KeyValue(this[ExposedInboundMegolmSession.senderKey]),
+                sessionId = this[ExposedInboundMegolmSession.sessionId],
+                roomId = RoomId(this[ExposedInboundMegolmSession.roomId]),
+                firstKnownIndex = checkNotNull(this[ExposedInboundMegolmSession.firstKnownIndex]),
+                hasBeenBackedUp = checkNotNull(this[ExposedInboundMegolmSession.hasBeenBackedUp]),
+                isTrusted = checkNotNull(this[ExposedInboundMegolmSession.isTrusted]),
+                senderSigningKey = Ed25519KeyValue(checkNotNull(this[ExposedInboundMegolmSession.senderSigningKey])),
+                forwardingCurve25519KeyChain =
+                    json.decodeFromString(checkNotNull(this[ExposedInboundMegolmSession.forwardingCurve25519KeyChain])),
+                pickled = checkNotNull(this[ExposedInboundMegolmSession.pickled]),
+            )
+        } else {
+            json.decodeFromString(value)
+        }
+    }
 
     context(transaction: WriteTransaction)
     override suspend fun save(firstKey: RoomId, secondKey: String, value: StoredInboundMegolmSession) {
@@ -87,12 +95,13 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
             it[senderKey] = value.senderKey.value
             it[sessionId] = value.sessionId
             it[roomId] = value.roomId.full
-            it[firstKnownIndex] = value.firstKnownIndex
+            it[firstKnownIndex] = null
             it[hasBeenBackedUp] = value.hasBeenBackedUp
-            it[isTrusted] = value.isTrusted
-            it[senderSigningKey] = value.senderSigningKey.value
-            it[forwardingCurve25519KeyChain] = json.encodeToString(value.forwardingCurve25519KeyChain)
-            it[pickled] = value.pickled
+            it[isTrusted] = null
+            it[senderSigningKey] = null
+            it[forwardingCurve25519KeyChain] = null
+            it[pickled] = null
+            it[ExposedInboundMegolmSession.value] = json.encodeToString(value)
         }
     }
 
