@@ -8,6 +8,7 @@ import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventCon
 import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
 import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.EventTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,7 @@ class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = Mutable
         throw NotImplementedError()
     }
 
-    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?> {
+    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> {
         throw NotImplementedError()
     }
 

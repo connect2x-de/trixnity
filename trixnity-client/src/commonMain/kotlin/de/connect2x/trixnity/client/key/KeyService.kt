@@ -30,6 +30,7 @@ import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.MasterKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.DefaultSecretKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
@@ -49,6 +50,7 @@ import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.core.createAesHmacSha2MacFromKey
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.EventTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.crypto.key.encodeRecoveryKey
 import de.connect2x.trixnity.crypto.key.encryptSecret
@@ -107,7 +109,7 @@ interface KeyService {
     fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel>
 
     /** @return the trust level of a device or null, if the timeline event is not a megolm encrypted event. */
-    fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?>
+    fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel>
 
     /**
      * @return the trust level of a user. This will only be present, if the requested user has cross signing enabled.
@@ -415,34 +417,78 @@ class KeyServiceImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?> =
+    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> =
         roomService.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
-            val event = timelineEvent?.event
-            val content = event?.content
-            if (event is MessageEvent && content is MegolmEncryptedMessageEventContent) {
-                combine(
-                        olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId),
-                        keyStore.getDeviceKeys(event.sender),
-                    ) { megolmSession, deviceKeys ->
-                        when {
-                            megolmSession == null || deviceKeys == null ->
-                                flowOf(DeviceTrustLevel.Invalid("could not find session or device key"))
-                            megolmSession.source !is InboundMegolmSessionSource.Creator ->
-                                flowOf(DeviceTrustLevel.NotTrusted)
-                            else -> {
-                                val deviceId =
-                                    deviceKeys.values
-                                        .find { it.value.signed.keys.keys.any { it.value == megolmSession.senderKey } }
-                                        ?.value
-                                        ?.signed
-                                        ?.deviceId
+            val event = timelineEvent?.event as? MessageEvent ?: return@flatMapLatest flowOf(EventTrustLevel.Unknown)
+            val content =
+                event.content as? EncryptedMessageEventContent
+                    ?: return@flatMapLatest flowOf(EventTrustLevel.Unauthenticated)
+            when (content) {
+                is MegolmEncryptedMessageEventContent ->
+                    olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId).flatMapLatest {
+                        inboundMegolmSession ->
+                        if (inboundMegolmSession == null) return@flatMapLatest flowOf(EventTrustLevel.Unknown)
+                        val source = inboundMegolmSession.source
+                        keyStore.getDeviceKeys(event.sender).flatMapLatest { deviceKeys ->
+                            val deviceId =
+                                deviceKeys
+                                    ?.values
+                                    ?.find {
+                                        it.value.signed.keys.keys.any { it.value == inboundMegolmSession.senderKey }
+                                    }
+                                    ?.value
+                                    ?.signed
+                                    ?.deviceId
+                            val senderDeviceTrustLevel =
                                 if (deviceId != null) getTrustLevel(event.sender, deviceId)
                                 else flowOf(DeviceTrustLevel.Invalid("could not find device id"))
+                            senderDeviceTrustLevel.flatMapLatest { senderDeviceTrustLevel ->
+                                when (source) {
+                                    InboundMegolmSessionSource.Creator -> {
+                                        flowOf(EventTrustLevel.Creator(senderDeviceTrustLevel))
+                                    }
+                                    is InboundMegolmSessionSource.UnauthenticatedBackup ->
+                                        flowOf(EventTrustLevel.UnauthenticatedBackup(senderDeviceTrustLevel))
+                                    is InboundMegolmSessionSource.KeyRequest if
+                                        source.forwardingKeyChain.isNotEmpty()
+                                     ->
+                                        combine(
+                                            source.forwardingKeyChain.map { senderKey ->
+                                                deviceKeys
+                                                    ?.values
+                                                    ?.find { it.value.signed.keys.keys.any { it.value == senderKey } }
+                                                    ?.value
+                                                    ?.signed
+                                                    ?.deviceId
+                                                if (deviceId != null)
+                                                    getTrustLevel(event.sender, deviceId).map {
+                                                        EventTrustLevel.Shared.Sender(event.sender, deviceId) to it
+                                                    }
+                                                else flowOf(null)
+                                            }
+                                        ) {
+                                            EventTrustLevel.Shared(senderDeviceTrustLevel, it.filterNotNull().toMap())
+                                        }
+                                    is InboundMegolmSessionSource.KeyRequest ->
+                                        flowOf(EventTrustLevel.Shared(senderDeviceTrustLevel, emptyMap()))
+                                    is InboundMegolmSessionSource.KeyBundle if source.sender.isNotEmpty() ->
+                                        combine(
+                                            source.sender.map { (userId, deviceId) ->
+                                                getTrustLevel(userId, deviceId).map {
+                                                    EventTrustLevel.Shared.Sender(userId, deviceId) to it
+                                                }
+                                            }
+                                        ) {
+                                            EventTrustLevel.Shared(senderDeviceTrustLevel, it.toMap())
+                                        }
+                                    is InboundMegolmSessionSource.KeyBundle ->
+                                        flowOf(EventTrustLevel.Shared(senderDeviceTrustLevel, emptyMap()))
+                                }
                             }
                         }
                     }
-                    .flatMapLatest { it }
-            } else flowOf(null)
+                is EncryptedMessageEventContent.Unknown -> flowOf(EventTrustLevel.Unknown)
+            }
         }
 
     override fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel> {
