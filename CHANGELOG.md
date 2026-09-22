@@ -11,7 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- Remove messages with duplicate annotation error from outbox
+- Remove messages with duplicate annotation send error from outbox
 
 ### Deprecated
 
