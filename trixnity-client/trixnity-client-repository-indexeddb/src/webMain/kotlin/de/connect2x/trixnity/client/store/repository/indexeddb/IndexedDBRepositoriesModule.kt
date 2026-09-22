@@ -23,6 +23,7 @@ import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomRepository
@@ -89,6 +90,7 @@ fun RepositoriesModule.Companion.indexedDB(databaseName: String = "trixnity"): R
         singleOf(::IndexedDBNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
         singleOf(::IndexedDBMigrationRepository) { bind<MigrationRepository>() }
         @OptIn(MSC4354::class) singleOf(::IndexedDBStickyEventRepository) { bind<StickyEventRepository>() }
+        singleOf(::IndexedDBRoomKeyBundlesRepository) { bind<RoomKeyBundlesRepository>() }
     }
 }
 
@@ -127,6 +129,7 @@ internal val allStoreNames =
         IndexedDBNotificationUpdateRepository.objectStoreName,
         IndexedDBMigrationRepository.objectStoreName,
         IndexedDBStickyEventRepository.objectStoreName,
+        IndexedDBRoomKeyBundlesRepository.objectStoreName,
     )
 
 internal suspend fun createDatabase(databaseName: String) =
@@ -164,4 +167,5 @@ internal suspend fun createDatabase(databaseName: String) =
         IndexedDBNotificationUpdateRepository.apply { migrate(database, oldVersion) }
         IndexedDBMigrationRepository.apply { migrate(database, oldVersion) }
         IndexedDBStickyEventRepository.apply { migrate(database, oldVersion) }
+        IndexedDBRoomKeyBundlesRepository.apply { migrate(database, oldVersion) }
     }

@@ -15,6 +15,7 @@ import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
+import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
@@ -235,6 +236,9 @@ class InMemorySecretKeyRequestRepository :
 
 class InMemoryRoomKeyRequestRepository :
     RoomKeyRequestRepository, InMemoryFullRepository<String, StoredRoomKeyRequest>()
+
+class InMemoryRoomKeyBundlesRepository :
+    RoomKeyBundlesRepository, InMemoryFullRepository<RoomId, StoredRoomKeyBundles>()
 
 class InMemoryInboundMegolmSessionRepository :
     InboundMegolmSessionRepository, InMemoryMapRepository<RoomId, String, StoredInboundMegolmSession>() {

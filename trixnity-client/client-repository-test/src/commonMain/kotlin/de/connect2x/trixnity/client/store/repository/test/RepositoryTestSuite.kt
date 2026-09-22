@@ -17,6 +17,7 @@ import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
+import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
@@ -45,6 +46,7 @@ import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionReposi
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
@@ -87,9 +89,11 @@ import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.RoomKeyBundleEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
@@ -2072,6 +2076,69 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
             data.forEach { cut.get(it.first) shouldBe it.second }
             cut.deleteAll()
             data.forEach { cut.get(it.first) shouldBe null }
+        }
+    }
+
+    @Test
+    fun `RoomKeyBundlesRepository - save get and delete`() = runTestWithSetup {
+        val cut = di.get<RoomKeyBundlesRepository>()
+        val roomId1 = RoomId("room1")
+        val roomId2 = RoomId("room2")
+        val roomKeyBundle1 =
+            StoredRoomKeyBundles(
+                roomId1,
+                null,
+                Instant.fromEpochMilliseconds(24),
+                setOf(
+                    StoredRoomKeyBundles.Bundle(
+                        UserId("alice", "server"),
+                        "alice_device",
+                        RoomKeyBundleEventContent(
+                            roomId1,
+                            EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                        ),
+                    )
+                ),
+            )
+        val roomKeyBundle2 =
+            StoredRoomKeyBundles(
+                roomId2,
+                UserId("dino", "server"),
+                Instant.fromEpochMilliseconds(2424),
+                setOf(
+                    StoredRoomKeyBundles.Bundle(
+                        UserId("alice", "server"),
+                        "alice_device",
+                        RoomKeyBundleEventContent(
+                            roomId2,
+                            EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                        ),
+                    )
+                ),
+            )
+        val roomKeyBundle2Copy =
+            roomKeyBundle2.copy(
+                bundles =
+                    roomKeyBundle2.bundles +
+                        StoredRoomKeyBundles.Bundle(
+                            UserId("bob", "server"),
+                            "bob_device",
+                            RoomKeyBundleEventContent(
+                                roomId2,
+                                EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                            ),
+                        )
+            )
+
+        rtm.writeTransaction {
+            cut.save(roomId1, roomKeyBundle1)
+            cut.save(roomId2, roomKeyBundle2)
+            cut.get(roomId1) shouldBe roomKeyBundle1
+            cut.get(roomId2) shouldBe roomKeyBundle2
+            cut.save(roomId2, roomKeyBundle2Copy)
+            cut.get(roomId2) shouldBe roomKeyBundle2Copy
+            cut.delete(roomId1)
+            cut.get(roomId1) shouldBe null
         }
     }
 }

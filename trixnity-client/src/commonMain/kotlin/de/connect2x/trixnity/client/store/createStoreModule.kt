@@ -26,6 +26,7 @@ fun createStoreModule() = module {
             secretsRepository = get(),
             secretKeyRequestRepository = get(),
             roomKeyRequestRepository = get(),
+            roomKeyBundlesRepository = get(),
             tm = get(),
             config = get(),
             statisticCollector = get(),

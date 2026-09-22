@@ -83,11 +83,14 @@ fun createKeyModule() = module {
                 dehydratedDeviceService = get(named<DehydratedDeviceService>()),
                 olmEncryptionService = get(),
                 mediaService = get(),
+                olmEventHandler = get(),
                 api = get(),
                 currentSyncState = get(),
                 cryptoDriver = get(),
                 json = get(),
+                clock = get(),
                 userInfo = get(),
+                tm = get(),
             )
         }
         .apply {

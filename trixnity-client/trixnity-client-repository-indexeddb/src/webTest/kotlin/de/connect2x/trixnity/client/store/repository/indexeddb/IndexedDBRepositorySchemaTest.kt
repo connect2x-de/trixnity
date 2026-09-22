@@ -196,6 +196,11 @@ class IndexedDBRepositorySchemaTest {
                 }
               }
             },
+            "room_key_bundles": {
+              "keyPath": null,
+              "autoIncrement": false,
+              "indexes": {}
+            },
             "room_key_request": {
               "keyPath": null,
               "autoIncrement": false,

@@ -43,6 +43,8 @@ kotlin {
 
 room3 { schemaDirectory("$projectDir/schemas") }
 
+ksp { arg("room.validationSplitSize", "100") }
+
 dependencies {
     configurations
         .filter {

@@ -92,7 +92,7 @@ class OlmEventHandlerImpl(
             val olmRecoveries =
                 events
                     .groupBy { it.sender to it.content.senderKey }
-                    .map { (_, events) ->
+                    .map { (key, events) ->
                         async {
                             events
                                 .mapNotNull { event ->
