@@ -423,22 +423,28 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun `processOutboxMessages » should delete message with M_DUPLICATE_ANNOTATION send error response from the outbox`() = runTest{
-        val message =
-            RoomOutboxMessage(room, "transaction", ReactionEventContent(RelatesTo.Annotation(EventId("myReaction"), "👍")), testClock.now())
-        tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
-        userService.canSendEvent[room to RoomMessageEventContent::class] = flowOf(true)
-        apiConfig.endpoints {
-            matrixJsonEndpoint(SendMessageEvent(room, "m.reaction", "transaction")) {
-                throw MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.DuplicateAnnotation(""))
+    fun `processOutboxMessages » should delete message with M_DUPLICATE_ANNOTATION send error response from the outbox`() =
+        runTest {
+            val message =
+                RoomOutboxMessage(
+                    room,
+                    "transaction",
+                    ReactionEventContent(RelatesTo.Annotation(EventId("myReaction"), "👍")),
+                    testClock.now(),
+                )
+            tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
+            userService.canSendEvent[room to RoomMessageEventContent::class] = flowOf(true)
+            apiConfig.endpoints {
+                matrixJsonEndpoint(SendMessageEvent(room, "m.reaction", "transaction")) {
+                    throw MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.DuplicateAnnotation(""))
+                }
             }
-        }
-        backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+            backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
 
-        delay(1.seconds)
-        val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
-        outboxMessages shouldHaveSize 0
-    }
+            delay(1.seconds)
+            val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+            outboxMessages shouldHaveSize 0
+        }
 
     @Test
     fun `processOutboxMessages » should retry on non homeserver exception`() = runTest {

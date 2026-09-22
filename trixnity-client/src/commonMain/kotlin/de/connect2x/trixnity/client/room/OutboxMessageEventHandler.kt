@@ -262,14 +262,10 @@ class OutboxMessageEventHandler(
                 val sendError =
                     when (exception.statusCode) {
                         HttpStatusCode.Forbidden -> SendError.NoEventPermission
-                        HttpStatusCode.BadRequest if
-                        exception.errorResponse is ErrorResponse.DuplicateAnnotation
-                            -> {
+                        HttpStatusCode.BadRequest if exception.errorResponse is ErrorResponse.DuplicateAnnotation -> {
                             log.warn { "Annotation is already present, removing from outbox" }
                             tm.writeTransaction {
-                                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                                    null
-                                }
+                                roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) { null }
                             }
                             return SendError.BadRequest(exception.errorResponse)
                         }
@@ -277,11 +273,11 @@ class OutboxMessageEventHandler(
                         HttpStatusCode.TooManyRequests -> throw exception
                         else -> SendError.Unknown(exception.errorResponse)
                     }
-                    tm.writeTransaction {
-                        roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
-                            it?.copy(sendError = sendError)
-                        }
+                tm.writeTransaction {
+                    roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) {
+                        it?.copy(sendError = sendError)
                     }
+                }
                 return sendError
             }
         tm.writeTransaction {
