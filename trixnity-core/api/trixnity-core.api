@@ -1410,6 +1410,209 @@ public final class de/connect2x/trixnity/core/model/EventId$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/Profile {
+	public static final field Companion Lde/connect2x/trixnity/core/model/Profile$Companion;
+	public static final synthetic fun box-impl (Ljava/util/Map;)Lde/connect2x/trixnity/core/model/Profile;
+	public static fun constructor-impl (Ljava/util/Set;)Ljava/util/Map;
+	public static fun constructor-impl ([Lde/connect2x/trixnity/core/model/ProfileField;)Ljava/util/Map;
+	public static final fun contains-impl (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField;)Z
+	public static final fun containsType-impl (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField$Key;)Z
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/util/Map;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/Map;Ljava/util/Map;)Z
+	public static final fun get-impl (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField$Key;)Lde/connect2x/trixnity/core/model/ProfileField;
+	public static final fun getSize-impl (Ljava/util/Map;)I
+	public static final fun getTypes-impl (Ljava/util/Map;)Ljava/util/Set;
+	public static final fun getUnknown-impl (Ljava/util/Map;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/ProfileField$Unknown;
+	public static final fun getValues-impl (Ljava/util/Map;)Ljava/util/Collection;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/util/Map;)I
+	public static final fun isEmpty-impl (Ljava/util/Map;)Z
+	public static final fun minus-ecivgyI (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField$Key;)Ljava/util/Map;
+	public static final fun minus-ecivgyI (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField;)Ljava/util/Map;
+	public static final fun plus-ecivgyI (Ljava/util/Map;Lde/connect2x/trixnity/core/model/ProfileField;)Ljava/util/Map;
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/util/Map;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/Map;
+}
+
+public final class de/connect2x/trixnity/core/model/Profile$Companion {
+	public final fun getAvatarUrl-gkl5XL0 (Ljava/util/Map;)Ljava/lang/String;
+	public final fun getDisplayName-gkl5XL0 (Ljava/util/Map;)Ljava/lang/String;
+	public final fun getTimeZone-gkl5XL0 (Ljava/util/Map;)Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/Profile$Serializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/Profile$Serializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun deserialize-ecivgyI (Lkotlinx/serialization/encoding/Decoder;)Ljava/util/Map;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun serialize-csUdCoI (Lkotlinx/serialization/encoding/Encoder;Ljava/util/Map;)V
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/ProfileField {
+	public static final field Companion Lde/connect2x/trixnity/core/model/ProfileField$Companion;
+	public abstract fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$AvatarUrl : de/connect2x/trixnity/core/model/ProfileField {
+	public static final field Key Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl$Key;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl$Key;
+	public synthetic fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/ProfileField$AvatarUrl$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/ProfileField$AvatarUrl;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$AvatarUrl$Key : de/connect2x/trixnity/core/model/ProfileField$Key {
+	public fun getName ()Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$DisplayName : de/connect2x/trixnity/core/model/ProfileField {
+	public static final field Key Lde/connect2x/trixnity/core/model/ProfileField$DisplayName$Key;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/ProfileField$DisplayName;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/ProfileField$DisplayName;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/ProfileField$DisplayName;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$DisplayName$Key;
+	public synthetic fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/ProfileField$DisplayName$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/ProfileField$DisplayName$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/ProfileField$DisplayName;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/ProfileField$DisplayName;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$DisplayName$Key : de/connect2x/trixnity/core/model/ProfileField$Key {
+	public fun getName ()Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/ProfileField$Key {
+	public static final field Companion Lde/connect2x/trixnity/core/model/ProfileField$Key$Companion;
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Key$Companion {
+	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Key$Serializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/ProfileField$Key$Serializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/ProfileField$Key;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Serializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/ProfileField$Serializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/ProfileField;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/ProfileField;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$TimeZone : de/connect2x/trixnity/core/model/ProfileField {
+	public static final field Key Lde/connect2x/trixnity/core/model/ProfileField$TimeZone$Key;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/ProfileField$TimeZone;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/ProfileField$TimeZone;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/ProfileField$TimeZone;
+	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$TimeZone$Key;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/ProfileField$TimeZone$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/ProfileField$TimeZone$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/ProfileField$TimeZone;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/ProfileField$TimeZone;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$TimeZone$Key : de/connect2x/trixnity/core/model/ProfileField$Key {
+	public fun getName ()Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Unknown : de/connect2x/trixnity/core/model/ProfileField {
+	public fun <init> (Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;Lkotlinx/serialization/json/JsonElement;)V
+	public fun <init> (Ljava/lang/String;Lkotlinx/serialization/json/JsonElement;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;
+	public final fun component2 ()Lkotlinx/serialization/json/JsonElement;
+	public final fun copy (Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;Lkotlinx/serialization/json/JsonElement;)Lde/connect2x/trixnity/core/model/ProfileField$Unknown;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/ProfileField$Unknown;Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;Lkotlinx/serialization/json/JsonElement;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/ProfileField$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public synthetic fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public fun getKey ()Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;
+	public final fun getRaw ()Lkotlinx/serialization/json/JsonElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/ProfileField$Unknown$Key : de/connect2x/trixnity/core/model/ProfileField$Key {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/ProfileField$Unknown$Key;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/core/model/RoomAliasId {
 	public static final field Companion Lde/connect2x/trixnity/core/model/RoomAliasId$Companion;
 	public static final field sigilCharacter C
@@ -2769,10 +2972,11 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 
 public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData : de/connect2x/trixnity/core/model/events/UnsignedRoomEventData {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData$Companion;
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Long;
-	public final fun component10-7Giyeiw ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/Long;
+	public final fun component11-7Giyeiw ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/StateEventContent;
@@ -2780,9 +2984,9 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 	public final fun component6 ()Lde/connect2x/trixnity/core/model/events/m/room/Membership;
 	public final fun component7 ()Ljava/util/List;
 	public final fun component8 ()Ljava/util/List;
-	public final fun component9 ()Ljava/lang/Long;
-	public final fun copy-xpXDj30 (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
-	public static synthetic fun copy-xpXDj30$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
+	public final fun component9-srQVttY ()Ljava/lang/String;
+	public final fun copy-UvXzTC0 (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
+	public static synthetic fun copy-UvXzTC0$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getAge ()Ljava/lang/Long;
 	public fun getDelayId-7Giyeiw ()Ljava/lang/String;
@@ -2792,6 +2996,7 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 	public final fun getPreviousContent ()Lde/connect2x/trixnity/core/model/events/StateEventContent;
 	public fun getRedactedBecause ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public fun getRelations-T1jyR3U ()Ljava/util/Map;
+	public final fun getReplacesState-srQVttY ()Ljava/lang/String;
 	public fun getStickyDurationTtlMs ()Ljava/lang/Long;
 	public fun getTransactionId ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -3215,7 +3420,8 @@ public final class de/connect2x/trixnity/core/model/events/m/DummyEventContent :
 
 public final class de/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent : de/connect2x/trixnity/core/model/events/ToDeviceEventContent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
 	public final fun component3 ()Ljava/lang/String;
@@ -3223,8 +3429,9 @@ public final class de/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEve
 	public final fun component5 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;
 	public final fun component6 ()Ljava/util/List;
 	public final fun component7 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
-	public final fun copy-U51QFjQ (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;)Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;
-	public static synthetic fun copy-U51QFjQ$default (Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;
+	public final fun component8 ()Ljava/lang/Boolean;
+	public final fun copy-tztAnvw (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;)Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;
+	public static synthetic fun copy-tztAnvw$default (Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/util/List;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEventContent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
 	public final fun getForwardingKeyChain ()Ljava/util/List;
@@ -3233,6 +3440,7 @@ public final class de/connect2x/trixnity/core/model/events/m/ForwardedRoomKeyEve
 	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
 	public final fun getSessionId ()Ljava/lang/String;
 	public final fun getSessionKey-i9JOrMw ()Ljava/lang/String;
+	public final fun getSharedHistory ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -3335,6 +3543,33 @@ public final class de/connect2x/trixnity/core/model/events/m/IgnoredUserListEven
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent : de/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent$Companion;
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun copy (Ljava/util/Map;)Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRooms ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/ImagePackRoomsEventContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/core/model/events/m/InvitePermissionConfigEventContent : de/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/InvitePermissionConfigEventContent$Companion;
 	public fun <init> ()V
@@ -3373,6 +3608,33 @@ public final class de/connect2x/trixnity/core/model/events/m/InvitePermissionCon
 }
 
 public final class de/connect2x/trixnity/core/model/events/m/InvitePermissionConfigEventContent$DefaultAction$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/KeyBackupEventContent : de/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent$Companion;
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent;ZILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEnabled ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/KeyBackupEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/KeyBackupEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/KeyBackupEventContent$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -4257,20 +4519,52 @@ public final class de/connect2x/trixnity/core/model/events/m/RelationsKt {
 	public static final fun getThread-QmYKom4 (Ljava/util/Map;)Lde/connect2x/trixnity/core/model/events/m/ServerAggregation$Thread;
 }
 
+public final class de/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent : de/connect2x/trixnity/core/model/events/ToDeviceEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-7hZGZBE ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;
+	public final fun copy-4A-6DIM (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;
+	public static synthetic fun copy-4A-6DIM$default (Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFile ()Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;
+	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/core/model/events/m/RoomKeyEventContent : de/connect2x/trixnity/core/model/events/ToDeviceEventContent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3-_7zm23c ()Ljava/lang/String;
 	public final fun component4 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
-	public final fun copy-g8gXuIA (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;
-	public static synthetic fun copy-g8gXuIA$default (Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;
+	public final fun component5 ()Ljava/lang/Boolean;
+	public final fun copy-gnpgTW8 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;
+	public static synthetic fun copy-gnpgTW8$default (Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyEventContent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
 	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
 	public final fun getSessionId ()Ljava/lang/String;
 	public final fun getSessionKey-_7zm23c ()Ljava/lang/String;
+	public final fun getSharedHistory ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -4467,6 +4761,45 @@ public final synthetic class de/connect2x/trixnity/core/model/events/m/SigningKe
 }
 
 public final class de/connect2x/trixnity/core/model/events/m/SigningKeyUpdateDataUnitContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/StickerEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/StickerEventContent$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Lde/connect2x/trixnity/core/model/events/m/Mentions;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Lde/connect2x/trixnity/core/model/events/m/Mentions;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public final fun component5 ()Lde/connect2x/trixnity/core/model/events/m/Mentions;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Lde/connect2x/trixnity/core/model/events/m/Mentions;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/StickerEventContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/StickerEventContent;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Lde/connect2x/trixnity/core/model/events/m/Mentions;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/StickerEventContent;
+	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/MessageEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/String;
+	public fun getExternalUrl ()Ljava/lang/String;
+	public final fun getInfo ()Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;
+	public fun getMentions ()Lde/connect2x/trixnity/core/model/events/m/Mentions;
+	public fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/StickerEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/StickerEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/StickerEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/StickerEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/StickerEventContent$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -6713,6 +7046,144 @@ public final synthetic class de/connect2x/trixnity/core/model/events/m/room/Imag
 
 public final class de/connect2x/trixnity/core/model/events/m/room/ImageInfo$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent : de/connect2x/trixnity/core/model/events/StateEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$Companion;
+	public fun <init> (Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getExternalUrl ()Ljava/lang/String;
+	public final fun getImages ()Ljava/util/Map;
+	public final fun getPack ()Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/String;
+	public final fun getInfo ()Lde/connect2x/trixnity/core/model/events/m/room/ImageInfo;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackImage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttribution ()Ljava/lang/String;
+	public final fun getAvatarUrl ()Ljava/lang/String;
+	public final fun getDisplayName ()Ljava/lang/String;
+	public final fun getUsage ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Companion;
+	public abstract fun getValue ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Emoticon : de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Emoticon;
+	public fun getValue ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Serializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Serializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Sticker : de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Sticker;
+	public fun getValue ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Unknown : de/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Unknown;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Unknown;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/room/ImagePackEventContent$ImagePackMeta$Usage$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent : de/connect2x/trixnity/core/model/events/StateEventContent {
@@ -9677,21 +10148,23 @@ public final class de/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionDat
 
 public final class de/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData {
 	public static final field Companion Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData$Companion;
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3-0CwQoJw ()Ljava/util/Set;
 	public final fun component4-i9JOrMw ()Ljava/lang/String;
 	public final fun component5 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
-	public final fun copy-j_qtVKQ (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;
-	public static synthetic fun copy-j_qtVKQ$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;
+	public final fun component6 ()Ljava/lang/Boolean;
+	public final fun copy-3HCCSzQ (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;
+	public static synthetic fun copy-3HCCSzQ$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/List;Ljava/util/Set;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData$EncryptedRoomKeyBackupV1SessionData$RoomKeyBackupV1SessionData;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
 	public final fun getForwardingKeyChain ()Ljava/util/List;
 	public final fun getSenderClaimedKeys-0CwQoJw ()Ljava/util/Set;
 	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
 	public final fun getSessionKey-i9JOrMw ()Ljava/lang/String;
+	public final fun getSharedHistory ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -9718,6 +10191,190 @@ public final class de/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionDat
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/keys/RoomKeyBackupSessionData;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle {
+	public static final field Companion Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRoomKeys ()Ljava/util/List;
+	public final fun getWithheld ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey {
+	public static final field Companion Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-7hZGZBE ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun component3-0CwQoJw ()Ljava/util/Set;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5-i9JOrMw ()Ljava/lang/String;
+	public final fun component6 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun copy-mOpiLT8 (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey;
+	public static synthetic fun copy-mOpiLT8$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public final fun getSenderClaimedKeys-0CwQoJw ()Ljava/util/Set;
+	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getSessionKey-i9JOrMw ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$HistoricRoomKey$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld {
+	public static final field Companion Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-rRQUNsA ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun component5 ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy-ZN_orIQ (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld;
+	public static synthetic fun copy-ZN_orIQ$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun getCode ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getRoomId-rRQUNsA ()Ljava/lang/String;
+	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun getSessionId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyBundle$RoomKeyWhithheld$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field Companion Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Companion;
+	public abstract fun getValue ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Blacklisted : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Blacklisted;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$HistoryNotShared : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$HistoryNotShared;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$NoOlm : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$NoOlm;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Serializer : kotlinx/serialization/KSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Serializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unauthorised : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unauthorised;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unavailable : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unavailable;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unknown : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unknown;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unknown;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unknown;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unverified : de/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode$Unverified;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/core/model/keys/RoomsKeyBackup {

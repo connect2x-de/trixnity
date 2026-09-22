@@ -1380,65 +1380,20 @@ final class de.connect2x.trixnity.serverserverapi.model.federation/QueryDirector
     }
 }
 
-final class de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response> { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field? = ...) // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile.Field?){}[0]
+final class de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.core.model/Profile> { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/ProfileField.Key<*>? = ...) // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>?){}[0]
 
     final val field // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.field|{}field[0]
-        final fun <get-field>(): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.field.<get-field>|<get-field>(){}[0]
+        final fun <get-field>(): de.connect2x.trixnity.core.model/ProfileField.Key<*>? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.field.<get-field>|<get-field>(){}[0]
     final val userId // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.userId|{}userId[0]
         final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.userId.<get-userId>|<get-userId>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field? = ...): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile.Field?){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/ProfileField.Key<*>? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/ProfileField.Key<*>? = ...): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.toString|toString(){}[0]
-
-    final enum class Field : kotlin/Enum<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field> { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field|null[0]
-        enum entry AVATAR_URL // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.AVATAR_URL|null[0]
-        enum entry DISPLAYNNAME // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.DISPLAYNNAME|null[0]
-
-        final val entries // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.entries.<get-entries>|<get-entries>#static(){}[0]
-
-        final fun valueOf(kotlin/String): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.values|values#static(){}[0]
-
-        final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.Companion.serializer|serializer(){}[0]
-            final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Field.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
-        }
-    }
-
-    final class Response { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response|null[0]
-        constructor <init>(kotlin/String? = ..., kotlin/String? = ...) // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.<init>|<init>(kotlin.String?;kotlin.String?){}[0]
-
-        final val avatarUrl // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.avatarUrl|{}avatarUrl[0]
-            final fun <get-avatarUrl>(): kotlin/String? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.avatarUrl.<get-avatarUrl>|<get-avatarUrl>(){}[0]
-        final val displayname // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.displayname|{}displayname[0]
-            final fun <get-displayname>(): kotlin/String? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.displayname.<get-displayname>|<get-displayname>(){}[0]
-
-        final fun component1(): kotlin/String? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.component1|component1(){}[0]
-        final fun component2(): kotlin/String? // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.component2|component2(){}[0]
-        final fun copy(kotlin/String? = ..., kotlin/String? = ...): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.copy|copy(kotlin.String?;kotlin.String?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response> { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response) // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile.Response){}[0]
-        }
-
-        final object Companion { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Response.Companion.serializer|serializer(){}[0]
-        }
-    }
 
     final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile> { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.$serializer|null[0]
         final val descriptor // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.$serializer.descriptor|{}descriptor[0]
@@ -1450,8 +1405,6 @@ final class de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile 
     }
 
     final object Companion { // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Companion|null[0]
-        final val $childSerializers // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Companion.$childSerializers|{}$childSerializers[0]
-
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile> // de.connect2x.trixnity.serverserverapi.model.federation/QueryProfile.Companion.serializer|serializer(){}[0]
     }
 }

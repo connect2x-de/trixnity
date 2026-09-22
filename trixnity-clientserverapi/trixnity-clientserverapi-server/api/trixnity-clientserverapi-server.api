@@ -189,6 +189,7 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/server/Roo
 	public abstract fun getJoinedMembers (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getJoinedRooms (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getMembers (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getMutualRooms (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getPublicRooms (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getPublicRoomsWithFilter (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getRelations (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -257,7 +258,7 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/server/Use
 	public abstract fun getAccountData (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getFilter (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getPresence (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getProfile-C9VfqlY (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getProfile-D2gQ5g8 (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getProfileField (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun reportUser (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchUsers (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
