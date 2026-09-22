@@ -267,7 +267,7 @@ class OutboxMessageEventHandler(
                             tm.writeTransaction {
                                 roomOutboxMessageStore.update(outboxMessage.roomId, transactionId) { null }
                             }
-                            return SendError.BadRequest(exception.errorResponse)
+                            return null
                         }
                         HttpStatusCode.BadRequest -> SendError.BadRequest(exception.errorResponse)
                         HttpStatusCode.TooManyRequests -> throw exception
