@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.Dao
-import androidx.room.Entity
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room3.Dao
+import androidx.room3.Entity
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
+import androidx.room3.Query
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId

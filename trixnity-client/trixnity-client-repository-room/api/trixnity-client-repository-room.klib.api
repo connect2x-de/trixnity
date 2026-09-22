@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [iosArm64, iosSimulatorArm64, linuxX64, macosArm64]
+// Targets: [iosArm64, iosSimulatorArm64, js, linuxX64, macosArm64, wasmJs]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -278,7 +278,7 @@ abstract interface de.connect2x.trixnity.client.store.repository.room/UserPresen
     abstract suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomUserPresence) // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomUserPresence){}[0]
 }
 
-abstract class de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase : androidx.room/RoomDatabase { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase|null[0]
+abstract class de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase : androidx.room3/RoomDatabase { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase|null[0]
     constructor <init>() // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.<init>|<init>(){}[0]
 
     abstract fun account(): de.connect2x.trixnity.client.store.repository.room/AccountDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.account|account(){}[0]
@@ -315,271 +315,12 @@ abstract class de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDa
     abstract fun timelineEventRelation(): de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.timelineEventRelation|timelineEventRelation(){}[0]
     abstract fun userPresence(): de.connect2x.trixnity.client.store.repository.room/UserPresenceDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.userPresence|userPresence(){}[0]
 
-    final class Delete6to7MigrationSpec : androidx.room.migration/AutoMigrationSpec { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete6to7MigrationSpec|null[0]
+    final class Delete6to7MigrationSpec : androidx.room3.migration/AutoMigrationSpec { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete6to7MigrationSpec|null[0]
         constructor <init>() // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete6to7MigrationSpec.<init>|<init>(){}[0]
     }
 
-    final class Delete7to8MigrationSpec : androidx.room.migration/AutoMigrationSpec { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete7to8MigrationSpec|null[0]
+    final class Delete7to8MigrationSpec : androidx.room3.migration/AutoMigrationSpec { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete7to8MigrationSpec|null[0]
         constructor <init>() // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase.Delete7to8MigrationSpec.<init>|<init>(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl : de.connect2x.trixnity.client.store.repository.room/AccountDao { // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomAccount? // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomAccount) // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomAccount){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/AccountDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl : de.connect2x.trixnity.client.store.repository.room/AuthenticationDao { // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomAuthentication? // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomAuthentication) // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomAuthentication){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/AuthenticationDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl : de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao { // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.delete|delete(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.client.store.repository.room/RoomCrossSigningKeys? // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.get|get(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomCrossSigningKeys) // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomCrossSigningKeys){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl : de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao { // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.delete|delete(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.client.store.repository.room/RoomDeviceKeys? // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.get|get(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomDeviceKeys) // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomDeviceKeys){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl : de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao { // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun delete(kotlin/String, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.delete|delete(kotlin.String;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun getAllByType(kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomGlobalAccountData> // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.getAllByType|getAllByType(kotlin.String){}[0]
-    final suspend fun getByKeys(kotlin/String, kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomGlobalAccountData? // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.getByKeys|getByKeys(kotlin.String;kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomGlobalAccountData) // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomGlobalAccountData){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomGlobalAccountData>) // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomGlobalAccountData>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl : de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao { // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long): kotlin/Int // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.delete|delete(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmMessageIndex? // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.get|get(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmMessageIndex) // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomInboundMegolmMessageIndex){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl : de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao { // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.delete|delete(kotlin.String;de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmSession? // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.get|get(kotlin.String;de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmSession> // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.getAll|getAll(){}[0]
-    final suspend fun getNotBackedUp(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmSession> // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.getNotBackedUp|getNotBackedUp(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomInboundMegolmSession) // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomInboundMegolmSession){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl : de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao { // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/UserId, kotlin/String?, kotlin/String): kotlin/Int // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.delete|delete(de.connect2x.trixnity.core.model.UserId;kotlin.String?;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun getBySigningKeys(de.connect2x.trixnity.core.model/UserId, kotlin/String?, kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink> // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.getBySigningKeys|getBySigningKeys(de.connect2x.trixnity.core.model.UserId;kotlin.String?;kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink) // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomKeyChainLink){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl : de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao { // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String, de.connect2x.trixnity.core.model.keys/KeyAlgorithm) // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.delete|delete(kotlin.String;de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String, de.connect2x.trixnity.core.model.keys/KeyAlgorithm): de.connect2x.trixnity.client.store.repository.room/RoomKeyVerificationState? // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.get|get(kotlin.String;de.connect2x.trixnity.core.model.keys.KeyAlgorithm){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomKeyVerificationState) // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomKeyVerificationState){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl : de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao { // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomMediaCacheMapping? // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomMediaCacheMapping) // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomMediaCacheMapping){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl : de.connect2x.trixnity.client.store.repository.room/MigrationDao { // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomMigration? // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomMigration) // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomMigration){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/MigrationDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl : de.connect2x.trixnity.client.store.repository.room/NotificationDao { // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomNotification? // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomNotification> // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomNotification) // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomNotification){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/NotificationDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl : de.connect2x.trixnity.client.store.repository.room/NotificationStateDao { // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomNotificationState? // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomNotificationState> // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomNotificationState) // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomNotificationState){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/NotificationStateDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl : de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao { // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomNotificationUpdate? // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomNotificationUpdate> // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomNotificationUpdate) // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomNotificationUpdate){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl : de.connect2x.trixnity.client.store.repository.room/OlmAccountDao { // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomOlmAccount? // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomOlmAccount) // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomOlmAccount){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/OlmAccountDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl : de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao { // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomOlmForgetFallbackKeyAfter? // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomOlmForgetFallbackKeyAfter) // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomOlmForgetFallbackKeyAfter){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl : de.connect2x.trixnity.client.store.repository.room/OlmSessionDao { // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomOlmSession? // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomOlmSession> // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomOlmSession) // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomOlmSession){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/OlmSessionDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl : de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao { // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomOutboundMegolmSession? // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomOutboundMegolmSession> // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomOutboundMegolmSession) // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomOutboundMegolmSession){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl : de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao { // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys? // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys) // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomOutdatedKeys){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
     }
 }
 
@@ -624,23 +365,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomAccount { // 
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.store.repository.room/RoomAccount.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.store.repository.room/RoomAccount.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomAccount.toString|toString(){}[0]
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao { // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun getByAllKeys(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData? // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.getByAllKeys|getByAllKeys(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String){}[0]
-    final suspend fun getByTwoKeys(de.connect2x.trixnity.core.model/RoomId, kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData> // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.getByTwoKeys|getByTwoKeys(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomAccountData){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData>) // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomRoomAccountData>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
 }
 
 final class de.connect2x.trixnity.client.store.repository.room/RoomAuthentication { // de.connect2x.trixnity.client.store.repository.room/RoomAuthentication|null[0]
@@ -798,20 +522,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink 
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomKeyChainLink.toString|toString(){}[0]
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao { // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomRoomKeyRequest? // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomKeyRequest> // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomKeyRequest) // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomKeyRequest){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
 }
 
 final class de.connect2x.trixnity.client.store.repository.room/RoomKeyVerificationState { // de.connect2x.trixnity.client.store.repository.room/RoomKeyVerificationState|null[0]
@@ -989,21 +699,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomOutboundMegol
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomOutboundMegolmSession.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao { // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomRoomOutboxMessage? // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomOutboxMessage> // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomOutboxMessage) // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomOutboxMessage){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
 final class de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys { // de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys|null[0]
     constructor <init>(kotlin/Long, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomOutdatedKeys.<init>|<init>(kotlin.Long;kotlin.String){}[0]
 
@@ -1056,20 +751,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountDa
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomRoomAccountData.toString|toString(){}[0]
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomRoomDao { // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomRoom? // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoom> // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoom) // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoom){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomRoomDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
 }
 
 final class de.connect2x.trixnity.client.store.repository.room/RoomRoomKeyRequest { // de.connect2x.trixnity.client.store.repository.room/RoomRoomKeyRequest|null[0]
@@ -1218,24 +899,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomServerData { 
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomServerData.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomStateDao { // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomState> // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomRoomState? // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String){}[0]
-    final suspend fun get(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId>, kotlin/String, kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomState> // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.get|get(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>;kotlin.String;kotlin.String){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomState) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomState){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomState>) // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomRoomState>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomStateDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
 final class de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent { // de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin/String, de.connect2x.trixnity.core.model/UserId, kotlin/String, de.connect2x.trixnity.core.model/EventId, kotlin/Long, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.String;de.connect2x.trixnity.core.model.UserId;kotlin.String;de.connect2x.trixnity.core.model.EventId;kotlin.Long;kotlin.String){}[0]
 
@@ -1321,22 +984,6 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomTimelineEventRelation.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomUserDao { // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomUser> // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomRoomUser? // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.get|get(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomUser) // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomUser){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomUser>) // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomRoomUser>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomUserDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
 final class de.connect2x.trixnity.client.store.repository.room/RoomUserPresence { // de.connect2x.trixnity.client.store.repository.room/RoomUserPresence|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/RoomUserPresence.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
 
@@ -1353,165 +1000,8 @@ final class de.connect2x.trixnity.client.store.repository.room/RoomUserPresence 
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.room/RoomUserPresence.toString|toString(){}[0]
 }
 
-final class de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl : de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao { // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomUserReceipts> // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId): de.connect2x.trixnity.client.store.repository.room/RoomRoomUserReceipts? // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.get|get(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomRoomUserReceipts) // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomRoomUserReceipts){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomRoomUserReceipts>) // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomRoomUserReceipts>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl : de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao { // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/String) // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.delete|delete(kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomSecretKeyRequest? // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.get|get(kotlin.String){}[0]
-    final suspend fun getAll(): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomSecretKeyRequest> // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.getAll|getAll(){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomSecretKeyRequest) // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomSecretKeyRequest){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl : de.connect2x.trixnity.client.store.repository.room/SecretsDao { // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomSecrets? // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomSecrets) // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomSecrets){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/SecretsDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl : de.connect2x.trixnity.client.store.repository.room/ServerDataDao { // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(kotlin/Long) // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.delete|delete(kotlin.Long){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(kotlin/Long): de.connect2x.trixnity.client.store.repository.room/RoomServerData? // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.get|get(kotlin.Long){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomServerData) // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomServerData){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/ServerDataDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl : de.connect2x.trixnity.client.store.repository.room/StickyEventDao { // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, kotlin/String, de.connect2x.trixnity.core.model/UserId, kotlin/String) // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;kotlin.String;de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun deleteByRoomId(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.deleteByRoomId|deleteByRoomId(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, kotlin/String): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent> // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;kotlin.String){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, kotlin/String, de.connect2x.trixnity.core.model/UserId, kotlin/String): de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent? // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;kotlin.String;de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
-    final suspend fun getByEndTimeBefore(kotlin/Long): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent> // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.getByEndTimeBefore|getByEndTimeBefore(kotlin.Long){}[0]
-    final suspend fun getByEventId(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId): de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent? // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.getByEventId|getByEventId(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomStickyEvent) // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomStickyEvent){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/StickyEventDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl : de.connect2x.trixnity.client.store.repository.room/TimelineEventDao { // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId): de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent? // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.get|get(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomTimelineEvent) // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomTimelineEvent){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/TimelineEventDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl : de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao { // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.delete|delete(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m/RelationType, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.delete|delete(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.RelationType;de.connect2x.trixnity.core.model.EventId){}[0]
-    final suspend fun delete(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.delete|delete(de.connect2x.trixnity.core.model.RoomId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m/RelationType): kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomTimelineEventRelation> // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.get|get(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.RelationType){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m/RelationType, de.connect2x.trixnity.core.model/EventId): de.connect2x.trixnity.client.store.repository.room/RoomTimelineEventRelation? // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.get|get(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.RelationType;de.connect2x.trixnity.core.model.EventId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomTimelineEventRelation) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomTimelineEventRelation){}[0]
-    final suspend fun insertAll(kotlin.collections/List<de.connect2x.trixnity.client.store.repository.room/RoomTimelineEventRelation>) // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.insertAll|insertAll(kotlin.collections.List<de.connect2x.trixnity.client.store.repository.room.RoomTimelineEventRelation>){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl : de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl|null[0]
-    constructor <init>() // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.<init>|<init>(){}[0]
-
-    final fun account(): de.connect2x.trixnity.client.store.repository.room/AccountDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.account|account(){}[0]
-    final fun authentication(): de.connect2x.trixnity.client.store.repository.room/AuthenticationDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.authentication|authentication(){}[0]
-    final fun createAutoMigrations(kotlin.collections/Map<kotlin.reflect/KClass<out androidx.room.migration/AutoMigrationSpec>, androidx.room.migration/AutoMigrationSpec>): kotlin.collections/List<androidx.room.migration/Migration> // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.createAutoMigrations|createAutoMigrations(kotlin.collections.Map<kotlin.reflect.KClass<out|androidx.room.migration.AutoMigrationSpec>,androidx.room.migration.AutoMigrationSpec>){}[0]
-    final fun crossSigningKeys(): de.connect2x.trixnity.client.store.repository.room/CrossSigningKeysDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.crossSigningKeys|crossSigningKeys(){}[0]
-    final fun deviceKeys(): de.connect2x.trixnity.client.store.repository.room/DeviceKeysDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.deviceKeys|deviceKeys(){}[0]
-    final fun getRequiredAutoMigrationSpecClasses(): kotlin.collections/Set<kotlin.reflect/KClass<out androidx.room.migration/AutoMigrationSpec>> // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.getRequiredAutoMigrationSpecClasses|getRequiredAutoMigrationSpecClasses(){}[0]
-    final fun globalAccountData(): de.connect2x.trixnity.client.store.repository.room/GlobalAccountDataDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.globalAccountData|globalAccountData(){}[0]
-    final fun inboundMegolmMessageIndex(): de.connect2x.trixnity.client.store.repository.room/InboundMegolmMessageIndexDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.inboundMegolmMessageIndex|inboundMegolmMessageIndex(){}[0]
-    final fun inboundMegolmSession(): de.connect2x.trixnity.client.store.repository.room/InboundMegolmSessionDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.inboundMegolmSession|inboundMegolmSession(){}[0]
-    final fun keyChainLink(): de.connect2x.trixnity.client.store.repository.room/KeyChainLinkDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.keyChainLink|keyChainLink(){}[0]
-    final fun keyVerificationState(): de.connect2x.trixnity.client.store.repository.room/KeyVerificationStateDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.keyVerificationState|keyVerificationState(){}[0]
-    final fun mediaCacheMapping(): de.connect2x.trixnity.client.store.repository.room/MediaCacheMappingDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.mediaCacheMapping|mediaCacheMapping(){}[0]
-    final fun migration(): de.connect2x.trixnity.client.store.repository.room/MigrationDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.migration|migration(){}[0]
-    final fun notification(): de.connect2x.trixnity.client.store.repository.room/NotificationDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.notification|notification(){}[0]
-    final fun notificationState(): de.connect2x.trixnity.client.store.repository.room/NotificationStateDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.notificationState|notificationState(){}[0]
-    final fun notificationUpdate(): de.connect2x.trixnity.client.store.repository.room/NotificationUpdateDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.notificationUpdate|notificationUpdate(){}[0]
-    final fun olmAccount(): de.connect2x.trixnity.client.store.repository.room/OlmAccountDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.olmAccount|olmAccount(){}[0]
-    final fun olmForgetFallbackKeyAfter(): de.connect2x.trixnity.client.store.repository.room/OlmForgetFallbackKeyAfterDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.olmForgetFallbackKeyAfter|olmForgetFallbackKeyAfter(){}[0]
-    final fun olmSession(): de.connect2x.trixnity.client.store.repository.room/OlmSessionDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.olmSession|olmSession(){}[0]
-    final fun outboundMegolmSession(): de.connect2x.trixnity.client.store.repository.room/OutboundMegolmSessionDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.outboundMegolmSession|outboundMegolmSession(){}[0]
-    final fun outdatedKeys(): de.connect2x.trixnity.client.store.repository.room/OutdatedKeysDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.outdatedKeys|outdatedKeys(){}[0]
-    final fun room(): de.connect2x.trixnity.client.store.repository.room/RoomRoomDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.room|room(){}[0]
-    final fun roomAccountData(): de.connect2x.trixnity.client.store.repository.room/RoomAccountDataDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomAccountData|roomAccountData(){}[0]
-    final fun roomKeyRequest(): de.connect2x.trixnity.client.store.repository.room/RoomKeyRequestDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomKeyRequest|roomKeyRequest(){}[0]
-    final fun roomOutboxMessage(): de.connect2x.trixnity.client.store.repository.room/RoomOutboxMessageDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomOutboxMessage|roomOutboxMessage(){}[0]
-    final fun roomState(): de.connect2x.trixnity.client.store.repository.room/RoomStateDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomState|roomState(){}[0]
-    final fun roomUser(): de.connect2x.trixnity.client.store.repository.room/RoomUserDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomUser|roomUser(){}[0]
-    final fun roomUserReceipts(): de.connect2x.trixnity.client.store.repository.room/RoomUserReceiptsDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.roomUserReceipts|roomUserReceipts(){}[0]
-    final fun secretKeyRequest(): de.connect2x.trixnity.client.store.repository.room/SecretKeyRequestDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.secretKeyRequest|secretKeyRequest(){}[0]
-    final fun secrets(): de.connect2x.trixnity.client.store.repository.room/SecretsDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.secrets|secrets(){}[0]
-    final fun serverData(): de.connect2x.trixnity.client.store.repository.room/ServerDataDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.serverData|serverData(){}[0]
-    final fun stickyRoomEvent(): de.connect2x.trixnity.client.store.repository.room/StickyEventDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.stickyRoomEvent|stickyRoomEvent(){}[0]
-    final fun timelineEvent(): de.connect2x.trixnity.client.store.repository.room/TimelineEventDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.timelineEvent|timelineEvent(){}[0]
-    final fun timelineEventRelation(): de.connect2x.trixnity.client.store.repository.room/TimelineEventRelationDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.timelineEventRelation|timelineEventRelation(){}[0]
-    final fun userPresence(): de.connect2x.trixnity.client.store.repository.room/UserPresenceDao // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase_Impl.userPresence|userPresence(){}[0]
-}
-
-final class de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl : de.connect2x.trixnity.client.store.repository.room/UserPresenceDao { // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl|null[0]
-    constructor <init>(androidx.room/RoomDatabase) // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.<init>|<init>(androidx.room.RoomDatabase){}[0]
-
-    final suspend fun delete(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.delete|delete(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun deleteAll() // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.deleteAll|deleteAll(){}[0]
-    final suspend fun get(de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.client.store.repository.room/RoomUserPresence? // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.get|get(de.connect2x.trixnity.core.model.UserId){}[0]
-    final suspend fun insert(de.connect2x.trixnity.client.store.repository.room/RoomUserPresence) // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.insert|insert(de.connect2x.trixnity.client.store.repository.room.RoomUserPresence){}[0]
-
-    final object Companion { // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.Companion|null[0]
-        final fun getRequiredConverters(): kotlin.collections/List<kotlin.reflect/KClass<*>> // de.connect2x.trixnity.client.store.repository.room/UserPresenceDao_Impl.Companion.getRequiredConverters|getRequiredConverters(){}[0]
-    }
-}
-
-final object de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabaseConstructor : androidx.room/RoomDatabaseConstructor<de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase> { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabaseConstructor|null[0]
+final object de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabaseConstructor : androidx.room3/RoomDatabaseConstructor<de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase> { // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabaseConstructor|null[0]
     final fun initialize(): de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase // de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabaseConstructor.initialize|initialize(){}[0]
 }
 
-final fun (de.connect2x.trixnity.client/RepositoriesModule.Companion).de.connect2x.trixnity.client.store.repository.room/room(androidx.room/RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase>): de.connect2x.trixnity.client/RepositoriesModule // de.connect2x.trixnity.client.store.repository.room/room|room@de.connect2x.trixnity.client.RepositoriesModule.Companion(androidx.room.RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase>){}[0]
+final fun (de.connect2x.trixnity.client/RepositoriesModule.Companion).de.connect2x.trixnity.client.store.repository.room/room(androidx.room3/RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room/TrixnityRoomDatabase>): de.connect2x.trixnity.client/RepositoriesModule // de.connect2x.trixnity.client.store.repository.room/room|room@de.connect2x.trixnity.client.RepositoriesModule.Companion(androidx.room3.RoomDatabase.Builder<de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase>){}[0]

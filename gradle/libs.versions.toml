@@ -24,6 +24,7 @@ exposed = "1.4.0" # https://github.com/JetBrains/Exposed/releases
 hikari = "7.1.0" # https://github.com/brettwooldridge/HikariCP/tags
 r2dbc-h2 = "1.1.0.RELEASE" # https://github.com/r2dbc/r2dbc-h2/releases
 r2dbc-postgres = "1.1.2.RELEASE" # https://github.com/pgjdbc/r2dbc-postgresql/releases
+sqlitenity = "0.0.8" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 ### testing ###
 testContainers = "2.0.5" # https://github.com/testcontainers/testcontainers-java/releases
@@ -43,6 +44,8 @@ exposed-r2dbc = { module = "org.jetbrains.exposed:exposed-r2dbc", version.ref = 
 
 r2dbc-h2 = { module = "io.r2dbc:r2dbc-h2", version.ref = "r2dbc-h2" }
 r2dbc-postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgres" }
+
+sqlitenity-encryptedDriver = { module = "de.connect2x.sqlitenity:sqlitenity-encrypted-driver", version.ref = "sqlitenity" }
 
 ### testing ###
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
