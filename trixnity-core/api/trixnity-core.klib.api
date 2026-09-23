@@ -24,6 +24,10 @@ open annotation class de.connect2x.trixnity.core/MSC2448 : kotlin/Annotation { /
     constructor <init>() // de.connect2x.trixnity.core/MSC2448.<init>|<init>(){}[0]
 }
 
+open annotation class de.connect2x.trixnity.core/MSC3644 : kotlin/Annotation { // de.connect2x.trixnity.core/MSC3644|null[0]
+    constructor <init>() // de.connect2x.trixnity.core/MSC3644.<init>|<init>(){}[0]
+}
+
 open annotation class de.connect2x.trixnity.core/MSC3814 : kotlin/Annotation { // de.connect2x.trixnity.core/MSC3814|null[0]
     constructor <init>() // de.connect2x.trixnity.core/MSC3814.<init>|<init>(){}[0]
 }
@@ -10552,6 +10556,36 @@ final class de.connect2x.trixnity.core/UserInfo { // de.connect2x.trixnity.core/
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core/UserInfo.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core/UserInfo.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.core/UserInfo.toString|toString(){}[0]
+}
+
+final value class de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock : de.connect2x.trixnity.core.model.events.block/EventContentBlock.Mixin { // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model.events.m/RelatesTo) // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.<init>|<init>(de.connect2x.trixnity.core.model.events.m.RelatesTo){}[0]
+
+    final val relatesTo // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.relatesTo|{}relatesTo[0]
+        final fun <get-relatesTo>(): de.connect2x.trixnity.core.model.events.m/RelatesTo // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.relatesTo.<get-relatesTo>|<get-relatesTo>(){}[0]
+    final val type // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.type|{}type[0]
+        final fun <get-type>(): de.connect2x.trixnity.core.model.events.block/EventContentBlock.Type<de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock> // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.type.<get-type>|<get-type>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock> { // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock) // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.events.block.m.RelatesToContentBlock){}[0]
+    }
+
+    final object Type : de.connect2x.trixnity.core.model.events.block/EventContentBlock.Type<de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock> { // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.Type|null[0]
+        final val value // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.Type.value|{}value[0]
+            final fun <get-value>(): kotlin/String // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.Type.value.<get-value>|<get-value>(){}[0]
+
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock> // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.Type.serializer|serializer(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.block.m/RelatesToContentBlock.Type.toString|toString(){}[0]
+    }
 }
 
 final value class de.connect2x.trixnity.core.model.events.block.m/TextContentBlock : de.connect2x.trixnity.core.model.events.block/EventContentBlock.Default, kotlin.collections/List<de.connect2x.trixnity.core.model.events.block.m/TextContentBlock.Representation> { // de.connect2x.trixnity.core.model.events.block.m/TextContentBlock|null[0]

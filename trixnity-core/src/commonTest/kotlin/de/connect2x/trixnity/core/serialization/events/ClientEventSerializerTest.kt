@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.MSC3644
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
@@ -13,6 +14,7 @@ import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData.UnsignedMes
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.block.m.RelatesToContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TextContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TopicContentBlock
 import de.connect2x.trixnity.core.model.events.m.*
@@ -168,11 +170,20 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
     }
 
     @Test
+    @OptIn(MSC3644::class)
     fun shouldSerializeExtensibleEvent() {
         val content =
             StateEvent(
                 TopicEventContent(
-                    blocks = EventContentBlocks(TopicContentBlock(TextContentBlock("topic"))),
+                    blocks =
+                        EventContentBlocks(
+                            TopicContentBlock(
+                                EventContentBlocks(
+                                    TextContentBlock("topic"),
+                                    RelatesToContentBlock(RelatesTo.Reference(EventId("$143273582443PhrSn"))),
+                                )
+                            )
+                        ),
                     legacy = TopicEventContent.Legacy("topic"),
                 ),
                 EventId("$143273582443PhrSn"),
@@ -187,6 +198,10 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
         {
             "content":{
                 "m.topic":{
+                  "m.relates_to": {
+                    "event_id":"$143273582443PhrSn",
+                    "rel_type":"m.reference"
+                  },
                   "m.text":[
                     {"body":"topic"}
                   ]
@@ -630,6 +645,7 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
     }
 
     @Test
+    @OptIn(MSC3644::class)
     fun shouldDeserializeUnknownMessageEvent() {
         val input =
             """
@@ -675,12 +691,7 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
                         EventContentBlock.Unknown("msgtype", JsonPrimitive("m.dino")),
                         EventContentBlock.Unknown("body", JsonPrimitive("hello")),
                         EventContentBlock.Unknown("something", JsonPrimitive("unicorn")),
-                        EventContentBlock.Unknown(
-                            "m.relates_to",
-                            JsonObject(
-                                mapOf("event_id" to JsonPrimitive("$1234"), "rel_type" to JsonPrimitive("m.reference"))
-                            ),
-                        ),
+                        RelatesToContentBlock(RelatesTo.Reference(EventId("$1234"))),
                     ),
                     "m.dino",
                 ),
