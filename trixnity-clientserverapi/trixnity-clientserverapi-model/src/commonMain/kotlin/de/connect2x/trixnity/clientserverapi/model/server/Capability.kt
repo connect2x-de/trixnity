@@ -108,8 +108,8 @@ sealed interface Capability {
     @Serializable
     @MSC4140
     data class DelayedEvents(
-        @SerialName("max_delay_ms") val maxDelayMs: Long? = null,
-        @SerialName("max_scheduled") val maxScheduled: Long? = null,
+        @SerialName("max_delay_ms") val maxDelayMs: Long,
+        @SerialName("max_scheduled") val maxScheduled: Long,
     ) : Capability {
         companion object {
             const val name = "org.matrix.msc4140.delayed_events"
@@ -253,3 +253,7 @@ val Capabilities.getLoginToken: Capability.GetLoginToken
 
 val Capabilities.accountModeration: Capability.AccountModeration
     get() = filterIsInstance<Capability.AccountModeration>().firstOrNull() ?: Capability.AccountModeration()
+
+@MSC4140
+val Capabilities.delayedEvents: Capability.DelayedEvents?
+    get() = filterIsInstance<Capability.DelayedEvents>().firstOrNull()

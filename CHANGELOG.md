@@ -15,6 +15,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Update from room to room3
+- Made Capability.DelayedEvents fields mandatory as per MSC4140
 
 ### Deprecated
 

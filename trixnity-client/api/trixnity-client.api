@@ -3161,15 +3161,15 @@ public final class de/connect2x/trixnity/client/store/StoredSecretKeyRequest$Com
 
 public final class de/connect2x/trixnity/client/store/StoredStickyEvent {
 	public static final field Companion Lde/connect2x/trixnity/client/store/StoredStickyEvent$Companion;
-	public fun <init> (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public final fun component2 ()Lkotlin/time/Instant;
 	public final fun component3 ()Lkotlin/time/Instant;
-	public final fun copy (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;)Lde/connect2x/trixnity/client/store/StoredStickyEvent;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/store/StoredStickyEvent;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/StoredStickyEvent;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;)Lde/connect2x/trixnity/client/store/StoredStickyEvent;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/store/StoredStickyEvent;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/time/Instant;Lkotlin/time/Instant;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/StoredStickyEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEndTime ()Lkotlin/time/Instant;
-	public final fun getEvent ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent;
+	public final fun getEvent ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public final fun getStartTime ()Lkotlin/time/Instant;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
