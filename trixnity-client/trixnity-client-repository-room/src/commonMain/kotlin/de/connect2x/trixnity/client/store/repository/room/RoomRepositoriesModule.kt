@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.RoomDatabase
+import androidx.room3.RoomDatabase
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.AccountRepository
@@ -38,6 +38,7 @@ import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.client.store.repository.UserPresenceRepository
 import de.connect2x.trixnity.core.MSC4354
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.job
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
@@ -45,13 +46,8 @@ import org.koin.dsl.module
 
 fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<TrixnityRoomDatabase>): RepositoriesModule =
     RepositoriesModule {
-        val database = databaseBuilder.build()
         module {
-            single { database }
-            single(createdAtStart = true) {
-                get<CoroutineScope>().coroutineContext.job.invokeOnCompletion { database.close() }
-            }
-
+            singleOf(databaseBuilder::buildWithCoroutineScope)
             singleOf(::RoomStoreTransactionManager) { bind<StoreTransactionManager>() }
             singleOf(::RoomAccountRepository) { bind<AccountRepository>() }
             singleOf(::RoomAuthenticationRepository) { bind<AuthenticationRepository>() }
@@ -88,3 +84,11 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
             @OptIn(MSC4354::class) singleOf(::RoomStickyEventRepository) { bind<StickyEventRepository>() }
         }
     }
+
+private fun <T : RoomDatabase> RoomDatabase.Builder<T>.buildWithCoroutineScope(scope: CoroutineScope): T {
+    val databaseJob = SupervisorJob(scope.coroutineContext.job)
+    val database = setQueryCoroutineContext(scope.coroutineContext + databaseJob).build()
+    databaseJob.invokeOnCompletion { database.close() }
+
+    return database
+}

@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.deferredTransaction
-import androidx.room.immediateTransaction
-import androidx.room.useReaderConnection
-import androidx.room.useWriterConnection
+import androidx.room3.deferredTransaction
+import androidx.room3.immediateTransaction
+import androidx.room3.useReaderConnection
+import androidx.room3.useWriterConnection
 import de.connect2x.trixnity.client.store.StoreReadTransaction
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoreWriteTransaction

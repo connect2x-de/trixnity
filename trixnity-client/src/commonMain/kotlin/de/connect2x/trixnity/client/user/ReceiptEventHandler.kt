@@ -18,6 +18,7 @@ import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import kotlinx.coroutines.CoroutineScope
 
 private val log = Logger("de.connect2x.trixnity.client.user.ReceiptEventHandler")
+private const val ROOM_USER_RECEIPTS_TRANSACTION_CHUNK_SIZE = 50
 
 class ReceiptEventHandler(
     private val api: MatrixClientServerApiClient,
@@ -63,12 +64,15 @@ class ReceiptEventHandler(
                 .orEmpty()
         }
         if (receipts.isNotEmpty()) {
-            tm.writeTransaction {
-                receipts.forEach { roomUserReceipts ->
-                    roomUserStore.updateReceipts(roomUserReceipts.userId, roomUserReceipts.roomId) { oldRoomUserReceipts
-                        ->
-                        oldRoomUserReceipts?.copy(receipts = oldRoomUserReceipts.receipts + roomUserReceipts.receipts)
-                            ?: roomUserReceipts
+            receipts.chunked(ROOM_USER_RECEIPTS_TRANSACTION_CHUNK_SIZE).forEach { roomUserReceiptsChunk ->
+                tm.writeTransaction {
+                    roomUserReceiptsChunk.forEach { roomUserReceipts ->
+                        roomUserStore.updateReceipts(roomUserReceipts.userId, roomUserReceipts.roomId) {
+                            oldRoomUserReceipts ->
+                            oldRoomUserReceipts?.copy(
+                                receipts = oldRoomUserReceipts.receipts + roomUserReceipts.receipts
+                            ) ?: roomUserReceipts
+                        }
                     }
                 }
             }

@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.client.store.repository.room
 
-import androidx.room.AutoMigration
-import androidx.room.ConstructedBy
-import androidx.room.Database
-import androidx.room.DeleteColumn
-import androidx.room.RoomDatabase
-import androidx.room.RoomDatabaseConstructor
-import androidx.room.TypeConverters
-import androidx.room.migration.AutoMigrationSpec
+import androidx.room3.AutoMigration
+import androidx.room3.ColumnTypeConverters
+import androidx.room3.ConstructedBy
+import androidx.room3.Database
+import androidx.room3.DeleteColumn
+import androidx.room3.RoomDatabase
+import androidx.room3.RoomDatabaseConstructor
+import androidx.room3.migration.AutoMigrationSpec
 
 @Database(
     entities =
@@ -58,7 +58,7 @@ import androidx.room.migration.AutoMigrationSpec
         ],
     exportSchema = true,
 )
-@TypeConverters(
+@ColumnTypeConverters(
     EventIdConverter::class,
     InstantConverter::class,
     KeyAlgorithmConverter::class,

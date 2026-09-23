@@ -5,37 +5,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomAccount;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/AccountDao_Impl : de/connect2x/trixnity/client/store/repository/room/AccountDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/AccountDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomAccount;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/AccountDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/AuthenticationDao {
 	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomAuthentication;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/AuthenticationDao_Impl : de/connect2x/trixnity/client/store/repository/room/AuthenticationDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/AuthenticationDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomAuthentication;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/AuthenticationDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao {
@@ -45,37 +19,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomCrossSigningKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao_Impl : de/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomCrossSigningKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/DeviceKeysDao {
 	public abstract fun delete-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomDeviceKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/DeviceKeysDao_Impl : de/connect2x/trixnity/client/store/repository/room/DeviceKeysDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/DeviceKeysDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomDeviceKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/DeviceKeysDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao {
@@ -88,40 +36,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao_Impl : de/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAllByType (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getByKeys (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomGlobalAccountData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao {
 	public abstract fun delete-R_GNm0M (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-R_GNm0M (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomInboundMegolmMessageIndex;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao_Impl : de/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-R_GNm0M (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-R_GNm0M (Ljava/lang/String;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomInboundMegolmMessageIndex;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao {
@@ -133,39 +52,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomInboundMegolmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao_Impl : de/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-1YWW218 (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-1YWW218 (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getNotBackedUp (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomInboundMegolmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao {
 	public abstract fun delete-EhsxV3A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getBySigningKeys-EhsxV3A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomKeyChainLink;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao_Impl : de/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-EhsxV3A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getBySigningKeys-EhsxV3A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomKeyChainLink;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao {
@@ -175,19 +66,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomKeyVerificationState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao_Impl : de/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyAlgorithm;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomKeyVerificationState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao {
 	public abstract fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -195,37 +73,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomMediaCacheMapping;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao_Impl : de/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomMediaCacheMapping;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/MigrationDao {
 	public abstract fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomMigration;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/MigrationDao_Impl : de/connect2x/trixnity/client/store/repository/room/MigrationDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/MigrationDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomMigration;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/MigrationDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/NotificationDao {
@@ -237,41 +89,12 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotification;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationDao_Impl : de/connect2x/trixnity/client/store/repository/room/NotificationDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/NotificationDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotification;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/NotificationStateDao {
 	public abstract fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotificationState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationStateDao_Impl : de/connect2x/trixnity/client/store/repository/room/NotificationStateDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/NotificationStateDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotificationState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationStateDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao {
@@ -283,21 +106,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotificationUpdate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao_Impl : de/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomNotificationUpdate;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/OlmAccountDao {
 	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -305,37 +113,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmAccount;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/OlmAccountDao_Impl : de/connect2x/trixnity/client/store/repository/room/OlmAccountDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/OlmAccountDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmAccount;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OlmAccountDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao {
 	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmForgetFallbackKeyAfter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao_Impl : de/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmForgetFallbackKeyAfter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/OlmSessionDao {
@@ -346,20 +128,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/OlmSessionDao_Impl : de/connect2x/trixnity/client/store/repository/room/OlmSessionDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/OlmSessionDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOlmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OlmSessionDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao {
 	public abstract fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -368,38 +136,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOutboundMegolmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao_Impl : de/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOutboundMegolmSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao {
 	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOutdatedKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao_Impl : de/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomOutdatedKeys;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomAccount {
@@ -443,23 +184,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun getByTwoKeys-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomAccountData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomAccountDataDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomAccountDataDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomAccountDataDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-nnwLeS4 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getByAllKeys-nnwLeS4 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getByTwoKeys-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomAccountData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomAccountDataDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomAuthentication {
@@ -591,20 +315,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomKeyRequestDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomKeyRequestDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomKeyRequestDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomKeyRequestDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomKeyVerificationState {
@@ -757,21 +467,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomOutboxMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/RoomOutboxMessageDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomOutboxMessageDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomOutboxMessageDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomOutboxMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomOutboxMessageDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public final class de/connect2x/trixnity/client/store/repository/room/RoomOutdatedKeys {
 	public fun <init> (JLjava/lang/String;)V
 	public final fun component1 ()J
@@ -786,7 +481,7 @@ public final class de/connect2x/trixnity/client/store/repository/room/RoomOutdat
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomRepositoriesModuleKt {
-	public static final fun room (Lde/connect2x/trixnity/client/RepositoriesModule$Companion;Landroidx/room/RoomDatabase$Builder;)Lde/connect2x/trixnity/client/RepositoriesModule;
+	public static final fun room (Lde/connect2x/trixnity/client/RepositoriesModule$Companion;Landroidx/room3/RoomDatabase$Builder;)Lde/connect2x/trixnity/client/RepositoriesModule;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomRoom {
@@ -825,20 +520,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoom;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomRoomDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomRoomDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomRoomDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoom;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomRoomDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/room/RoomRoomKeyRequest {
@@ -969,24 +650,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/RoomStateDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomStateDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomStateDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-nnwLeS4 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/util/Set;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-nnwLeS4 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomState;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomStateDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public final class de/connect2x/trixnity/client/store/repository/room/RoomStickyEvent {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
@@ -1062,22 +725,6 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/RoomUserDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomUserDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomUserDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-QxdWLWw (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomUser;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomUserDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public final class de/connect2x/trixnity/client/store/repository/room/RoomUserPresence {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-hu1aZbM ()Ljava/lang/String;
@@ -1101,42 +748,12 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao_Impl : de/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-QxdWLWw (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomRoomUserReceipts;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao {
 	public abstract fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomSecretKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao_Impl : de/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomSecretKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/SecretsDao {
@@ -1146,37 +763,11 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomSecrets;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/SecretsDao_Impl : de/connect2x/trixnity/client/store/repository/room/SecretsDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/SecretsDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomSecrets;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/SecretsDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/ServerDataDao {
 	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomServerData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/ServerDataDao_Impl : de/connect2x/trixnity/client/store/repository/room/ServerDataDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/ServerDataDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomServerData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/ServerDataDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/StickyEventDao {
@@ -1190,43 +781,12 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomStickyEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/StickyEventDao_Impl : de/connect2x/trixnity/client/store/repository/room/StickyEventDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/StickyEventDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-oITkvlk (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteByRoomId-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-oITkvlk (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getByEndTimeBefore (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getByEventId-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomStickyEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/StickyEventDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/TimelineEventDao {
 	public abstract fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun delete-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomTimelineEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/TimelineEventDao_Impl : de/connect2x/trixnity/client/store/repository/room/TimelineEventDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/TimelineEventDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomTimelineEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/TimelineEventDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao {
@@ -1240,24 +800,7 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao_Impl : de/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-9-acQC8 (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RelationType;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun delete-Iw46Tio (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-9-acQC8 (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RelationType;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-AbuRJ8w (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RelationType;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomTimelineEventRelation;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insertAll (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
-}
-
-public abstract class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase : androidx/room/RoomDatabase {
+public abstract class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase : androidx/room3/RoomDatabase {
 	public fun <init> ()V
 	public abstract fun account ()Lde/connect2x/trixnity/client/store/repository/room/AccountDao;
 	public abstract fun authentication ()Lde/connect2x/trixnity/client/store/repository/room/AuthenticationDao;
@@ -1294,60 +837,20 @@ public abstract class de/connect2x/trixnity/client/store/repository/room/Trixnit
 	public abstract fun userPresence ()Lde/connect2x/trixnity/client/store/repository/room/UserPresenceDao;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase$Delete6to7MigrationSpec : androidx/room/migration/AutoMigrationSpec {
+public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase$Delete6to7MigrationSpec : androidx/room3/migration/AutoMigrationSpec {
 	public fun <init> ()V
-	public fun onPostMigrate (Landroidx/sqlite/SQLiteConnection;)V
+	public fun onPostMigrate (Landroidx/sqlite/SQLiteConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase$Delete7to8MigrationSpec : androidx/room/migration/AutoMigrationSpec {
+public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase$Delete7to8MigrationSpec : androidx/room3/migration/AutoMigrationSpec {
 	public fun <init> ()V
-	public fun onPostMigrate (Landroidx/sqlite/SQLiteConnection;)V
+	public fun onPostMigrate (Landroidx/sqlite/SQLiteConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabaseConstructor : androidx/room/RoomDatabaseConstructor {
+public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabaseConstructor : androidx/room3/RoomDatabaseConstructor {
 	public static final field INSTANCE Lde/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabaseConstructor;
-	public synthetic fun initialize ()Landroidx/room/RoomDatabase;
+	public synthetic fun initialize ()Landroidx/room3/RoomDatabase;
 	public fun initialize ()Lde/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase_Impl : de/connect2x/trixnity/client/store/repository/room/TrixnityRoomDatabase {
-	public fun <init> ()V
-	public fun account ()Lde/connect2x/trixnity/client/store/repository/room/AccountDao;
-	public fun authentication ()Lde/connect2x/trixnity/client/store/repository/room/AuthenticationDao;
-	public fun createAutoMigrations (Ljava/util/Map;)Ljava/util/List;
-	public synthetic fun createOpenDelegate ()Landroidx/room/RoomOpenDelegateMarker;
-	public fun crossSigningKeys ()Lde/connect2x/trixnity/client/store/repository/room/CrossSigningKeysDao;
-	public fun deviceKeys ()Lde/connect2x/trixnity/client/store/repository/room/DeviceKeysDao;
-	public fun getRequiredAutoMigrationSpecClasses ()Ljava/util/Set;
-	public fun globalAccountData ()Lde/connect2x/trixnity/client/store/repository/room/GlobalAccountDataDao;
-	public fun inboundMegolmMessageIndex ()Lde/connect2x/trixnity/client/store/repository/room/InboundMegolmMessageIndexDao;
-	public fun inboundMegolmSession ()Lde/connect2x/trixnity/client/store/repository/room/InboundMegolmSessionDao;
-	public fun keyChainLink ()Lde/connect2x/trixnity/client/store/repository/room/KeyChainLinkDao;
-	public fun keyVerificationState ()Lde/connect2x/trixnity/client/store/repository/room/KeyVerificationStateDao;
-	public fun mediaCacheMapping ()Lde/connect2x/trixnity/client/store/repository/room/MediaCacheMappingDao;
-	public fun migration ()Lde/connect2x/trixnity/client/store/repository/room/MigrationDao;
-	public fun notification ()Lde/connect2x/trixnity/client/store/repository/room/NotificationDao;
-	public fun notificationState ()Lde/connect2x/trixnity/client/store/repository/room/NotificationStateDao;
-	public fun notificationUpdate ()Lde/connect2x/trixnity/client/store/repository/room/NotificationUpdateDao;
-	public fun olmAccount ()Lde/connect2x/trixnity/client/store/repository/room/OlmAccountDao;
-	public fun olmForgetFallbackKeyAfter ()Lde/connect2x/trixnity/client/store/repository/room/OlmForgetFallbackKeyAfterDao;
-	public fun olmSession ()Lde/connect2x/trixnity/client/store/repository/room/OlmSessionDao;
-	public fun outboundMegolmSession ()Lde/connect2x/trixnity/client/store/repository/room/OutboundMegolmSessionDao;
-	public fun outdatedKeys ()Lde/connect2x/trixnity/client/store/repository/room/OutdatedKeysDao;
-	public fun room ()Lde/connect2x/trixnity/client/store/repository/room/RoomRoomDao;
-	public fun roomAccountData ()Lde/connect2x/trixnity/client/store/repository/room/RoomAccountDataDao;
-	public fun roomKeyRequest ()Lde/connect2x/trixnity/client/store/repository/room/RoomKeyRequestDao;
-	public fun roomOutboxMessage ()Lde/connect2x/trixnity/client/store/repository/room/RoomOutboxMessageDao;
-	public fun roomState ()Lde/connect2x/trixnity/client/store/repository/room/RoomStateDao;
-	public fun roomUser ()Lde/connect2x/trixnity/client/store/repository/room/RoomUserDao;
-	public fun roomUserReceipts ()Lde/connect2x/trixnity/client/store/repository/room/RoomUserReceiptsDao;
-	public fun secretKeyRequest ()Lde/connect2x/trixnity/client/store/repository/room/SecretKeyRequestDao;
-	public fun secrets ()Lde/connect2x/trixnity/client/store/repository/room/SecretsDao;
-	public fun serverData ()Lde/connect2x/trixnity/client/store/repository/room/ServerDataDao;
-	public fun stickyRoomEvent ()Lde/connect2x/trixnity/client/store/repository/room/StickyEventDao;
-	public fun timelineEvent ()Lde/connect2x/trixnity/client/store/repository/room/TimelineEventDao;
-	public fun timelineEventRelation ()Lde/connect2x/trixnity/client/store/repository/room/TimelineEventRelationDao;
-	public fun userPresence ()Lde/connect2x/trixnity/client/store/repository/room/UserPresenceDao;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/room/UserPresenceDao {
@@ -1355,18 +858,5 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomUserPresence;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/UserPresenceDao_Impl : de/connect2x/trixnity/client/store/repository/room/UserPresenceDao {
-	public static final field Companion Lde/connect2x/trixnity/client/store/repository/room/UserPresenceDao_Impl$Companion;
-	public fun <init> (Landroidx/room/RoomDatabase;)V
-	public fun delete-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun get-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomUserPresence;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/room/UserPresenceDao_Impl$Companion {
-	public final fun getRequiredConverters ()Ljava/util/List;
 }
 

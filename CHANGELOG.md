@@ -9,8 +9,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- support room repositories in web
+
 ### Changed
 
+- update from room to room3
 - Remove messages with duplicate annotation send error from outbox
 
 ### Deprecated
@@ -18,6 +21,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Removed
 
 ### Fixed
+
+- chunk receipts to reduce the transaction duration
 
 ### Security
 

@@ -2,7 +2,7 @@ plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.ksp)
-    alias(sharedLibs.plugins.androidx.room)
+    alias(sharedLibs.plugins.androidx.room3)
 }
 
 kotlin {
@@ -10,6 +10,7 @@ kotlin {
     // does not use addNativeTargets() because some ar not supported yet
     addNativeAppleTargets()
     linuxX64()
+    addWebTarget(rootDir, nodeJsEnabled = false)
     applyDefaultHierarchyTemplate()
     sourceSets {
         all {
@@ -24,7 +25,7 @@ kotlin {
 
                 implementation(sharedLibs.lognity.api)
 
-                api(sharedLibs.androidx.roomRuntime)
+                api(sharedLibs.androidx.room3Runtime)
             }
         }
         commonTest {
@@ -32,7 +33,7 @@ kotlin {
                 implementation(projects.trixnityTestUtils)
                 implementation(projects.trixnityClient.clientRepositoryTest)
 
-                implementation(sharedLibs.androidx.sqliteBundled)
+                implementation(libs.sqlitenity.encryptedDriver)
 
                 implementation(sharedLibs.kotest.assertions.core)
             }
@@ -40,7 +41,7 @@ kotlin {
     }
 }
 
-room { schemaDirectory("$projectDir/schemas") }
+room3 { schemaDirectory("$projectDir/schemas") }
 
 dependencies {
     configurations
@@ -50,5 +51,5 @@ dependencies {
                 it.name.contains("Common").not() &&
                 it.name.contains("Test").not()
         }
-        .forEach { add(it.name, sharedLibs.androidx.roomCompiler) }
+        .forEach { add(it.name, sharedLibs.androidx.room3Compiler) }
 }
