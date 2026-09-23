@@ -1315,6 +1315,9 @@ public final class de/connect2x/trixnity/core/HttpMethodType : java/lang/Enum {
 public abstract interface annotation class de/connect2x/trixnity/core/MSC2448 : java/lang/annotation/Annotation {
 }
 
+public abstract interface annotation class de/connect2x/trixnity/core/MSC3644 : java/lang/annotation/Annotation {
+}
+
 public abstract interface annotation class de/connect2x/trixnity/core/MSC3814 : java/lang/annotation/Annotation {
 }
 
@@ -2886,6 +2889,40 @@ public final class de/connect2x/trixnity/core/model/events/block/EventContentBlo
 
 public final class de/connect2x/trixnity/core/model/events/block/UnsupportedEventContentBlockTypeException : kotlinx/serialization/SerializationException {
 	public fun <init> (Lkotlin/reflect/KClass;)V
+}
+
+public final class de/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock : de/connect2x/trixnity/core/model/events/block/EventContentBlock$Mixin {
+	public static final field Type Lde/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock$Type;
+	public static final synthetic fun box-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock;
+	public static fun constructor-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Z
+	public final fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun getType ()Lde/connect2x/trixnity/core/model/events/block/EventContentBlock$Type;
+	public static fun getType-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/block/EventContentBlock$Type;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize-ZwXBoH4 (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize-jMeIoBw (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/block/m/RelatesToContentBlock$Type : de/connect2x/trixnity/core/model/events/block/EventContentBlock$Type {
+	public fun getValue ()Ljava/lang/String;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/core/model/events/block/m/TextContentBlock : de/connect2x/trixnity/core/model/events/block/EventContentBlock$Default, java/util/List, kotlin/jvm/internal/markers/KMappedMarker {
