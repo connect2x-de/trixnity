@@ -97,3 +97,17 @@ annotation class MSC4195
     AnnotationTarget.TYPEALIAS,
 )
 annotation class MSC4140
+
+/** @see <a href="https://github.com/matrix-org/matrix-spec-proposals/pull/3644">MSC3644</a> */
+@RequiresOptIn(message = "This API is experimental. It could change in the future without notice.")
+@Retention(AnnotationRetention.BINARY)
+@Target(
+    AnnotationTarget.CLASS,
+    AnnotationTarget.ANNOTATION_CLASS,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.FIELD,
+    AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.TYPEALIAS,
+)
+annotation class MSC3644
