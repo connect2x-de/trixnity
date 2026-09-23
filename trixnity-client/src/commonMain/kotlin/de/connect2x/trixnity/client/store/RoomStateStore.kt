@@ -65,29 +65,69 @@ class RoomStateStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun save(event: StateBaseEvent<*>, skipWhenAlreadyPresent: Boolean = false) {
-        val roomId = event.roomId
-        val stateKey = event.stateKey
-        if (roomId != null) {
-            val eventType =
-                when (val content = event.content) {
-                    is UnknownEventContent -> content.eventType
-                    is RedactedEventContent -> content.eventType
-                    else -> contentMappings.state.find { it.kClass.isInstance(event.content) }?.type
-                }
-                    ?: throw IllegalArgumentException(
-                        "Cannot find state event, because it is not supported. You need to register it first."
+        save(listOf(event), skipWhenAlreadyPresent)
+    }
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun save(events: List<StateBaseEvent<*>>, skipWhenAlreadyPresent: Boolean = false) {
+
+        events
+            .mapNotNull { event ->
+                val roomId = event.roomId ?: return@mapNotNull null
+                val eventType =
+                    when (val content = event.content) {
+                        is UnknownEventContent -> content.eventType
+                        is RedactedEventContent -> content.eventType
+                        else -> contentMappings.state.find { it.kClass.isInstance(event.content) }?.type
+                    }
+                        ?: throw IllegalArgumentException(
+                            "Cannot find state event, because it is not supported. You need to register it first."
+                        )
+                EventWithType(roomId, event, eventType, event.stateKey)
+            }
+            .asReversed()
+            .distinct()
+            .asReversed()
+            .forEach { (roomId, event, type, stateKey) ->
+                if (skipWhenAlreadyPresent)
+                    roomStateCache.update(
+                        MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey)
+                    ) {
+                        if (it is ClientEvent.StrippedStateEvent) event else it ?: event
+                    }
+                else
+                    roomStateCache.set(
+                        MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey),
+                        event,
                     )
-            if (skipWhenAlreadyPresent)
-                roomStateCache.update(
-                    MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, eventType), stateKey)
-                ) {
-                    if (it is ClientEvent.StrippedStateEvent) event else it ?: event
-                }
-            else
-                roomStateCache.set(
-                    MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, eventType), stateKey),
-                    event,
-                )
+            }
+    }
+
+    /** Allows to distinct by [roomId], [type] and [stateKey] */
+    private data class EventWithType(
+        val roomId: RoomId,
+        val event: StateBaseEvent<*>,
+        val type: String,
+        val stateKey: String,
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as EventWithType
+
+            if (roomId != other.roomId) return false
+            if (type != other.type) return false
+            if (stateKey != other.stateKey) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = roomId.hashCode()
+            result = 31 * result + type.hashCode()
+            result = 31 * result + stateKey.hashCode()
+            return result
         }
     }
 
