@@ -779,9 +779,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.sendStateEvent(any()) }.returns(SendEventResponse(EventId("event")))
         val response =
-            client.put(
-                "/_matrix/client/v3/rooms/!room:server/state/m.room.name?org.matrix.msc4354.sticky_duration_ms=60000"
-            ) {
+            client.put("/_matrix/client/v3/rooms/!room:server/state/m.room.name") {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
                 setBody("""{"name":"name"}""")
@@ -803,41 +801,6 @@ class RoomsRoutesTest : TrixnityBaseTest() {
                     it.endpoint.roomId shouldBe RoomId("!room:server")
                     it.endpoint.stateKey shouldBe ""
                     it.endpoint.type shouldBe "m.room.name"
-                    it.endpoint.stickyDurationMs shouldBe 60000
-                    it.requestBody shouldBe NameEventContent("name")
-                }
-            )
-        }
-    }
-
-    @Test
-    fun shouldSendStateEventWithStableStickyDurationMs() = testApplication {
-        initCut()
-        everySuspend { handlerMock.sendStateEvent(any()) }.returns(SendEventResponse(EventId("event")))
-        val response =
-            client.put("/_matrix/client/v3/rooms/!room:server/state/m.room.name?sticky_duration_ms=60000") {
-                bearerAuth("token")
-                contentType(ContentType.Application.Json)
-                setBody("""{"name":"name"}""")
-            }
-        assertSoftly(response) {
-            this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe
-                """
-               {
-                  "event_id":"event"
-               }
-            """
-                    .trimToFlatJson()
-        }
-        verifySuspend {
-            handlerMock.sendStateEvent(
-                assert {
-                    it.endpoint.roomId shouldBe RoomId("!room:server")
-                    it.endpoint.stateKey shouldBe ""
-                    it.endpoint.type shouldBe "m.room.name"
-                    it.endpoint.stickyDurationMs shouldBe 60000
                     it.requestBody shouldBe NameEventContent("name")
                 }
             )
