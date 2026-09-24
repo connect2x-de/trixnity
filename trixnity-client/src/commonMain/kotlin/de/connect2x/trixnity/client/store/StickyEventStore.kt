@@ -18,12 +18,15 @@ import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMap
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.isActive
 
 @MSC4354
 class StickyEventStore(
@@ -106,7 +109,6 @@ class StickyEventStore(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     fun <C : StickyEventContent> get(
         roomId: RoomId,
         eventContentClass: KClass<C>,
@@ -150,18 +152,19 @@ class StickyEventStore(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun <C : StickyEventContent> Flow<StoredStickyEvent<C>?>.filterValid(): Flow<StoredStickyEvent<C>?> =
         transformLatest {
-            if (it == null) {
-                emit(null)
-                return@transformLatest
-            }
-            val now = clock.now()
-            if (it.endTime < now) {
+            if (it == null || it.endTime < clock.now()) {
                 emit(null)
                 return@transformLatest
             }
             emit(it)
-            delay(it.endTime - now)
-            emit(null)
+            while (currentCoroutineContext().isActive) {
+                val durationToEndTime = it.endTime - clock.now()
+                delay(1.seconds) // to catch sleeping scheduler cases
+                if (it.endTime < clock.now()) {
+                    emit(null)
+                    break
+                }
+            }
         }
 
     private fun <C : RoomEventContent> findType(eventContentClass: KClass<C>): String {

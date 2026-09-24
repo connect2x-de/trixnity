@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - chunk receipts to reduce the transaction duration
+- Sticky events expiration checked in a loop now to prevent wrong calculations on CPU standby
 
 ### Security
 

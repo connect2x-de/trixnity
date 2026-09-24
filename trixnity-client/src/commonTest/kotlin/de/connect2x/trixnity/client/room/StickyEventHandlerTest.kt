@@ -1,11 +1,15 @@
 package de.connect2x.trixnity.client.room
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.client.getInMemoryStickyEventStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
+import de.connect2x.trixnity.client.store.StickyEventStore
 import de.connect2x.trixnity.client.store.StoredStickyEvent
+import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
+import de.connect2x.trixnity.client.store.repository.InMemoryStickyEventRepository
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
+import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
+import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4354
@@ -22,6 +26,8 @@ import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
@@ -47,7 +53,23 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
 
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(config = apiConfig)
-    private val store = getInMemoryStickyEventStore()
+    private val repository = InMemoryStickyEventRepository()
+    private val store =
+        StickyEventStore(
+                repository,
+                NoOpStoreTransactionManager,
+                EventContentSerializerMappings.default,
+                MatrixClientConfiguration(),
+                ObservableCacheStatisticCollector(),
+                testScope.backgroundScope,
+                testScope.testClock,
+            )
+            .apply {
+                scheduleSetup {
+                    init(backgroundScope)
+                    tm.writeTransaction { deleteAll() }
+                }
+            }
     private val encryptionService =
         RoomEventEncryptionServiceMock().apply {
             scheduleSetup {
@@ -287,8 +309,8 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                             originTimestamp = 2000L,
                             sticky = StickyEventData(durationMs = 1000L),
                         ),
-                    startTime = Instant.fromEpochMilliseconds(0),
-                    endTime = Instant.fromEpochMilliseconds(0) + 2.minutes,
+                    startTime = testClock.now(),
+                    endTime = testClock.now() + 2.minutes,
                 )
             )
             store.save(
@@ -309,23 +331,32 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                             originTimestamp = 2000L,
                             sticky = StickyEventData(durationMs = 1000L),
                         ),
-                    startTime = Instant.fromEpochMilliseconds(0),
-                    endTime = Instant.fromEpochMilliseconds(0) + 4.minutes,
+                    startTime = testClock.now(),
+                    endTime = testClock.now() + 4.minutes,
                 )
             )
         }
         val job = backgroundScope.launch { cut.removeInvalidStickyEvents() }
-        delay(1.seconds)
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1").first().shouldNotBeNull()
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky2").first().shouldNotBeNull()
+        val firstKey = StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member")
+        val secondKey1 = StickyEventRepositorySecondKey(alice, "sticky1")
+        val secondKey2 = StickyEventRepositorySecondKey(alice, "sticky2")
+        delay(2.minutes + 1.seconds)
+        tm.readTransaction {
+            repository.get(firstKey, secondKey1).shouldNotBeNull()
+            repository.get(firstKey, secondKey2).shouldNotBeNull()
+        }
 
         delay(2.minutes)
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1").first().shouldBeNull()
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky2").first().shouldNotBeNull()
+        tm.readTransaction {
+            repository.get(firstKey, secondKey1).shouldBeNull()
+            repository.get(firstKey, secondKey2).shouldNotBeNull()
+        }
 
         delay(2.minutes)
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1").first().shouldBeNull()
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky2").first().shouldBeNull()
+        tm.readTransaction {
+            repository.get(firstKey, secondKey1).shouldBeNull()
+            repository.get(firstKey, secondKey2).shouldBeNull()
+        }
         job.cancel()
     }
 }
