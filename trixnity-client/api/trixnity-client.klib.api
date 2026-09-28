@@ -2076,19 +2076,19 @@ final class <#A: de.connect2x.trixnity.core.model.events/MessageEventContent> de
 }
 
 final class <#A: de.connect2x.trixnity.core.model.events/StickyEventContent> de.connect2x.trixnity.client.store/StoredStickyEvent { // de.connect2x.trixnity.client.store/StoredStickyEvent|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<#A>, kotlin.time/Instant, kotlin.time/Instant) // de.connect2x.trixnity.client.store/StoredStickyEvent.<init>|<init>(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<1:0>;kotlin.time.Instant;kotlin.time.Instant){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<#A>, kotlin.time/Instant, kotlin.time/Instant) // de.connect2x.trixnity.client.store/StoredStickyEvent.<init>|<init>(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<1:0>;kotlin.time.Instant;kotlin.time.Instant){}[0]
 
     final val endTime // de.connect2x.trixnity.client.store/StoredStickyEvent.endTime|{}endTime[0]
         final fun <get-endTime>(): kotlin.time/Instant // de.connect2x.trixnity.client.store/StoredStickyEvent.endTime.<get-endTime>|<get-endTime>(){}[0]
     final val event // de.connect2x.trixnity.client.store/StoredStickyEvent.event|{}event[0]
-        final fun <get-event>(): de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.event.<get-event>|<get-event>(){}[0]
+        final fun <get-event>(): de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.event.<get-event>|<get-event>(){}[0]
     final val startTime // de.connect2x.trixnity.client.store/StoredStickyEvent.startTime|{}startTime[0]
         final fun <get-startTime>(): kotlin.time/Instant // de.connect2x.trixnity.client.store/StoredStickyEvent.startTime.<get-startTime>|<get-startTime>(){}[0]
 
-    final fun component1(): de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.component1|component1(){}[0]
+    final fun component1(): de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.component1|component1(){}[0]
     final fun component2(): kotlin.time/Instant // de.connect2x.trixnity.client.store/StoredStickyEvent.component2|component2(){}[0]
     final fun component3(): kotlin.time/Instant // de.connect2x.trixnity.client.store/StoredStickyEvent.component3|component3(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent<#A> = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ...): de.connect2x.trixnity.client.store/StoredStickyEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.copy|copy(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent<1:0>;kotlin.time.Instant;kotlin.time.Instant){}[0]
+    final fun copy(de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<#A> = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ...): de.connect2x.trixnity.client.store/StoredStickyEvent<#A> // de.connect2x.trixnity.client.store/StoredStickyEvent.copy|copy(de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<1:0>;kotlin.time.Instant;kotlin.time.Instant){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.store/StoredStickyEvent.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.store/StoredStickyEvent.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store/StoredStickyEvent.toString|toString(){}[0]

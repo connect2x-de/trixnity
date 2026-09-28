@@ -652,7 +652,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
                     scopedMockEngine {
                         addHandler { request ->
                             assertEquals(
-                                "/_matrix/client/v3/rooms/!room:server/state/m.room.name/someStateKey?org.matrix.msc4354.sticky_duration_ms=60000",
+                                "/_matrix/client/v3/rooms/!room:server/state/m.room.name/someStateKey",
                                 request.url.fullPath,
                             )
                             assertEquals(HttpMethod.Put, request.method)
@@ -669,12 +669,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
 
         val result =
             matrixRestClient.room
-                .sendStateEvent(
-                    roomId = RoomId("!room:server"),
-                    eventContent = eventContent,
-                    stateKey = "someStateKey",
-                    stickyDurationMs = 60000,
-                )
+                .sendStateEvent(roomId = RoomId("!room:server"), eventContent = eventContent, stateKey = "someStateKey")
                 .getOrThrow()
         assertEquals(EventId("event"), result)
     }

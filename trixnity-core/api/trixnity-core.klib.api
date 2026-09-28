@@ -412,7 +412,7 @@ abstract interface de.connect2x.trixnity.core.model.events/RoomAccountDataEventC
 
 abstract interface de.connect2x.trixnity.core.model.events/StateEventContent : de.connect2x.trixnity.core.model.events/RoomEventContent // de.connect2x.trixnity.core.model.events/StateEventContent|null[0]
 
-abstract interface de.connect2x.trixnity.core.model.events/StickyEventContent : de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model.events/StateEventContent { // de.connect2x.trixnity.core.model.events/StickyEventContent|null[0]
+abstract interface de.connect2x.trixnity.core.model.events/StickyEventContent : de.connect2x.trixnity.core.model.events/MessageEventContent { // de.connect2x.trixnity.core.model.events/StickyEventContent|null[0]
     abstract val stickyKey // de.connect2x.trixnity.core.model.events/StickyEventContent.stickyKey|{}stickyKey[0]
         abstract fun <get-stickyKey>(): kotlin/String? // de.connect2x.trixnity.core.model.events/StickyEventContent.stickyKey.<get-stickyKey>|<get-stickyKey>(){}[0]
 }

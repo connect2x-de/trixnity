@@ -1006,16 +1006,16 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.server/Capability {
     }
 
     final class DelayedEvents : de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents|null[0]
-        constructor <init>(kotlin/Long? = ..., kotlin/Long? = ...) // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.<init>|<init>(kotlin.Long?;kotlin.Long?){}[0]
+        constructor <init>(kotlin/Long, kotlin/Long) // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.<init>|<init>(kotlin.Long;kotlin.Long){}[0]
 
         final val maxDelayMs // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxDelayMs|{}maxDelayMs[0]
-            final fun <get-maxDelayMs>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxDelayMs.<get-maxDelayMs>|<get-maxDelayMs>(){}[0]
+            final fun <get-maxDelayMs>(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxDelayMs.<get-maxDelayMs>|<get-maxDelayMs>(){}[0]
         final val maxScheduled // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxScheduled|{}maxScheduled[0]
-            final fun <get-maxScheduled>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxScheduled.<get-maxScheduled>|<get-maxScheduled>(){}[0]
+            final fun <get-maxScheduled>(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.maxScheduled.<get-maxScheduled>|<get-maxScheduled>(){}[0]
 
-        final fun component1(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.component1|component1(){}[0]
-        final fun component2(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.component2|component2(){}[0]
-        final fun copy(kotlin/Long? = ..., kotlin/Long? = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.copy|copy(kotlin.Long?;kotlin.Long?){}[0]
+        final fun component1(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.component1|component1(){}[0]
+        final fun component2(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.component2|component2(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin/Long = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.copy|copy(kotlin.Long;kotlin.Long){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents.toString|toString(){}[0]
@@ -7016,14 +7016,12 @@ final class de.connect2x.trixnity.clientserverapi.model.room/SendMessageEvent : 
 }
 
 final class de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.core.model.events/StateEventContent, de.connect2x.trixnity.clientserverapi.model.room/SendEventResponse> { // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String = ..., kotlin/Long? = ..., kotlin/Long? = ..., kotlin/Long? = ...) // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String;kotlin.Long?;kotlin.Long?;kotlin.Long?){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/String = ..., kotlin/Long? = ...) // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String;kotlin.Long?){}[0]
 
     final val roomId // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.roomId|{}roomId[0]
         final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.roomId.<get-roomId>|<get-roomId>(){}[0]
     final val stateKey // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.stateKey|{}stateKey[0]
         final fun <get-stateKey>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.stateKey.<get-stateKey>|<get-stateKey>(){}[0]
-    final val stickyDurationMs // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.stickyDurationMs|{}stickyDurationMs[0]
-        final fun <get-stickyDurationMs>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.stickyDurationMs.<get-stickyDurationMs>|<get-stickyDurationMs>(){}[0]
     final val ts // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.ts|{}ts[0]
         final fun <get-ts>(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.ts.<get-ts>|<get-ts>(){}[0]
     final val type // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.type|{}type[0]
@@ -7033,7 +7031,7 @@ final class de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent : de
     final fun component2(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.component2|component2(){}[0]
     final fun component3(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.component3|component3(){}[0]
     final fun component4(): kotlin/Long? // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.component4|component4(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/RoomId = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Long? = ..., kotlin/Long? = ..., kotlin/Long? = ...): de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.copy|copy(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String;kotlin.Long?;kotlin.Long?;kotlin.Long?){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/RoomId = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Long? = ...): de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.copy|copy(de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.String;kotlin.Long?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.hashCode|hashCode(){}[0]
     final fun requestSerializerBuilder(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings, kotlinx.serialization.json/Json, de.connect2x.trixnity.core.model.events/StateEventContent?): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events/StateEventContent> // de.connect2x.trixnity.clientserverapi.model.room/SendStateEvent.requestSerializerBuilder|requestSerializerBuilder(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.json.Json;de.connect2x.trixnity.core.model.events.StateEventContent?){}[0]
@@ -12306,6 +12304,8 @@ final val de.connect2x.trixnity.clientserverapi.model.server/accountModeration /
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-accountModeration>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.AccountModeration // de.connect2x.trixnity.clientserverapi.model.server/accountModeration.<get-accountModeration>|<get-accountModeration>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/changePassword // de.connect2x.trixnity.clientserverapi.model.server/changePassword|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}changePassword[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-changePassword>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.ChangePassword // de.connect2x.trixnity.clientserverapi.model.server/changePassword.<get-changePassword>|<get-changePassword>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
+final val de.connect2x.trixnity.clientserverapi.model.server/delayedEvents // de.connect2x.trixnity.clientserverapi.model.server/delayedEvents|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}delayedEvents[0]
+    final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-delayedEvents>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.DelayedEvents? // de.connect2x.trixnity.clientserverapi.model.server/delayedEvents.<get-delayedEvents>|<get-delayedEvents>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}forgetForcedUponLeave[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-forgetForcedUponLeave>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.ForgetForcedUponLeave // de.connect2x.trixnity.clientserverapi.model.server/forgetForcedUponLeave.<get-forgetForcedUponLeave>|<get-forgetForcedUponLeave>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/getLoginToken // de.connect2x.trixnity.clientserverapi.model.server/getLoginToken|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}getLoginToken[0]

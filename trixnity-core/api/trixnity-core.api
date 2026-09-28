@@ -2647,7 +2647,7 @@ public abstract interface class de/connect2x/trixnity/core/model/events/RoomEven
 public abstract interface class de/connect2x/trixnity/core/model/events/StateEventContent : de/connect2x/trixnity/core/model/events/RoomEventContent {
 }
 
-public abstract interface class de/connect2x/trixnity/core/model/events/StickyEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent, de/connect2x/trixnity/core/model/events/StateEventContent {
+public abstract interface class de/connect2x/trixnity/core/model/events/StickyEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent {
 	public abstract fun getStickyKey ()Ljava/lang/String;
 }
 

@@ -19,13 +19,14 @@ import kotlinx.serialization.encoding.Encoder
 @KeepGeneratedSerializer
 @Serializable(with = StoredStickyEvent.Serializer::class)
 data class StoredStickyEvent<T : StickyEventContent>(
-    val event: @Contextual RoomEvent<T>,
+    val event: @Contextual RoomEvent.MessageEvent<T>,
     val startTime: Instant,
     val endTime: Instant,
 ) {
     object Serializer : KSerializer<StoredStickyEvent<StickyEventContent>> {
         private val generatedSerializer =
             generatedSerializer(
+                /** This serializer is never used, because of @Contextual */
                 object : KSerializer<StickyEventContent> {
                     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("DummyStickyEventContent")
 
