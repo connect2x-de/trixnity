@@ -12329,32 +12329,19 @@ final object de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication { 
     final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.toString|toString(){}[0]
 
     final class Member : de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member|null[0]
-        constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent? = ...) // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.Intent?){}[0]
+        constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? = ..., de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? = ...) // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.MediaType?;de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.MediaType?){}[0]
 
+        final val capabilities // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.capabilities|{}capabilities[0]
+            final fun <get-capabilities>(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.capabilities.<get-capabilities>|<get-capabilities>(){}[0]
         final val intent // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.intent|{}intent[0]
-            final fun <get-intent>(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.intent.<get-intent>|<get-intent>(){}[0]
+            final fun <get-intent>(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.intent.<get-intent>|<get-intent>(){}[0]
 
-        final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.component1|component1(){}[0]
-        final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent? = ...): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.Intent?){}[0]
+        final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.component1|component1(){}[0]
+        final fun component2(): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.component2|component2(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? = ..., de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType? = ...): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.MediaType?;de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication.Member.MediaType?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.toString|toString(){}[0]
-
-        final enum class Intent : kotlin/Enum<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent> { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent|null[0]
-            enum entry AUDIO // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.AUDIO|null[0]
-            enum entry VIDEO // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.VIDEO|null[0]
-
-            final val entries // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.entries|#static{}entries[0]
-                final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.entries.<get-entries>|<get-entries>#static(){}[0]
-
-            final fun valueOf(kotlin/String): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.valueOf|valueOf#static(kotlin.String){}[0]
-            final fun values(): kotlin/Array<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.values|values#static(){}[0]
-
-            final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.Companion|null[0]
-                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.Companion.serializer|serializer(){}[0]
-                final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Intent.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
-            }
-        }
 
         final enum class LeaveReasonCode : kotlin/Enum<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode> { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode|null[0]
             enum entry CODE_MISMATCH // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode.CODE_MISMATCH|null[0]
@@ -12368,6 +12355,22 @@ final object de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication { 
 
             final fun valueOf(kotlin/String): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode.valueOf|valueOf#static(kotlin.String){}[0]
             final fun values(): kotlin/Array<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.LeaveReasonCode.values|values#static(){}[0]
+        }
+
+        final enum class MediaType : kotlin/Enum<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType> { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType|null[0]
+            enum entry AUDIO // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.AUDIO|null[0]
+            enum entry VIDEO // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.VIDEO|null[0]
+
+            final val entries // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.entries|#static{}entries[0]
+                final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+            final fun valueOf(kotlin/String): de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.valueOf|valueOf#static(kotlin.String){}[0]
+            final fun values(): kotlin/Array<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.values|values#static(){}[0]
+
+            final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.Companion|null[0]
+                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.Companion.serializer|serializer(){}[0]
+                final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.MediaType.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+            }
         }
 
         final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member> { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.$serializer|null[0]
