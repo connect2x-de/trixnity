@@ -1047,13 +1047,13 @@ class RoomServiceImpl(
         sender: UserId,
         stickyKey: String?,
     ): Flow<ClientEvent.RoomEvent<C>?> {
-        return stickyEventStore.getBySenderAndStickyKey(roomId, eventContentClass, sender, stickyKey).map { it?.event }
+        return stickyEventStore.getBySenderAndStickyKey(roomId, eventContentClass, sender, stickyKey)
     }
 
     override fun <C : StickyEventContent> getAllSticky(
         roomId: RoomId,
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return stickyEventStore.get(roomId, eventContentClass).map { it.mapValues { it.value.map { it?.event } } }
+        return stickyEventStore.get(roomId, eventContentClass)
     }
 }
