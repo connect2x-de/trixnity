@@ -11,6 +11,7 @@ import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
@@ -112,11 +113,11 @@ class StickyEventStore(
     fun <C : StickyEventContent> get(
         roomId: RoomId,
         eventContentClass: KClass<C>,
-    ): Flow<Map<Pair<UserId, String?>, Flow<StoredStickyEvent<C>?>>> {
+    ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> {
         val eventType = findType(eventContentClass)
         return stickyEventCache.getByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
             value
-                .mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid() }
+                .mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid().map { it?.event } }
                 .mapKeys { it.key.sender to it.key.stickyKey }
         }
     }
@@ -126,7 +127,7 @@ class StickyEventStore(
         eventContentClass: KClass<C>,
         sender: UserId,
         stickyKey: String?,
-    ): Flow<StoredStickyEvent<C>?> {
+    ): Flow<ClientEvent.RoomEvent.MessageEvent<C>?> {
         val eventType = findType(eventContentClass)
         return stickyEventCache
             .get(
@@ -137,6 +138,7 @@ class StickyEventStore(
             )
             .filterIsContent(eventContentClass)
             .filterValid()
+            .map { it?.event }
     }
 
     private fun <C : StickyEventContent> Flow<StoredStickyEvent<*>?>.filterIsContent(eventContentClass: KClass<C>) =
@@ -187,12 +189,13 @@ class StickyEventStore(
 @OptIn(MSC4354::class)
 inline fun <reified C : StickyEventContent> StickyEventStore.get(
     roomId: RoomId
-): Flow<Map<Pair<UserId, String?>, Flow<StoredStickyEvent<C>?>>> = get(roomId = roomId, eventContentClass = C::class)
+): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> =
+    get(roomId = roomId, eventContentClass = C::class)
 
 @OptIn(MSC4354::class)
 inline fun <reified C : StickyEventContent> StickyEventStore.getBySenderAndStickyKey(
     roomId: RoomId,
     sender: UserId,
     stickyKey: String? = null,
-): Flow<StoredStickyEvent<C>?> =
+): Flow<ClientEvent.RoomEvent.MessageEvent<C>?> =
     getBySenderAndStickyKey(roomId = roomId, eventContentClass = C::class, sender = sender, stickyKey = stickyKey)

@@ -149,6 +149,6 @@ class StickyEventStoreTest : TrixnityBaseTest() {
         val result = backgroundScope.async {
             cut.getBySenderAndStickyKey<RtcMemberEventContent>(roomId, sender, "sticky_key").take(2).toList()
         }
-        result.await() shouldBe listOf(storedStickyEvent, null)
+        result.await() shouldBe listOf(storedStickyEvent.event, null)
     }
 }

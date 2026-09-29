@@ -151,14 +151,20 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
         delay(2.seconds)
         cut.setStickyEvents(listOf(event1, event2))
 
-        store
-            .getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1")
-            .first()
-            ?.startTime shouldBe Instant.fromEpochMilliseconds(0) + 1.seconds
-        store
-            .getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky2")
-            .first()
-            ?.startTime shouldBe Instant.fromEpochMilliseconds(0) + 2.seconds
+        tm.readTransaction {
+            repository
+                .get(
+                    StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member"),
+                    StickyEventRepositorySecondKey(alice, "sticky1"),
+                )
+                ?.startTime shouldBe Instant.fromEpochMilliseconds(0) + 1.seconds
+            repository
+                .get(
+                    StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member"),
+                    StickyEventRepositorySecondKey(alice, "sticky2"),
+                )
+                ?.startTime shouldBe Instant.fromEpochMilliseconds(0) + 2.seconds
+        }
     }
 
     @OptIn(MSC4193::class)
@@ -218,12 +224,26 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
         delay(2.seconds)
         cut.setStickyEvents(listOf(event1, event2, event3))
 
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky1").first()?.endTime shouldBe
-            Instant.fromEpochMilliseconds(0) + 2.seconds
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky2").first()?.endTime shouldBe
-            Instant.fromEpochMilliseconds(0) + 2.seconds + 10.minutes
-        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky3").first()?.endTime shouldBe
-            Instant.fromEpochMilliseconds(0) + 2.seconds + 1.hours
+        tm.readTransaction {
+            repository
+                .get(
+                    StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member"),
+                    StickyEventRepositorySecondKey(alice, "sticky1"),
+                )
+                ?.endTime shouldBe Instant.fromEpochMilliseconds(0) + 2.seconds
+            repository
+                .get(
+                    StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member"),
+                    StickyEventRepositorySecondKey(alice, "sticky2"),
+                )
+                ?.endTime shouldBe Instant.fromEpochMilliseconds(0) + 2.seconds + 10.minutes
+            repository
+                .get(
+                    StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member"),
+                    StickyEventRepositorySecondKey(alice, "sticky3"),
+                )
+                ?.endTime shouldBe Instant.fromEpochMilliseconds(0) + 2.seconds + 1.hours
+        }
     }
 
     @Test
@@ -283,7 +303,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
             .getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky")
             .first()
             .shouldNotBeNull()
-            .event
             .content shouldBe decryptedContent
     }
 
