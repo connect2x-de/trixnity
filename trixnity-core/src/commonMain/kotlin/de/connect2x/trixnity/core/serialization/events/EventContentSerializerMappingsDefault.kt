@@ -153,7 +153,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     toDeviceOf<SasMacEventContent>("m.key.verification.mac")
     toDeviceOf<SecretKeyRequestEventContent>("m.secret.request")
     toDeviceOf<SecretKeySendEventContent>("m.secret.send")
-    toDeviceOf<RoomKeyBundleEventContent>(" m.room_key_bundle")
+    toDeviceOf<RoomKeyBundleEventContent>("m.room_key_bundle")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("org.matrix.msc4143.rtc.encryption_key")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("m.rtc.encryption_key")
 
