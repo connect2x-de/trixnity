@@ -22,6 +22,8 @@ class MediaServiceMock : MediaService {
         throw NotImplementedError()
     }
 
+    var returnGetEncryptedMedia: Result<PlatformMedia>? = null
+
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
@@ -29,7 +31,7 @@ class MediaServiceMock : MediaService {
         progress: MutableStateFlow<FileTransferProgress?>?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> {
-        throw NotImplementedError()
+        return checkNotNull(returnGetEncryptedMedia)
     }
 
     override suspend fun getThumbnail(

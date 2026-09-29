@@ -3,6 +3,7 @@ package de.connect2x.trixnity.clientserverapi.model.user
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.PUT
 import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.UserId
 import io.ktor.resources.*
 import kotlinx.serialization.SerialName

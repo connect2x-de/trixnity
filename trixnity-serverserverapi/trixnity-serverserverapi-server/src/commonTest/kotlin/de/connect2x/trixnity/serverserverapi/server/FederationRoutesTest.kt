@@ -3,6 +3,8 @@ package de.connect2x.trixnity.serverserverapi.server
 import de.connect2x.trixnity.api.server.matrixApiServer
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -55,7 +57,6 @@ import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid
 import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid.Request.ThirdPartyInvite
 import de.connect2x.trixnity.serverserverapi.model.federation.PduTransaction
 import de.connect2x.trixnity.serverserverapi.model.federation.QueryDirectory
-import de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile
 import de.connect2x.trixnity.serverserverapi.model.federation.SendJoin
 import de.connect2x.trixnity.serverserverapi.model.federation.SendKnock
 import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction
@@ -81,7 +82,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -1611,7 +1611,9 @@ class FederationRoutesTest : TrixnityBaseTest() {
     fun shouldQueryProfile() = testApplication {
         initCut()
         everySuspend { handlerMock.queryProfile(any()) }
-            .returns(QueryProfile.Response(displayname = "John Doe", avatarUrl = "mxc://matrix.org/MyC00lAvatar"))
+            .returns(
+                Profile(ProfileField.AvatarUrl("mxc://matrix.org/MyC00lAvatar"), ProfileField.DisplayName("John Doe"))
+            )
         val response =
             client.get("/_matrix/federation/v1/query/profile?user_id=@user:server&field=displayname") {
                 someSignature()
@@ -1632,7 +1634,7 @@ class FederationRoutesTest : TrixnityBaseTest() {
             handlerMock.queryProfile(
                 assert {
                     it.endpoint.userId shouldBe UserId("@user:server")
-                    it.endpoint.field shouldBe QueryProfile.Field.DISPLAYNNAME
+                    it.endpoint.field shouldBe ProfileField.DisplayName
                 }
             )
         }

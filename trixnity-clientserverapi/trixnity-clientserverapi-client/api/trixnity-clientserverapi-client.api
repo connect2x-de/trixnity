@@ -570,6 +570,8 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Roo
 	public abstract fun getJoinedRooms-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getMembers-qAam-eA (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getMembers-qAam-eA$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun getMutualRooms-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun getMutualRooms-Tj7rLLc$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getPublicRooms-BWLJW6A (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getPublicRooms-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getPublicRooms-bMdYcbs (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/room/GetPublicRoomsWithFilter$Request$Filter;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -650,6 +652,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/RoomApiClient$De
 	public static synthetic fun getEvents-xdRbQfQ$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/room/GetEvents$Direction;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getHierarchy-nZK1u9w$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getMembers-qAam-eA$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun getMutualRooms-Tj7rLLc$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getPublicRooms-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getPublicRooms-bMdYcbs$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/room/GetPublicRoomsWithFilter$Request$Filter;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun getRelations-FRUAfzw$default (Lde/connect2x/trixnity/clientserverapi/client/RoomApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -702,6 +705,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/RoomApiClientImp
 	public fun getJoinedMembers-8ygoEXc (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getJoinedRooms-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getMembers-qAam-eA (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getMutualRooms-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getPublicRooms-BWLJW6A (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getPublicRooms-bMdYcbs (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/room/GetPublicRoomsWithFilter$Request$Filter;Ljava/lang/Boolean;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getRelations-FRUAfzw (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -964,14 +968,14 @@ public final class de/connect2x/trixnity/clientserverapi/client/UnauthenticatedM
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/UserApiClient {
-	public abstract fun deleteProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getAccountData-Wo0uVPo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun getAccountData-Wo0uVPo$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun getContentMappings ()Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
 	public abstract fun getFilter-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getPresence-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getProfile-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun reportUser-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun searchUsers-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun searchUsers-BWLJW6A$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -986,7 +990,7 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/client/Use
 	public abstract fun setFilter-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun setPresence-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/Presence;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun setPresence-ox9Ts-Y$default (Lde/connect2x/trixnity/clientserverapi/client/UserApiClient;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/Presence;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public abstract fun setProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/client/UserApiClient$DefaultImpls {
@@ -1001,13 +1005,13 @@ public final class de/connect2x/trixnity/clientserverapi/client/UserApiClient$De
 
 public final class de/connect2x/trixnity/clientserverapi/client/UserApiClientImpl : de/connect2x/trixnity/clientserverapi/client/UserApiClient {
 	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiBaseClient;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)V
-	public fun deleteProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getAccountData-Wo0uVPo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getContentMappings ()Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
 	public fun getFilter-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getPresence-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getProfile-urntecw (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun reportUser-Tj7rLLc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun searchUsers-BWLJW6A (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendToDevice-0E7RQCE (Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1016,7 +1020,7 @@ public final class de/connect2x/trixnity/clientserverapi/client/UserApiClientImp
 	public fun setAccountData-Wo0uVPo (Lde/connect2x/trixnity/core/model/events/GlobalAccountDataEventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setFilter-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun setPresence-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/Presence;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun setProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setProfileField-Tj7rLLc (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/clientserverapi/client/oauth2/ApplicationType {

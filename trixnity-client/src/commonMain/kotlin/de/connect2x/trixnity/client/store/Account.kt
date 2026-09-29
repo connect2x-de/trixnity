@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.client.store
 
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.core.model.Profile
 import de.connect2x.trixnity.core.model.UserId
 import kotlinx.serialization.Serializable
 
@@ -18,6 +18,7 @@ data class Account(
     val syncBatchToken: String?,
     val filter: Filter? = null,
     val profile: Profile? = null,
+    val keyBackupEnabled: Boolean? = null,
 ) {
     @Serializable data class Filter(val syncFilterId: String, val syncOnceFilterId: String, val eventTypesHash: String)
 }

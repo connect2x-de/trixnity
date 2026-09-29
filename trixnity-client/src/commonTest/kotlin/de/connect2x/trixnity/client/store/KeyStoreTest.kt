@@ -10,6 +10,7 @@ import de.connect2x.trixnity.client.store.repository.InMemoryDeviceKeysRepositor
 import de.connect2x.trixnity.client.store.repository.InMemoryKeyChainLinkRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryKeyVerificationStateRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryOutdatedKeysRepository
+import de.connect2x.trixnity.client.store.repository.InMemoryRoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.InMemorySecretKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.InMemorySecretsRepository
@@ -17,6 +18,7 @@ import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.SecretKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.SecretsRepository
@@ -50,6 +52,7 @@ class KeyStoreTest : TrixnityBaseTest() {
     private val secretsRepository = InMemorySecretsRepository() as SecretsRepository
     private val secretKeyRequestRepository = InMemorySecretKeyRequestRepository() as SecretKeyRequestRepository
     private val roomKeyRequestRepository = InMemoryRoomKeyRequestRepository() as RoomKeyRequestRepository
+    private val roomKeyBundlesRepository = InMemoryRoomKeyBundlesRepository() as RoomKeyBundlesRepository
 
     private val cut =
         KeyStore(
@@ -61,6 +64,7 @@ class KeyStoreTest : TrixnityBaseTest() {
             secretsRepository = secretsRepository,
             secretKeyRequestRepository = secretKeyRequestRepository,
             roomKeyRequestRepository = roomKeyRequestRepository,
+            roomKeyBundlesRepository = roomKeyBundlesRepository,
             tm = tm,
             config = MatrixClientConfiguration(),
             statisticCollector = ObservableCacheStatisticCollector(),

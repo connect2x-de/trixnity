@@ -23,6 +23,7 @@ sealed interface RoomKeyBackupSessionData {
             @SerialName("sender_claimed_keys") val senderClaimedKeys: Keys,
             @SerialName("session_key") val sessionKey: ExportedSessionKeyValue,
             @SerialName("algorithm") val algorithm: EncryptionAlgorithm = EncryptionAlgorithm.Megolm,
+            @SerialName("shared_history") val sharedHistory: Boolean? = null,
         )
     }
 

@@ -23,6 +23,7 @@ import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomRepository
@@ -82,6 +83,7 @@ fun RepositoriesModule.Companion.room(databaseBuilder: RoomDatabase.Builder<Trix
             singleOf(::RoomNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
             singleOf(::RoomMigrationRepository) { bind<MigrationRepository>() }
             @OptIn(MSC4354::class) singleOf(::RoomStickyEventRepository) { bind<StickyEventRepository>() }
+            singleOf(::RoomRoomKeyBundlesRepository) { bind<RoomKeyBundlesRepository>() }
         }
     }
 

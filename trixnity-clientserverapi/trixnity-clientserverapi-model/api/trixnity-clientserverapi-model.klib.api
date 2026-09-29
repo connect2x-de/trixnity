@@ -1096,22 +1096,22 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.server/Capability {
     }
 
     final class ProfileFields : de.connect2x.trixnity.clientserverapi.model.server/Capability { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields|null[0]
-        constructor <init>(kotlin/Boolean, kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? = ...) // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.<init>|<init>(kotlin.Boolean;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>>?;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>>?){}[0]
+        constructor <init>(kotlin/Boolean, kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? = ..., kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? = ...) // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.<init>|<init>(kotlin.Boolean;kotlin.collections.Set<de.connect2x.trixnity.core.model.ProfileField.Key<*>>?;kotlin.collections.Set<de.connect2x.trixnity.core.model.ProfileField.Key<*>>?){}[0]
 
         final val allowed // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.allowed|{}allowed[0]
-            final fun <get-allowed>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.allowed.<get-allowed>|<get-allowed>(){}[0]
+            final fun <get-allowed>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.allowed.<get-allowed>|<get-allowed>(){}[0]
         final val disallowed // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.disallowed|{}disallowed[0]
-            final fun <get-disallowed>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.disallowed.<get-disallowed>|<get-disallowed>(){}[0]
+            final fun <get-disallowed>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.disallowed.<get-disallowed>|<get-disallowed>(){}[0]
         final val enabled // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.enabled|{}enabled[0]
             final fun <get-enabled>(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.enabled.<get-enabled>|<get-enabled>(){}[0]
 
         final fun component1(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.component1|component1(){}[0]
-        final fun component2(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.component2|component2(){}[0]
-        final fun component3(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.component3|component3(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? = ..., kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>>? = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.copy|copy(kotlin.Boolean;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>>?;kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>>?){}[0]
+        final fun component2(): kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.component2|component2(){}[0]
+        final fun component3(): kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.component3|component3(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? = ..., kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField.Key<*>>? = ...): de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.copy|copy(kotlin.Boolean;kotlin.collections.Set<de.connect2x.trixnity.core.model.ProfileField.Key<*>>?;kotlin.collections.Set<de.connect2x.trixnity.core.model.ProfileField.Key<*>>?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.hashCode|hashCode(){}[0]
-        final fun isChangeAllowed(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.isChangeAllowed|isChangeAllowed(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+        final fun isChangeAllowed(de.connect2x.trixnity.core.model/ProfileField.Key<*>): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.isChangeAllowed|isChangeAllowed(de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.toString|toString(){}[0]
 
         final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields> { // de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields.$serializer|null[0]
@@ -1708,168 +1708,6 @@ sealed interface de.connect2x.trixnity.clientserverapi.model.uia/AuthenticationT
             final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.uia/AuthenticationType.TermsOfService // de.connect2x.trixnity.clientserverapi.model.uia/AuthenticationType.TermsOfService.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
             final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.uia/AuthenticationType.TermsOfService) // de.connect2x.trixnity.clientserverapi.model.uia/AuthenticationType.TermsOfService.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType.TermsOfService){}[0]
         }
-    }
-}
-
-sealed interface de.connect2x.trixnity.clientserverapi.model.user/ProfileField { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField|null[0]
-    abstract val key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.key|{}key[0]
-        abstract fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.key.<get-key>|<get-key>(){}[0]
-
-    abstract interface <#A1: de.connect2x.trixnity.clientserverapi.model.user/ProfileField> Key { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key|null[0]
-        abstract val name // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.name|{}name[0]
-            abstract fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.name.<get-name>|<get-name>(){}[0]
-
-        final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Companion|null[0]
-            final fun <#A3: kotlin/Any?> serializer(kotlinx.serialization/KSerializer<#A3>): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<#A3>> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Companion.serializer|serializer(kotlinx.serialization.KSerializer<0:0>){0§<kotlin.Any?>}[0]
-            final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
-        }
-
-        final object Serializer : kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
-        }
-    }
-
-    final class AvatarUrl : de.connect2x.trixnity.clientserverapi.model.user/ProfileField { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl|null[0]
-        constructor <init>(kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.<init>|<init>(kotlin.String?){}[0]
-
-        final val key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.key|{}key[0]
-            final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.key.<get-key>|<get-key>(){}[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.value|{}value[0]
-            final fun <get-value>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.value.<get-value>|<get-value>(){}[0]
-
-        final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.component1|component1(){}[0]
-        final fun copy(kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.copy|copy(kotlin.String?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.AvatarUrl){}[0]
-        }
-
-        final object Key : de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key|null[0]
-            final val name // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key.name|{}name[0]
-                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key.name.<get-name>|<get-name>(){}[0]
-
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key.serializer|serializer(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl.Key.toString|toString(){}[0]
-        }
-    }
-
-    final class DisplayName : de.connect2x.trixnity.clientserverapi.model.user/ProfileField { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName|null[0]
-        constructor <init>(kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.<init>|<init>(kotlin.String?){}[0]
-
-        final val key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.key|{}key[0]
-            final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.key.<get-key>|<get-key>(){}[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.value|{}value[0]
-            final fun <get-value>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.value.<get-value>|<get-value>(){}[0]
-
-        final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.component1|component1(){}[0]
-        final fun copy(kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.copy|copy(kotlin.String?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.DisplayName){}[0]
-        }
-
-        final object Key : de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key|null[0]
-            final val name // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key.name|{}name[0]
-                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key.name.<get-name>|<get-name>(){}[0]
-
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key.serializer|serializer(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.DisplayName.Key.toString|toString(){}[0]
-        }
-    }
-
-    final class TimeZone : de.connect2x.trixnity.clientserverapi.model.user/ProfileField { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone|null[0]
-        constructor <init>(kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.<init>|<init>(kotlin.String?){}[0]
-
-        final val key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.key|{}key[0]
-            final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.key.<get-key>|<get-key>(){}[0]
-        final val value // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.value|{}value[0]
-            final fun <get-value>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.value.<get-value>|<get-value>(){}[0]
-
-        final fun component1(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.component1|component1(){}[0]
-        final fun copy(kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.copy|copy(kotlin.String?){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.toString|toString(){}[0]
-
-        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer|null[0]
-            final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer.descriptor|{}descriptor[0]
-                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer.childSerializers|childSerializers(){}[0]
-            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.TimeZone){}[0]
-        }
-
-        final object Key : de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.AvatarUrl> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key|null[0]
-            final val name // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key.name|{}name[0]
-                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key.name.<get-name>|<get-name>(){}[0]
-
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key.serializer|serializer(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.TimeZone.Key.toString|toString(){}[0]
-        }
-    }
-
-    final class Unknown : de.connect2x.trixnity.clientserverapi.model.user/ProfileField { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown|null[0]
-        constructor <init>(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key, kotlinx.serialization.json/JsonElement) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.<init>|<init>(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Unknown.Key;kotlinx.serialization.json.JsonElement){}[0]
-        constructor <init>(kotlin/String, kotlinx.serialization.json/JsonElement) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.<init>|<init>(kotlin.String;kotlinx.serialization.json.JsonElement){}[0]
-
-        final val key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.key|{}key[0]
-            final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.key.<get-key>|<get-key>(){}[0]
-        final val raw // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.raw|{}raw[0]
-            final fun <get-raw>(): kotlinx.serialization.json/JsonElement // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.raw.<get-raw>|<get-raw>(){}[0]
-
-        final fun component1(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.component1|component1(){}[0]
-        final fun component2(): kotlinx.serialization.json/JsonElement // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.component2|component2(){}[0]
-        final fun copy(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key = ..., kotlinx.serialization.json/JsonElement = ...): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.copy|copy(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Unknown.Key;kotlinx.serialization.json.JsonElement){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.toString|toString(){}[0]
-
-        final class Key : de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key|null[0]
-            constructor <init>(kotlin/String) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.<init>|<init>(kotlin.String){}[0]
-
-            final val name // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.name|{}name[0]
-                final fun <get-name>(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.name.<get-name>|<get-name>(){}[0]
-
-            final fun component1(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.component1|component1(){}[0]
-            final fun copy(kotlin/String = ...): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.copy|copy(kotlin.String){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown.Key.toString|toString(){}[0]
-        }
-    }
-
-    final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Companion|null[0]
-        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Companion.serializer|serializer(){}[0]
-        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
-    }
-
-    final object Serializer : kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/ProfileField> { // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/ProfileField // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/ProfileField) // de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.ProfileField){}[0]
     }
 }
 
@@ -5299,6 +5137,69 @@ final class de.connect2x.trixnity.clientserverapi.model.room/GetMembers : de.con
         final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.room/GetMembers.Companion.$childSerializers|{}$childSerializers[0]
 
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.room/GetMembers> // de.connect2x.trixnity.clientserverapi.model.room/GetMembers.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response> { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String?){}[0]
+
+    final val from // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.from|{}from[0]
+        final fun <get-from>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.from.<get-from>|<get-from>(){}[0]
+    final val userId // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.toString|toString(){}[0]
+
+    final class Response { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response|null[0]
+        constructor <init>(kotlin/Long, kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId>, kotlin/String? = ...) // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.<init>|<init>(kotlin.Long;kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>;kotlin.String?){}[0]
+
+        final val count // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.count|{}count[0]
+            final fun <get-count>(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.count.<get-count>|<get-count>(){}[0]
+        final val joined // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.joined|{}joined[0]
+            final fun <get-joined>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.joined.<get-joined>|<get-joined>(){}[0]
+        final val nextBatch // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.nextBatch|{}nextBatch[0]
+            final fun <get-nextBatch>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.nextBatch.<get-nextBatch>|<get-nextBatch>(){}[0]
+
+        final fun component1(): kotlin/Long // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.component1|component1(){}[0]
+        final fun component2(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.component2|component2(){}[0]
+        final fun component3(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.component3|component3(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> = ..., kotlin/String? = ...): de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.copy|copy(kotlin.Long;kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>;kotlin.String?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response> { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response) // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.room.GetMutualRooms.Response){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.Companion|null[0]
+            final val $childSerializers // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Response.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms> { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms) // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.room.GetMutualRooms){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms> // de.connect2x.trixnity.clientserverapi.model.room/GetMutualRooms.Companion.serializer|serializer(){}[0]
     }
 }
 
@@ -9062,16 +8963,16 @@ final class de.connect2x.trixnity.clientserverapi.model.uia/UIAState { // de.con
 }
 
 final class de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, kotlin/Unit> { // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
 
     final val key // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.key|{}key[0]
-        final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.key.<get-key>|<get-key>(){}[0]
+        final fun <get-key>(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.key.<get-key>|<get-key>(){}[0]
     final val userId // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.userId|{}userId[0]
         final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.userId.<get-userId>|<get-userId>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/DeleteProfileField.toString|toString(){}[0]
@@ -9372,7 +9273,7 @@ final class de.connect2x.trixnity.clientserverapi.model.user/GetPresence : de.co
     }
 }
 
-final class de.connect2x.trixnity.clientserverapi.model.user/GetProfile : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.user/Profile> { // de.connect2x.trixnity.clientserverapi.model.user/GetProfile|null[0]
+final class de.connect2x.trixnity.clientserverapi.model.user/GetProfile : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.core.model/Profile> { // de.connect2x.trixnity.clientserverapi.model.user/GetProfile|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.clientserverapi.model.user/GetProfile.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
 
     final val userId // de.connect2x.trixnity.clientserverapi.model.user/GetProfile.userId|{}userId[0]
@@ -9398,17 +9299,17 @@ final class de.connect2x.trixnity.clientserverapi.model.user/GetProfile : de.con
     }
 }
 
-final class de.connect2x.trixnity.clientserverapi.model.user/GetProfileField : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.clientserverapi.model.user/ProfileField> { // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+final class de.connect2x.trixnity.clientserverapi.model.user/GetProfileField : de.connect2x.trixnity.core/MatrixEndpoint<kotlin/Unit, de.connect2x.trixnity.core.model/ProfileField> { // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
 
     final val key // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.key|{}key[0]
-        final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.key.<get-key>|<get-key>(){}[0]
+        final fun <get-key>(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.key.<get-key>|<get-key>(){}[0]
     final val userId // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.userId|{}userId[0]
         final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.userId.<get-userId>|<get-userId>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/GetProfileField // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/GetProfileField // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/GetProfileField.toString|toString(){}[0]
@@ -9671,17 +9572,17 @@ final class de.connect2x.trixnity.clientserverapi.model.user/SetPresence : de.co
     }
 }
 
-final class de.connect2x.trixnity.clientserverapi.model.user/SetProfileField : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.clientserverapi.model.user/ProfileField, kotlin/Unit> { // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+final class de.connect2x.trixnity.clientserverapi.model.user/SetProfileField : de.connect2x.trixnity.core/MatrixEndpoint<de.connect2x.trixnity.core.model/ProfileField, kotlin/Unit> { // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/ProfileField.Key<*>) // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.<init>|<init>(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
 
     final val key // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.key|{}key[0]
-        final fun <get-key>(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.key.<get-key>|<get-key>(){}[0]
+        final fun <get-key>(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.key.<get-key>|<get-key>(){}[0]
     final val userId // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.userId|{}userId[0]
         final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.userId.<get-userId>|<get-userId>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/SetProfileField // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model/ProfileField.Key<*> // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., de.connect2x.trixnity.core.model/ProfileField.Key<*> = ...): de.connect2x.trixnity.clientserverapi.model.user/SetProfileField // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.copy|copy(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.ProfileField.Key<*>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/SetProfileField.toString|toString(){}[0]
@@ -9730,42 +9631,6 @@ final value class de.connect2x.trixnity.clientserverapi.model.server/Capabilitie
 
     // Targets: [js]
     final fun asJsReadonlySetView(): kotlin.js.collections/JsReadonlySet<de.connect2x.trixnity.clientserverapi.model.server/Capability> // de.connect2x.trixnity.clientserverapi.model.server/Capabilities.asJsReadonlySetView|asJsReadonlySetView(){}[0]
-}
-
-final value class de.connect2x.trixnity.clientserverapi.model.user/Profile { // de.connect2x.trixnity.clientserverapi.model.user/Profile|null[0]
-    constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField>) // de.connect2x.trixnity.clientserverapi.model.user/Profile.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.clientserverapi.model.user.ProfileField>){}[0]
-    constructor <init>(kotlin/Array<out de.connect2x.trixnity.clientserverapi.model.user/ProfileField>...) // de.connect2x.trixnity.clientserverapi.model.user/Profile.<init>|<init>(kotlin.Array<out|de.connect2x.trixnity.clientserverapi.model.user.ProfileField>...){}[0]
-
-    final val size // de.connect2x.trixnity.clientserverapi.model.user/Profile.size|{}size[0]
-        final fun <get-size>(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/Profile.size.<get-size>|<get-size>(){}[0]
-    final val types // de.connect2x.trixnity.clientserverapi.model.user/Profile.types|{}types[0]
-        final fun <get-types>(): kotlin.collections/Set<de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>> // de.connect2x.trixnity.clientserverapi.model.user/Profile.types.<get-types>|<get-types>(){}[0]
-    final val values // de.connect2x.trixnity.clientserverapi.model.user/Profile.values|{}values[0]
-        final fun <get-values>(): kotlin.collections/Collection<de.connect2x.trixnity.clientserverapi.model.user/ProfileField> // de.connect2x.trixnity.clientserverapi.model.user/Profile.values.<get-values>|<get-values>(){}[0]
-
-    final fun <#A1: de.connect2x.trixnity.clientserverapi.model.user/ProfileField> get(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<#A1>): #A1? // de.connect2x.trixnity.clientserverapi.model.user/Profile.get|get(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<0:0>){0§<de.connect2x.trixnity.clientserverapi.model.user.ProfileField>}[0]
-    final fun contains(de.connect2x.trixnity.clientserverapi.model.user/ProfileField): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/Profile.contains|contains(de.connect2x.trixnity.clientserverapi.model.user.ProfileField){}[0]
-    final fun containsType(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/Profile.containsType|containsType(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/Profile.equals|equals(kotlin.Any?){}[0]
-    final fun getUnknown(kotlin/String): de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Unknown? // de.connect2x.trixnity.clientserverapi.model.user/Profile.getUnknown|getUnknown(kotlin.String){}[0]
-    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.clientserverapi.model.user/Profile.hashCode|hashCode(){}[0]
-    final fun isEmpty(): kotlin/Boolean // de.connect2x.trixnity.clientserverapi.model.user/Profile.isEmpty|isEmpty(){}[0]
-    final fun minus(de.connect2x.trixnity.clientserverapi.model.user/ProfileField): de.connect2x.trixnity.clientserverapi.model.user/Profile // de.connect2x.trixnity.clientserverapi.model.user/Profile.minus|minus(de.connect2x.trixnity.clientserverapi.model.user.ProfileField){}[0]
-    final fun minus(de.connect2x.trixnity.clientserverapi.model.user/ProfileField.Key<*>): de.connect2x.trixnity.clientserverapi.model.user/Profile // de.connect2x.trixnity.clientserverapi.model.user/Profile.minus|minus(de.connect2x.trixnity.clientserverapi.model.user.ProfileField.Key<*>){}[0]
-    final fun plus(de.connect2x.trixnity.clientserverapi.model.user/ProfileField): de.connect2x.trixnity.clientserverapi.model.user/Profile // de.connect2x.trixnity.clientserverapi.model.user/Profile.plus|plus(de.connect2x.trixnity.clientserverapi.model.user.ProfileField){}[0]
-    final fun toString(): kotlin/String // de.connect2x.trixnity.clientserverapi.model.user/Profile.toString|toString(){}[0]
-
-    final object Companion { // de.connect2x.trixnity.clientserverapi.model.user/Profile.Companion|null[0]
-        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/Profile> // de.connect2x.trixnity.clientserverapi.model.user/Profile.Companion.serializer|serializer(){}[0]
-    }
-
-    final object Serializer : kotlinx.serialization/KSerializer<de.connect2x.trixnity.clientserverapi.model.user/Profile> { // de.connect2x.trixnity.clientserverapi.model.user/Profile.Serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.clientserverapi.model.user/Profile.Serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.clientserverapi.model.user/Profile.Serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.clientserverapi.model.user/Profile // de.connect2x.trixnity.clientserverapi.model.user/Profile.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.clientserverapi.model.user/Profile) // de.connect2x.trixnity.clientserverapi.model.user/Profile.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.clientserverapi.model.user.Profile){}[0]
-    }
 }
 
 open class <#A: kotlin/Any?> de.connect2x.trixnity.clientserverapi.model.sync/ContextualSerializer : kotlinx.serialization/KSerializer<#A> { // de.connect2x.trixnity.clientserverapi.model.sync/ContextualSerializer|null[0]
@@ -12320,12 +12185,12 @@ final val de.connect2x.trixnity.clientserverapi.model.server/setDisplayName // d
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-setDisplayName>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.SetDisplayName // de.connect2x.trixnity.clientserverapi.model.server/setDisplayName.<get-setDisplayName>|<get-setDisplayName>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
 final val de.connect2x.trixnity.clientserverapi.model.server/thirdPartyChanges // de.connect2x.trixnity.clientserverapi.model.server/thirdPartyChanges|@de.connect2x.trixnity.clientserverapi.model.server.Capabilities{}thirdPartyChanges[0]
     final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).<get-thirdPartyChanges>(): de.connect2x.trixnity.clientserverapi.model.server/Capability.ThirdPartyChanges // de.connect2x.trixnity.clientserverapi.model.server/thirdPartyChanges.<get-thirdPartyChanges>|<get-thirdPartyChanges>@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(){}[0]
-final val de.connect2x.trixnity.clientserverapi.model.user/avatarUrl // de.connect2x.trixnity.clientserverapi.model.user/avatarUrl|@de.connect2x.trixnity.clientserverapi.model.user.Profile{}avatarUrl[0]
-    final fun (de.connect2x.trixnity.clientserverapi.model.user/Profile).<get-avatarUrl>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/avatarUrl.<get-avatarUrl>|<get-avatarUrl>@de.connect2x.trixnity.clientserverapi.model.user.Profile(){}[0]
-final val de.connect2x.trixnity.clientserverapi.model.user/displayName // de.connect2x.trixnity.clientserverapi.model.user/displayName|@de.connect2x.trixnity.clientserverapi.model.user.Profile{}displayName[0]
-    final fun (de.connect2x.trixnity.clientserverapi.model.user/Profile).<get-displayName>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/displayName.<get-displayName>|<get-displayName>@de.connect2x.trixnity.clientserverapi.model.user.Profile(){}[0]
-final val de.connect2x.trixnity.clientserverapi.model.user/timeZone // de.connect2x.trixnity.clientserverapi.model.user/timeZone|@de.connect2x.trixnity.clientserverapi.model.user.Profile{}timeZone[0]
-    final fun (de.connect2x.trixnity.clientserverapi.model.user/Profile).<get-timeZone>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/timeZone.<get-timeZone>|<get-timeZone>@de.connect2x.trixnity.clientserverapi.model.user.Profile(){}[0]
+final val de.connect2x.trixnity.clientserverapi.model.user/avatarUrl // de.connect2x.trixnity.clientserverapi.model.user/avatarUrl|@de.connect2x.trixnity.core.model.Profile{}avatarUrl[0]
+    final fun (de.connect2x.trixnity.core.model/Profile).<get-avatarUrl>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/avatarUrl.<get-avatarUrl>|<get-avatarUrl>@de.connect2x.trixnity.core.model.Profile(){}[0]
+final val de.connect2x.trixnity.clientserverapi.model.user/displayName // de.connect2x.trixnity.clientserverapi.model.user/displayName|@de.connect2x.trixnity.core.model.Profile{}displayName[0]
+    final fun (de.connect2x.trixnity.core.model/Profile).<get-displayName>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/displayName.<get-displayName>|<get-displayName>@de.connect2x.trixnity.core.model.Profile(){}[0]
+final val de.connect2x.trixnity.clientserverapi.model.user/timeZone // de.connect2x.trixnity.clientserverapi.model.user/timeZone|@de.connect2x.trixnity.core.model.Profile{}timeZone[0]
+    final fun (de.connect2x.trixnity.core.model/Profile).<get-timeZone>(): kotlin/String? // de.connect2x.trixnity.clientserverapi.model.user/timeZone.<get-timeZone>|<get-timeZone>@de.connect2x.trixnity.core.model.Profile(){}[0]
 
 final fun (de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/ServerMetadata).de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/accountManagementUri(de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/OAuth2AccountManagementAction, kotlin/String? = ...): io.ktor.http/Url? // de.connect2x.trixnity.clientserverapi.model.authentication.oauth2/accountManagementUri|accountManagementUri@de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ServerMetadata(de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction;kotlin.String?){}[0]
 final fun (de.connect2x.trixnity.clientserverapi.model.server/Capabilities).de.connect2x.trixnity.clientserverapi.model.server/profileFields(de.connect2x.trixnity.clientserverapi.model.server/GetVersions.Response): de.connect2x.trixnity.clientserverapi.model.server/Capability.ProfileFields // de.connect2x.trixnity.clientserverapi.model.server/profileFields|profileFields@de.connect2x.trixnity.clientserverapi.model.server.Capabilities(de.connect2x.trixnity.clientserverapi.model.server.GetVersions.Response){}[0]

@@ -29,6 +29,7 @@ import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -224,8 +225,8 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                     roomId = room,
                     firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                     hasBeenBackedUp = true,
-                    isTrusted = true,
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = true,
                     pickled = inboundSession.pickle(),
                 )
             }
@@ -250,8 +251,8 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                     roomId = room,
                     firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                     hasBeenBackedUp = true,
-                    isTrusted = true,
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = true,
                     pickled = inboundSession.pickle(),
                 )
             }

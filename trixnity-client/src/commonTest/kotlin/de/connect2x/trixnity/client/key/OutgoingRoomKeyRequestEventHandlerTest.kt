@@ -35,6 +35,7 @@ import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
@@ -124,8 +125,8 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 roomId = forwardedRoomKeyEvent.roomId,
                 firstKnownIndex = 0,
                 hasBeenBackedUp = false,
-                isTrusted = false,
-                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                source = InboundMegolmSessionSource.KeyRequest(listOf(forwardingSenderKey.value)),
+                sharedHistory = false,
                 pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
             )
     }
@@ -155,8 +156,8 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 roomId = forwardedRoomKeyEvent.roomId,
                 firstKnownIndex = 0,
                 hasBeenBackedUp = false,
-                isTrusted = false,
-                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                source = InboundMegolmSessionSource.KeyRequest(listOf(forwardingSenderKey.value)),
+                sharedHistory = false,
                 pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
             )
 
@@ -178,8 +179,8 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 roomId = forwardedRoomKeyEvent.roomId,
                 firstKnownIndex = 0,
                 hasBeenBackedUp = false,
-                isTrusted = false,
-                forwardingCurve25519KeyChain = listOf(forwardingSenderKey.value),
+                source = InboundMegolmSessionSource.KeyRequest(listOf(forwardingSenderKey.value)),
+                sharedHistory = true,
                 pickled = pickleToInbound(sessionKeys(1).last()),
             )
         tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(sessionId, room) { existingSession } }

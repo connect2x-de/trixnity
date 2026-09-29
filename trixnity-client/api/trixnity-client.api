@@ -40,7 +40,7 @@ public abstract interface class de/connect2x/trixnity/client/MatrixClient : java
 	public abstract fun clearCache-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun clearMediaCache-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun deleteProfileField-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteProfileField-gIAlu-s (Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getApi ()Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;
 	public abstract fun getBaseUrl ()Lio/ktor/http/Url;
 	public abstract fun getDeviceId ()Ljava/lang/String;
@@ -55,7 +55,7 @@ public abstract interface class de/connect2x/trixnity/client/MatrixClient : java
 	public abstract fun getSyncState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public abstract fun logout-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun setProfileField-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setProfileField-gIAlu-s (Lde/connect2x/trixnity/core/model/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun startSync (Lde/connect2x/trixnity/core/model/events/m/Presence;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun startSync$default (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/Presence;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun stopSync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -119,32 +119,34 @@ public final class de/connect2x/trixnity/client/MatrixClientAuthProviderDataSeri
 }
 
 public final class de/connect2x/trixnity/client/MatrixClientConfiguration {
-	public synthetic fun <init> (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component10-UwyO8pc ()J
-	public final fun component11 ()Lde/connect2x/trixnity/utils/RetryFlowDelayConfig;
-	public final fun component12 ()Lkotlin/jvm/functions/Function1;
-	public final fun component13 ()Lde/connect2x/trixnity/clientserverapi/model/user/Filters;
+	public final fun component10 ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;
+	public final fun component11-UwyO8pc ()J
+	public final fun component12 ()Lde/connect2x/trixnity/utils/RetryFlowDelayConfig;
+	public final fun component13 ()Lkotlin/jvm/functions/Function1;
 	public final fun component14 ()Lde/connect2x/trixnity/clientserverapi/model/user/Filters;
-	public final fun component15 ()Lio/ktor/client/engine/HttpClientEngine;
-	public final fun component16 ()Lkotlin/jvm/functions/Function1;
-	public final fun component17 ()Ljava/util/List;
-	public final fun component18 ()Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;
-	public final fun component19 ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;
+	public final fun component15 ()Lde/connect2x/trixnity/clientserverapi/model/user/Filters;
+	public final fun component16 ()Lio/ktor/client/engine/HttpClientEngine;
+	public final fun component17 ()Lkotlin/jvm/functions/Function1;
+	public final fun component18 ()Ljava/util/List;
+	public final fun component19 ()Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;
 	public final fun component2 ()Z
+	public final fun component20 ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;
 	public final fun component3 ()Z
 	public final fun component4 ()Z
 	public final fun component5 ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;
 	public final fun component6-UwyO8pc ()J
 	public final fun component7-UwyO8pc ()J
 	public final fun component8 ()Z
-	public final fun component9 ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;
-	public final fun copy-0rE52u0 (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;)Lde/connect2x/trixnity/client/MatrixClientConfiguration;
-	public static synthetic fun copy-0rE52u0$default (Lde/connect2x/trixnity/client/MatrixClientConfiguration;Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;ILjava/lang/Object;)Lde/connect2x/trixnity/client/MatrixClientConfiguration;
+	public final fun component9 ()Z
+	public final fun copy-weCs0-U (Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;)Lde/connect2x/trixnity/client/MatrixClientConfiguration;
+	public static synthetic fun copy-weCs0-U$default (Lde/connect2x/trixnity/client/MatrixClientConfiguration;Ljava/lang/String;ZZZLde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;JJZZLde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;JLde/connect2x/trixnity/utils/RetryFlowDelayConfig;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lde/connect2x/trixnity/clientserverapi/model/user/Filters;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClientFactory;Lde/connect2x/trixnity/client/MatrixClientConfiguration$ExperimentalFeatures;ILjava/lang/Object;)Lde/connect2x/trixnity/client/MatrixClientConfiguration;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAutoJoinUpgradedRooms ()Z
 	public final fun getCacheExpireDurations ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;
+	public final fun getDefaultKeyBackupEnabled ()Z
 	public final fun getDeleteRooms ()Lde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;
 	public final fun getDeleteSentOutboxMessageDelay-UwyO8pc ()J
 	public final fun getEnableExternalNotifications ()Z
@@ -165,6 +167,7 @@ public final class de/connect2x/trixnity/client/MatrixClientConfiguration {
 	public fun hashCode ()I
 	public final fun setAutoJoinUpgradedRooms (Z)V
 	public final fun setCacheExpireDurations (Lde/connect2x/trixnity/client/MatrixClientConfiguration$CacheExpireDurations;)V
+	public final fun setDefaultKeyBackupEnabled (Z)V
 	public final fun setDeleteRooms (Lde/connect2x/trixnity/client/MatrixClientConfiguration$DeleteRooms;)V
 	public final fun setDeleteSentOutboxMessageDelay-LRDsOJo (J)V
 	public final fun setEnableExternalNotifications (Z)V
@@ -283,7 +286,7 @@ public final class de/connect2x/trixnity/client/MatrixClientImpl : de/connect2x/
 	public fun clearMediaCache-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
 	public fun closeSuspending (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun deleteProfileField-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteProfileField-gIAlu-s (Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getApi ()Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;
 	public fun getBaseUrl ()Lio/ktor/http/Url;
 	public fun getDeviceId ()Ljava/lang/String;
@@ -299,7 +302,7 @@ public final class de/connect2x/trixnity/client/MatrixClientImpl : de/connect2x/
 	public fun getSyncState ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun logout-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun setProfileField-gIAlu-s (Lde/connect2x/trixnity/clientserverapi/model/user/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setProfileField-gIAlu-s (Lde/connect2x/trixnity/core/model/ProfileField;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun startSync (Lde/connect2x/trixnity/core/model/events/m/Presence;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun stopSync (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun syncOnce-BlKvXls (Lde/connect2x/trixnity/core/model/events/m/Presence;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -415,8 +418,13 @@ public final class de/connect2x/trixnity/client/key/CreateKeyModuleKt {
 	public static final fun createKeyModule ()Lorg/koin/core/module/Module;
 }
 
-public final class de/connect2x/trixnity/client/key/DehydratedDeviceService : de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/client/key/KeyService;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+public abstract interface class de/connect2x/trixnity/client/key/DehydratedDeviceService {
+	public abstract fun getPendingRehydration ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public final class de/connect2x/trixnity/client/key/DehydratedDeviceServiceImpl : de/connect2x/trixnity/client/key/DehydratedDeviceService, de/connect2x/trixnity/core/EventHandler {
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun getPendingRehydration ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -434,13 +442,15 @@ public abstract interface class de/connect2x/trixnity/client/key/KeyBackupServic
 	public abstract fun getVersion ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun keyBackupCanBeTrusted (Lde/connect2x/trixnity/clientserverapi/model/key/GetRoomKeysBackupVersionResponse;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadMegolmSession-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun loadMegolmSessions-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/key/KeyBackupServiceImpl : de/connect2x/trixnity/client/key/KeyBackupService, de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun getVersion ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun keyBackupCanBeTrusted (Lde/connect2x/trixnity/clientserverapi/model/key/GetRoomKeysBackupVersionResponse;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadMegolmSession-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadMegolmSessions-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -457,12 +467,16 @@ public abstract interface class de/connect2x/trixnity/client/key/KeyService {
 	public abstract fun bootstrapCrossSigning (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun bootstrapCrossSigning ([BLde/connect2x/trixnity/core/model/events/m/secretstorage/SecretKeyEventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun bootstrapCrossSigningFromPassphrase (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun disableKeyBackup (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun enableKeyBackup (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getBootstrapRunning ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCrossSigningKeys-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getDeviceKeys-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getKeyBackupEnabled ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getTrustLevel-bx7bNhU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getTrustLevel-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getTrustLevel-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun shareRoomKeyBundle-nM88NNY (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/key/KeyService$BootstrapCrossSigning {
@@ -479,16 +493,35 @@ public final class de/connect2x/trixnity/client/key/KeyService$BootstrapCrossSig
 }
 
 public final class de/connect2x/trixnity/client/key/KeyServiceImpl : de/connect2x/trixnity/client/key/KeyService {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/GlobalAccountDataStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/room/RoomService;Lde/connect2x/trixnity/crypto/sign/SignService;Lde/connect2x/trixnity/client/key/KeyTrustService;Lde/connect2x/trixnity/client/key/KeyShareService;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
 	public fun bootstrapCrossSigning (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun bootstrapCrossSigning ([BLde/connect2x/trixnity/core/model/events/m/secretstorage/SecretKeyEventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun bootstrapCrossSigningFromPassphrase (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun disableKeyBackup (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun enableKeyBackup (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getBootstrapRunning ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getCrossSigningKeys-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getDeviceKeys-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getKeyBackupEnabled ()Lkotlinx/coroutines/flow/Flow;
 	public fun getTrustLevel-bx7bNhU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getTrustLevel-dxpKhU0 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getTrustLevel-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun shareRoomKeyBundle-nM88NNY (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/client/key/KeyShareService {
+	public abstract fun shareRoomKeyBundle-nM88NNY (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/key/KeyShareServiceImpl : de/connect2x/trixnity/client/key/KeyShareService, de/connect2x/trixnity/core/EventHandler {
+	public static final field Companion Lde/connect2x/trixnity/client/key/KeyShareServiceImpl$Companion;
+	public static final field MAX_ROOM_KEY_BUNDLE_SIZE J
+	public fun <init> (Lde/connect2x/trixnity/client/store/AccountStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/key/DehydratedDeviceService;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/client/media/MediaService;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;Lkotlinx/serialization/json/Json;Lkotlin/time/Clock;Lde/connect2x/trixnity/core/UserInfo;Lde/connect2x/trixnity/client/store/StoreTransactionManager;)V
+	public fun shareRoomKeyBundle-nM88NNY (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
+}
+
+public final class de/connect2x/trixnity/client/key/KeyShareServiceImpl$Companion {
 }
 
 public abstract interface class de/connect2x/trixnity/client/key/KeyTrustService {
@@ -952,7 +985,7 @@ public abstract interface class de/connect2x/trixnity/client/room/ForgetRoomServ
 }
 
 public final class de/connect2x/trixnity/client/room/ForgetRoomServiceImpl : de/connect2x/trixnity/client/room/ForgetRoomService {
-	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomUserStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/RoomAccountDataStore;Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/store/NotificationStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;)V
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/store/RoomUserStore;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/RoomAccountDataStore;Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Lde/connect2x/trixnity/client/store/RoomOutboxMessageStore;Lde/connect2x/trixnity/client/store/NotificationStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;)V
 	public fun invoke-RNkTX0s (Ljava/lang/String;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -1544,9 +1577,10 @@ public final class de/connect2x/trixnity/client/server/ServerDataService$Compani
 
 public final class de/connect2x/trixnity/client/store/Account {
 	public static final field Companion Lde/connect2x/trixnity/client/store/Account$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;Ljava/lang/Boolean;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/Boolean;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3-hu1aZbM ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
@@ -1554,16 +1588,17 @@ public final class de/connect2x/trixnity/client/store/Account {
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Lde/connect2x/trixnity/client/store/Account$Filter;
-	public final fun component9-TSjNREU ()Ljava/util/Map;
-	public final fun copy-MB9mSoI (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;)Lde/connect2x/trixnity/client/store/Account;
-	public static synthetic fun copy-MB9mSoI$default (Lde/connect2x/trixnity/client/store/Account;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/Account;
+	public final fun component9-HCwGIH8 ()Ljava/util/Map;
+	public final fun copy-cEcIZ_Q (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;Ljava/lang/Boolean;)Lde/connect2x/trixnity/client/store/Account;
+	public static synthetic fun copy-cEcIZ_Q$default (Lde/connect2x/trixnity/client/store/Account;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/client/store/Account$Filter;Ljava/util/Map;Ljava/lang/Boolean;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/Account;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessToken ()Ljava/lang/String;
 	public final fun getBaseUrl ()Ljava/lang/String;
 	public final fun getDeviceId ()Ljava/lang/String;
 	public final fun getFilter ()Lde/connect2x/trixnity/client/store/Account$Filter;
+	public final fun getKeyBackupEnabled ()Ljava/lang/Boolean;
 	public final fun getOlmPickleKey ()Ljava/lang/String;
-	public final fun getProfile-TSjNREU ()Ljava/util/Map;
+	public final fun getProfile-HCwGIH8 ()Ljava/util/Map;
 	public final fun getRefreshToken ()Ljava/lang/String;
 	public final fun getSyncBatchToken ()Ljava/lang/String;
 	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
@@ -1838,11 +1873,12 @@ public final class de/connect2x/trixnity/client/store/KeySignatureTrustLevelKt {
 }
 
 public final class de/connect2x/trixnity/client/store/KeyStore : de/connect2x/trixnity/client/store/Store {
-	public fun <init> (Lde/connect2x/trixnity/client/store/repository/OutdatedKeysRepository;Lde/connect2x/trixnity/client/store/repository/DeviceKeysRepository;Lde/connect2x/trixnity/client/store/repository/CrossSigningKeysRepository;Lde/connect2x/trixnity/client/store/repository/KeyVerificationStateRepository;Lde/connect2x/trixnity/client/store/repository/KeyChainLinkRepository;Lde/connect2x/trixnity/client/store/repository/SecretsRepository;Lde/connect2x/trixnity/client/store/repository/SecretKeyRequestRepository;Lde/connect2x/trixnity/client/store/repository/RoomKeyRequestRepository;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/client/store/cache/ObservableCacheStatisticCollector;Lkotlinx/coroutines/CoroutineScope;Lkotlin/time/Clock;)V
+	public fun <init> (Lde/connect2x/trixnity/client/store/repository/OutdatedKeysRepository;Lde/connect2x/trixnity/client/store/repository/DeviceKeysRepository;Lde/connect2x/trixnity/client/store/repository/CrossSigningKeysRepository;Lde/connect2x/trixnity/client/store/repository/KeyVerificationStateRepository;Lde/connect2x/trixnity/client/store/repository/KeyChainLinkRepository;Lde/connect2x/trixnity/client/store/repository/SecretsRepository;Lde/connect2x/trixnity/client/store/repository/SecretKeyRequestRepository;Lde/connect2x/trixnity/client/store/repository/RoomKeyRequestRepository;Lde/connect2x/trixnity/client/store/repository/RoomKeyBundlesRepository;Lde/connect2x/trixnity/client/store/StoreTransactionManager;Lde/connect2x/trixnity/client/MatrixClientConfiguration;Lde/connect2x/trixnity/client/store/cache/ObservableCacheStatisticCollector;Lkotlinx/coroutines/CoroutineScope;Lkotlin/time/Clock;)V
 	public final fun addRoomKeyRequest (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lde/connect2x/trixnity/client/store/StoredRoomKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun addSecretKeyRequest (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lde/connect2x/trixnity/client/store/StoredSecretKeyRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun clearCache (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun deleteAll (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun deleteByRoomId-1YWW218 (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteCrossSigningKeys-2EL3Co0 (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteDeviceKeys-2EL3Co0 (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun deleteKeyChainLinksBySignedKey-PKisLvk (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Key$Ed25519Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1858,6 +1894,8 @@ public final class de/connect2x/trixnity/client/store/KeyStore : de/connect2x/tr
 	public final fun getKeyVerificationState (Lde/connect2x/trixnity/core/model/keys/Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getOutdatedKeys (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getOutdatedKeysFlow ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getRoomKeyBundles ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getRoomKeyBundles-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getSecrets (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getSecretsFlow ()Lkotlinx/coroutines/flow/Flow;
 	public fun init (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1867,6 +1905,7 @@ public final class de/connect2x/trixnity/client/store/KeyStore : de/connect2x/tr
 	public final fun updateCrossSigningKeys-PKisLvk (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun updateDeviceKeys-PKisLvk (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun updateOutdatedKeys (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun updateRoomKeyBundles-R_GNm0M (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun updateSecrets (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -2016,6 +2055,7 @@ public final class de/connect2x/trixnity/client/store/OlmCryptoStore : de/connec
 	public final fun deleteOutboundMegolmSession-1YWW218 (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getForgetFallbackKeyAfter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getInboundMegolmSession-FDSa09M (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun getInboundMegolmSessions-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public final fun getNotBackedUpInboundMegolmSessions ()Lkotlinx/coroutines/flow/StateFlow;
 	public final fun getOlmAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getOlmSessions (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -2031,12 +2071,13 @@ public final class de/connect2x/trixnity/client/store/OlmCryptoStore : de/connec
 
 public final class de/connect2x/trixnity/client/store/Room {
 	public static final field Companion Lde/connect2x/trixnity/client/store/Room$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component10 ()Lde/connect2x/trixnity/core/model/events/m/room/Membership;
 	public final fun component11 ()Z
-	public final fun component12-rRQUNsA ()Ljava/lang/String;
+	public final fun component12 ()Z
+	public final fun component13-rRQUNsA ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;
 	public final fun component3 ()Lde/connect2x/trixnity/client/store/RoomDisplayName;
 	public final fun component4 ()Ljava/lang/String;
@@ -2045,12 +2086,13 @@ public final class de/connect2x/trixnity/client/store/Room {
 	public final fun component7-srQVttY ()Ljava/lang/String;
 	public final fun component8 ()Lkotlin/time/Instant;
 	public final fun component9 ()Z
-	public final fun copy-yjIw5Bk (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZLjava/lang/String;)Lde/connect2x/trixnity/client/store/Room;
-	public static synthetic fun copy-yjIw5Bk$default (Lde/connect2x/trixnity/client/store/Room;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZLjava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/Room;
+	public final fun copy-ib09BNw (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZZLjava/lang/String;)Lde/connect2x/trixnity/client/store/Room;
+	public static synthetic fun copy-ib09BNw$default (Lde/connect2x/trixnity/client/store/Room;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;Lde/connect2x/trixnity/client/store/RoomDisplayName;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;ZLde/connect2x/trixnity/core/model/events/m/room/Membership;ZZLjava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/Room;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAvatarUrl ()Ljava/lang/String;
 	public final fun getCreateEventContent ()Lde/connect2x/trixnity/core/model/events/m/room/CreateEventContent;
 	public final fun getEncrypted ()Z
+	public final fun getKeyBackupLoaded ()Z
 	public final fun getLastEventId-srQVttY ()Ljava/lang/String;
 	public final fun getLastRelevantEventId-srQVttY ()Ljava/lang/String;
 	public final fun getLastRelevantEventTimestamp ()Lkotlin/time/Instant;
@@ -3070,6 +3112,70 @@ public final class de/connect2x/trixnity/client/store/StoredNotificationUpdate$U
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/client/store/StoredRoomKeyBundles {
+	public static final field Companion Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-7hZGZBE ()Ljava/lang/String;
+	public final fun component2-DuKFSck ()Ljava/lang/String;
+	public final fun component3 ()Lkotlin/time/Instant;
+	public final fun component4 ()Ljava/util/Set;
+	public final fun copy-NfTutlc (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/util/Set;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles;
+	public static synthetic fun copy-NfTutlc$default (Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Instant;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAcceptFrom-DuKFSck ()Ljava/lang/String;
+	public final fun getAcceptUntil ()Lkotlin/time/Instant;
+	public final fun getBundles ()Ljava/util/Set;
+	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/client/store/StoredRoomKeyBundles$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle {
+	public static final field Companion Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;
+	public final fun copy-pFTbHVM (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle;
+	public static synthetic fun copy-pFTbHVM$default (Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContent ()Lde/connect2x/trixnity/core/model/events/m/RoomKeyBundleEventContent;
+	public final fun getSenderDeviceId ()Ljava/lang/String;
+	public final fun getSenderUserId-hu1aZbM ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/client/store/StoredRoomKeyBundles$Bundle$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/client/store/StoredRoomKeyBundles$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/client/store/StoredRoomKeyRequest {
 	public static final field Companion Lde/connect2x/trixnity/client/store/StoredRoomKeyRequest$Companion;
 	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/RoomKeyRequestEventContent;Ljava/util/Set;Lkotlin/time/Instant;)V
@@ -3666,11 +3772,12 @@ public final class de/connect2x/trixnity/client/store/repository/InMemoryInbound
 	public synthetic fun serializeKey (Ljava/lang/Object;)Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/client/store/repository/InMemoryInboundMegolmSessionRepository : de/connect2x/trixnity/client/store/repository/InMemoryFullRepository, de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository {
+public final class de/connect2x/trixnity/client/store/repository/InMemoryInboundMegolmSessionRepository : de/connect2x/trixnity/client/store/repository/InMemoryMapRepository, de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository {
 	public fun <init> ()V
+	public fun getAll (Lde/connect2x/trixnity/utils/ReadTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getByNotBackedUp (Lde/connect2x/trixnity/utils/ReadTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun serializeKey (Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;)Ljava/lang/String;
-	public synthetic fun serializeKey (Ljava/lang/Object;)Ljava/lang/String;
+	public synthetic fun serializeKey (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/String;
+	public fun serializeKey-4A-6DIM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/InMemoryKeyChainLinkRepository : de/connect2x/trixnity/client/store/repository/KeyChainLinkRepository {
@@ -3777,6 +3884,12 @@ public final class de/connect2x/trixnity/client/store/repository/InMemoryRoomAcc
 	public fun deleteByRoomId-1YWW218 (Lde/connect2x/trixnity/utils/WriteTransaction;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun serializeKey (Lde/connect2x/trixnity/client/store/repository/RoomAccountDataRepositoryKey;Ljava/lang/String;)Ljava/lang/String;
 	public synthetic fun serializeKey (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/store/repository/InMemoryRoomKeyBundlesRepository : de/connect2x/trixnity/client/store/repository/InMemoryFullRepository, de/connect2x/trixnity/client/store/repository/RoomKeyBundlesRepository {
+	public fun <init> ()V
+	public synthetic fun serializeKey (Ljava/lang/Object;)Ljava/lang/String;
+	public fun serializeKey-sZMse74 (Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/InMemoryRoomKeyRequestRepository : de/connect2x/trixnity/client/store/repository/InMemoryFullRepository, de/connect2x/trixnity/client/store/repository/RoomKeyRequestRepository {
@@ -3891,27 +4004,15 @@ public final class de/connect2x/trixnity/client/store/repository/InboundMegolmMe
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository : de/connect2x/trixnity/client/store/repository/FullRepository {
+public abstract interface class de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository : de/connect2x/trixnity/client/store/repository/MapRepository {
+	public abstract fun getAll (Lde/connect2x/trixnity/utils/ReadTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getByNotBackedUp (Lde/connect2x/trixnity/utils/ReadTransaction;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun serializeKey (Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;)Ljava/lang/String;
-	public synthetic fun serializeKey (Ljava/lang/Object;)Ljava/lang/String;
+	public synthetic fun serializeKey (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/String;
+	public fun serializeKey-4A-6DIM (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository$DefaultImpls {
-	public static fun serializeKey (Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;)Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2-7hZGZBE ()Ljava/lang/String;
-	public final fun copy-FDSa09M (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;
-	public static synthetic fun copy-FDSa09M$default (Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepositoryKey;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
-	public final fun getSessionId ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+	public static fun serializeKey-4A-6DIM (Lde/connect2x/trixnity/client/store/repository/InboundMegolmSessionRepository;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/KeyChainLinkRepository {
@@ -4088,6 +4189,15 @@ public final class de/connect2x/trixnity/client/store/repository/RoomAccountData
 	public final fun getType ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/client/store/repository/RoomKeyBundlesRepository : de/connect2x/trixnity/client/store/repository/FullRepository {
+	public synthetic fun serializeKey (Ljava/lang/Object;)Ljava/lang/String;
+	public fun serializeKey-sZMse74 (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/store/repository/RoomKeyBundlesRepository$DefaultImpls {
+	public static fun serializeKey-sZMse74 (Lde/connect2x/trixnity/client/store/repository/RoomKeyBundlesRepository;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/repository/RoomKeyRequestRepository : de/connect2x/trixnity/client/store/repository/FullRepository {

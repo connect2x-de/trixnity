@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client.room
 
+import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.NotificationStore
 import de.connect2x.trixnity.client.store.RoomAccountDataStore
 import de.connect2x.trixnity.client.store.RoomOutboxMessageStore
@@ -30,6 +31,7 @@ class ForgetRoomServiceImpl(
     private val stickyEventStore: StickyEventStore,
     private val roomOutboxMessageStore: RoomOutboxMessageStore,
     private val notificationStore: NotificationStore,
+    private val keyStore: KeyStore,
     private val tm: StoreTransactionManager,
 ) : ForgetRoomService {
     override suspend fun invoke(roomId: RoomId, force: Boolean) {
@@ -44,6 +46,7 @@ class ForgetRoomServiceImpl(
                     stickyEventStore.deleteByRoomId(roomId)
                     roomOutboxMessageStore.deleteByRoomId(roomId)
                     notificationStore.deleteByRoomId(roomId)
+                    keyStore.deleteByRoomId(roomId)
                 }
             }
         }

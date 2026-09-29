@@ -2,6 +2,8 @@ package de.connect2x.trixnity.serverserverapi.client
 
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -47,7 +49,6 @@ import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid
 import de.connect2x.trixnity.serverserverapi.model.federation.OnBindThirdPid.Request.ThirdPartyInvite
 import de.connect2x.trixnity.serverserverapi.model.federation.PduTransaction
 import de.connect2x.trixnity.serverserverapi.model.federation.QueryDirectory
-import de.connect2x.trixnity.serverserverapi.model.federation.QueryProfile
 import de.connect2x.trixnity.serverserverapi.model.federation.SendJoin
 import de.connect2x.trixnity.serverserverapi.model.federation.SendKnock
 import de.connect2x.trixnity.serverserverapi.model.federation.SendTransaction
@@ -1698,9 +1699,9 @@ class FederationApiClientTest : TrixnityBaseTest() {
                     },
             )
         matrixRestClient.federation
-            .queryProfile(Url(""), UserId("@user:server"), QueryProfile.Field.DISPLAYNNAME)
+            .queryProfile(Url(""), UserId("@user:server"), ProfileField.DisplayName)
             .getOrThrow() shouldBe
-            QueryProfile.Response(displayname = "John Doe", avatarUrl = "mxc://matrix.org/MyC00lAvatar")
+            Profile(ProfileField.DisplayName("John Doe"), ProfileField.AvatarUrl("mxc://matrix.org/MyC00lAvatar"))
     }
 
     @Test

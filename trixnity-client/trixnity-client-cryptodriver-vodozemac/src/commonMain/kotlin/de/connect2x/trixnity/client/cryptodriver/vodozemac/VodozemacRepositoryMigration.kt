@@ -5,7 +5,6 @@ import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoreWriteTransaction
 import de.connect2x.trixnity.client.store.repository.AccountRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.client.store.repository.MigrationRepository
 import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
@@ -108,10 +107,7 @@ private suspend fun OutboundMegolmSessionRepository.updatePickles(block: (String
 context(transaction: StoreWriteTransaction)
 private suspend fun InboundMegolmSessionRepository.updatePickles(block: (String) -> String) {
     getAll().asSequence().forEach { session ->
-        save(
-            InboundMegolmSessionRepositoryKey(sessionId = session.sessionId, roomId = session.roomId),
-            session.copy(pickled = block(session.pickled)),
-        )
+        save(session.roomId, session.sessionId, session.copy(pickled = block(session.pickled)))
     }
 }
 

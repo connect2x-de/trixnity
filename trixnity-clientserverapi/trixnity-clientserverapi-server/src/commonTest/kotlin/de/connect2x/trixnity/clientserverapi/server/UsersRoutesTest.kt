@@ -1,7 +1,14 @@
 package de.connect2x.trixnity.clientserverapi.server
 
 import de.connect2x.trixnity.api.server.matrixApiServer
-import de.connect2x.trixnity.clientserverapi.model.user.*
+import de.connect2x.trixnity.clientserverapi.model.user.Filters
+import de.connect2x.trixnity.clientserverapi.model.user.ReportUser
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.clientserverapi.model.user.SendToDevice
+import de.connect2x.trixnity.clientserverapi.model.user.SetFilter
+import de.connect2x.trixnity.clientserverapi.model.user.SetPresence
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
@@ -16,16 +23,19 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
-import dev.mokkery.*
 import dev.mokkery.answering.returns
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
+import dev.mokkery.mock
+import dev.mokkery.resetAnswers
+import dev.mokkery.resetCalls
+import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.charsets.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.serialization.json.JsonObject

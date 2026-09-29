@@ -45,8 +45,9 @@ import androidx.room3.migration.AutoMigrationSpec
             RoomNotificationUpdate::class,
             RoomMigration::class,
             RoomStickyEvent::class,
+            RoomRoomKeyBundles::class,
         ],
-    version = 9, // tick this value when any entity classes change
+    version = 10, // tick this value when any entity classes change
     autoMigrations =
         [
             AutoMigration(from = 3, to = 4),
@@ -55,6 +56,7 @@ import androidx.room3.migration.AutoMigrationSpec
             AutoMigration(from = 6, to = 7, spec = TrixnityRoomDatabase.Delete6to7MigrationSpec::class),
             AutoMigration(from = 7, to = 8, spec = TrixnityRoomDatabase.Delete7to8MigrationSpec::class),
             AutoMigration(from = 8, to = 9),
+            AutoMigration(from = 9, to = 10),
         ],
     exportSchema = true,
 )
@@ -133,6 +135,8 @@ abstract class TrixnityRoomDatabase : RoomDatabase() {
     abstract fun migration(): MigrationDao
 
     abstract fun stickyRoomEvent(): StickyEventDao
+
+    abstract fun roomKeyBundles(): RoomKeyBundlesDao
 
     @DeleteColumn(tableName = "Account", columnName = "oauth2Login")
     @DeleteColumn(tableName = "Account", columnName = "oauth2ClientId")

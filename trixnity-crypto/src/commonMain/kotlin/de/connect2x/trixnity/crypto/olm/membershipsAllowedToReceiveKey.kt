@@ -9,7 +9,6 @@ val HistoryVisibility?.membershipsAllowedToReceiveKey: Set<Membership>
             HistoryVisibility.JOINED -> setOf(Membership.JOIN)
             HistoryVisibility.INVITED -> setOf(Membership.JOIN, Membership.INVITE)
             HistoryVisibility.SHARED,
-            HistoryVisibility.WORLD_READABLE -> setOf(Membership.JOIN, Membership.INVITE, Membership.KNOCK)
-
-            null -> setOf(Membership.JOIN)
+            HistoryVisibility.WORLD_READABLE,
+            null -> setOf(Membership.JOIN, Membership.INVITE, Membership.KNOCK)
         }

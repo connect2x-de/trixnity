@@ -1886,22 +1886,22 @@ public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryD
 
 public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile : de/connect2x/trixnity/core/MatrixEndpoint {
 	public static final field Companion Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-hu1aZbM ()Ljava/lang/String;
-	public final fun component2 ()Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
-	public final fun copy-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;
-	public static synthetic fun copy-bx7bNhU$default (Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;ILjava/lang/Object;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
+	public final fun copy-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;
+	public static synthetic fun copy-bx7bNhU$default (Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;ILjava/lang/Object;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getField ()Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
+	public final fun getField ()Lde/connect2x/trixnity/core/model/ProfileField$Key;
 	public fun getRequestContentType ()Lio/ktor/http/ContentType;
 	public fun getResponseContentType ()Lio/ktor/http/ContentType;
 	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun hashCode ()I
 	public synthetic fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
 	public fun requestSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lkotlin/Unit;)Lkotlinx/serialization/KSerializer;
-	public fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;)Lkotlinx/serialization/KSerializer;
 	public synthetic fun responseSerializerBuilder (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/lang/Object;)Lkotlinx/serialization/KSerializer;
+	public fun responseSerializerBuilder-uj85mRk (Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;Lkotlinx/serialization/json/Json;Ljava/util/Map;)Lkotlinx/serialization/KSerializer;
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -1917,50 +1917,6 @@ public final synthetic class de/connect2x/trixnity/serverserverapi/model/federat
 }
 
 public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field : java/lang/Enum {
-	public static final field AVATAR_URL Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
-	public static final field Companion Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field$Companion;
-	public static final field DISPLAYNNAME Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
-	public static fun values ()[Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;
-}
-
-public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response {
-	public static final field Companion Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response$Companion;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAvatarUrl ()Ljava/lang/String;
-	public final fun getDisplayname ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class de/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Response$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

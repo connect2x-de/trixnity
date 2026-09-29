@@ -256,8 +256,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 roomId = room,
                 firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = inboundSession.pickle(),
             )
     }
@@ -310,8 +310,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 roomId = room,
                 firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = inboundSession.pickle(),
             )
         val ciphertext =
@@ -353,8 +353,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 roomId = room,
                 firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = inboundSession.pickle(),
             )
         cut.decryptMegolm(
@@ -410,8 +410,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 roomId = room,
                 firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = inboundSession.pickle(),
             )
         val ciphertext =
@@ -451,8 +451,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 roomId = room,
                 firstKnownIndex = inboundSession.firstKnownIndex.toLong(),
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = inboundSession.pickle(),
             )
         val ciphertext =

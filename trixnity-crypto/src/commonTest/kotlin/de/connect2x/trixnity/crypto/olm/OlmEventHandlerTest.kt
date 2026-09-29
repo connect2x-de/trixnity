@@ -424,8 +424,8 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                 roomId = roomId,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = false,
-                isTrusted = true,
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
                 pickled = "existing_pickled",
             )
 
@@ -471,8 +471,8 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                     roomId = roomId,
                     firstKnownIndex = 0,
                     hasBeenBackedUp = false,
-                    isTrusted = true,
-                    forwardingCurve25519KeyChain = listOf(),
+                    source = InboundMegolmSessionSource.Creator,
+                    sharedHistory = false,
                     pickled = "existing_pickled",
                 )
 

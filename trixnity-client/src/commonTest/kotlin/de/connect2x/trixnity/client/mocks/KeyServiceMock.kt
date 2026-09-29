@@ -8,10 +8,12 @@ import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventCon
 import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
 import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.EventTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
 class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = MutableStateFlow(false)) : KeyService {
     override suspend fun bootstrapCrossSigning(
@@ -33,7 +35,7 @@ class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = Mutable
         throw NotImplementedError()
     }
 
-    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?> {
+    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> {
         throw NotImplementedError()
     }
 
@@ -46,6 +48,20 @@ class KeyServiceMock(override val bootstrapRunning: StateFlow<Boolean> = Mutable
     }
 
     override fun getCrossSigningKeys(userId: UserId): StateFlow<List<CrossSigningKeys>?> {
+        throw NotImplementedError()
+    }
+
+    override val keyBackupEnabled: Flow<Boolean?> = flowOf(null)
+
+    override suspend fun enableKeyBackup() {
+        throw NotImplementedError()
+    }
+
+    override suspend fun disableKeyBackup() {
+        throw NotImplementedError()
+    }
+
+    override suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit> {
         throw NotImplementedError()
     }
 }
