@@ -19,6 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Made Capability.DelayedEvents fields mandatory as per MSC4140
 - Deduplicate saving state events
 - Getting a sticky event doesn't exposed internal data structure anymore
+- Updated m.call capabilities in current MSC4196 version
 
 ### Deprecated
 
