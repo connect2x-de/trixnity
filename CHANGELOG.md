@@ -21,6 +21,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Deduplicate saving state events
 - Getting a sticky event doesn't exposed internal data structure anymore
 - Updated m.call capabilities in current MSC4196 version
+- Remove messages with duplicate annotation send error from outbox
 
 ### Deprecated
 

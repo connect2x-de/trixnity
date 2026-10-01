@@ -31,6 +31,8 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
@@ -419,6 +421,30 @@ class OutboxMessageEventHandlerTest : TrixnityBaseTest() {
         outboxMessages.first().sentAt shouldBe null
         outboxMessages.first().sendError shouldBe RoomOutboxMessage.SendError.NoEventPermission
     }
+
+    @Test
+    fun `processOutboxMessages » should delete message with M_DUPLICATE_ANNOTATION send error response from the outbox`() =
+        runTest {
+            val message =
+                RoomOutboxMessage(
+                    room,
+                    "transaction",
+                    ReactionEventContent(RelatesTo.Annotation(EventId("myReaction"), "👍")),
+                    testClock.now(),
+                )
+            tm.writeTransaction { roomOutboxMessageStore.update(message.roomId, message.transactionId) { message } }
+            userService.canSendEvent[room to RoomMessageEventContent::class] = flowOf(true)
+            apiConfig.endpoints {
+                matrixJsonEndpoint(SendMessageEvent(room, "m.reaction", "transaction")) {
+                    throw MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.DuplicateAnnotation(""))
+                }
+            }
+            backgroundScope.launch { cut.processOutboxMessages(roomOutboxMessageStore.getAll()) }
+
+            delay(1.seconds)
+            val outboxMessages = roomOutboxMessageStore.getAll().flattenValues().first()
+            outboxMessages shouldHaveSize 0
+        }
 
     @Test
     fun `processOutboxMessages » should retry on non homeserver exception`() = runTest {
