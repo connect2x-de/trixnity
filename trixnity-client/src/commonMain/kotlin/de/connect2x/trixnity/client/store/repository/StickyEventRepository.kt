@@ -11,7 +11,7 @@ import kotlin.time.Instant
 
 @MSC4354
 interface StickyEventRepository :
-    DeleteByRoomIdMapRepository<
+    DeleteByRoomIdFullMapRepository<
         StickyEventRepositoryFirstKey,
         StickyEventRepositorySecondKey,
         StoredStickyEvent<StickyEventContent>,

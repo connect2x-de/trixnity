@@ -1,10 +1,11 @@
 package de.connect2x.trixnity.client.store.cache
 
+import de.connect2x.trixnity.client.store.repository.FullMapRepository
 import de.connect2x.trixnity.client.store.repository.MapRepository
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 
-internal class MapRepositoryObservableCacheStore<K1, K2, V>(private val repository: MapRepository<K1, K2, V>) :
+internal open class MapRepositoryObservableCacheStore<K1, K2, V>(private val repository: MapRepository<K1, K2, V>) :
     ObservableCacheStore<MapRepositoryCoroutinesCacheKey<K1, K2>, V> {
     context(transaction: ReadTransaction)
     override suspend fun get(key: MapRepositoryCoroutinesCacheKey<K1, K2>): V? =
@@ -22,4 +23,10 @@ internal class MapRepositoryObservableCacheStore<K1, K2, V>(private val reposito
     override suspend fun deleteAll() {
         repository.deleteAll()
     }
+}
+
+internal class FullMapRepositoryObservableCacheStore<K1, K2, V>(private val repository: FullMapRepository<K1, K2, V>) :
+    MapRepositoryObservableCacheStore<K1, K2, V>(repository) {
+    context(transaction: ReadTransaction)
+    suspend fun getAll() = repository.getAll()
 }

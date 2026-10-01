@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.store.cache
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.store.repository.FullMapRepository
 import de.connect2x.trixnity.client.store.repository.MapRepository
 import de.connect2x.trixnity.utils.TransactionManager
 import kotlin.time.Clock
@@ -134,4 +135,59 @@ internal open class MapRepositoryObservableCache<K1 : Any, K2, V>(
         mapRepositoryIndex.getMapping(key).map { mapping ->
             mapping.associateWith { secondKey -> get(MapRepositoryCoroutinesCacheKey(key, secondKey)) }
         }
+}
+
+internal open class FullMapRepositoryObservableCache<K1 : Any, K2, V>(
+    repository: FullMapRepository<K1, K2, V>,
+    private val tm: TransactionManager<*, *>,
+    cacheScope: CoroutineScope,
+    clock: Clock,
+    expireDuration: Duration = 1.minutes,
+    values: ConcurrentObservableMap<MapRepositoryCoroutinesCacheKey<K1, K2>, MutableStateFlow<CacheValue<V?>>> =
+        ConcurrentObservableMap(),
+    private val valueToKeyMapper: (V) -> MapRepositoryCoroutinesCacheKey<K1, K2>,
+) :
+    ObservableCache<MapRepositoryCoroutinesCacheKey<K1, K2>, V, FullMapRepositoryObservableCacheStore<K1, K2, V>>(
+        name = repository::class.simpleName ?: repository::class.toString(),
+        store = FullMapRepositoryObservableCacheStore(repository),
+        tm = tm,
+        cacheScope = cacheScope,
+        expireDuration = expireDuration,
+        clock = clock,
+        values = values,
+    ) {
+
+    private val subscribersIndex =
+        FullRepositoryObservableCacheIndex<MapRepositoryCoroutinesCacheKey<K1, K2>> {
+            withCacheTransaction {
+                tm.readTransaction { store.getAll() }
+                    .forEach { value ->
+                        val key = valueToKeyMapper(value)
+                        setCacheOnly(key = key, value = value)
+                    }
+            }
+        }
+    private val mapRepositoryIndex: MapRepositoryObservableCacheIndex<K1, K2> =
+        MapRepositoryObservableCacheIndex(name) { key ->
+            log.trace { "load map from database by first key $key" }
+            withCacheTransaction {
+                tm.readTransaction { store.getByFirstKey(key) }
+                    .forEach { value ->
+                        setCacheOnly(key = MapRepositoryCoroutinesCacheKey(key, value.key), value = value.value)
+                    }
+            }
+        }
+
+    init {
+        addIndex(subscribersIndex)
+        addIndex(mapRepositoryIndex)
+    }
+
+    fun getByFirstKey(key: K1): Flow<Map<K2, Flow<V?>>> =
+        mapRepositoryIndex.getMapping(key).map { mapping ->
+            mapping.associateWith { secondKey -> get(MapRepositoryCoroutinesCacheKey(key, secondKey)) }
+        }
+
+    fun getAll(): Flow<Map<MapRepositoryCoroutinesCacheKey<K1, K2>, Flow<V?>>> =
+        subscribersIndex.getAllKeys().map { keys -> keys.associateWith { get(it) } }
 }

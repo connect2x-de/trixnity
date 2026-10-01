@@ -17,6 +17,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -123,6 +124,15 @@ internal class IndexedDBStickyEventRepository(json: Json) :
                     StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
             }
             .firstOrNull()
+    }
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredStickyEvent<StickyEventContent>> = withRead { store ->
+        store
+            .openCursor()
+            .mapNotNull { json.decodeFromDynamicNullable(representationSerializer, it.value) }
+            .map { it.value }
+            .toList()
     }
 
     context(transaction: WriteTransaction)
