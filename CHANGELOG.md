@@ -9,20 +9,30 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- support room repositories in web
+- Support room repositories in web
+- Content block `relatesTo` for extensible events
+- Support Matrix 1.19
+- Allow to get all valid sticky events
 
 ### Changed
 
-- update from room to room3
+- Update from room to room3
+- Made Capability.DelayedEvents fields mandatory as per MSC4140
+- Deduplicate saving state events
+- Getting a sticky event doesn't exposed internal data structure anymore
+- Updated m.call capabilities in current MSC4196 version
 - Remove messages with duplicate annotation send error from outbox
 
 ### Deprecated
 
 ### Removed
 
+- Removed ability to send sticky state events as per MSC4354
+
 ### Fixed
 
-- chunk receipts to reduce the transaction duration
+- Chunk receipts to reduce the transaction duration
+- Sticky events expiration checked in a loop now to prevent wrong calculations on CPU standby
 
 ### Security
 

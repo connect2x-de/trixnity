@@ -54,8 +54,8 @@ public abstract interface class de/connect2x/trixnity/serverserverapi/client/Fed
 	public abstract fun makeLeave-dXVyVjY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun onBindThirdPid-0E7RQCE (Lio/ktor/http/Url;Lde/connect2x/trixnity/serverserverapi/model/federation/OnBindThirdPid$Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryDirectory-EPhJ2Lg (Lio/ktor/http/Url;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun queryProfile-Wo0uVPo (Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun queryProfile-Wo0uVPo$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun queryProfile-Wo0uVPo (Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun queryProfile-Wo0uVPo$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun sendJoin-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendKnock-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendLeave-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -71,7 +71,7 @@ public final class de/connect2x/trixnity/serverserverapi/client/FederationApiCli
 	public static synthetic fun getPublicRooms-hUnOzRk$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/Boolean;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun makeJoin-SA-gL1w$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun makeKnock-SA-gL1w$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun queryProfile-Wo0uVPo$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun queryProfile-Wo0uVPo$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static synthetic fun timestampToEvent-9UWP1Xc$default (Lde/connect2x/trixnity/serverserverapi/client/FederationApiClient;Ljava/lang/String;JLde/connect2x/trixnity/serverserverapi/model/federation/TimestampToEvent$Direction;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
@@ -100,7 +100,7 @@ public final class de/connect2x/trixnity/serverserverapi/client/FederationApiCli
 	public fun makeLeave-dXVyVjY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun onBindThirdPid-0E7RQCE (Lio/ktor/http/Url;Lde/connect2x/trixnity/serverserverapi/model/federation/OnBindThirdPid$Request;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun queryDirectory-EPhJ2Lg (Lio/ktor/http/Url;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun queryProfile-Wo0uVPo (Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/serverserverapi/model/federation/QueryProfile$Field;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun queryProfile-Wo0uVPo (Lio/ktor/http/Url;Ljava/lang/String;Lde/connect2x/trixnity/core/model/ProfileField$Key;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendJoin-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendKnock-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun sendLeave-JpxAWmY (Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

@@ -37,6 +37,7 @@ import de.connect2x.trixnity.client.store.repository.InMemoryOlmSessionRepositor
 import de.connect2x.trixnity.client.store.repository.InMemoryOutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryOutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomAccountDataRepository
+import de.connect2x.trixnity.client.store.repository.InMemoryRoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.InMemoryRoomRepository
@@ -258,6 +259,7 @@ fun TrixnityBaseTest.getInMemoryKeyStore(setup: suspend KeyStore.() -> Unit = {}
             InMemorySecretsRepository(),
             InMemorySecretKeyRequestRepository(),
             InMemoryRoomKeyRequestRepository(),
+            InMemoryRoomKeyBundlesRepository(),
             NoOpStoreTransactionManager,
             MatrixClientConfiguration(),
             ObservableCacheStatisticCollector(),

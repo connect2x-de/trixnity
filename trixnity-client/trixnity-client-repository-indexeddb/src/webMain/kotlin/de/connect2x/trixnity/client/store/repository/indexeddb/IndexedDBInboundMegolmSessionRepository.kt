@@ -1,12 +1,13 @@
 package de.connect2x.trixnity.client.store.repository.indexeddb
 
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
+import kotlinx.coroutines.flow.associate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toSet
@@ -26,6 +27,8 @@ fun StoredInboundMegolmSession.toIndexedDBInboundMegolmSession() =
 internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
     InboundMegolmSessionRepository, IndexedDBRepository(objectStoreName) {
 
+    private data class InboundMegolmSessionRepositoryKey(val sessionId: String, val roomId: RoomId)
+
     // We need this, because hasBeenBackedUp cannot be indexed as boolean.
     private val internalRepository =
         object :
@@ -36,7 +39,7 @@ internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
                 json = json,
             ) {
             override fun serializeKey(key: InboundMegolmSessionRepositoryKey): String =
-                this@IndexedDBInboundMegolmSessionRepository.serializeKey(key)
+                this@IndexedDBInboundMegolmSessionRepository.serializeKey(key.roomId, key.sessionId)
         }
 
     companion object {
@@ -46,6 +49,11 @@ internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
             if (oldVersion < 1) {
                 createObjectStore(database, objectStoreName).apply {
                     createIndex("hasBeenBackedUp", KeyPath.Single("hasBeenBackedUp"), unique = false)
+                }
+            }
+            if (oldVersion < 11) {
+                objectStore(objectStoreName).apply {
+                    createIndex("roomId", KeyPath.Single("value.roomId"), unique = false)
                 }
             }
         }
@@ -62,19 +70,33 @@ internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun get(key: InboundMegolmSessionRepositoryKey): StoredInboundMegolmSession? =
-        internalRepository.get(key)?.toStoredInboundMegolmSession()
+    override suspend fun get(firstKey: RoomId): Map<String, StoredInboundMegolmSession> = withRead { store ->
+        store
+            .index("roomId")
+            .openCursor(IDBValidKey(firstKey.full))
+            .mapNotNull { json.decodeFromDynamicNullable(internalRepository.valueSerializer, it.value) }
+            .map { it.toStoredInboundMegolmSession() }
+            .associate { it.sessionId to it }
+    }
 
     context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<StoredInboundMegolmSession> =
-        internalRepository.getAll().map { it.toStoredInboundMegolmSession() }
+    override suspend fun get(firstKey: RoomId, secondKey: String): StoredInboundMegolmSession? =
+        internalRepository.get(InboundMegolmSessionRepositoryKey(secondKey, firstKey))?.toStoredInboundMegolmSession()
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): Set<StoredInboundMegolmSession> =
+        internalRepository.getAll().map { it.toStoredInboundMegolmSession() }.toSet()
 
     context(transaction: WriteTransaction)
-    override suspend fun save(key: InboundMegolmSessionRepositoryKey, value: StoredInboundMegolmSession) =
-        internalRepository.save(key, value.toIndexedDBInboundMegolmSession())
+    override suspend fun save(firstKey: RoomId, secondKey: String, value: StoredInboundMegolmSession) =
+        internalRepository.save(
+            InboundMegolmSessionRepositoryKey(secondKey, firstKey),
+            value.toIndexedDBInboundMegolmSession(),
+        )
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(key: InboundMegolmSessionRepositoryKey) = internalRepository.delete(key)
+    override suspend fun delete(firstKey: RoomId, secondKey: String) =
+        internalRepository.delete(InboundMegolmSessionRepositoryKey(secondKey, firstKey))
 
     context(transaction: WriteTransaction)
     override suspend fun deleteAll() = internalRepository.deleteAll()

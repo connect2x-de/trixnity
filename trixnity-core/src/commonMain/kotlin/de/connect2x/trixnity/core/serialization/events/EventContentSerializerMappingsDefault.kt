@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.MSC3644
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4195
+import de.connect2x.trixnity.core.model.events.block.m.RelatesToContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TextContentBlock
 import de.connect2x.trixnity.core.model.events.block.m.TopicContentBlock
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
@@ -13,7 +15,9 @@ import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IdentityServerEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.ImagePackRoomsEventContent
 import de.connect2x.trixnity.core.model.events.m.InvitePermissionConfigEventContent
+import de.connect2x.trixnity.core.model.events.m.KeyBackupEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
@@ -21,8 +25,10 @@ import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
 import de.connect2x.trixnity.core.model.events.m.RecentEmojiEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyBundleEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
+import de.connect2x.trixnity.core.model.events.m.StickerEventContent
 import de.connect2x.trixnity.core.model.events.m.TagEventContent
 import de.connect2x.trixnity.core.model.events.m.TypingEventContent
 import de.connect2x.trixnity.core.model.events.m.call.CallEventContent
@@ -48,6 +54,7 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventCont
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.GuestAccessEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.ImagePackEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
@@ -93,6 +100,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     messageOf<CallEventContent.Reject>("m.call.reject")
     messageOf<CallEventContent.SelectAnswer>("m.call.select_answer")
     messageOf<CallEventContent.SdpStreamMetadataChanged>("m.call.sdp_stream_metadata_changed")
+    messageOf<StickerEventContent>("m.sticker")
     // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
     @OptIn(MSC4143::class)
     messageOf<RtcMemberEventContent>("org.matrix.msc4143.rtc.member", RtcMemberEventContent.Serializer)
@@ -120,6 +128,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ParentEventContent>("m.space.parent")
     stateOf<ChildEventContent>("m.space.child")
     stateOf<PolicyEventContent>("m.room.policy")
+    stateOf<ImagePackEventContent>("m.room.image_pack")
     // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
     @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContent.Serializer)
     // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
@@ -144,6 +153,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     toDeviceOf<SasMacEventContent>("m.key.verification.mac")
     toDeviceOf<SecretKeyRequestEventContent>("m.secret.request")
     toDeviceOf<SecretKeySendEventContent>("m.secret.send")
+    toDeviceOf<RoomKeyBundleEventContent>("m.room_key_bundle")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("org.matrix.msc4143.rtc.encryption_key")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("m.rtc.encryption_key")
 
@@ -160,6 +170,8 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     globalAccountDataOf<IgnoredUserListEventContent>("m.ignored_user_list")
     globalAccountDataOf<RecentEmojiEventContent>("m.recent_emoji")
     globalAccountDataOf<InvitePermissionConfigEventContent>("m.invite_permission_config")
+    globalAccountDataOf<KeyBackupEventContent>("m.key_backup")
+    globalAccountDataOf<ImagePackRoomsEventContent>("m.image_pack.rooms")
 
     roomAccountDataOf<FullyReadEventContent>("m.fully_read")
     roomAccountDataOf<MarkedUnreadEventContent>("m.marked_unread")
@@ -173,6 +185,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
 
     blockOf(TextContentBlock)
     blockOf(TopicContentBlock)
+    @OptIn(MSC3644::class) blockOf(RelatesToContentBlock)
 }
 
 val EventContentSerializerMappings.Companion.default

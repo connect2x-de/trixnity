@@ -12,9 +12,11 @@ import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.SecretKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.SecretsRepository
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.valueOrNull
@@ -41,6 +43,7 @@ class KeyStore(
     secretsRepository: SecretsRepository,
     secretKeyRequestRepository: SecretKeyRequestRepository,
     roomKeyRequestRepository: RoomKeyRequestRepository,
+    roomKeyBundlesRepository: RoomKeyBundlesRepository,
     private val tm: StoreTransactionManager,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
@@ -115,6 +118,18 @@ class KeyStore(
             }
             .also(statisticCollector::addCache)
 
+    private val roomKeyBundlesCache =
+        FullRepositoryObservableCache(
+                repository = roomKeyBundlesRepository,
+                tm = tm,
+                cacheScope = storeScope,
+                clock = clock,
+                expireDuration = config.cacheExpireDurations.roomKeyRequest,
+            ) {
+                it.roomId
+            }
+            .also(statisticCollector::addCache)
+
     context(transaction: StoreWriteTransaction)
     override suspend fun clearCache() {
         keyChainLinkRepository.deleteAll()
@@ -123,6 +138,7 @@ class KeyStore(
         crossSigningKeysCache.deleteAll()
         secretKeyRequestCache.deleteAll()
         roomKeyRequestCache.deleteAll()
+        roomKeyBundlesCache.deleteAll()
     }
 
     context(transaction: StoreWriteTransaction)
@@ -256,5 +272,19 @@ class KeyStore(
     context(transaction: StoreWriteTransaction)
     suspend fun deleteRoomKeyRequest(requestId: String) {
         roomKeyRequestCache.set(requestId, null)
+    }
+
+    fun getRoomKeyBundles(): Flow<Map<RoomId, Flow<StoredRoomKeyBundles?>>> = roomKeyBundlesCache.getAll()
+
+    suspend fun getRoomKeyBundles(roomId: RoomId): StoredRoomKeyBundles? = roomKeyBundlesCache.get(roomId).first()
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun updateRoomKeyBundles(roomId: RoomId, updater: (StoredRoomKeyBundles?) -> StoredRoomKeyBundles?) {
+        roomKeyBundlesCache.update(roomId, updater = updater)
+    }
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun deleteByRoomId(roomId: RoomId) {
+        roomKeyBundlesCache.set(roomId, null)
     }
 }

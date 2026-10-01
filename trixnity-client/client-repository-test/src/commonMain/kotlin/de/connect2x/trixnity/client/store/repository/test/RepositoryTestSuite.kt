@@ -17,6 +17,7 @@ import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
+import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
@@ -30,7 +31,6 @@ import de.connect2x.trixnity.client.store.repository.GlobalAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepository
 import de.connect2x.trixnity.client.store.repository.InboundMegolmMessageIndexRepositoryKey
 import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepository
-import de.connect2x.trixnity.client.store.repository.InboundMegolmSessionRepositoryKey
 import de.connect2x.trixnity.client.store.repository.KeyChainLinkRepository
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateKey
 import de.connect2x.trixnity.client.store.repository.KeyVerificationStateRepository
@@ -46,6 +46,7 @@ import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionReposi
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepositoryKey
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepositoryKey
@@ -64,12 +65,12 @@ import de.connect2x.trixnity.client.store.repository.TimelineEventRelationReposi
 import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.client.store.repository.UserPresenceRepository
 import de.connect2x.trixnity.clientserverapi.client.LogoutInfo
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
@@ -88,9 +89,11 @@ import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.RoomKeyBundleEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
@@ -105,6 +108,7 @@ import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.crypto.SecretType
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmMessageIndex
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.StoredOlmSession
@@ -482,49 +486,78 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
     @Test
     fun `InboundMegolmSessionRepository - save get and delete`() = runTestWithSetup {
         val cut = di.get<InboundMegolmSessionRepository>()
-        val roomId = RoomId("!room:server")
-        val inboundSessionKey1 = InboundMegolmSessionRepositoryKey("session1", roomId)
-        val inboundSessionKey2 = InboundMegolmSessionRepositoryKey("session2", roomId)
+        val roomId1 = RoomId("!room:server")
+        val roomId2 = RoomId("!room1:server")
         val inboundSession1 =
             StoredInboundMegolmSession(
                 senderKey = Curve25519KeyValue("curve1"),
                 sessionId = "session1",
-                roomId = roomId,
+                roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = false,
-                isTrusted = false,
                 senderSigningKey = Ed25519KeyValue("ed1"),
-                forwardingCurve25519KeyChain =
-                    listOf(
-                        Curve25519KeyValue("curveExt1"),
-                        Curve25519KeyValue("curveExt2"),
+                source =
+                    InboundMegolmSessionSource.KeyRequest(
+                        listOf(
+                            Curve25519KeyValue("curveExt1"),
+                            Curve25519KeyValue("curveExt2"),
+                        )
                     ),
+                sharedHistory = false,
                 pickled = "pickle1",
             )
         val inboundSession2 =
             StoredInboundMegolmSession(
                 senderKey = Curve25519KeyValue("curve2"),
                 sessionId = "session2",
-                roomId = roomId,
+                roomId = roomId1,
                 firstKnownIndex = 1,
                 hasBeenBackedUp = true,
-                isTrusted = false,
                 senderSigningKey = Ed25519KeyValue("ed2"),
-                forwardingCurve25519KeyChain = listOf(),
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = true,
                 pickled = "pickle2",
             )
         val inboundSession2Copy = inboundSession2.copy(pickled = "pickle2Copy")
+        val inboundSession3 =
+            StoredInboundMegolmSession(
+                senderKey = Curve25519KeyValue("curve2"),
+                sessionId = "session1",
+                roomId = roomId2,
+                firstKnownIndex = 1,
+                hasBeenBackedUp = true,
+                senderSigningKey = Ed25519KeyValue("ed2"),
+                source =
+                    InboundMegolmSessionSource.KeyBundle(
+                        setOf(
+                            InboundMegolmSessionSource.KeyBundle.Sender(
+                                UserId(
+                                    "user",
+                                    "domain",
+                                ),
+                                "device",
+                            )
+                        )
+                    ),
+                sharedHistory = true,
+                pickled = "pickle3",
+            )
 
         rtm.writeTransaction {
-            cut.save(inboundSessionKey1, inboundSession1)
-            cut.save(inboundSessionKey2, inboundSession2)
-            cut.get(inboundSessionKey1) shouldBe inboundSession1
-            cut.get(inboundSessionKey2) shouldBe inboundSession2
+            cut.save(inboundSession1.roomId, inboundSession1.sessionId, inboundSession1)
+            cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2)
+            cut.save(inboundSession3.roomId, inboundSession3.sessionId, inboundSession3)
+            cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe inboundSession1
+            cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2
+            cut.get(roomId1) shouldBe
+                mapOf(inboundSession1.sessionId to inboundSession1, inboundSession2.sessionId to inboundSession2)
+            cut.getAll() shouldBe setOf(inboundSession1, inboundSession2, inboundSession3)
             cut.getByNotBackedUp() shouldBe setOf(inboundSession1)
-            cut.save(inboundSessionKey2, inboundSession2Copy)
-            cut.get(inboundSessionKey2) shouldBe inboundSession2Copy
-            cut.delete(inboundSessionKey1)
-            cut.get(inboundSessionKey1) shouldBe null
+            cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2Copy)
+            cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2Copy
+            cut.delete(inboundSession1.roomId, inboundSession1.sessionId)
+            cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe null
+            cut.get(roomId1) shouldBe mapOf(inboundSession2.sessionId to inboundSession2Copy)
         }
     }
 
@@ -2043,6 +2076,69 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
             data.forEach { cut.get(it.first) shouldBe it.second }
             cut.deleteAll()
             data.forEach { cut.get(it.first) shouldBe null }
+        }
+    }
+
+    @Test
+    fun `RoomKeyBundlesRepository - save get and delete`() = runTestWithSetup {
+        val cut = di.get<RoomKeyBundlesRepository>()
+        val roomId1 = RoomId("room1")
+        val roomId2 = RoomId("room2")
+        val roomKeyBundle1 =
+            StoredRoomKeyBundles(
+                roomId1,
+                null,
+                Instant.fromEpochMilliseconds(24),
+                setOf(
+                    StoredRoomKeyBundles.Bundle(
+                        UserId("alice", "server"),
+                        "alice_device",
+                        RoomKeyBundleEventContent(
+                            roomId1,
+                            EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                        ),
+                    )
+                ),
+            )
+        val roomKeyBundle2 =
+            StoredRoomKeyBundles(
+                roomId2,
+                UserId("dino", "server"),
+                Instant.fromEpochMilliseconds(2424),
+                setOf(
+                    StoredRoomKeyBundles.Bundle(
+                        UserId("alice", "server"),
+                        "alice_device",
+                        RoomKeyBundleEventContent(
+                            roomId2,
+                            EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                        ),
+                    )
+                ),
+            )
+        val roomKeyBundle2Copy =
+            roomKeyBundle2.copy(
+                bundles =
+                    roomKeyBundle2.bundles +
+                        StoredRoomKeyBundles.Bundle(
+                            UserId("bob", "server"),
+                            "bob_device",
+                            RoomKeyBundleEventContent(
+                                roomId2,
+                                EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
+                            ),
+                        )
+            )
+
+        rtm.writeTransaction {
+            cut.save(roomId1, roomKeyBundle1)
+            cut.save(roomId2, roomKeyBundle2)
+            cut.get(roomId1) shouldBe roomKeyBundle1
+            cut.get(roomId2) shouldBe roomKeyBundle2
+            cut.save(roomId2, roomKeyBundle2Copy)
+            cut.get(roomId2) shouldBe roomKeyBundle2Copy
+            cut.delete(roomId1)
+            cut.get(roomId1) shouldBe null
         }
     }
 }

@@ -12,6 +12,7 @@ import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedMembers
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetMembers
+import de.connect2x.trixnity.clientserverapi.model.room.GetMutualRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsResponse
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsWithFilter
 import de.connect2x.trixnity.clientserverapi.model.room.GetRelations
@@ -779,9 +780,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.sendStateEvent(any()) }.returns(SendEventResponse(EventId("event")))
         val response =
-            client.put(
-                "/_matrix/client/v3/rooms/!room:server/state/m.room.name?org.matrix.msc4354.sticky_duration_ms=60000"
-            ) {
+            client.put("/_matrix/client/v3/rooms/!room:server/state/m.room.name") {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
                 setBody("""{"name":"name"}""")
@@ -803,41 +802,6 @@ class RoomsRoutesTest : TrixnityBaseTest() {
                     it.endpoint.roomId shouldBe RoomId("!room:server")
                     it.endpoint.stateKey shouldBe ""
                     it.endpoint.type shouldBe "m.room.name"
-                    it.endpoint.stickyDurationMs shouldBe 60000
-                    it.requestBody shouldBe NameEventContent("name")
-                }
-            )
-        }
-    }
-
-    @Test
-    fun shouldSendStateEventWithStableStickyDurationMs() = testApplication {
-        initCut()
-        everySuspend { handlerMock.sendStateEvent(any()) }.returns(SendEventResponse(EventId("event")))
-        val response =
-            client.put("/_matrix/client/v3/rooms/!room:server/state/m.room.name?sticky_duration_ms=60000") {
-                bearerAuth("token")
-                contentType(ContentType.Application.Json)
-                setBody("""{"name":"name"}""")
-            }
-        assertSoftly(response) {
-            this.status shouldBe HttpStatusCode.OK
-            this.contentType() shouldBe ContentType.Application.Json
-            this.body<String>() shouldBe
-                """
-               {
-                  "event_id":"event"
-               }
-            """
-                    .trimToFlatJson()
-        }
-        verifySuspend {
-            handlerMock.sendStateEvent(
-                assert {
-                    it.endpoint.roomId shouldBe RoomId("!room:server")
-                    it.endpoint.stateKey shouldBe ""
-                    it.endpoint.type shouldBe "m.room.name"
-                    it.endpoint.stickyDurationMs shouldBe 60000
                     it.requestBody shouldBe NameEventContent("name")
                 }
             )
@@ -2620,6 +2584,44 @@ class RoomsRoutesTest : TrixnityBaseTest() {
                 assert {
                     it.endpoint.roomIdOrRoomAliasId shouldBe "!room:server"
                     it.endpoint.via shouldBe setOf("server1.com", "server2.com")
+                }
+            )
+        }
+    }
+
+    @Test
+    fun shouldGetMutualRooms() = testApplication {
+        initCut()
+        everySuspend { handlerMock.getMutualRooms(any()) }
+            .returns(
+                GetMutualRooms.Response(
+                    count = 1,
+                    joined = setOf(RoomId("!OGEhHVWSdvArJzumhm:matrix.org")),
+                    nextBatch = "next_batch_token",
+                )
+            )
+        val response =
+            client.get("/_matrix/client/v1/mutual_rooms?user_id=%40user%3Aserver&from=from") { bearerAuth("token") }
+        assertSoftly(response) {
+            this.status shouldBe HttpStatusCode.OK
+            this.contentType() shouldBe ContentType.Application.Json
+            this.body<String>() shouldBe
+                """
+                   {
+                      "count": 1,
+                      "joined": [
+                        "!OGEhHVWSdvArJzumhm:matrix.org"
+                      ],
+                      "next_batch": "next_batch_token"
+                    }
+            """
+                    .trimToFlatJson()
+        }
+        verifySuspend {
+            handlerMock.getMutualRooms(
+                assert {
+                    it.endpoint.userId shouldBe UserId("user", "server")
+                    it.endpoint.from shouldBe "from"
                 }
             )
         }

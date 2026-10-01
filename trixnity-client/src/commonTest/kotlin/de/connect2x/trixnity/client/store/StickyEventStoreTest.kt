@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.InMemoryStickyEventRepository
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
@@ -25,6 +26,7 @@ import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.async
@@ -32,8 +34,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.yield
 
-@OptIn(MSC4354::class, MSC4143::class)
+@OptIn(MSC4354::class, MSC4143::class, MSC4193::class)
 class StickyEventStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val repo = InMemoryStickyEventRepository()
@@ -53,7 +57,6 @@ class StickyEventStoreTest : TrixnityBaseTest() {
     private val sender = UserId("alice", "server")
     private val firstKey = StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member")
     private val secondKey = StickyEventRepositorySecondKey(sender, "sticky_key")
-    @OptIn(MSC4193::class)
     private val event =
         RoomEvent.MessageEvent(
             content =
@@ -68,7 +71,7 @@ class StickyEventStoreTest : TrixnityBaseTest() {
             sender = sender,
             roomId = roomId,
             originTimestamp = 2000L,
-            sticky = StickyEventData(durationMs = 1000L),
+            sticky = StickyEventData(durationMs = 1L),
         )
     private val storedStickyEvent =
         StoredStickyEvent(
@@ -147,9 +150,55 @@ class StickyEventStoreTest : TrixnityBaseTest() {
     fun `getBySenderAndStickyKey - should return null when not valid anymore`() = runTest {
         tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
         val result = backgroundScope.async {
-            cut.getBySenderAndStickyKey<RtcMemberEventContent>(roomId, sender, "sticky_key").take(2).toList()
+            cut.getBySenderAndStickyKey<RtcMemberEventContent>(roomId, sender, "sticky_key")
+                .transform {
+                    yield()
+                    emit(it)
+                }
+                .take(2)
+                .toList()
         }
         delay(3.milliseconds)
-        result.await() shouldBe listOf(storedStickyEvent, null)
+        result.await() shouldBe listOf(storedStickyEvent.event, null)
+    }
+
+    @Test
+    fun `getAll » get all sticky events`() = runTest {
+        val newStoredStickyEvent =
+            StoredStickyEvent(
+                event =
+                    RoomEvent.MessageEvent(
+                        content =
+                            RtcMemberEventContent.Join(
+                                CallRtcApplication.SLOT_ID,
+                                RtcMemberEventContent.Member(RtcMemberId("memberId")),
+                                CallRtcApplication.Member(),
+                                null,
+                                "sticky_key",
+                            ) as StickyEventContent,
+                        id = eventId,
+                        sender = sender,
+                        roomId = RoomId("other"),
+                        originTimestamp = 2000L,
+                        sticky = StickyEventData(durationMs = 5000L),
+                    ),
+                startTime = Instant.fromEpochMilliseconds(1),
+                endTime = Instant.fromEpochMilliseconds(6000L),
+            )
+        tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
+
+        val result = backgroundScope.async {
+            cut.get<RtcMemberEventContent>().flattenValues(Duration.ZERO).take(3).toList()
+        }
+        delay(1.milliseconds)
+        tm.writeTransaction { cut.save(newStoredStickyEvent) }
+        delay(1.milliseconds)
+
+        result.await() shouldBe
+            listOf(
+                listOf(storedStickyEvent.event),
+                listOf(storedStickyEvent.event, newStoredStickyEvent.event),
+                listOf(newStoredStickyEvent.event),
+            )
     }
 }

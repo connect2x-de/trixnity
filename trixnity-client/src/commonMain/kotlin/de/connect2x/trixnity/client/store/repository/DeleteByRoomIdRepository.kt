@@ -13,3 +13,5 @@ interface DeleteByRoomIdFullRepository<K, V> : FullRepository<K, V>, DeleteByRoo
 interface DeleteByRoomIdMinimalRepository<K, V> : MinimalRepository<K, V>, DeleteByRoomIdRepository
 
 interface DeleteByRoomIdMapRepository<K1, K2, V> : MapRepository<K1, K2, V>, DeleteByRoomIdRepository
+
+interface DeleteByRoomIdFullMapRepository<K1, K2, V> : FullMapRepository<K1, K2, V>, DeleteByRoomIdRepository

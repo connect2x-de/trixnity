@@ -23,6 +23,7 @@ import de.connect2x.trixnity.client.store.repository.OlmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutboundMegolmSessionRepository
 import de.connect2x.trixnity.client.store.repository.OutdatedKeysRepository
 import de.connect2x.trixnity.client.store.repository.RoomAccountDataRepository
+import de.connect2x.trixnity.client.store.repository.RoomKeyBundlesRepository
 import de.connect2x.trixnity.client.store.repository.RoomKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.store.repository.RoomRepository
@@ -84,6 +85,7 @@ fun RepositoriesModule.Companion.exposed(database: R2dbcDatabase): RepositoriesM
                 ExposedNotificationUpdate,
                 ExposedMigration,
                 @OptIn(MSC4354::class) ExposedStickyEvent,
+                ExposedRoomKeyBundles,
             )
         @Suppress("DEPRECATION") SchemaUtils.createMissingTablesAndColumns(*allTables)
     }
@@ -124,5 +126,6 @@ fun RepositoriesModule.Companion.exposed(database: R2dbcDatabase): RepositoriesM
         singleOf(::ExposedNotificationUpdateRepository) { bind<NotificationUpdateRepository>() }
         singleOf(::ExposedMigrationRepository) { bind<MigrationRepository>() }
         @OptIn(MSC4354::class) singleOf(::ExposedStickyEventRepository) { bind<StickyEventRepository>() }
+        singleOf(::ExposedRoomKeyBundlesRepository) { bind<RoomKeyBundlesRepository>() }
     }
 }

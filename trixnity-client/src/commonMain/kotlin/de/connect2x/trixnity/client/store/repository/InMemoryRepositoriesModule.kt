@@ -43,5 +43,6 @@ fun RepositoriesModule.Companion.inMemory() = RepositoriesModule {
         singleOf<NotificationUpdateRepository>(::InMemoryNotificationUpdateRepository)
         singleOf<NotificationStateRepository>(::InMemoryNotificationStateRepository)
         singleOf<MigrationRepository>(::InMemoryMigrationRepository)
+        singleOf<RoomKeyBundlesRepository>(::InMemoryRoomKeyBundlesRepository)
     }
 }

@@ -265,6 +265,11 @@ interface RoomService {
         roomId: RoomId,
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>>
+
+    @MSC4354
+    fun <C : StickyEventContent> getAllSticky(
+        eventContentClass: KClass<C>
+    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>>
 }
 
 @OptIn(MSC4354::class)
@@ -1047,13 +1052,19 @@ class RoomServiceImpl(
         sender: UserId,
         stickyKey: String?,
     ): Flow<ClientEvent.RoomEvent<C>?> {
-        return stickyEventStore.getBySenderAndStickyKey(roomId, eventContentClass, sender, stickyKey).map { it?.event }
+        return stickyEventStore.getBySenderAndStickyKey(roomId, eventContentClass, sender, stickyKey)
     }
 
     override fun <C : StickyEventContent> getAllSticky(
         roomId: RoomId,
         eventContentClass: KClass<C>,
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return stickyEventStore.get(roomId, eventContentClass).map { it.mapValues { it.value.map { it?.event } } }
+        return stickyEventStore.get(roomId, eventContentClass)
+    }
+
+    override fun <C : StickyEventContent> getAllSticky(
+        eventContentClass: KClass<C>
+    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
+        return stickyEventStore.get(eventContentClass)
     }
 }

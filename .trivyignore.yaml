@@ -7,3 +7,5 @@ vulnerabilities:
     statement: Ktor dependency
   - id: CVE-2026-8763
     statement: unused part of bouncy castle
+  - id: CVE-2026-84939
+    statement: Only affects local build tools (dokka)

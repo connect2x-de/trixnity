@@ -35,12 +35,12 @@ import de.connect2x.trixnity.clientserverapi.client.useApi
 import de.connect2x.trixnity.clientserverapi.model.server.Capability
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.user.Filters
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.ClientEventEmitter
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.UserInfo
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.keys.Key

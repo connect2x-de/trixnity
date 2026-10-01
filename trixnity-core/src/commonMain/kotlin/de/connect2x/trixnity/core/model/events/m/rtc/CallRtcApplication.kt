@@ -14,7 +14,10 @@ data object CallRtcApplication {
     @MSC4193
     @MSC4143
     @Serializable
-    data class Member(@SerialName("intent") val intent: Intent? = null) : RtcApplicationMember {
+    data class Member(
+        @SerialName("intent") val intent: MediaType? = null,
+        @SerialName("capabilities") val capabilities: MediaType? = null,
+    ) : RtcApplicationMember {
 
         @MSC4143
         enum class LeaveReasonCode(val value: String) {
@@ -24,7 +27,7 @@ data object CallRtcApplication {
         }
 
         @Serializable
-        enum class Intent {
+        enum class MediaType {
             @SerialName("audio") AUDIO,
             @SerialName("video") VIDEO,
         }

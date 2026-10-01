@@ -5,6 +5,7 @@ import de.connect2x.trixnity.core.AuthRequired
 import de.connect2x.trixnity.core.HttpMethod
 import de.connect2x.trixnity.core.HttpMethodType.GET
 import de.connect2x.trixnity.core.MatrixEndpoint
+import de.connect2x.trixnity.core.model.Profile
 import de.connect2x.trixnity.core.model.UserId
 import io.ktor.resources.*
 import kotlinx.serialization.SerialName

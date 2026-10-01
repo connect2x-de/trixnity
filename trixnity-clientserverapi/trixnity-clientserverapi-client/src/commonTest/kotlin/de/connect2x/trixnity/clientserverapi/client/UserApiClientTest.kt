@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.clientserverapi.client
 
 import de.connect2x.trixnity.clientserverapi.model.user.Filters
-import de.connect2x.trixnity.clientserverapi.model.user.Profile
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.model.Profile
+import de.connect2x.trixnity.core.model.ProfileField
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent

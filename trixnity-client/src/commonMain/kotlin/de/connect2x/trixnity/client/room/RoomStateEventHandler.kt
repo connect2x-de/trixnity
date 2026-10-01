@@ -37,7 +37,7 @@ class RoomStateEventHandler(
     internal suspend fun setState(events: List<StateBaseEvent<*>>, skipWhenAlreadyPresent: Boolean = false) {
         if (events.isNotEmpty()) {
             log.debug { "start save ${events.size} state events" }
-            tm.writeTransaction { events.forEach { roomStateStore.save(it, skipWhenAlreadyPresent) } }
+            tm.writeTransaction { roomStateStore.save(events, skipWhenAlreadyPresent) }
             log.debug { "finished save ${events.size} state events" }
         }
     }

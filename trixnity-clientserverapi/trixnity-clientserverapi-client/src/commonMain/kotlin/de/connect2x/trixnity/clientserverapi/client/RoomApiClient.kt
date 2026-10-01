@@ -16,6 +16,7 @@ import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedMembers
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetMembers
+import de.connect2x.trixnity.clientserverapi.model.room.GetMutualRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsResponse
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsWithFilter
@@ -168,16 +169,6 @@ interface RoomApiClient {
         eventContent: StateEventContent,
         stateKey: String = "",
         ts: Long? = null,
-    ): Result<EventId>
-
-    /** @see [SendStateEvent] */
-    @MSC4354
-    suspend fun sendStateEvent(
-        roomId: RoomId,
-        eventContent: StateEventContent,
-        stateKey: String = "",
-        ts: Long? = null,
-        stickyDurationMs: Long? = null,
     ): Result<EventId>
 
     /** @see [SendMessageEvent] */
@@ -413,6 +404,9 @@ interface RoomApiClient {
 
     /** @see [GetSummary] */
     suspend fun getSummary(roomId: RoomId, via: Set<String>? = null): Result<GetSummary.Response>
+
+    /** @see [GetMutualRooms] */
+    suspend fun getMutualRooms(userId: UserId, from: String? = null): Result<GetMutualRooms.Response>
 }
 
 class RoomApiClientImpl(
@@ -514,27 +508,18 @@ class RoomApiClientImpl(
         limit: Long?,
     ): Result<GetThreads.Response> = baseClient.request(GetThreads(roomId, from, include, limit))
 
-    @MSC4354
-    override suspend fun sendStateEvent(
-        roomId: RoomId,
-        eventContent: StateEventContent,
-        stateKey: String,
-        ts: Long?,
-        stickyDurationMs: Long?,
-    ): Result<EventId> {
-        val eventType = contentMappings.state.contentType(eventContent)
-        return baseClient
-            .request(SendStateEvent(roomId, eventType, stateKey, ts, null, stickyDurationMs), eventContent)
-            .mapCatching { it.eventId }
-    }
-
     @OptIn(MSC4354::class)
     override suspend fun sendStateEvent(
         roomId: RoomId,
         eventContent: StateEventContent,
         stateKey: String,
         ts: Long?,
-    ): Result<EventId> = sendStateEvent(roomId, eventContent, stateKey, ts, null)
+    ): Result<EventId> {
+        val eventType = contentMappings.state.contentType(eventContent)
+        return baseClient.request(SendStateEvent(roomId, eventType, stateKey, ts), eventContent).mapCatching {
+            it.eventId
+        }
+    }
 
     @MSC4354
     override suspend fun sendMessageEvent(
@@ -830,6 +815,9 @@ class RoomApiClientImpl(
 
     override suspend fun getSummary(roomId: RoomId, via: Set<String>?): Result<GetSummary.Response> =
         baseClient.request(GetSummary(roomId.full, via))
+
+    override suspend fun getMutualRooms(userId: UserId, from: String?): Result<GetMutualRooms.Response> =
+        baseClient.request(GetMutualRooms(userId, from))
 }
 
 /** @see [GetRoomAccountData] */

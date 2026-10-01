@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client
 
+import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
@@ -9,6 +10,7 @@ import de.connect2x.trixnity.clientserverapi.model.user.Filters
 import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.m.KeyBackupEventContent
 import de.connect2x.trixnity.utils.RetryFlowDelayConfig
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -50,6 +52,13 @@ data class MatrixClientConfiguration(
      * prevent unnecessary stored data, it should not be enabled when not needed and is disabled by default.
      */
     var enableExternalNotifications: Boolean = false,
+
+    /**
+     * [KeyService] allows to enable or disable key backup for this logged in local MatrixClient. If it is not set
+     * explicitly, [KeyBackupEventContent] will be used. If [KeyBackupEventContent] is not set,
+     * [defaultKeyBackupEnabled] will be used as a local default value.
+     */
+    var defaultKeyBackupEnabled: Boolean = true,
 
     /** Specifies how long values are kept in the cache when not used by anyone. */
     var cacheExpireDurations: CacheExpireDurations = CacheExpireDurations.default(1.minutes),

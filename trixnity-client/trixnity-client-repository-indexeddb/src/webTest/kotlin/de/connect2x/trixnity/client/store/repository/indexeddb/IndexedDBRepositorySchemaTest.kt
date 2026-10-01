@@ -13,7 +13,7 @@ class IndexedDBRepositorySchemaTest {
         """
         {
           "name": "repository",
-          "version": 10,
+          "version": 11,
           "stores": {
             "account": {
               "keyPath": null,
@@ -60,6 +60,11 @@ class IndexedDBRepositorySchemaTest {
               "indexes": {
                 "hasBeenBackedUp": {
                   "keyPath": "hasBeenBackedUp",
+                  "unique": false,
+                  "multiEntry": false
+                },
+                "roomId": {
+                  "keyPath": "value.roomId",
                   "unique": false,
                   "multiEntry": false
                 }
@@ -190,6 +195,11 @@ class IndexedDBRepositorySchemaTest {
                   "multiEntry": false
                 }
               }
+            },
+            "room_key_bundles": {
+              "keyPath": null,
+              "autoIncrement": false,
+              "indexes": {}
             },
             "room_key_request": {
               "keyPath": null,

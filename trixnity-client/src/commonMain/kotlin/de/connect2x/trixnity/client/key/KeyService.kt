@@ -3,6 +3,7 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeyStore
@@ -24,10 +25,12 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.m.DehydratedDeviceEventContent
+import de.connect2x.trixnity.core.model.events.m.KeyBackupEventContent
 import de.connect2x.trixnity.core.model.events.m.MegolmBackupV1EventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.MasterKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.SelfSigningKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.crosssigning.UserSigningKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.DefaultSecretKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
@@ -47,12 +50,14 @@ import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.core.createAesHmacSha2MacFromKey
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.EventTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.crypto.key.encodeRecoveryKey
 import de.connect2x.trixnity.crypto.key.encryptSecret
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.key.recoveryKeyFromPassphrase
 import de.connect2x.trixnity.crypto.of
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.crypto.sign.SignWith
 import de.connect2x.trixnity.crypto.sign.sign
@@ -104,7 +109,7 @@ interface KeyService {
     fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel>
 
     /** @return the trust level of a device or null, if the timeline event is not a megolm encrypted event. */
-    fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?>
+    fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel>
 
     /**
      * @return the trust level of a user. This will only be present, if the requested user has cross signing enabled.
@@ -114,10 +119,40 @@ interface KeyService {
     fun getDeviceKeys(userId: UserId): Flow<List<DeviceKeys>?>
 
     fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?>
+
+    /**
+     * Indicates if key backup for this logged in local MatrixClient is enabled. Is null, when no decision has been made
+     * and [MatrixClientConfiguration.defaultKeyBackupEnabled] is used instead. To get an account default, read global
+     * account data [KeyBackupEventContent].
+     */
+    val keyBackupEnabled: Flow<Boolean?>
+
+    /**
+     * Allows to enable key backup for this logged in local MatrixClient. To set an account default, set global account
+     * data [KeyBackupEventContent].
+     *
+     * Usually, this should be called before key backup is set up via bootstrap or self verification.
+     */
+    suspend fun enableKeyBackup()
+
+    /**
+     * Allows to disable key backup for this logged in local MatrixClient. To set an account default, set global account
+     * data [KeyBackupEventContent].
+     *
+     * Usually, this should be called before key backup is set up via bootstrap or self verification.
+     */
+    suspend fun disableKeyBackup()
+
+    /**
+     * Allows to share a room key bundle. This must only be called before an invitation of the user. The invite should
+     * not be called, when sharing the room key bundle was not successful.
+     */
+    suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit>
 }
 
 class KeyServiceImpl(
     private val userInfo: UserInfo,
+    private val accountStore: AccountStore,
     private val keyStore: KeyStore,
     private val olmCryptoStore: OlmCryptoStore,
     private val globalAccountDataStore: GlobalAccountDataStore,
@@ -125,6 +160,7 @@ class KeyServiceImpl(
     private val roomService: RoomService,
     private val signService: SignService,
     private val keyTrustService: KeyTrustService,
+    private val keyShareService: KeyShareService,
     private val api: MatrixClientServerApiClient,
     private val matrixClientConfiguration: MatrixClientConfiguration,
     private val driver: CryptoDriver,
@@ -381,33 +417,78 @@ class KeyServiceImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<DeviceTrustLevel?> =
+    override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> =
         roomService.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
-            val event = timelineEvent?.event
-            val content = event?.content
-            if (event is MessageEvent && content is MegolmEncryptedMessageEventContent) {
-                combine(
-                        olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId),
-                        keyStore.getDeviceKeys(event.sender),
-                    ) { megolmSession, deviceKeys ->
-                        when {
-                            megolmSession == null || deviceKeys == null ->
-                                flowOf(DeviceTrustLevel.Invalid("could not find session or device key"))
-                            megolmSession.isTrusted.not() -> flowOf(DeviceTrustLevel.NotTrusted)
-                            else -> {
-                                val deviceId =
-                                    deviceKeys.values
-                                        .find { it.value.signed.keys.keys.any { it.value == megolmSession.senderKey } }
-                                        ?.value
-                                        ?.signed
-                                        ?.deviceId
+            val event = timelineEvent?.event as? MessageEvent ?: return@flatMapLatest flowOf(EventTrustLevel.Unknown)
+            val content =
+                event.content as? EncryptedMessageEventContent
+                    ?: return@flatMapLatest flowOf(EventTrustLevel.Unauthenticated)
+            when (content) {
+                is MegolmEncryptedMessageEventContent ->
+                    olmCryptoStore.getInboundMegolmSession(content.sessionId, event.roomId).flatMapLatest {
+                        inboundMegolmSession ->
+                        if (inboundMegolmSession == null) return@flatMapLatest flowOf(EventTrustLevel.Unknown)
+                        val source = inboundMegolmSession.source
+                        keyStore.getDeviceKeys(event.sender).flatMapLatest { deviceKeys ->
+                            val deviceId =
+                                deviceKeys
+                                    ?.values
+                                    ?.find {
+                                        it.value.signed.keys.keys.any { it.value == inboundMegolmSession.senderKey }
+                                    }
+                                    ?.value
+                                    ?.signed
+                                    ?.deviceId
+                            val senderDeviceTrustLevel =
                                 if (deviceId != null) getTrustLevel(event.sender, deviceId)
                                 else flowOf(DeviceTrustLevel.Invalid("could not find device id"))
+                            senderDeviceTrustLevel.flatMapLatest { senderDeviceTrustLevel ->
+                                when (source) {
+                                    InboundMegolmSessionSource.Creator -> {
+                                        flowOf(EventTrustLevel.Creator(senderDeviceTrustLevel))
+                                    }
+                                    is InboundMegolmSessionSource.UnauthenticatedBackup ->
+                                        flowOf(EventTrustLevel.UnauthenticatedBackup(senderDeviceTrustLevel))
+                                    is InboundMegolmSessionSource.KeyRequest if
+                                        source.forwardingKeyChain.isNotEmpty()
+                                     ->
+                                        combine(
+                                            source.forwardingKeyChain.map { senderKey ->
+                                                deviceKeys
+                                                    ?.values
+                                                    ?.find { it.value.signed.keys.keys.any { it.value == senderKey } }
+                                                    ?.value
+                                                    ?.signed
+                                                    ?.deviceId
+                                                if (deviceId != null)
+                                                    getTrustLevel(event.sender, deviceId).map {
+                                                        EventTrustLevel.Shared.Sender(event.sender, deviceId) to it
+                                                    }
+                                                else flowOf(null)
+                                            }
+                                        ) {
+                                            EventTrustLevel.Shared(senderDeviceTrustLevel, it.filterNotNull().toMap())
+                                        }
+                                    is InboundMegolmSessionSource.KeyRequest ->
+                                        flowOf(EventTrustLevel.Shared(senderDeviceTrustLevel, emptyMap()))
+                                    is InboundMegolmSessionSource.KeyBundle if source.sender.isNotEmpty() ->
+                                        combine(
+                                            source.sender.map { (userId, deviceId) ->
+                                                getTrustLevel(userId, deviceId).map {
+                                                    EventTrustLevel.Shared.Sender(userId, deviceId) to it
+                                                }
+                                            }
+                                        ) {
+                                            EventTrustLevel.Shared(senderDeviceTrustLevel, it.toMap())
+                                        }
+                                    is InboundMegolmSessionSource.KeyBundle ->
+                                        flowOf(EventTrustLevel.Shared(senderDeviceTrustLevel, emptyMap()))
+                                }
                             }
                         }
                     }
-                    .flatMapLatest { it }
-            } else flowOf(null)
+                is EncryptedMessageEventContent.Unknown -> flowOf(EventTrustLevel.Unknown)
+            }
         }
 
     override fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel> {
@@ -428,4 +509,17 @@ class KeyServiceImpl(
     override fun getCrossSigningKeys(userId: UserId): Flow<List<CrossSigningKeys>?> {
         return keyStore.getCrossSigningKeys(userId).map { it?.map { storedKeys -> storedKeys.value.signed } }
     }
+
+    override val keyBackupEnabled: Flow<Boolean?> = accountStore.getAccountAsFlow().map { it?.keyBackupEnabled }
+
+    override suspend fun enableKeyBackup() {
+        tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = true) } }
+    }
+
+    override suspend fun disableKeyBackup() {
+        tm.writeTransaction { accountStore.updateAccount { it?.copy(keyBackupEnabled = false) } }
+    }
+
+    override suspend fun shareRoomKeyBundle(roomId: RoomId, userId: UserId): Result<Unit> =
+        keyShareService.shareRoomKeyBundle(roomId, userId)
 }

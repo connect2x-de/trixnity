@@ -33,6 +33,7 @@ class MembershipsAllowedToReceiveKeyTest : TrixnityBaseTest() {
     @Test
     fun `allow JOIN when HistoryVisibility is null`() {
         val historyVisibility: HistoryVisibility? = null
-        historyVisibility.membershipsAllowedToReceiveKey shouldBe setOf(Membership.JOIN)
+        historyVisibility.membershipsAllowedToReceiveKey shouldBe
+            setOf(Membership.JOIN, Membership.INVITE, Membership.KNOCK)
     }
 }

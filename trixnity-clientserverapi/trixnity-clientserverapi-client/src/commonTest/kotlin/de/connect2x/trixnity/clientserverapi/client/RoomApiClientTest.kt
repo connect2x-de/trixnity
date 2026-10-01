@@ -9,6 +9,7 @@ import de.connect2x.trixnity.clientserverapi.model.room.GetHierarchy
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedMembers
 import de.connect2x.trixnity.clientserverapi.model.room.GetJoinedRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetMembers
+import de.connect2x.trixnity.clientserverapi.model.room.GetMutualRooms
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsResponse
 import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsWithFilter
 import de.connect2x.trixnity.clientserverapi.model.room.GetRelationsResponse
@@ -652,7 +653,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
                     scopedMockEngine {
                         addHandler { request ->
                             assertEquals(
-                                "/_matrix/client/v3/rooms/!room:server/state/m.room.name/someStateKey?org.matrix.msc4354.sticky_duration_ms=60000",
+                                "/_matrix/client/v3/rooms/!room:server/state/m.room.name/someStateKey",
                                 request.url.fullPath,
                             )
                             assertEquals(HttpMethod.Put, request.method)
@@ -669,12 +670,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
 
         val result =
             matrixRestClient.room
-                .sendStateEvent(
-                    roomId = RoomId("!room:server"),
-                    eventContent = eventContent,
-                    stateKey = "someStateKey",
-                    stickyDurationMs = 60000,
-                )
+                .sendStateEvent(roomId = RoomId("!room:server"), eventContent = eventContent, stateKey = "someStateKey")
                 .getOrThrow()
         assertEquals(EventId("event"), result)
     }
@@ -2595,6 +2591,44 @@ class RoomApiClientTest : TrixnityBaseTest() {
                 roomType = CreateEventContent.RoomType.Space,
                 topic = "No other spaces were created first, ever",
                 worldReadable = true,
+            )
+    }
+
+    @Test
+    fun shouldGetMutualRooms() = runTest {
+        val matrixRestClient =
+            MatrixClientServerApiClientImpl(
+                baseUrl = Url("https://matrix.host"),
+                httpClientEngine =
+                    scopedMockEngine {
+                        addHandler { request ->
+                            assertEquals(
+                                "/_matrix/client/v1/mutual_rooms?user_id=%40user%3Aserver&from=from",
+                                request.url.fullPath,
+                            )
+                            assertEquals(HttpMethod.Get, request.method)
+                            respond(
+                                """
+                                {
+                                  "count": 1,
+                                  "joined": [
+                                    "!OGEhHVWSdvArJzumhm:matrix.org"
+                                  ],
+                                  "next_batch": "next_batch_token"
+                                }
+                                """
+                                    .trimIndent(),
+                                HttpStatusCode.OK,
+                                headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                            )
+                        }
+                    },
+            )
+        matrixRestClient.room.getMutualRooms(UserId("user", "server"), "from").getOrThrow() shouldBe
+            GetMutualRooms.Response(
+                count = 1,
+                joined = setOf(RoomId("!OGEhHVWSdvArJzumhm:matrix.org")),
+                nextBatch = "next_batch_token",
             )
     }
 }

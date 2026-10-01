@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client.room
 
+import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryNotificationStore
 import de.connect2x.trixnity.client.getInMemoryRoomAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryRoomOutboxMessageStore
@@ -12,6 +13,7 @@ import de.connect2x.trixnity.client.simpleRoom
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.StoredNotification
+import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.StoredStickyEvent
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
@@ -58,6 +60,7 @@ class ForgetRoomsTest : TrixnityBaseTest() {
     private val roomStickyEventStore = getInMemoryStickyEventStore()
     private val roomOutboxMessageStore = getInMemoryRoomOutboxMessageStore()
     private val notificationStore = getInMemoryNotificationStore()
+    private val keyStore = getInMemoryKeyStore()
 
     private val cut =
         ForgetRoomServiceImpl(
@@ -69,6 +72,7 @@ class ForgetRoomsTest : TrixnityBaseTest() {
             stickyEventStore = roomStickyEventStore,
             roomOutboxMessageStore = roomOutboxMessageStore,
             notificationStore = notificationStore,
+            keyStore = keyStore,
             tm = tm,
         )
 
@@ -149,6 +153,14 @@ class ForgetRoomsTest : TrixnityBaseTest() {
             )
 
             notificationStore.update("notif") { StoredNotification.Message("s", room, EventId("notif"), setOf()) }
+            keyStore.updateRoomKeyBundles(room) {
+                StoredRoomKeyBundles(
+                    roomId = room,
+                    acceptFrom = UserId("alice", "server"),
+                    acceptUntil = Instant.fromEpochMilliseconds(24),
+                    bundles = emptySet(),
+                )
+            }
         }
 
         roomStore.getAll().first { it.size == 1 }
@@ -188,6 +200,8 @@ class ForgetRoomsTest : TrixnityBaseTest() {
         roomStickyEventStore
             .getBySenderAndStickyKey(room, RtcMemberEventContent::class, UserId("sender", "server"), "sticky_key")
             .first() shouldBe null
+
+        keyStore.getRoomKeyBundles(room) shouldBe null
     }
 
     @Test

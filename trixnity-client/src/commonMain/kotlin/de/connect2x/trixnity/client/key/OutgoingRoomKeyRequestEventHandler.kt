@@ -3,7 +3,12 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.AccountStore
+import de.connect2x.trixnity.client.store.KeyStore
+import de.connect2x.trixnity.client.store.OlmCryptoStore
+import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
+import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.client.utils.retry
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -23,6 +28,7 @@ import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.utils.nextString
@@ -98,10 +104,10 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
                             sessionId = content.sessionId,
                             roomId = content.roomId,
                             firstKnownIndex = firstKnownIndex.toLong(),
-                            isTrusted = false, // TODO we could add more trust, if we verify the key chain
+                            source = InboundMegolmSessionSource.KeyRequest(newForwardingCurve25519KeyChain),
                             hasBeenBackedUp = false, // actually not known if it has been backed up
                             senderSigningKey = content.senderClaimedKey,
-                            forwardingCurve25519KeyChain = newForwardingCurve25519KeyChain,
+                            sharedHistory = content.sharedHistory == true,
                             pickled = pickledSession,
                         )
                 }

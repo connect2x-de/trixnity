@@ -15,6 +15,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.associate
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.toSet
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.Table
@@ -112,6 +113,13 @@ internal class ExposedStickyEventRepository(private val json: Json) : StickyEven
                     )
             }
             .firstOrNull()
+    }
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredStickyEvent<StickyEventContent>> {
+        return ExposedStickyEvent.selectAll()
+            .map { json.decodeFromString(StoredStickyEvent.Serializer, it[ExposedStickyEvent.value]) }
+            .toList()
     }
 
     context(transaction: WriteTransaction)

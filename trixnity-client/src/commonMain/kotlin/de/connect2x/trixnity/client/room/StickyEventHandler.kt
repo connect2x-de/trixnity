@@ -61,7 +61,7 @@ class StickyEventHandler(
         }
     }
 
-    internal suspend fun setStickyEvents(stickyEvents: List<ClientEvent.RoomEvent<StickyEventContent>>) {
+    internal suspend fun setStickyEvents(stickyEvents: List<ClientEvent.RoomEvent.MessageEvent<StickyEventContent>>) {
         if (stickyEvents.isNotEmpty()) {
             val now = clock.now()
             val stickyEventUpdates = stickyEvents.mapNotNull { stickyEvent ->
@@ -96,6 +96,7 @@ class StickyEventHandler(
                                         ?.getOrNull() as? StickyEventContent
                                 } ?: return@async null
                             encryptedStickyEvent.mergeContentOrNull(decryptedStickyEventContent)
+                                as? ClientEvent.RoomEvent.MessageEvent
                         }
                     }
                     .awaitAll()

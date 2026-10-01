@@ -1,10 +1,12 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.getInMemoryAccountStore
 import de.connect2x.trixnity.client.getInMemoryGlobalAccountDataStore
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
+import de.connect2x.trixnity.client.mocks.KeyShareServiceMock
 import de.connect2x.trixnity.client.mocks.KeyTrustServiceMock
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.mocks.SignServiceMock
@@ -79,6 +81,7 @@ class KeyServiceTest : TrixnityBaseTest() {
     private val roomServiceMock = RoomServiceMock()
     private val keyTrustServiceMock = KeyTrustServiceMock()
 
+    private val accountStore = getInMemoryAccountStore { tm.writeTransaction { deleteAll() } }
     private val keyStore = getInMemoryKeyStore { tm.writeTransaction { deleteAll() } }
     private val olmCryptoStore = getInMemoryOlmStore { tm.writeTransaction { deleteAll() } }
     private val globalAccountDataStore = getInMemoryGlobalAccountDataStore { tm.writeTransaction { deleteAll() } }
@@ -89,12 +92,14 @@ class KeyServiceTest : TrixnityBaseTest() {
     private val cut =
         KeyServiceImpl(
             userInfo = UserInfo(alice, aliceDevice, Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
+            accountStore = accountStore,
             keyStore = keyStore,
             olmCryptoStore = olmCryptoStore,
             globalAccountDataStore = globalAccountDataStore,
             tm = tm,
             roomService = roomServiceMock,
             signService = signServiceMock,
+            keyShareService = KeyShareServiceMock(),
             keyTrustService = keyTrustServiceMock,
             api = api,
             matrixClientConfiguration = MatrixClientConfiguration().apply { experimentalFeatures.enableMSC3814 = true },

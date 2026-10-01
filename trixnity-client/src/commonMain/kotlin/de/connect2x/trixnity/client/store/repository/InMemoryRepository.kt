@@ -15,6 +15,7 @@ import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
+import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.StoredRoomKeyRequest
 import de.connect2x.trixnity.client.store.StoredSecret
 import de.connect2x.trixnity.client.store.StoredSecretKeyRequest
@@ -93,6 +94,11 @@ abstract class InMemoryMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
     override suspend fun deleteAll() {
         content.value = emptyMap()
     }
+}
+
+abstract class InMemoryFullMapRepository<K1, K2, V> : FullMapRepository<K1, K2, V>, InMemoryMapRepository<K1, K2, V>() {
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<V> = content.value.values.flatMap { it.values }.toList()
 }
 
 class InMemoryAccountRepository : AccountRepository, InMemoryMinimalRepository<Long, Account>()
@@ -182,7 +188,7 @@ class InMemoryTimelineEventRelationRepository :
 @MSC4354
 class InMemoryStickyEventRepository :
     StickyEventRepository,
-    InMemoryMapRepository<
+    InMemoryFullMapRepository<
         StickyEventRepositoryFirstKey,
         StickyEventRepositorySecondKey,
         StoredStickyEvent<StickyEventContent>,
@@ -236,12 +242,18 @@ class InMemorySecretKeyRequestRepository :
 class InMemoryRoomKeyRequestRepository :
     RoomKeyRequestRepository, InMemoryFullRepository<String, StoredRoomKeyRequest>()
 
+class InMemoryRoomKeyBundlesRepository :
+    RoomKeyBundlesRepository, InMemoryFullRepository<RoomId, StoredRoomKeyBundles>()
+
 class InMemoryInboundMegolmSessionRepository :
-    InboundMegolmSessionRepository,
-    InMemoryFullRepository<InboundMegolmSessionRepositoryKey, StoredInboundMegolmSession>() {
+    InboundMegolmSessionRepository, InMemoryMapRepository<RoomId, String, StoredInboundMegolmSession>() {
     context(transaction: ReadTransaction)
     override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
-        content.value.values.filter { it.hasBeenBackedUp.not() }.toSet()
+        getAll().filter { it.hasBeenBackedUp.not() }.toSet()
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): Set<StoredInboundMegolmSession> =
+        content.value.entries.flatMap { it.value.values }.toSet()
 }
 
 class InMemoryRoomRepository : RoomRepository, InMemoryFullRepository<RoomId, Room>()

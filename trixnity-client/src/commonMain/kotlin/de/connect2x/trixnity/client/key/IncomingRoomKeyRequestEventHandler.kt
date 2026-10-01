@@ -22,6 +22,7 @@ import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSession
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
+import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
 import kotlinx.coroutines.CoroutineScope
@@ -105,8 +106,16 @@ class IncomingRoomKeyRequestEventHandler(
                                     sessionId = foundInboundMegolmSession.sessionId,
                                     sessionKey = ExportedSessionKeyValue.of(session),
                                     senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
-                                    forwardingKeyChain = foundInboundMegolmSession.forwardingCurve25519KeyChain,
+                                    forwardingKeyChain =
+                                        when (val source = foundInboundMegolmSession.source) {
+                                            is InboundMegolmSessionSource.UnauthenticatedBackup ->
+                                                source.forwardingKeyChain.orEmpty()
+                                            is InboundMegolmSessionSource.KeyRequest -> source.forwardingKeyChain
+                                            is InboundMegolmSessionSource.KeyBundle,
+                                            InboundMegolmSessionSource.Creator -> emptyList()
+                                        },
                                     algorithm = EncryptionAlgorithm.Megolm,
+                                    sharedHistory = foundInboundMegolmSession.sharedHistory,
                                 ),
                                 ownUserId,
                                 requestingDeviceId,

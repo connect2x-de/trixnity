@@ -34,7 +34,7 @@ public abstract interface class de/connect2x/trixnity/serverserverapi/server/Fed
 	public abstract fun makeLeave (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun onBindThirdPid (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun queryDirectory (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun queryProfile (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun queryProfile-D2gQ5g8 (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendJoin (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendKnock (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun sendLeave (Lde/connect2x/trixnity/api/server/MatrixEndpointContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

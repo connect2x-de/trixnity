@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.store.cache
 
 import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.store.StoreWriteTransaction
+import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdFullMapRepository
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdFullRepository
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdMapRepository
 import de.connect2x.trixnity.client.store.repository.DeleteByRoomIdMinimalRepository
@@ -126,6 +127,37 @@ internal class MapDeleteByRoomIdRepositoryObservableCache<K1 : Any, K2, V>(
         cacheScope = cacheScope,
         clock = clock,
         expireDuration = expireDuration,
+    ) {
+    private val roomIdIndex: DeleteByRoomIdRepositoryObservableCacheIndex<MapRepositoryCoroutinesCacheKey<K1, K2>> =
+        DeleteByRoomIdRepositoryObservableCacheIndex(roomIdMapper)
+
+    init {
+        addIndex(roomIdIndex)
+    }
+
+    context(transaction: StoreWriteTransaction)
+    suspend fun deleteByRoomId(roomId: RoomId) {
+        repository.deleteByRoomId(roomId)
+        roomIdIndex.getMapping(roomId).forEach { setCacheOnly(key = it, value = null) }
+    }
+}
+
+internal class FullMapDeleteByRoomIdRepositoryObservableCache<K1 : Any, K2, V>(
+    private val repository: DeleteByRoomIdFullMapRepository<K1, K2, V>,
+    tm: StoreTransactionManager,
+    cacheScope: CoroutineScope,
+    clock: Clock,
+    expireDuration: Duration = 1.minutes,
+    valueToKeyMapper: (V) -> MapRepositoryCoroutinesCacheKey<K1, K2>,
+    roomIdMapper: (MapRepositoryCoroutinesCacheKey<K1, K2>) -> RoomId,
+) :
+    FullMapRepositoryObservableCache<K1, K2, V>(
+        repository = repository,
+        tm = tm,
+        cacheScope = cacheScope,
+        clock = clock,
+        expireDuration = expireDuration,
+        valueToKeyMapper = valueToKeyMapper,
     ) {
     private val roomIdIndex: DeleteByRoomIdRepositoryObservableCacheIndex<MapRepositoryCoroutinesCacheKey<K1, K2>> =
         DeleteByRoomIdRepositoryObservableCacheIndex(roomIdMapper)

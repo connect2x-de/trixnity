@@ -267,4 +267,11 @@ class RoomServiceMock : RoomService {
     ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
         return flowOf(emptyMap())
     }
+
+    @MSC4354
+    override fun <C : StickyEventContent> getAllSticky(
+        eventContentClass: KClass<C>
+    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
+        return flowOf(emptyMap())
+    }
 }

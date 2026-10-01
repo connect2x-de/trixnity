@@ -2,6 +2,7 @@ package de.connect2x.trixnity.core.model.events
 
 import de.connect2x.trixnity.core.MSC4140
 import de.connect2x.trixnity.core.MSC4354
+import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StrippedStateEvent
 import de.connect2x.trixnity.core.model.events.m.Relations
@@ -50,6 +51,7 @@ sealed interface UnsignedRoomEventData {
         @SerialName("membership") override val membership: Membership? = null,
         @SerialName("invite_room_state") val inviteRoomState: List<@Contextual StrippedStateEvent<*>>? = null,
         @SerialName("knock_room_state") val knockRoomState: List<@Contextual StrippedStateEvent<*>>? = null,
+        @SerialName("replaces_state") val replacesState: EventId? = null,
         @MSC4354
         @OptIn(ExperimentalSerializationApi::class)
         @JsonNames("sticky_duration_ttl_ms")

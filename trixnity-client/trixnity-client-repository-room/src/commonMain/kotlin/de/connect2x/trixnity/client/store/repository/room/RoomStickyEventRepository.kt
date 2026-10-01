@@ -46,6 +46,8 @@ interface StickyEventDao {
     @Query("SELECT * FROM StickyEvent WHERE roomId = :roomId AND eventId = :eventId LIMIT 1")
     suspend fun getByEventId(roomId: RoomId, eventId: EventId): RoomStickyEvent?
 
+    @Query("SELECT * FROM StickyEvent") suspend fun getAll(): List<RoomStickyEvent>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(entity: RoomStickyEvent)
 
     @Query(
@@ -111,6 +113,10 @@ internal class RoomStickyEventRepository(db: TrixnityRoomDatabase, private val j
             StickyEventRepositoryFirstKey(it.roomId, it.type) to
                 StickyEventRepositorySecondKey(it.sender, originalStickyKey(it.stickyKey))
         }
+
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<StoredStickyEvent<StickyEventContent>> =
+        dao.getAll().map { json.decodeFromString(StoredStickyEvent.Serializer, it.value) }
 
     context(transaction: WriteTransaction)
     override suspend fun save(

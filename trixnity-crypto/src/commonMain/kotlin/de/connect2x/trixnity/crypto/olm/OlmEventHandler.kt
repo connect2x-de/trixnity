@@ -92,7 +92,7 @@ class OlmEventHandlerImpl(
             val olmRecoveries =
                 events
                     .groupBy { it.sender to it.content.senderKey }
-                    .map { (_, events) ->
+                    .map { (key, events) ->
                         async {
                             events
                                 .mapNotNull { event ->
@@ -280,8 +280,10 @@ class OlmEventHandlerImpl(
                     }
 
                 store.updateInboundMegolmSession(content.sessionId, content.roomId) {
-                    if (it != null && it.firstKnownIndex <= firstKnownIndex) it
-                    else
+                    if (it != null && it.firstKnownIndex <= firstKnownIndex) {
+                        // TODO theoretically we could lift the source to Creator (e.g. by compare export at an index)
+                        it
+                    } else {
                         StoredInboundMegolmSession(
                             senderKey = event.encrypted.content.senderKey,
                             senderSigningKey = senderSigningKey.value,
@@ -289,10 +291,11 @@ class OlmEventHandlerImpl(
                             roomId = content.roomId,
                             firstKnownIndex = firstKnownIndex,
                             hasBeenBackedUp = false,
-                            isTrusted = true,
-                            forwardingCurve25519KeyChain = emptyList(),
+                            source = InboundMegolmSessionSource.Creator,
+                            sharedHistory = content.sharedHistory == true,
                             pickled = pickledSession,
                         )
+                    }
                 }
             } catch (exception: CryptoDriverException) {
                 log.warn { "ignore inbound megolm session due to: ${exception.message}" }
@@ -302,34 +305,50 @@ class OlmEventHandlerImpl(
     }
 
     internal suspend fun handleMemberEvents(events: List<StateEvent<MemberEventContent>>) = coroutineScope {
-        events.forEach { event ->
-            val roomId = event.roomId
-            val userId = UserId(event.stateKey)
-            if (userId != userInfo.userId && store.getRoomEncryptionAlgorithm(roomId) == EncryptionAlgorithm.Megolm) {
-                val membership = event.content.membership
+        events
+            .asReversed()
+            .distinctBy { it.stateKey }
+            .groupBy { it.roomId }
+            .forEach { (roomId, events) ->
+                if (store.getRoomEncryptionAlgorithm(roomId) != EncryptionAlgorithm.Megolm) return@forEach
+
                 val membershipsAllowedToReceiveKey = store.getHistoryVisibility(roomId).membershipsAllowedToReceiveKey
-                if (membershipsAllowedToReceiveKey.contains(membership)) {
-                    val devices = store.getDeviceKeys(userId)?.keys
-                    store.updateOutboundMegolmSession(roomId) {
-                        if (it != null) {
-                            log.debug {
-                                "add new devices of $userId to megolm session of $roomId, because new membership does allow to share key"
-                            }
-                            if (!devices.isNullOrEmpty()) it.copy(newDevices = it.newDevices + (userId to devices))
-                            else it
-                        } else null
-                    }
-                } else {
+                val hasAnyMembershipResetReason = events.any { event ->
+                    val membership = event.content.membership
+                    !membershipsAllowedToReceiveKey.contains(membership)
+                }
+                if (hasAnyMembershipResetReason) {
                     log.debug { "reset megolm session of $roomId, because new membership does not allow share key" }
                     store.updateOutboundMegolmSession(roomId) { null }
+                    return@forEach
+                }
+
+                val userDevices = events.mapNotNull { event ->
+                    val userId = UserId(event.stateKey)
+                    val devices = store.getDeviceKeys(userId)?.keys ?: return@mapNotNull null
+                    userId to devices
+                }
+                val hasAnyMissingDeviceResetReason = events.size != userDevices.size
+                if (hasAnyMissingDeviceResetReason) {
+                    log.debug { "reset megolm session of $roomId, because devices were missing" }
+                    store.updateOutboundMegolmSession(roomId) { null }
+                    return@forEach
+                }
+
+                store.updateOutboundMegolmSession(roomId) {
+                    log.debug {
+                        "add new devices of $userDevices to megolm session of $roomId, because new membership does allow to share key"
+                    }
+                    it?.copy(newDevices = it.newDevices + userDevices)
                 }
             }
-        }
     }
 
     internal suspend fun handleHistoryVisibility(event: StateEvent<HistoryVisibilityEventContent>) {
-        log.debug { "reset megolm session, because visibility has changed in ${event.roomId}" }
-        if (store.getRoomEncryptionAlgorithm(event.roomId) == EncryptionAlgorithm.Megolm)
-            store.updateOutboundMegolmSession(event.roomId) { null }
+        log.debug { "reset megolm session of ${event.roomId}, because history visibility has changed" }
+
+        if (store.getRoomEncryptionAlgorithm(event.roomId) != EncryptionAlgorithm.Megolm) return
+
+        store.updateOutboundMegolmSession(event.roomId) { null }
     }
 }

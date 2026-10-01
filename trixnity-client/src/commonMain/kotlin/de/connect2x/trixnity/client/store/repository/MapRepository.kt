@@ -21,3 +21,8 @@ interface MapRepository<K1, K2, V> {
     context(transaction: WriteTransaction)
     suspend fun deleteAll()
 }
+
+interface FullMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
+    context(transaction: ReadTransaction)
+    suspend fun getAll(): List<V>
+}
