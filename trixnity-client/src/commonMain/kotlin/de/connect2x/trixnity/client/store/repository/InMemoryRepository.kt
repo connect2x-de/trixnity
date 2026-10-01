@@ -96,6 +96,11 @@ abstract class InMemoryMapRepository<K1, K2, V> : MapRepository<K1, K2, V> {
     }
 }
 
+abstract class InMemoryFullMapRepository<K1, K2, V> : FullMapRepository<K1, K2, V>, InMemoryMapRepository<K1, K2, V>() {
+    context(transaction: ReadTransaction)
+    override suspend fun getAll(): List<V> = content.value.values.flatMap { it.values }.toList()
+}
+
 class InMemoryAccountRepository : AccountRepository, InMemoryMinimalRepository<Long, Account>()
 
 class InMemoryAuthenticationRepository : AuthenticationRepository, InMemoryMinimalRepository<Long, Authentication>()
@@ -183,7 +188,7 @@ class InMemoryTimelineEventRelationRepository :
 @MSC4354
 class InMemoryStickyEventRepository :
     StickyEventRepository,
-    InMemoryMapRepository<
+    InMemoryFullMapRepository<
         StickyEventRepositoryFirstKey,
         StickyEventRepositorySecondKey,
         StoredStickyEvent<StickyEventContent>,

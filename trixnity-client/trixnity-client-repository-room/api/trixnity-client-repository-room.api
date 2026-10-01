@@ -800,6 +800,7 @@ public abstract interface class de/connect2x/trixnity/client/store/repository/ro
 	public abstract fun deleteByRoomId-4A-6DIM (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-RNkTX0s (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-oITkvlk (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getByEndTimeBefore (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getByEventId-zaB9cDc (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun insert (Lde/connect2x/trixnity/client/store/repository/room/RoomStickyEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

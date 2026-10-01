@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 
-private class FullRepositoryObservableCacheIndex<K>(private val loadFromStore: suspend () -> Unit) :
+internal class FullRepositoryObservableCacheIndex<K>(private val loadFromStore: suspend () -> Unit) :
     ObservableCacheIndex<K> {
 
     private val allKeys = ConcurrentObservableSet<K>()
