@@ -17,6 +17,5 @@ data class RtcEncryptionKeyEventContent(
     data class MediaKey(
         @SerialName("key") val key: String,
         @SerialName("index") val index: Long,
-        @SerialName("format") val format: String,
     )
 }
