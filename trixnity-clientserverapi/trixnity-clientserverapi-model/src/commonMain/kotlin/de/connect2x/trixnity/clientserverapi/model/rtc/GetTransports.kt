@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Resource("/_matrix/client/unstable/org.matrix.msc4143/rtc/transports")
 @HttpMethod(GET)
-@Auth(AuthRequired.OPTIONAL)
+@Auth(AuthRequired.YES)
 object GetTransports : MatrixEndpoint<Unit, GetTransports.Response> {
     @Serializable data class Response(@SerialName("transports") val transports: List<@Contextual RtcTransport>)
 }
