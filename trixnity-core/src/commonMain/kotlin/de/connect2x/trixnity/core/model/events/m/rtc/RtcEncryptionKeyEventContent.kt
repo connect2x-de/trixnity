@@ -13,9 +13,5 @@ data class RtcEncryptionKeyEventContent(
     @SerialName("member_id") val memberId: RtcMemberId,
     @SerialName("media_key") val mediaKey: MediaKey,
 ) : ToDeviceEventContent {
-    @Serializable
-    data class MediaKey(
-        @SerialName("key") val key: String,
-        @SerialName("index") val index: Long,
-    )
+    @Serializable data class MediaKey(@SerialName("key") val key: String, @SerialName("index") val index: Long)
 }
