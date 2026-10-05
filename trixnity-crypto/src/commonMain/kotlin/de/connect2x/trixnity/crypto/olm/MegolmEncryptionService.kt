@@ -7,9 +7,9 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
 import de.connect2x.trixnity.core.model.events.EventContent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
@@ -91,7 +91,7 @@ interface MegolmEncryptionService {
      */
     suspend fun decryptMegolm(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
-    ): Result<DecryptedMegolmEvent<*>>
+    ): Result<PlaintextMegolmEvent<*>>
 }
 
 class MegolmEncryptionServiceImpl(
@@ -287,8 +287,8 @@ class MegolmEncryptionServiceImpl(
             }
         }
 
-        val serializer = json.serializersModule.getContextual(DecryptedMegolmEvent::class)
-        val event = DecryptedMegolmEvent(content, roomId)
+        val serializer = json.serializersModule.getContextual(PlaintextMegolmEvent::class)
+        val event = PlaintextMegolmEvent(content, roomId)
         checkNotNull(serializer)
 
         val encryptedContent = encrypt(json.encodeToString(serializer, event))
@@ -305,7 +305,7 @@ class MegolmEncryptionServiceImpl(
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun decryptMegolm(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
-    ): Result<DecryptedMegolmEvent<*>> =
+    ): Result<PlaintextMegolmEvent<*>> =
         runCatchingCancellationAware {
                 val roomId = encryptedEvent.roomId
                 val encryptedContent = encryptedEvent.content
@@ -336,7 +336,7 @@ class MegolmEncryptionServiceImpl(
                         }
                     }
 
-                val serializer = json.serializersModule.getContextual(DecryptedMegolmEvent::class)
+                val serializer = json.serializersModule.getContextual(PlaintextMegolmEvent::class)
                 checkNotNull(serializer)
                 val decryptedEvent =
                     try {

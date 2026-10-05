@@ -11,8 +11,8 @@ import de.connect2x.trixnity.client.store.waitForInboundMegolmSession
 import de.connect2x.trixnity.client.user.LoadMembersService
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -118,7 +118,7 @@ class MegolmRoomEventEncryptionService(
 
     private suspend fun MegolmEncryptionService.decryptMegolmCatching(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
-    ): Result<DecryptedMegolmEvent<*>> =
+    ): Result<PlaintextMegolmEvent<*>> =
         decryptMegolm(encryptedEvent).recoverCatching { e ->
             if (e is MegolmEncryptionService.DecryptMegolmError) throw RoomEventEncryptionServiceError(e) else throw e
         }

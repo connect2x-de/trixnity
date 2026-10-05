@@ -1,17 +1,17 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 
 class DecryptedMegolmEventSerializer(
     messageEventContentSerializers: Set<EventContentSerializerMapping<MessageEventContent>>
 ) :
-    BaseEventSerializer<MessageEventContent, DecryptedMegolmEvent<*>>(
+    BaseEventSerializer<MessageEventContent, PlaintextMegolmEvent<*>>(
         "DecryptedMegolmEvent",
         RoomEventContentToEventSerializerMappings(
             baseMapping = messageEventContentSerializers,
-            eventDeserializer = { DecryptedMegolmEvent.serializer(it.serializer) },
-            unknownEventSerializer = { DecryptedMegolmEvent.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { DecryptedMegolmEvent.serializer(RedactedEventContentSerializer(it)) },
+            eventDeserializer = { PlaintextMegolmEvent.serializer(it.serializer) },
+            unknownEventSerializer = { PlaintextMegolmEvent.serializer(UnknownEventContentSerializer(it)) },
+            redactedEventSerializer = { PlaintextMegolmEvent.serializer(RedactedEventContentSerializer(it)) },
         ),
     )
