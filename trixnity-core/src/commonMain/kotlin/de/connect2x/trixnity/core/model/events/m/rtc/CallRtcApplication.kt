@@ -16,7 +16,12 @@ data object CallRtcApplication {
     const val APPLICATION_TYPE = "m.call"
     val SLOT_ID = RtcSlotId(APPLICATION_TYPE, "room")
 
-    @MSC4193 @MSC4143 @Serializable data object Slot : RtcApplicationSlot
+    @MSC4193
+    @MSC4143
+    @Serializable
+    data object Slot : RtcApplicationSlot {
+        override val type = APPLICATION_TYPE
+    }
 
     @MSC4193
     @MSC4143
@@ -25,6 +30,7 @@ data object CallRtcApplication {
         @SerialName("intent") val intent: Intent? = null,
         @SerialName("capabilities") val capabilities: Set<Capability>? = null,
     ) : RtcApplicationMember {
+        override val type = APPLICATION_TYPE
 
         @MSC4143
         enum class LeaveReasonCode(val value: String) {
