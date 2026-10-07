@@ -9,14 +9,21 @@ import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcTransport
 import io.ktor.resources.*
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonNames
 
 @MSC4143
 @Serializable
 @Resource("/_matrix/client/unstable/org.matrix.msc4143/rtc/transports")
 @HttpMethod(GET)
 @Auth(AuthRequired.YES)
+@OptIn(ExperimentalSerializationApi::class)
 object GetTransports : MatrixEndpoint<Unit, GetTransports.Response> {
-    @Serializable data class Response(@SerialName("transports") val transports: List<@Contextual RtcTransport>)
+    @Serializable
+    data class Response(
+        // TODO remove Element flavor: no rtc_transports
+        @JsonNames("rtc_transports") @SerialName("transports") val transports: List<@Contextual RtcTransport>
+    )
 }

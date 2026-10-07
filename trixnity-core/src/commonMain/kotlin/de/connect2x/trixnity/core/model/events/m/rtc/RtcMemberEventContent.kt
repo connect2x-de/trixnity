@@ -2,6 +2,7 @@ package de.connect2x.trixnity.core.model.events.m.rtc
 
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.m.Mentions
@@ -81,7 +82,14 @@ sealed interface RtcMemberEventContent : StickyEventContent {
         data class Reason(@SerialName("code") val code: String, @SerialName("reason") val reason: String? = null)
     }
 
-    @MSC4143 @Serializable data class Member(@SerialName("id") val id: RtcMemberId)
+    @MSC4143
+    @Serializable
+    data class Member(@SerialName("id") val id: RtcMemberId) {
+        // TODO remove Element flavor: no userId
+        @Deprecated("Element flavor - never use!") @SerialName("user_id") val userId: UserId = UserId("dummy", "test")
+        // TODO remove Element flavor: no deviceId
+        @Deprecated("Element flavor - never use!") @SerialName("device_id") val deviceId: String = "dummy"
+    }
 
     object Serializer : KSerializer<RtcMemberEventContent> {
         override val descriptor = buildClassSerialDescriptor("RtcMemberEventContent")
@@ -89,7 +97,13 @@ sealed interface RtcMemberEventContent : StickyEventContent {
         override fun deserialize(decoder: Decoder): RtcMemberEventContent {
             require(decoder is JsonDecoder)
             val jsonObject = decoder.decodeJsonElement().jsonObject
-            return when (val membership = jsonObject["member"]?.jsonObject?.get("membership")?.jsonPrimitive?.content) {
+            // TODO remove Element flavor: no membershipViaApplication
+            val membershipViaApplication = if (jsonObject["application"] is JsonObject) "join" else "leave"
+            return when (
+                val membership =
+                    jsonObject["member"]?.jsonObject?.get("membership")?.jsonPrimitive?.content
+                        ?: membershipViaApplication
+            ) {
                 "join" -> decoder.json.decodeFromJsonElement(Join.serializer(), jsonObject)
                 "leave" -> decoder.json.decodeFromJsonElement(Leave.serializer(), jsonObject)
                 else -> throw SerializationException("unknown membership: $membership")

@@ -35,11 +35,13 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
               "type": "m.call"
             },
             "member": {
+              "device_id":"dummy",
               "id": "{member_id}",
-              "membership": "join"
+              "membership": "join",
+              "user_id":"@dummy:test"
             },
             "msc4354_sticky_key": "{member_id}",
-            "slot_id": "m.call#room",
+            "slot_id": "m.call#ROOM",
             "transports": {
               "can_subscribe": [
                 "{transport_type}"
@@ -114,11 +116,13 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
               "reason":"blub"
             },
             "member": {
+              "device_id":"dummy",
               "id": "{member_id}",
-              "membership": "leave"
+              "membership": "leave",
+              "user_id":"@dummy:test"
             },
             "msc4354_sticky_key": "{member_id}",
-            "slot_id": "m.call#room"
+            "slot_id": "m.call#ROOM"
           },
           "event_id":"$126",
           "origin_server_ts":1,

@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Getting a sticky event doesn't exposed internal data structure anymore
 - Updated m.call capabilities in current MSC4196 version
 - Remove messages with duplicate annotation send error from outbox
+- Add current Element flavor of MSC4143, MSC4196 and MSC4195
 
 ### Deprecated
 

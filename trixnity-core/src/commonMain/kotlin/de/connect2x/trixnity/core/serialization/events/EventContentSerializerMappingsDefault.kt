@@ -154,7 +154,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     toDeviceOf<SecretKeyRequestEventContent>("m.secret.request")
     toDeviceOf<SecretKeySendEventContent>("m.secret.send")
     toDeviceOf<RoomKeyBundleEventContent>("m.room_key_bundle")
-    @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("org.matrix.msc4143.rtc.encryption_key")
+    @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("io.element.call.encryption_keys")
     @OptIn(MSC4143::class) toDeviceOf<RtcEncryptionKeyEventContent>("m.rtc.encryption_key")
 
     globalAccountDataOf<IdentityServerEventContent>("m.identity_server")
@@ -179,8 +179,10 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
 
     @OptIn(MSC4193::class, MSC4143::class)
     rtcApplicationOf<CallRtcApplication.Slot, CallRtcApplication.Member>(CallRtcApplication.APPLICATION_TYPE)
-    @OptIn(MSC4193::class, MSC4143::class) rtcEncryptionOf<PerMemberRtcEncryption>("org.matrix.msc4143.per_member")
-    @OptIn(MSC4193::class, MSC4143::class) rtcEncryptionOf<PerMemberRtcEncryption>("m.per_member")
+    @OptIn(MSC4143::class) rtcEncryptionOf<PerMemberRtcEncryption>("org.matrix.msc4143.per_member")
+    @OptIn(MSC4143::class) rtcEncryptionOf<PerMemberRtcEncryption>("m.per_member")
+    // TODO remove Element flavor: livekit
+    @OptIn(MSC4195::class, MSC4143::class) rtcTransportOf<LiveKitRtcTransport>("livekit")
     @OptIn(MSC4195::class, MSC4143::class) rtcTransportOf<LiveKitRtcTransport>("m.livekit")
 
     blockOf(TextContentBlock)
