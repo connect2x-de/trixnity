@@ -71,7 +71,7 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
                     application = CallRtcApplication.Member(),
                     member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}")),
                     transports =
-                        RtcMemberEventContent.RtcTransports(
+                        RtcMemberEventContent.Join.RtcTransports(
                             listOf(
                                 RtcTransport.Unknown(
                                     "{transport_type}",

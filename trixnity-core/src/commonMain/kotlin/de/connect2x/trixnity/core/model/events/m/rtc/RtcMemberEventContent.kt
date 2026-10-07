@@ -49,6 +49,13 @@ sealed interface RtcMemberEventContent : StickyEventContent {
         override val relatesTo: RelatesTo.Reference? = null
 
         override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = copy()
+
+        @MSC4143
+        @Serializable
+        data class RtcTransports(
+            @SerialName("published") val published: List<@Contextual RtcTransport>? = null,
+            @SerialName("can_subscribe") val canSubscribe: List<String>? = null,
+        )
     }
 
     @MSC4143
@@ -75,13 +82,6 @@ sealed interface RtcMemberEventContent : StickyEventContent {
     }
 
     @MSC4143 @Serializable data class Member(@SerialName("id") val id: RtcMemberId)
-
-    @MSC4143
-    @Serializable
-    data class RtcTransports(
-        @SerialName("published") val published: List<@Contextual RtcTransport>? = null,
-        @SerialName("can_subscribe") val canSubscribe: List<String>? = null,
-    )
 
     object Serializer : KSerializer<RtcMemberEventContent> {
         override val descriptor = buildClassSerialDescriptor("RtcMemberEventContent")

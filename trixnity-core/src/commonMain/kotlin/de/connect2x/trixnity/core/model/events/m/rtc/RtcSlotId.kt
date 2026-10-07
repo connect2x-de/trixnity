@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
-value class RtcSlotId private constructor(val full: String) {
+value class RtcSlotId(val value: String) {
     constructor(applicationType: String, applicationSlotId: String) : this("${applicationType}#${applicationSlotId}")
 }

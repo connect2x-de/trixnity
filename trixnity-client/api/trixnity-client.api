@@ -30,6 +30,7 @@ public final class de/connect2x/trixnity/client/DefaultModulesKt {
 	public static final fun getNotification (Lde/connect2x/trixnity/client/MatrixClient;)Lde/connect2x/trixnity/client/notification/NotificationService;
 	public static final fun getRoom (Lde/connect2x/trixnity/client/MatrixClient;)Lde/connect2x/trixnity/client/room/RoomService;
 	public static final fun getRoomEventEncryptionServices (Lde/connect2x/trixnity/client/MatrixClient;)Ljava/util/List;
+	public static final fun getRtc (Lde/connect2x/trixnity/client/MatrixClient;)Lde/connect2x/trixnity/client/rtc/RtcService;
 	public static final fun getUser (Lde/connect2x/trixnity/client/MatrixClient;)Lde/connect2x/trixnity/client/user/UserService;
 	public static final fun getVerification (Lde/connect2x/trixnity/client/MatrixClient;)Lde/connect2x/trixnity/client/verification/VerificationService;
 }
@@ -1562,6 +1563,26 @@ public final class de/connect2x/trixnity/client/room/outbox/VideoMessageEventCon
 	public fun <init> ()V
 	public synthetic fun invoke (Lde/connect2x/trixnity/core/model/events/EventContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun invoke (Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/rtc/CreateRtcModuleKt {
+	public static final fun createRtcModule ()Lorg/koin/core/module/Module;
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcService {
+	public abstract fun getAllSlots-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcServiceImpl : de/connect2x/trixnity/client/rtc/RtcService, de/connect2x/trixnity/core/EventHandler {
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Lde/connect2x/trixnity/client/key/KeyService;)V
+	public fun getAllSlots-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
 public final class de/connect2x/trixnity/client/server/CreateServerModuleKt {

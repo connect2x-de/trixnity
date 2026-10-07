@@ -5,7 +5,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
@@ -86,13 +86,13 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     private val olmEncryptionService = OlmEncryptionServiceMock()
 
     @OptIn(ExperimentalSerializationApi::class)
-    private val decryptedMegolmEventSerializer =
-        requireNotNull(json.serializersModule.getContextual(DecryptedMegolmEvent::class))
+    private val plaintextMegolmEventSerializer =
+        requireNotNull(json.serializersModule.getContextual(PlaintextMegolmEvent::class))
 
     private val relatesTo = RelatesTo.Replace(EventId("$1fancyEvent"), RoomMessageEventContent.TextBased.Text("Hi"))
     private val decryptedMegolmEventContent = RoomMessageEventContent.TextBased.Text("*Hi", relatesTo = relatesTo)
     private val room = RoomId("!room:server")
-    private val decryptedMegolmEvent = DecryptedMegolmEvent(decryptedMegolmEventContent, room)
+    private val plaintextMegolmEvent = PlaintextMegolmEvent(decryptedMegolmEventContent, room)
 
     @BeforeTest
     fun beforeTest() {
@@ -178,9 +178,9 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val inboundSession = inboundGroupSession.fromPickle(storedInboundSession.pickled)
 
         json.decodeFromString(
-            decryptedMegolmEventSerializer,
+            plaintextMegolmEventSerializer,
             inboundSession.decrypt(megolmMessage(result.ciphertext)).plaintext,
-        ) shouldBe decryptedMegolmEvent
+        ) shouldBe plaintextMegolmEvent
     }
 
     @Test
@@ -315,7 +315,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 pickled = inboundSession.pickle(),
             )
         val ciphertext =
-            outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
+            outboundSession.encrypt(json.encodeToString(plaintextMegolmEventSerializer, plaintextMegolmEvent))
         cut.decryptMegolm(
                 MessageEvent(
                     MegolmEncryptedMessageEventContent(
@@ -332,7 +332,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 )
             )
             .getOrThrow() shouldBe
-            decryptedMegolmEvent.copy(content = decryptedMegolmEvent.content.copy(relatesTo = relatesTo))
+            plaintextMegolmEvent.copy(content = plaintextMegolmEvent.content.copy(relatesTo = relatesTo))
 
         olmStoreMock.inboundMegolmSessionIndex[Triple(outboundSession.sessionId, room, 0)] shouldBe
             StoredInboundMegolmMessageIndex(outboundSession.sessionId, room, 0, EventId("\$event"), 1234)
@@ -342,7 +342,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     fun `decryptMegolm - decrypt megolm event 2`() = runTest {
         val outboundSession = groupSession()
         val ciphertext = // encrypted before session saved
-            outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
+            outboundSession.encrypt(json.encodeToString(plaintextMegolmEventSerializer, plaintextMegolmEvent))
 
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
@@ -379,7 +379,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     @Test
     fun `decryptMegolm - fail when no keys were send to us`() = runTest {
         val session = groupSession()
-        val ciphertext = session.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
+        val ciphertext = session.encrypt(json.encodeToString(plaintextMegolmEventSerializer, plaintextMegolmEvent))
         cut.decryptMegolm(
                 MessageEvent(
                     MegolmEncryptedMessageEventContent(
@@ -417,8 +417,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val ciphertext =
             outboundSession.encrypt(
                 json.encodeToString(
-                    decryptedMegolmEventSerializer,
-                    decryptedMegolmEvent.copy(roomId = RoomId("!other:server")),
+                    plaintextMegolmEventSerializer,
+                    plaintextMegolmEvent.copy(roomId = RoomId("!other:server")),
                 )
             )
         cut.decryptMegolm(
@@ -456,7 +456,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
                 pickled = inboundSession.pickle(),
             )
         val ciphertext =
-            outboundSession.encrypt(json.encodeToString(decryptedMegolmEventSerializer, decryptedMegolmEvent))
+            outboundSession.encrypt(json.encodeToString(plaintextMegolmEventSerializer, plaintextMegolmEvent))
         olmStoreMock.inboundMegolmSessionIndex[Triple(outboundSession.sessionId, room, 0)] =
             StoredInboundMegolmMessageIndex(outboundSession.sessionId, room, 0, EventId("\$otherEvent"), 1234)
         cut.decryptMegolm(

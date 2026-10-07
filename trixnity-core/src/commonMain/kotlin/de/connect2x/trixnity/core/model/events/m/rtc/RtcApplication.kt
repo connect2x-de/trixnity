@@ -5,11 +5,15 @@ import kotlinx.serialization.json.JsonObject
 
 @MSC4143
 interface RtcApplicationSlot {
-    @MSC4143 data class Unknown(val type: String, val raw: JsonObject) : RtcApplicationSlot
+    val type: String
+
+    @MSC4143 data class Unknown(override val type: String, val raw: JsonObject) : RtcApplicationSlot
 }
 
 @MSC4143
 interface RtcApplicationMember {
+    val type: String
+
     @MSC4143
     enum class DefaultLeaveReasonCode(val value: String) {
         LEAVE("leave"),
@@ -17,5 +21,5 @@ interface RtcApplicationMember {
         SLOT_CLOSED("slot_closed"),
     }
 
-    @MSC4143 data class Unknown(val type: String, val raw: JsonObject) : RtcApplicationMember
+    @MSC4143 data class Unknown(override val type: String, val raw: JsonObject) : RtcApplicationMember
 }

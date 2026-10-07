@@ -27,6 +27,8 @@ import de.connect2x.trixnity.client.room.TimelineEventHandler
 import de.connect2x.trixnity.client.room.TypingEventHandler
 import de.connect2x.trixnity.client.room.UnencryptedRoomEventEncryptionService
 import de.connect2x.trixnity.client.room.createRoomModule
+import de.connect2x.trixnity.client.rtc.RtcService
+import de.connect2x.trixnity.client.rtc.createRtcModule
 import de.connect2x.trixnity.client.server.createServerModule
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -47,6 +49,7 @@ import de.connect2x.trixnity.client.verification.createVerificationModule
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
 import de.connect2x.trixnity.core.EventHandler
+import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -123,6 +126,7 @@ fun createTrixnityDefaultModuleFactories(): List<ModuleFactory> =
         ::createVerificationModule,
         ::createMediaModule,
         ::createNotificationModule,
+        @OptIn(MSC4143::class) ::createRtcModule,
     )
 
 /**
@@ -148,6 +152,7 @@ fun createTrixnityBotModuleFactories(): List<ModuleFactory> =
         ::createKeyModule,
         ::createCryptoModule,
         ::createMediaModule,
+        @OptIn(MSC4143::class) ::createRtcModule,
         {
             module {
                 singleOf(::RoomListHandler) {
@@ -301,3 +306,7 @@ val MatrixClient.notification
 
 val MatrixClient.roomEventEncryptionServices
     get() = di.getAll<RoomEventEncryptionService>()
+
+@MSC4143
+val MatrixClient.rtc
+    get() = di.get<RtcService>()

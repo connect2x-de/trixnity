@@ -14,7 +14,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import de.connect2x.trixnity.core.model.events.DecryptedMegolmEvent
+import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
@@ -115,7 +115,7 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
             room,
             1234,
         )
-    private val expectedDecryptedEvent = DecryptedMegolmEvent(RoomMessageEventContent.TextBased.Text("decrypted"), room)
+    private val expectedDecryptedEvent = PlaintextMegolmEvent(RoomMessageEventContent.TextBased.Text("decrypted"), room)
 
     @Test
     fun `encrypt » return null when room does not exist`() = runTest {
