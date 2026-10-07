@@ -32,9 +32,11 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.JsonObject
@@ -47,6 +49,9 @@ class RtcServiceTest : TrixnityBaseTest() {
     private val alice = UserId("@alice:server")
     private val bob = UserId("@bob:server")
 
+    private val slotEventId1 = EventId("$1slot")
+    private val slotEventId2 = EventId("$2slot")
+    private val slotEventId3 = EventId("$3slot")
     private val slotId1 = RtcSlotId("m.call", "1")
     private val slotId2 = RtcSlotId("m.call", "2")
     private val slotId3 = RtcSlotId("m.call", "3")
@@ -64,9 +69,139 @@ class RtcServiceTest : TrixnityBaseTest() {
             override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> =
                 flowOf(eventTrustLevels[roomId to eventId] ?: EventTrustLevel.Unknown)
         }
+    private var rtcSlotMembershipFactoryFailure: Throwable? = null
+
+    private val rtcSlotMembershipFactory =
+        object : RtcSlotMembershipFactory {
+            override fun create(
+                roomId: RoomId,
+                slotId: RtcSlotId,
+                slotEventId: EventId,
+                memberId: RtcMemberId,
+                application: RtcApplicationMember,
+                transports: RtcMemberEventContent.Join.RtcTransports?,
+                config: RtcSlotMembership.Config,
+                slotEvent: Flow<StateEvent<RtcSlotEventContent>?>,
+                memberEvents: Flow<Map<Pair<UserId, RtcMemberId>, MessageEvent<RtcMemberEventContent>>>,
+                onClose: () -> Unit,
+            ): RtcSlotMembership {
+                rtcSlotMembershipFactoryFailure?.let { throw it }
+                val rtcSlotMembership =
+                    object : RtcSlotMembership {
+                        override val roomId = roomId
+                        override val slotId = slotId
+                        override val memberId = memberId
+
+                        override val state =
+                            MutableStateFlow<RtcSlotMembership.State>(
+                                RtcSlotMembership.State.Joining(
+                                    RtcMemberEventContent.Join(
+                                        slotId = slotId,
+                                        slotEventId = slotEventId1,
+                                        member = RtcMemberEventContent.Member(memberId),
+                                        application = application,
+                                        transports = transports,
+                                        stickyKey = memberId.value,
+                                    )
+                                )
+                            )
+
+                        override fun update(
+                            slotEventId: EventId,
+                            application: RtcApplicationMember,
+                            transports: RtcMemberEventContent.Join.RtcTransports,
+                        ) = Unit
+
+                        override fun leave(reason: RtcMemberEventContent.Leave.Reason?) = Unit
+
+                        override fun close() = onClose()
+                    }
+                return rtcSlotMembership
+            }
+        }
 
     private val cut =
-        RtcServiceImpl(roomStateStore = roomStateStore, stickyEventStore = stickyEventStore, keyService = keyService)
+        RtcServiceImpl(
+            roomStateStore = roomStateStore,
+            stickyEventStore = stickyEventStore,
+            rtcSlotMembershipFactory = rtcSlotMembershipFactory,
+            keyService = keyService,
+        )
+
+    @BeforeTest
+    fun setup() {
+        rtcSlotMembershipFactoryFailure = null
+    }
+
+    @Test
+    fun `getCurrentMemberships » initially return empty set`() = runTest {
+        cut.getCurrentMemberships().first() shouldBe emptySet()
+    }
+
+    @Test
+    fun `joinSlot » create and register membership`() = runTest {
+        val result1 =
+            cut.joinSlot(
+                    roomId = room,
+                    slotId = slotId1,
+                    slotEventId = slotEventId1,
+                    application = CallRtcApplication.Member(),
+                    transports = null,
+                )
+                .getOrThrow()
+
+        cut.getCurrentMemberships().first() shouldBe setOf(result1)
+
+        val result2 =
+            cut.joinSlot(
+                    roomId = room,
+                    slotId = slotId2,
+                    slotEventId = slotEventId2,
+                    application = CallRtcApplication.Member(),
+                    transports = null,
+                )
+                .getOrThrow()
+        cut.getCurrentMemberships().first() shouldBe setOf(result1, result2)
+    }
+
+    @Test
+    fun `joinSlot » factory failure » return failure and do not register membership`() = runTest {
+        val exception = IllegalStateException("creation failed")
+
+        rtcSlotMembershipFactoryFailure = exception
+
+        val result =
+            cut.joinSlot(
+                roomId = room,
+                slotId = slotId1,
+                slotEventId = slotEventId1,
+                application = CallRtcApplication.Member(),
+                transports = RtcMemberEventContent.Join.RtcTransports(),
+            )
+
+        result.isFailure shouldBe true
+        result.exceptionOrNull() shouldBe exception
+        cut.getCurrentMemberships().first() shouldBe emptySet()
+    }
+
+    @Test
+    fun `membership close » remove membership from current memberships`() = runTest {
+        val result =
+            cut.joinSlot(
+                    roomId = room,
+                    slotId = slotId1,
+                    slotEventId = slotEventId1,
+                    application = CallRtcApplication.Member(),
+                    transports = RtcMemberEventContent.Join.RtcTransports(),
+                )
+                .getOrThrow()
+
+        cut.getCurrentMemberships().first() shouldBe setOf(result)
+
+        result.close()
+
+        cut.getCurrentMemberships().first() shouldBe emptySet()
+    }
 
     @Test
     fun `getSlot » return open slot`() = runTest {
@@ -407,7 +542,7 @@ class RtcServiceTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Join(
                     slotId = slotId,
-                    slotEventId = EventId("slot"),
+                    slotEventId = slotEventId1,
                     member = RtcMemberEventContent.Member(memberId),
                     application = application,
                     stickyKey = stickyKey,

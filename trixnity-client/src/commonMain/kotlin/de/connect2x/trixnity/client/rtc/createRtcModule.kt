@@ -10,7 +10,14 @@ import org.koin.dsl.module
 @MSC4143
 @OptIn(MSC4354::class)
 fun createRtcModule() = module {
-    single { RtcServiceImpl(roomStateStore = get(), stickyEventStore = get(), keyService = get()) }
+    single {
+            RtcServiceImpl(
+                roomStateStore = get(),
+                stickyEventStore = get(),
+                rtcSlotMembershipFactory = get(),
+                keyService = get(),
+            )
+        }
         .apply {
             bind<RtcService>()
             bind<EventHandler>()
