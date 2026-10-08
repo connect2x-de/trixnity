@@ -12,4 +12,7 @@ import kotlinx.serialization.json.JsonNames
 @MSC4195
 @Serializable
 @OptIn(ExperimentalSerializationApi::class)
-data class LiveKitRtcTransport(@JsonNames("livekit_service_url") @SerialName("url") val url: Url) : RtcTransport
+data class LiveKitRtcTransport(@JsonNames("livekit_service_url") @SerialName("url") val url: Url) : RtcTransport {
+    // TODO remove Element flavor: no livekitServiceUrl
+    @SerialName("livekit_service_url") @Deprecated("Element flavor - never use!") val livekitServiceUrl: Url = url
+}
