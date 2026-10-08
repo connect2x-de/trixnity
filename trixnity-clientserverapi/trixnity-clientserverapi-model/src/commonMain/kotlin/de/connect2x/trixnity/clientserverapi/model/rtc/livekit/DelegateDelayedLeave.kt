@@ -10,15 +10,15 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.DelayId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
-import io.ktor.http.Url
-import io.ktor.resources.Resource
+import io.ktor.http.*
+import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @MSC4195
 @Serializable
 @Auth(AuthRequired.YES)
-@Resource("/_matrix/client/v1/rtc/livekit/delegate_delayed_leave")
+@Resource("/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave")
 @HttpMethod(POST)
 object DelegateDelayedLeave : MatrixEndpoint<DelegateDelayedLeave.Request, Unit> {
     @Serializable
