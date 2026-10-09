@@ -14,7 +14,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 
 interface RoomVersionStore {
     fun getRoomVersion(roomId: RoomId): String
@@ -35,7 +40,7 @@ class PersistentStateDataUnitSerializer(
                 AddFieldsSerializer(PersistentStateDataUnitV1.serializer(it.serializer), "type" to it.type)
             },
             unknownEventSerializer = { PersistentStateDataUnitV1.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentStateDataUnitV1.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV1.serializer(RedactedStateEventContentSerializer(it)) },
         )
     private val mappingV3 =
         RoomEventContentToEventSerializerMappings(
@@ -45,7 +50,7 @@ class PersistentStateDataUnitSerializer(
                 AddFieldsSerializer(PersistentStateDataUnitV3.serializer(it.serializer), "type" to it.type)
             },
             unknownEventSerializer = { PersistentStateDataUnitV3.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentStateDataUnitV3.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV3.serializer(RedactedStateEventContentSerializer(it)) },
         )
     private val mappingV12 =
         RoomEventContentToEventSerializerMappings(
@@ -55,7 +60,7 @@ class PersistentStateDataUnitSerializer(
                 AddFieldsSerializer(PersistentStateDataUnitV12.serializer(it.serializer), "type" to it.type)
             },
             unknownEventSerializer = { PersistentStateDataUnitV12.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentStateDataUnitV12.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { PersistentStateDataUnitV12.serializer(RedactedStateEventContentSerializer(it)) },
         )
 
     override fun deserialize(decoder: Decoder): PersistentDataUnit.PersistentStateDataUnit<*> {

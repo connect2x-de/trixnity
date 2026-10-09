@@ -2,12 +2,14 @@ package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.mergeContentOrNull
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMapping
-import de.connect2x.trixnity.core.serialization.events.RedactedEventContentSerializer
+import de.connect2x.trixnity.core.serialization.events.RedactedMessageEventContentSerializer
+import de.connect2x.trixnity.core.serialization.events.RedactedStateEventContentSerializer
 import de.connect2x.trixnity.core.serialization.events.UnknownEventContentSerializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -170,9 +172,14 @@ data class TimelineEvent(
                                 serializer = mapping.serializer
                             }
 
-                            content is RedactedEventContent -> {
+                            content is RedactedMessageEventContent -> {
                                 type = content.eventType
-                                serializer = RedactedEventContentSerializer(type)
+                                serializer = RedactedMessageEventContentSerializer(type)
+                            }
+
+                            content is RedactedStateEventContent -> {
+                                type = content.eventType
+                                serializer = RedactedStateEventContentSerializer(type)
                             }
 
                             content is UnknownEventContent -> {

@@ -13,7 +13,7 @@ class StateEventSerializer(stateEventContentSerializers: Set<EventContentSeriali
                 PutTypeIntoPrevContentSerializer(StateEvent.serializer(UnknownEventContentSerializer(it)))
             },
             redactedEventSerializer = {
-                PutTypeIntoPrevContentSerializer(StateEvent.serializer(RedactedEventContentSerializer(it)))
+                PutTypeIntoPrevContentSerializer(StateEvent.serializer(RedactedStateEventContentSerializer(it)))
             },
         ),
     )

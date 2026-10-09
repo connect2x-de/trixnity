@@ -62,6 +62,6 @@ class MessageEventSerializer(messageEventContentSerializers: Set<EventContentSer
                 else baseSerializer
             },
             unknownEventSerializer = { MessageEvent.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { MessageEvent.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { MessageEvent.serializer(RedactedMessageEventContentSerializer(it)) },
         ),
     )

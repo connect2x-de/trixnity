@@ -2,13 +2,24 @@ package de.connect2x.trixnity.core
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
-import de.connect2x.trixnity.core.model.events.*
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.Event
+import de.connect2x.trixnity.core.model.events.EventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -93,12 +104,12 @@ fun <C : EventContent, E : ClientEvent<out C>> Flow<E>.filterContent(
     val allowSpecialContent =
         eventClass != null && eventClass != ClientEvent::class ||
             contentClass == UnknownEventContent::class ||
-            contentClass == RedactedEventContent::class
+            contentClass == RedactedRoomEventContent::class
     return filter {
         it.content.instanceOf(contentClass) &&
             (allowSpecialContent ||
                 !it.content.instanceOf(UnknownEventContent::class) &&
-                    !it.content.instanceOf(RedactedEventContent::class))
+                    !it.content.instanceOf(RedactedRoomEventContent::class))
     }
 }
 

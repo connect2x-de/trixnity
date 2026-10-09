@@ -11,6 +11,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
@@ -57,11 +58,8 @@ class RoomAccountDataStore(
         val eventType =
             when (val content = event.content) {
                 is UnknownEventContent -> content.eventType
-                else -> contentMappings.roomAccountData.find { it.kClass.isInstance(event.content) }?.type
+                else -> contentMappings.roomAccountData.contentType(event.content)
             }
-                ?: throw IllegalArgumentException(
-                    "Cannot find account data event, because it is not supported. You need to register it first."
-                )
         roomAccountDataCache.set(
             MapRepositoryCoroutinesCacheKey(RoomAccountDataRepositoryKey(event.roomId, eventType), event.key),
             event,

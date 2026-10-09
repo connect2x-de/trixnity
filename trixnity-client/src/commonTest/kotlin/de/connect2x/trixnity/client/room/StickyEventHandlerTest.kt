@@ -17,8 +17,13 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStickyEventContentImpl
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventData
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
@@ -28,6 +33,8 @@ import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.core.serialization.events.invoke
+import de.connect2x.trixnity.core.serialization.events.messageOf
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.scheduleSetup
@@ -44,6 +51,8 @@ import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @OptIn(MSC4354::class, MSC4143::class)
 class StickyEventHandlerTest : TrixnityBaseTest() {
@@ -54,11 +63,24 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
     private val apiConfig = PortableMockEngineConfig()
     private val api = mockMatrixClientServerApiClient(config = apiConfig)
     private val repository = InMemoryStickyEventRepository()
+
+    @Serializable
+    data class StickyContentWithNullableStickyKey(override val stickyKey: String?) : StickyEventContent {
+        override val externalUrl = null
+        override val mentions = null
+        override val relatesTo = null
+
+        override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
+    }
+
     private val store =
         StickyEventStore(
                 repository,
                 NoOpStoreTransactionManager,
-                EventContentSerializerMappings.default,
+                EventContentSerializerMappings.default +
+                    EventContentSerializerMappings {
+                        messageOf<StickyContentWithNullableStickyKey>("de.connect2x.test.custom")
+                    },
                 MatrixClientConfiguration(),
                 ObservableCacheStatisticCollector(),
                 testScope.backgroundScope,
@@ -108,6 +130,75 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 sticky = null,
             )
         cut.setStickyEvents(listOf(event))
+        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky").first() shouldBe null
+    }
+
+    @Test
+    fun `setStickyEvents - skip when unknown`() = runTest {
+        val event1 =
+            RoomEvent.MessageEvent(
+                content = StickyContentWithNullableStickyKey(null) as StickyEventContent,
+                id = EventId("\$event1"),
+                sender = alice,
+                roomId = roomId,
+                originTimestamp = 2000L,
+                sticky = StickyEventData(durationMs = 10.minutes.inWholeMilliseconds),
+            )
+        cut.setStickyEvents(listOf(event1))
+        store.getBySenderAndStickyKey(roomId, StickyContentWithNullableStickyKey::class, alice, null).first() shouldBe
+            event1
+        val event2 =
+            RoomEvent.MessageEvent(
+                content =
+                    UnknownEventContent(
+                        raw = JsonObject(mapOf()),
+                        blocks = EventContentBlocks(),
+                        eventType = "de.connect2x.test.custom",
+                    )
+                        as StickyEventContent,
+                id = EventId("\$event2"),
+                sender = alice,
+                roomId = roomId,
+                originTimestamp = 1000L,
+                sticky = StickyEventData(durationMs = 10.minutes.inWholeMilliseconds),
+            )
+        cut.setStickyEvents(listOf(event2))
+        store.getBySenderAndStickyKey(roomId, StickyContentWithNullableStickyKey::class, alice, null).first() shouldBe
+            event1
+    }
+
+    @OptIn(MSC4193::class)
+    @Test
+    fun `setStickyEvents - handle redacted sticky events`() = runTest {
+        val event =
+            RoomEvent.MessageEvent(
+                content =
+                    RtcMemberEventContent.Join(
+                        CallRtcApplication.SLOT_ID,
+                        RtcMemberEventContent.Member(RtcMemberId("memberId")),
+                        CallRtcApplication.Member(),
+                        null,
+                        "sticky",
+                    ) as StickyEventContent,
+                id = EventId("\$event1"),
+                sender = alice,
+                roomId = roomId,
+                originTimestamp = 2000L,
+                sticky = StickyEventData(durationMs = 10.minutes.inWholeMilliseconds),
+            )
+        cut.setStickyEvents(listOf(event))
+        store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky").first() shouldBe event
+        val redactedEvent =
+            RoomEvent.MessageEvent(
+                content =
+                    RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", "sticky") as StickyEventContent,
+                id = EventId("\$event2"),
+                sender = alice,
+                roomId = roomId,
+                originTimestamp = 1000L,
+                sticky = StickyEventData(durationMs = 10.minutes.inWholeMilliseconds),
+            )
+        cut.setStickyEvents(listOf(redactedEvent))
         store.getBySenderAndStickyKey(roomId, RtcMemberEventContent::class, alice, "sticky").first() shouldBe null
     }
 

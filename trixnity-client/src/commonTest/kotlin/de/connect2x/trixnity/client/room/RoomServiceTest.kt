@@ -32,7 +32,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
@@ -384,7 +384,7 @@ class RoomServiceTest : TrixnityBaseTest() {
             TimelineEvent(
                 event =
                     MessageEvent(
-                        RedactedEventContent("m.room.message"),
+                        RedactedMessageEventContentImpl("m.room.message"),
                         EventId("\$event1"),
                         UserId("sender", "server"),
                         room,

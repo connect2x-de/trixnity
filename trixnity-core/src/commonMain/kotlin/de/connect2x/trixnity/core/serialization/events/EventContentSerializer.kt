@@ -54,7 +54,7 @@ class MessageEventContentSerializer(private val type: String, baseSerializer: KS
         return decoder.json.tryDeserializeOrElse(
             serializer,
             decoder.decodeJsonElement(),
-            { RedactedEventContentSerializer(type) },
+            { RedactedMessageEventContentSerializer(type) },
         ) {
             log.warn(it) { "could not deserialize event content of type $type" }
             UnknownEventContentSerializer(type)
@@ -181,7 +181,7 @@ class StateEventContentSerializer(
         return decoder.json.tryDeserializeOrElse(
             baseSerializer,
             decoder.decodeJsonElement(),
-            { RedactedEventContentSerializer(type) },
+            { RedactedStateEventContentSerializer(type) },
         ) {
             log.warn(it) { "could not deserialize event content of type $type" }
             UnknownEventContentSerializer(type)

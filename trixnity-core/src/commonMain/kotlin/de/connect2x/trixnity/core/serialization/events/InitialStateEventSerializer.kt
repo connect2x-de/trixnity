@@ -10,6 +10,6 @@ class InitialStateEventSerializer(stateEventContentSerializers: Set<EventContent
             baseMapping = stateEventContentSerializers,
             eventDeserializer = { InitialStateEvent.serializer(it.serializer) },
             unknownEventSerializer = { InitialStateEvent.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { InitialStateEvent.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { InitialStateEvent.serializer(RedactedStateEventContentSerializer(it)) },
         ),
     )

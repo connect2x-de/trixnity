@@ -3,27 +3,51 @@ package de.connect2x.trixnity.client.user
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.client.store.*
+import de.connect2x.trixnity.client.store.GlobalAccountDataStore
+import de.connect2x.trixnity.client.store.RoomStateStore
+import de.connect2x.trixnity.client.store.RoomStore
+import de.connect2x.trixnity.client.store.RoomTimelineStore
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.RoomUserReceipts
+import de.connect2x.trixnity.client.store.RoomUserStore
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.store.UserPresenceStore
+import de.connect2x.trixnity.client.store.getByStateKey
+import de.connect2x.trixnity.client.store.getContentByStateKey
+import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.*
-import de.connect2x.trixnity.core.model.events.m.room.*
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.BAN_DEFAULT
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.EVENTS_DEFAULT
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.INVITE_DEFAULT
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.KICK_DEFAULT
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.REDACT_DEFAULT
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent.Companion.STATE_DEFAULT
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.get
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
 
 private val log = Logger("de.connect2x.trixnity.client.user.UserService")
 
@@ -213,7 +237,7 @@ class UserServiceImpl(
                 if (ownMembership != Membership.JOIN) return@combine false
                 canDoAction.asUser(ownUserId, createEvent, powerLevelsEventContent) { ownPowerLevel ->
                     val content = timelineEvent.content?.getOrNull()
-                    if (content !is MessageEventContent || content is RedactedEventContent) return@asUser false
+                    if (content !is MessageEventContent || content is RedactedRoomEventContent) return@asUser false
 
                     if (timelineEvent.event.sender == ownUserId) {
                         val sendRedactionEventPowerLevel =

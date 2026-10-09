@@ -17,7 +17,9 @@ internal fun <T> Json.tryDeserializeOrElse(
         if (
             redactedSerializer != null &&
                 jsonElement is JsonObject &&
-                (jsonElement.isEmpty() || jsonElement.size == 1 && jsonElement.containsKey("type"))
+                (jsonElement.isEmpty() ||
+                    // type comes from a top-level json injection
+                    jsonElement.size == 1 && jsonElement.containsKey("type"))
         )
             decodeFromJsonElement(redactedSerializer(), jsonElement)
         else decodeFromJsonElement(elseSerializer(error), jsonElement)
