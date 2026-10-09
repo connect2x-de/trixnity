@@ -15,7 +15,7 @@ class StrippedStateEventSerializer(
                 PutTypeIntoPrevContentSerializer(StrippedStateEvent.serializer(UnknownEventContentSerializer(it)))
             },
             redactedEventSerializer = {
-                PutTypeIntoPrevContentSerializer(StrippedStateEvent.serializer(RedactedEventContentSerializer(it)))
+                PutTypeIntoPrevContentSerializer(StrippedStateEvent.serializer(RedactedStateEventContentSerializer(it)))
             },
         ),
     )

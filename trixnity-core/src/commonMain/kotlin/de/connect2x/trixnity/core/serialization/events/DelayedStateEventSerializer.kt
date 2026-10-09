@@ -12,6 +12,8 @@ class DelayedStateEventSerializer(stateEventContentSerializers: Set<EventContent
             baseMapping = stateEventContentSerializers,
             eventDeserializer = { DelayedEvent.DelayedStateEvent.serializer(it.serializer) },
             unknownEventSerializer = { DelayedEvent.DelayedStateEvent.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { DelayedEvent.DelayedStateEvent.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = {
+                DelayedEvent.DelayedStateEvent.serializer(RedactedStateEventContentSerializer(it))
+            },
         ),
     )

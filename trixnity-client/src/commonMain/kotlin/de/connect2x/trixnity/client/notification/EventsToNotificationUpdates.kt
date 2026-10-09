@@ -15,6 +15,7 @@ import de.connect2x.trixnity.core.model.events.roomIdOrNull
 import de.connect2x.trixnity.core.model.events.senderOrNull
 import de.connect2x.trixnity.core.model.push.PushRule
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
@@ -109,9 +110,7 @@ class EventsToNotificationUpdatesImpl(
         existingNotifications: Map<String, String>,
         sortKeyFactory: () -> String,
     ): List<StoredNotificationUpdate> {
-        val type =
-            eventContentSerializerMappings.state.find { it.kClass.isInstance(event.content) }?.type
-                ?: return emptyList()
+        val type = eventContentSerializerMappings.state.contentType(event.content)
         val id = StoredNotification.State.id(roomId, type, event.stateKey)
         if (processedNotifications.contains(id)) {
             log.trace { "skip state event $id" }

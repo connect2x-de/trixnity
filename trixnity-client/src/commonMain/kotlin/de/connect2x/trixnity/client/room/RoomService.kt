@@ -44,7 +44,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
@@ -327,7 +327,7 @@ class RoomServiceImpl(
             .get(eventId, roomId)
             .flatMapLatest { timelineEvent ->
                 val event = timelineEvent?.event
-                if (cfg.allowReplaceContent && event is MessageEvent && event.content !is RedactedEventContent) {
+                if (cfg.allowReplaceContent && event is MessageEvent && event.content !is RedactedRoomEventContent) {
                     val replacedByFlow = getTimelineEventReplaceAggregation(roomId, eventId).map { it.replacedBy }
                     replacedByFlow.flatMapLatest { replacedBy ->
                         if (replacedBy != null) {

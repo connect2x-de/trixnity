@@ -15,7 +15,7 @@ class DelayedMessageEventSerializer(
             eventDeserializer = { DelayedEvent.DelayedMessageEvent.serializer(it.serializer) },
             unknownEventSerializer = { DelayedEvent.DelayedMessageEvent.serializer(UnknownEventContentSerializer(it)) },
             redactedEventSerializer = {
-                DelayedEvent.DelayedMessageEvent.serializer(RedactedEventContentSerializer(it))
+                DelayedEvent.DelayedMessageEvent.serializer(RedactedMessageEventContentSerializer(it))
             },
         ),
     )

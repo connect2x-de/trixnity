@@ -22,11 +22,16 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.utils.KeyedMutex
 import kotlinx.coroutines.CoroutineScope
@@ -241,14 +246,15 @@ class TimelineEventHandlerImpl(
             }
         }
 
-    private fun RoomEvent<*>.redact(because: MessageEvent<RedactionEventContent>): RoomEvent<RedactedEventContent> =
+    private fun RoomEvent<*>.redact(
+        because: MessageEvent<RedactionEventContent>
+    ): RoomEvent<out RedactedRoomEventContent> =
         when (this) {
             is MessageEvent -> {
                 val redactedContent =
-                    content as? RedactedEventContent
-                        ?: RedactedEventContent(
-                            api.eventContentSerializerMappings.message.find { it.kClass.isInstance(content) }?.type
-                                ?: "UNKNOWN"
+                    content as? RedactedMessageEventContent
+                        ?: RedactedMessageEventContentImpl(
+                            api.eventContentSerializerMappings.message.contentType(content)
                         )
                 MessageEvent(
                     redactedContent,
@@ -266,11 +272,8 @@ class TimelineEventHandlerImpl(
             is RoomEvent.StateEvent -> {
                 // TODO should update state to last known (maybe not needed with sync v3)
                 val redactedContent =
-                    content as? RedactedEventContent
-                        ?: RedactedEventContent(
-                            api.eventContentSerializerMappings.state.find { it.kClass.isInstance(content) }?.type
-                                ?: "UNKNOWN"
-                        )
+                    content as? RedactedStateEventContent
+                        ?: RedactedStateEventContentImpl(api.eventContentSerializerMappings.state.contentType(content))
                 RoomEvent.StateEvent(
                     // TODO should keep some fields and change state: https://spec.matrix.org/v1.10/rooms/v9/#redactions
                     redactedContent,

@@ -77,7 +77,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEven
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
@@ -1631,13 +1631,13 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
         val event =
             TimelineEvent(
                 MessageEvent(
-                    RedactedEventContent("m.room.message"),
+                    RedactedMessageEventContentImpl("m.room.message"),
                     EventId("\$event1"),
                     UserId("sender", "server"),
                     RoomId("!room1:server"),
                     1234,
                 ),
-                content = Result.success(RedactedEventContent("m.room.message")),
+                content = Result.success(RedactedMessageEventContentImpl("m.room.message")),
                 previousEventId = null,
                 nextEventId = null,
                 gap = TimelineEvent.Gap.GapBefore("batch"),

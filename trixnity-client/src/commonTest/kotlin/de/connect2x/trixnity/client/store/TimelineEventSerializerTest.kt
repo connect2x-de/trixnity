@@ -5,7 +5,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
@@ -126,7 +126,7 @@ class TimelineEventSerializerTest : TrixnityBaseTest() {
     @Test
     fun `unknown content » serialize`() = runTest { json.encodeToString(unknownResult) shouldBe unknownResultJson }
 
-    private val redactedResult = timelineEvent(Result.success(RedactedEventContent("m.room.encrypted")))
+    private val redactedResult = timelineEvent(Result.success(RedactedMessageEventContentImpl("m.room.encrypted")))
     private val redactedResultJson = timelineEventJson("""{"type":"m.room.encrypted","value":{}}""")
 
     @Test

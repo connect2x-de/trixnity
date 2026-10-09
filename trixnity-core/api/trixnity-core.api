@@ -2824,18 +2824,58 @@ public final class de/connect2x/trixnity/core/model/events/PlaintextOlmEvent$Com
 	public final fun serializer (Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/KSerializer;
 }
 
-public final class de/connect2x/trixnity/core/model/events/RedactedEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent, de/connect2x/trixnity/core/model/events/RoomEventContent, de/connect2x/trixnity/core/model/events/StateEventContent {
+public abstract interface class de/connect2x/trixnity/core/model/events/RedactedMessageEventContent : de/connect2x/trixnity/core/model/events/MessageEventContent, de/connect2x/trixnity/core/model/events/RedactedRoomEventContent {
+}
+
+public final class de/connect2x/trixnity/core/model/events/RedactedMessageEventContentImpl : de/connect2x/trixnity/core/model/events/RedactedMessageEventContent {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/RedactedEventContent;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/RedactedEventContent;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/RedactedEventContent;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContentImpl;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContentImpl;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContentImpl;
 	public synthetic fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/MessageEventContent;
-	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/RedactedEventContent;
+	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContentImpl;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getEventType ()Ljava/lang/String;
+	public fun getEventType ()Ljava/lang/String;
 	public fun getExternalUrl ()Ljava/lang/String;
 	public fun getMentions ()Lde/connect2x/trixnity/core/model/events/m/Mentions;
 	public fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/events/RedactedRoomEventContent : de/connect2x/trixnity/core/model/events/RoomEventContent {
+	public abstract fun getEventType ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/core/model/events/RedactedStateEventContent : de/connect2x/trixnity/core/model/events/RedactedRoomEventContent, de/connect2x/trixnity/core/model/events/StateEventContent {
+}
+
+public final class de/connect2x/trixnity/core/model/events/RedactedStateEventContentImpl : de/connect2x/trixnity/core/model/events/RedactedStateEventContent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/RedactedStateEventContentImpl;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/RedactedStateEventContentImpl;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/RedactedStateEventContentImpl;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEventType ()Ljava/lang/String;
+	public fun getExternalUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/model/events/RedactedStickyEventContentImpl : de/connect2x/trixnity/core/model/events/RedactedMessageEventContent, de/connect2x/trixnity/core/model/events/StickyEventContent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/RedactedStickyEventContentImpl;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/core/model/events/RedactedStickyEventContentImpl;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/RedactedStickyEventContentImpl;
+	public synthetic fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/MessageEventContent;
+	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/RedactedStickyEventContentImpl;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getEventType ()Ljava/lang/String;
+	public fun getExternalUrl ()Ljava/lang/String;
+	public fun getMentions ()Lde/connect2x/trixnity/core/model/events/m/Mentions;
+	public fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun getStickyKey ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -11610,13 +11650,23 @@ public final class de/connect2x/trixnity/core/serialization/events/PersistentSta
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
-public final class de/connect2x/trixnity/core/serialization/events/RedactedEventContentSerializer : kotlinx/serialization/KSerializer {
+public final class de/connect2x/trixnity/core/serialization/events/RedactedMessageEventContentSerializer : kotlinx/serialization/KSerializer {
 	public fun <init> (Ljava/lang/String;)V
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/RedactedEventContent;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContent;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public final fun getEventType ()Ljava/lang/String;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/RedactedEventContent;)V
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/RedactedMessageEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/core/serialization/events/RedactedStateEventContentSerializer : kotlinx/serialization/KSerializer {
+	public fun <init> (Ljava/lang/String;)V
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/RedactedStateEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun getEventType ()Ljava/lang/String;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/RedactedStateEventContent;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 

@@ -118,7 +118,7 @@ class RtcRouteTest : TrixnityBaseTest() {
         initCut()
         everySuspend { handlerMock.delegateDelayedLeave(any()) }.returns(Unit)
         val response =
-            client.post("/_matrix/client/v1/rtc/livekit/delegate_delayed_leave") {
+            client.post("/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave") {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
                 setBody(

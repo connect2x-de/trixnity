@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import de.connect2x.trixnity.core.model.events.*
+import de.connect2x.trixnity.core.model.events.Event
+import de.connect2x.trixnity.core.model.events.EventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.AddFieldsSerializer
 import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
@@ -52,9 +56,10 @@ open class EventContentToEventSerializerMappings<C : EventContent, E : Event<out
 
 open class RoomEventContentToEventSerializerMappings<
     C : RoomEventContent,
+    RC : RedactedRoomEventContent,
     E : Event<out C>,
     U : Event<UnknownEventContent>,
-    R : Event<RedactedEventContent>,
+    R : Event<RC>,
 >(
     baseMapping: Set<EventContentSerializerMapping<C>>,
     eventDeserializer: (EventContentSerializerMapping<C>) -> KSerializer<E>,
@@ -83,7 +88,7 @@ open class RoomEventContentToEventSerializerMappings<
                     )
                 }
 
-                is RedactedEventContent -> {
+                is RedactedRoomEventContent -> {
                     @Suppress("UNCHECKED_CAST")
                     val serializer = redactedEventSerializer(content.eventType) as KSerializer<E>
                     SerializerWithType(

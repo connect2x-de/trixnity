@@ -16,7 +16,14 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonTransformingSerializer
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 
 private val log = Logger("de.connect2x.trixnity.core.serialization.events.PersistentMessageDataUnit")
 
@@ -79,7 +86,9 @@ class PersistentMessageDataUnitSerializer(
                 else baseSerializer
             },
             unknownEventSerializer = { PersistentMessageDataUnitV1.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentMessageDataUnitV1.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = {
+                PersistentMessageDataUnitV1.serializer(RedactedMessageEventContentSerializer(it))
+            },
         )
     private val mappingV3 =
         RoomEventContentToEventSerializerMappings(
@@ -135,7 +144,9 @@ class PersistentMessageDataUnitSerializer(
                 else baseSerializer
             },
             unknownEventSerializer = { PersistentMessageDataUnitV3.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentMessageDataUnitV3.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = {
+                PersistentMessageDataUnitV3.serializer(RedactedMessageEventContentSerializer(it))
+            },
         )
     private val mappingV12 =
         RoomEventContentToEventSerializerMappings(
@@ -191,7 +202,9 @@ class PersistentMessageDataUnitSerializer(
                 else baseSerializer
             },
             unknownEventSerializer = { PersistentMessageDataUnitV12.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PersistentMessageDataUnitV12.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = {
+                PersistentMessageDataUnitV12.serializer(RedactedMessageEventContentSerializer(it))
+            },
         )
 
     override fun deserialize(decoder: Decoder): PersistentMessageDataUnit<*> {

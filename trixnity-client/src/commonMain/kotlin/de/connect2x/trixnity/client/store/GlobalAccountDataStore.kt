@@ -9,6 +9,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEven
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
@@ -48,11 +49,8 @@ class GlobalAccountDataStore(
         val eventType =
             when (val content = event.content) {
                 is UnknownEventContent -> content.eventType
-                else -> contentMappings.globalAccountData.find { it.kClass.isInstance(event.content) }?.type
+                else -> contentMappings.globalAccountData.contentType(event.content)
             }
-                ?: throw IllegalArgumentException(
-                    "Cannot save account data event $event, because it is not supported. You need to register it first."
-                )
         globalAccountDataCache.set(MapRepositoryCoroutinesCacheKey(eventType, event.key), event)
     }
 

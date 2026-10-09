@@ -30,7 +30,8 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventData
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
@@ -193,14 +194,14 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
         assertSoftly(roomTimelineStore.get(event2.id, room).first().shouldNotBeNull()) {
             event shouldBe
                 MessageEvent(
-                    RedactedEventContent("m.room.message"),
+                    RedactedMessageEventContentImpl("m.room.message"),
                     event2.id,
                     UserId("sender", "server"),
                     room,
                     2,
                     UnsignedRoomEventData.UnsignedMessageEventData(redactedBecause = redactionEvent),
                 )
-            content shouldBe Result.success(RedactedEventContent("m.room.message"))
+            content shouldBe Result.success(RedactedMessageEventContentImpl("m.room.message"))
             roomId shouldBe room
             eventId shouldBe event2.id
             previousEventId shouldBe event1.id
@@ -287,7 +288,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
         assertSoftly(roomTimelineStore.get(event2.id, room).first().shouldNotBeNull()) {
             event shouldBe
                 StateEvent(
-                    RedactedEventContent("m.room.name"),
+                    RedactedStateEventContentImpl("m.room.name"),
                     event2.id,
                     UserId("sender", "server"),
                     room,
@@ -295,7 +296,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                     UnsignedRoomEventData.UnsignedStateEventData(redactedBecause = redactionEvent),
                     "",
                 )
-            content shouldBe Result.success(RedactedEventContent("m.room.name"))
+            content shouldBe Result.success(RedactedStateEventContentImpl("m.room.name"))
             roomId shouldBe room
             eventId shouldBe event2.id
             previousEventId shouldBe event1.id
@@ -1665,7 +1666,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
 
 private fun MessageEvent<*>.redacted(because: MessageEvent<RedactionEventContent>) =
     MessageEvent(
-        content = RedactedEventContent("m.room.message"),
+        content = RedactedMessageEventContentImpl("m.room.message"),
         id = id,
         sender = sender,
         roomId = roomId,

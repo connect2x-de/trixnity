@@ -10,11 +10,16 @@ import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentData
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentDataUnitV12.PersistentStateDataUnitV12
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentDataUnitV3.PersistentMessageDataUnitV3
 import de.connect2x.trixnity.core.model.events.PersistentDataUnit.PersistentDataUnitV3.PersistentStateDataUnitV3
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
-import de.connect2x.trixnity.core.model.events.m.room.*
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.serialization.createMatrixDataUnitJson
 import de.connect2x.trixnity.core.serialization.trimToFlatJson
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
@@ -521,7 +526,7 @@ class PersistentDataUnitSerializerTest : TrixnityBaseTest() {
     private val redactedMessagePdu =
         PersistentMessageDataUnitV3(
             authEvents = listOf(),
-            content = RedactedEventContent("m.room.message"),
+            content = RedactedMessageEventContentImpl("m.room.message"),
             depth = 12u,
             hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
             originTimestamp = 1404838188000,
@@ -568,7 +573,7 @@ class PersistentDataUnitSerializerTest : TrixnityBaseTest() {
     private val redactedStatePdu =
         PersistentStateDataUnitV3(
             authEvents = listOf(),
-            content = RedactedEventContent("m.room.name"),
+            content = RedactedStateEventContentImpl("m.room.name"),
             depth = 12u,
             hashes = PersistentDataUnit.EventHash("thishashcoversallfieldsincasethisisredacted"),
             originTimestamp = 1404838188000,

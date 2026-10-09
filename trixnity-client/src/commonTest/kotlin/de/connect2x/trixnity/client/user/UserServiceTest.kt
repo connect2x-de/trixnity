@@ -24,7 +24,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.EventType
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
@@ -826,7 +826,7 @@ class UserServiceTest : TrixnityBaseTest() {
             TimelineEvent(
                 event =
                     MessageEvent(
-                        content = RedactedEventContent(eventType = "redacted"),
+                        content = RedactedMessageEventContentImpl(eventType = "redacted"),
                         id = EventId("event"),
                         sender = me,
                         roomId = roomId,

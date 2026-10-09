@@ -1,6 +1,17 @@
 package de.connect2x.trixnity.core.serialization.events
 
-import de.connect2x.trixnity.core.model.events.*
+import de.connect2x.trixnity.core.model.events.EphemeralDataUnitContent
+import de.connect2x.trixnity.core.model.events.EphemeralEventContent
+import de.connect2x.trixnity.core.model.events.EventContent
+import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedMessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedRoomEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
+import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
+import de.connect2x.trixnity.core.model.events.StateEventContent
+import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
@@ -88,8 +99,10 @@ fun <T : EventContent> Set<EventContentSerializerMapping<T>>.contentSerializer(c
     when (content) {
         is UnknownEventContent ->
             @Suppress("UNCHECKED_CAST") (UnknownEventContentSerializer(content.eventType) as KSerializer<T>)
-        is RedactedEventContent ->
-            @Suppress("UNCHECKED_CAST") (RedactedEventContentSerializer(content.eventType) as KSerializer<T>)
+        is RedactedMessageEventContent ->
+            @Suppress("UNCHECKED_CAST") (RedactedMessageEventContentSerializer(content.eventType) as KSerializer<T>)
+        is RedactedStateEventContent ->
+            @Suppress("UNCHECKED_CAST") (RedactedStateEventContentSerializer(content.eventType) as KSerializer<T>)
 
         else ->
             find { it.kClass.isInstance(content) }?.serializer
@@ -99,7 +112,7 @@ fun <T : EventContent> Set<EventContentSerializerMapping<T>>.contentSerializer(c
 fun Set<EventContentSerializerMapping<*>>.contentType(content: EventContent): String =
     when (content) {
         is UnknownEventContent -> content.eventType
-        is RedactedEventContent -> content.eventType
+        is RedactedRoomEventContent -> content.eventType
         else ->
             find { it.kClass.isInstance(content) }?.type ?: throw UnsupportedEventContentTypeException(content::class)
     }

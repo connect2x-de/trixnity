@@ -84,11 +84,11 @@ data class UnknownEventContent(
     ExtensibleEventContent<ExtensibleEventContent.Legacy.None>,
     StickyEventContent {
     // is always null, because this class is the last fallback, when nothing can be deserialized
+    override val stickyKey: String? = null
     override val relatesTo: RelatesTo? = null
     override val mentions: Mentions? = null
     override val externalUrl: String? = null
     override val legacy: ExtensibleEventContent.Legacy.None? = null
-    override val stickyKey: String? = null
 
     override fun copyWith(relatesTo: RelatesTo?) = this
 }

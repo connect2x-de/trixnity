@@ -24,6 +24,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Updated m.call capabilities in current MSC4196 version
 - Remove messages with duplicate annotation send error from outbox
 - Add current Element flavor of MSC4143, MSC4196 and MSC4195
+- Allow "redaction" for sticky events
 
 ### Deprecated
 

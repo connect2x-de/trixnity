@@ -9,10 +9,11 @@ import de.connect2x.trixnity.client.store.repository.RoomStateRepositoryKey
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
-import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
@@ -77,12 +78,9 @@ class RoomStateStore(
                 val eventType =
                     when (val content = event.content) {
                         is UnknownEventContent -> content.eventType
-                        is RedactedEventContent -> content.eventType
-                        else -> contentMappings.state.find { it.kClass.isInstance(event.content) }?.type
+                        is RedactedStateEventContent -> content.eventType
+                        else -> contentMappings.state.contentType(event.content)
                     }
-                        ?: throw IllegalArgumentException(
-                            "Cannot find state event, because it is not supported. You need to register it first."
-                        )
                 EventWithType(roomId, event, eventType, event.stateKey)
             }
             .asReversed()

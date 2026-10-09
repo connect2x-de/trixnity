@@ -12,6 +12,6 @@ class DecryptedMegolmEventSerializer(
             baseMapping = messageEventContentSerializers,
             eventDeserializer = { PlaintextMegolmEvent.serializer(it.serializer) },
             unknownEventSerializer = { PlaintextMegolmEvent.serializer(UnknownEventContentSerializer(it)) },
-            redactedEventSerializer = { PlaintextMegolmEvent.serializer(RedactedEventContentSerializer(it)) },
+            redactedEventSerializer = { PlaintextMegolmEvent.serializer(RedactedMessageEventContentSerializer(it)) },
         ),
     )

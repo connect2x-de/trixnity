@@ -16,6 +16,7 @@ import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import io.ktor.util.reflect.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
@@ -83,7 +84,7 @@ class StickyEventStore(
     context(transaction: StoreWriteTransaction)
     suspend fun save(storedStickyEvent: StoredStickyEvent<StickyEventContent>) {
         val event = storedStickyEvent.event
-        if (event.sticky == null) return
+        if (event.sticky == null || event.content is UnknownEventContent) return
         val eventType = findType(event.content)
         stickyEventCache.update(
             MapRepositoryCoroutinesCacheKey(
@@ -191,14 +192,7 @@ class StickyEventStore(
             )
 
     private fun <C : RoomEventContent> findType(eventContent: C): String =
-        when (eventContent) {
-            is UnknownEventContent -> eventContent.eventType
-            else ->
-                contentMappings.message.find { it.kClass.isInstance(eventContent) }?.type
-                    ?: throw IllegalArgumentException(
-                        "Cannot find sticky event type, because it is not supported. You need to register it first."
-                    )
-        }
+        contentMappings.message.contentType(eventContent)
 }
 
 @OptIn(MSC4354::class)

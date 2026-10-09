@@ -6,6 +6,7 @@ import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.contentType
 import de.connect2x.trixnity.idb.utils.KeyPath
 import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import de.connect2x.trixnity.utils.ReadTransaction
@@ -99,8 +100,7 @@ internal class IndexedDBRoomOutboxMessageRepository(
 
     context(transaction: WriteTransaction)
     override suspend fun save(key: RoomOutboxMessageRepositoryKey, value: RoomOutboxMessage<*>) {
-        val contentType = mappings.message.find { it.kClass.isInstance(value.content) }?.type
-        checkNotNull(contentType)
+        val contentType = mappings.message.contentType(value.content)
         internalRepository.save(key, IndexedDBRoomOutboxMessage(key.roomId, value, contentType))
     }
 

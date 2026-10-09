@@ -112,7 +112,10 @@ class RtcApiClientTest : TrixnityBaseTest() {
                 httpClientEngine =
                     scopedMockEngine {
                         addHandler { request ->
-                            assertEquals("/_matrix/client/v1/rtc/livekit/delegate_delayed_leave", request.url.fullPath)
+                            assertEquals(
+                                "/_matrix/client/unstable/io.element.msc4195/rtc/livekit/delegate_delayed_leave",
+                                request.url.fullPath,
+                            )
                             assertEquals(HttpMethod.Post, request.method)
                             request.body.toByteArray().decodeToString() shouldBe
                                 """
