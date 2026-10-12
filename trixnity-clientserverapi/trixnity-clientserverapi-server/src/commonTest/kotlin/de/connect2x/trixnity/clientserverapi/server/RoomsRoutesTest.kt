@@ -893,7 +893,9 @@ class RoomsRoutesTest : TrixnityBaseTest() {
             ) {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
-                setBody("""{"content":{"body":"hi","msgtype":"m.text"},"delay_ms":60000}""")
+                setBody(
+                    """{"content":{"body":"hi","msgtype":"m.text"},"delay_ms":60000,"org.matrix.msc4354.sticky_duration_ms":30000}"""
+                )
             }
         assertSoftly(response) {
             this.status shouldBe HttpStatusCode.OK
@@ -913,7 +915,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
                     it.endpoint.txnId shouldBe "someTxnId"
                     it.endpoint.type shouldBe "m.room.message"
                     it.requestBody shouldBe
-                        SendDelayedEvent.Request.Message(RoomMessageEventContent.TextBased.Text("hi"), 60_000)
+                        SendDelayedEvent.Request.Message(RoomMessageEventContent.TextBased.Text("hi"), 60_000, 30_000)
                 }
             )
         }
@@ -1027,11 +1029,13 @@ class RoomsRoutesTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun shouldSendMessageEventWithStableStickyDurationMs() = testApplication {
+    fun shouldSendMessageEventWithStickyDurationMs() = testApplication {
         initCut()
         everySuspend { handlerMock.sendMessageEvent(any()) }.returns(SendEventResponse(EventId("event")))
         val response =
-            client.put("/_matrix/client/v3/rooms/!room:server/send/m.room.message/someTxnId?sticky_duration_ms=60000") {
+            client.put(
+                "/_matrix/client/v3/rooms/!room:server/send/m.room.message/someTxnId?org.matrix.msc4354.sticky_duration_ms=60000"
+            ) {
                 bearerAuth("token")
                 contentType(ContentType.Application.Json)
                 setBody("""{"body":"someBody","msgtype":"m.text"}""")
@@ -1050,6 +1054,7 @@ class RoomsRoutesTest : TrixnityBaseTest() {
         verifySuspend {
             handlerMock.sendMessageEvent(
                 assert {
+                    println(it.endpoint)
                     it.endpoint.roomId shouldBe RoomId("!room:server")
                     it.endpoint.txnId shouldBe "someTxnId"
                     it.endpoint.type shouldBe "m.room.message"
