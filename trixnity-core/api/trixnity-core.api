@@ -8801,6 +8801,7 @@ public abstract interface class de/connect2x/trixnity/core/model/events/m/rtc/Rt
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Companion;
 	public abstract fun getMember ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;
 	public abstract fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo$Reference;
+	public abstract fun getSlotEventId-srQVttY ()Ljava/lang/String;
 	public abstract fun getSlotId-RBoLkIg ()Ljava/lang/String;
 }
 
@@ -8810,15 +8811,16 @@ public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventC
 
 public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join : de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-RBoLkIg ()Ljava/lang/String;
-	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;
-	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;
-	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun copy-uLuCre0 (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
-	public static synthetic fun copy-uLuCre0$default (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public final fun component2-srQVttY ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;
+	public final fun component5 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy-6g6yQbI (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public static synthetic fun copy-6g6yQbI$default (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
 	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getApplication ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;
@@ -8827,6 +8829,7 @@ public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventC
 	public fun getMentions ()Lde/connect2x/trixnity/core/model/events/m/Mentions;
 	public fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo$Reference;
 	public synthetic fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun getSlotEventId-srQVttY ()Ljava/lang/String;
 	public fun getSlotId-RBoLkIg ()Ljava/lang/String;
 	public fun getStickyKey ()Ljava/lang/String;
 	public final fun getTransports ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;
@@ -8882,14 +8885,15 @@ public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventC
 
 public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave : de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-RBoLkIg ()Ljava/lang/String;
-	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;
-	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun copy-SLJUs1E (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
-	public static synthetic fun copy-SLJUs1E$default (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public final fun component2-srQVttY ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy-qlT6rLg (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public static synthetic fun copy-qlT6rLg$default (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Member;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
 	public fun copyWith (Lde/connect2x/trixnity/core/model/events/m/RelatesTo;)Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getExternalUrl ()Ljava/lang/String;
@@ -8898,6 +8902,7 @@ public final class de/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventC
 	public final fun getReason ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;
 	public fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo$Reference;
 	public synthetic fun getRelatesTo ()Lde/connect2x/trixnity/core/model/events/m/RelatesTo;
+	public fun getSlotEventId-srQVttY ()Ljava/lang/String;
 	public fun getSlotId-RBoLkIg ()Ljava/lang/String;
 	public fun getStickyKey ()Ljava/lang/String;
 	public fun hashCode ()I
