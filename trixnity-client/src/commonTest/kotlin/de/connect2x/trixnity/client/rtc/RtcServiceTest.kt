@@ -407,6 +407,7 @@ class RtcServiceTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Join(
                     slotId = slotId,
+                    slotEventId = EventId("slot"),
                     member = RtcMemberEventContent.Member(memberId),
                     application = application,
                     stickyKey = stickyKey,
