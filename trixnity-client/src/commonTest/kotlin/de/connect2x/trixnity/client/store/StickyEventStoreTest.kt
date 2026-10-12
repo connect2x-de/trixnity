@@ -62,6 +62,7 @@ class StickyEventStoreTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Join(
                     CallRtcApplication.SLOT_ID,
+                    EventId("slot"),
                     RtcMemberEventContent.Member(RtcMemberId("memberId")),
                     CallRtcApplication.Member(),
                     null,
@@ -171,6 +172,7 @@ class StickyEventStoreTest : TrixnityBaseTest() {
                         content =
                             RtcMemberEventContent.Join(
                                 CallRtcApplication.SLOT_ID,
+                                EventId("slot"),
                                 RtcMemberEventContent.Member(RtcMemberId("memberId")),
                                 CallRtcApplication.Member(),
                                 null,

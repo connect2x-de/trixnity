@@ -2,6 +2,7 @@ package de.connect2x.trixnity.core.model.events.m.rtc
 
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
+import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
@@ -29,6 +30,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @Serializable(with = RtcMemberEventContent.Serializer::class)
 sealed interface RtcMemberEventContent : StickyEventContent {
     val slotId: RtcSlotId
+    val slotEventId: EventId?
     val member: Member
     override val relatesTo: RelatesTo.Reference?
 
@@ -36,6 +38,8 @@ sealed interface RtcMemberEventContent : StickyEventContent {
     @Serializable
     data class Join(
         @SerialName("slot_id") override val slotId: RtcSlotId,
+        // TODO remove Element flavor: not nullable
+        @SerialName("slot_event_id") override val slotEventId: EventId? = null,
         @SerialName("member") override val member: Member,
         @SerialName("application") val application: @Contextual RtcApplicationMember,
         @SerialName("transports") val transports: @Contextual RtcTransports? = null,
@@ -63,6 +67,7 @@ sealed interface RtcMemberEventContent : StickyEventContent {
     @Serializable
     data class Leave(
         @SerialName("slot_id") override val slotId: RtcSlotId,
+        @SerialName("slot_event_id") override val slotEventId: EventId? = null,
         @SerialName("member") override val member: Member,
         @SerialName("leave_reason") val reason: Reason? = null,
         @MSC4354
