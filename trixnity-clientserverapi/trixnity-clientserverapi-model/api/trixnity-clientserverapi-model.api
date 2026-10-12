@@ -8472,14 +8472,14 @@ public final class de/connect2x/trixnity/clientserverapi/model/room/ReportRoom$R
 
 public final class de/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent : de/connect2x/trixnity/core/MatrixEndpoint {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/Long;
-	public final fun copy-qv99HPQ (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;
-	public static synthetic fun copy-qv99HPQ$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;
+	public final fun copy-nnwLeS4 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;
+	public static synthetic fun copy-nnwLeS4$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getRequestContentType ()Lio/ktor/http/ContentType;
 	public fun getResponseContentType ()Lio/ktor/http/ContentType;
@@ -8516,29 +8516,35 @@ public abstract interface class de/connect2x/trixnity/clientserverapi/model/room
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message : de/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request {
-	public fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;J)V
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public final fun component2 ()J
-	public final fun copy (Lde/connect2x/trixnity/core/model/events/MessageEventContent;J)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;Lde/connect2x/trixnity/core/model/events/MessageEventContent;JILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getContent ()Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/RoomEventContent;
 	public fun getDelayMs ()J
+	public final fun getStickyDurationMs ()Ljava/lang/Long;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage$Companion;
-	public fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;J)V
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public final fun component2 ()J
-	public final fun copy (Lde/connect2x/trixnity/core/model/events/MessageEventContent;J)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;Lde/connect2x/trixnity/core/model/events/MessageEventContent;JILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;Lde/connect2x/trixnity/core/model/events/MessageEventContent;JLjava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendDelayedEvent$Request$Message$SerializableMessage;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getContent ()Lde/connect2x/trixnity/core/model/events/MessageEventContent;
 	public final fun getDelayMs ()J
+	public final fun getStickyDurationMs ()Ljava/lang/Long;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -8690,14 +8696,15 @@ public final class de/connect2x/trixnity/clientserverapi/model/room/SendEventRes
 
 public final class de/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent : de/connect2x/trixnity/core/MatrixEndpoint {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1-7hZGZBE ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/Long;
-	public final fun copy-qv99HPQ (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;
-	public static synthetic fun copy-qv99HPQ$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;
+	public final fun component5 ()Ljava/lang/Long;
+	public final fun copy-CGtXASs (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;)Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;
+	public static synthetic fun copy-CGtXASs$default (Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/clientserverapi/model/room/SendMessageEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getRequestContentType ()Lio/ktor/http/ContentType;
 	public fun getResponseContentType ()Lio/ktor/http/ContentType;

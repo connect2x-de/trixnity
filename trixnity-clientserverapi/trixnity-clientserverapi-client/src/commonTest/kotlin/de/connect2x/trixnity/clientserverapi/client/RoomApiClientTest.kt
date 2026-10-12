@@ -852,7 +852,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
                             )
                             assertEquals(HttpMethod.Put, request.method)
                             assertEquals(
-                                """{"content":{"body":"hi","msgtype":"m.text"},"delay_ms":60000}""",
+                                """{"content":{"body":"hi","msgtype":"m.text"},"delay_ms":60000,"org.matrix.msc4354.sticky_duration_ms":30000}""",
                                 request.body.toByteArray().decodeToString(),
                             )
                             respond(
@@ -872,6 +872,7 @@ class RoomApiClientTest : TrixnityBaseTest() {
                     eventContent = eventContent,
                     txnId = "someTxnId",
                     delayMs = 60000,
+                    stickyDurationMs = 30000,
                 )
                 .getOrThrow()
         assertEquals(DelayId("someDelayId"), result)

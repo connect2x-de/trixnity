@@ -13,6 +13,7 @@ import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.contentSerializer
 import io.ktor.resources.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -22,6 +23,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.json.jsonObject
 
 @MSC4140
@@ -33,8 +35,6 @@ data class SendDelayedEvent(
     @SerialName("type") val type: String,
     @SerialName("txnId") val txnId: String,
     @SerialName("ts") val ts: Long? = null,
-    @MSC4354 @SerialName("sticky_duration_ms") private val stickyDurationMsStable: Long? = null,
-    @MSC4354 @SerialName("org.matrix.msc4354.sticky_duration_ms") private val stickyDurationMsUnstable: Long? = null,
 ) : MatrixEndpoint<SendDelayedEvent.Request, SendDelayedEvent.Response> {
     sealed interface Request {
         val content: RoomEventContent
@@ -68,16 +68,26 @@ data class SendDelayedEvent(
             }
         }
 
+        @OptIn(ExperimentalSerializationApi::class)
         data class Message(
             @SerialName("content") override val content: MessageEventContent,
             @SerialName("delay_ms") override val delayMs: Long,
+            @MSC4354
+            @JsonNames("sticky_duration_ms")
+            @SerialName("org.matrix.msc4354.sticky_duration_ms")
+            val stickyDurationMs: Long? = null,
         ) : Request {
             @Serializable
             data class SerializableMessage<C : MessageEventContent>(
                 @SerialName("content") val content: C,
                 @SerialName("delay_ms") val delayMs: Long,
+                @MSC4354
+                @JsonNames("sticky_duration_ms")
+                @SerialName("org.matrix.msc4354.sticky_duration_ms")
+                val stickyDurationMs: Long? = null,
             )
 
+            @OptIn(MSC4354::class)
             class Serializer(contentSerializer: KSerializer<MessageEventContent>) : KSerializer<Message> {
                 val delegateSerializer = SerializableMessage.serializer(contentSerializer)
                 override val descriptor =
@@ -85,13 +95,21 @@ data class SendDelayedEvent(
 
                 override fun deserialize(decoder: Decoder): Message {
                     val delegate = decoder.decodeSerializableValue(delegateSerializer)
-                    return Message(delayMs = delegate.delayMs, content = delegate.content)
+                    return Message(
+                        delayMs = delegate.delayMs,
+                        content = delegate.content,
+                        stickyDurationMs = delegate.stickyDurationMs,
+                    )
                 }
 
                 override fun serialize(encoder: Encoder, value: Message) {
                     encoder.encodeSerializableValue(
                         delegateSerializer,
-                        SerializableMessage(delayMs = value.delayMs, content = value.content),
+                        SerializableMessage(
+                            delayMs = value.delayMs,
+                            content = value.content,
+                            stickyDurationMs = value.stickyDurationMs,
+                        ),
                     )
                 }
             }

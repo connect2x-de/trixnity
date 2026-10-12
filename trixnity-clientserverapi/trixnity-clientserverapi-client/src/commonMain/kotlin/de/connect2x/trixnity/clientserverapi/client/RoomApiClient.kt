@@ -199,7 +199,6 @@ interface RoomApiClient {
         txnId: String = Random.nextString(22),
         delayMs: Long,
         ts: Long? = null,
-        stickyDurationMs: Long? = null,
     ): Result<DelayId>
 
     /** @see [SendDelayedEvent] */
@@ -531,7 +530,7 @@ class RoomApiClientImpl(
     ): Result<EventId> {
         val eventType = contentMappings.message.contentType(eventContent)
         return baseClient
-            .request(SendMessageEvent(roomId, eventType, txnId, ts, null, stickyDurationMs), eventContent)
+            .request(SendMessageEvent(roomId, eventType, txnId, ts, stickyDurationMs), eventContent)
             .mapCatching { it.eventId }
     }
 
@@ -552,12 +551,11 @@ class RoomApiClientImpl(
         txnId: String,
         delayMs: Long,
         ts: Long?,
-        stickyDurationMs: Long?,
     ): Result<DelayId> {
         val eventType = contentMappings.state.contentType(eventContent)
         return baseClient
             .request(
-                SendDelayedEvent(roomId, eventType, txnId, ts, null, stickyDurationMs),
+                SendDelayedEvent(roomId, eventType, txnId, ts),
                 SendDelayedEvent.Request.State(eventContent, delayMs, stateKey),
             )
             .mapCatching { it.delayId }
@@ -576,8 +574,12 @@ class RoomApiClientImpl(
         val eventType = contentMappings.message.contentType(eventContent)
         return baseClient
             .request(
-                SendDelayedEvent(roomId, eventType, txnId, ts, null, stickyDurationMs),
-                SendDelayedEvent.Request.Message(eventContent, delayMs),
+                SendDelayedEvent(roomId, eventType, txnId, ts),
+                SendDelayedEvent.Request.Message(
+                    content = eventContent,
+                    delayMs = delayMs,
+                    stickyDurationMs = stickyDurationMs,
+                ),
             )
             .mapCatching { it.delayId }
     }
