@@ -2,7 +2,7 @@ package de.connect2x.trixnity.core
 
 import io.ktor.http.*
 
-open class MatrixServerException(
+data class MatrixServerException(
     val statusCode: HttpStatusCode,
     val errorResponse: ErrorResponse,
     val retryAfter: Long? = null,
