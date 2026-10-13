@@ -24,6 +24,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.DelayId
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
@@ -53,6 +54,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -85,6 +88,7 @@ interface RtcSlotMembership : AutoCloseable {
     val memberId: RtcMemberId
 
     val state: Flow<State>
+    val encryptionInfo: Flow<RtcSlotMembershipEncryptionInfo>
 
     fun update(
         slotEventId: EventId,
@@ -123,6 +127,7 @@ interface RtcSlotMembership : AutoCloseable {
         val joinStickyDurationFallbackBuffer: Duration = 5.seconds,
         val delayedLeaveDelayDuration: Duration = 30.seconds,
         val delayedLeaveDelayDurationBuffer: Duration = 5.seconds,
+        val encryption: Map<RtcEncryption, RtcSlotMembershipEncryptionConfig> = emptyMap(),
     )
 }
 
@@ -143,6 +148,7 @@ class RtcSlotMembershipImpl(
     private val onClose: () -> Unit,
     // di section
     private val delegateLeaveHandlers: List<RtcSlotMembershipDelegateLeaveHandler>,
+    private val encryptionHandlers: List<RtcSlotMembershipEncryptionHandler>,
     private val roomEventEncryptionServices: List<RoomEventEncryptionService>,
     private val api: MatrixClientServerApiClient,
     private val currentSyncState: CurrentSyncState,
@@ -165,6 +171,8 @@ class RtcSlotMembershipImpl(
         memberEvents.map { it[userInfo.userId to memberId]?.content }.distinctUntilChanged()
     private val errorState = MutableStateFlow<RtcSlotMembership.Error?>(null)
 
+    private val _encryptionInfo = MutableSharedFlow<RtcSlotMembershipEncryptionInfo>(replay = 1)
+    @OptIn(ExperimentalCoroutinesApi::class) override val encryptionInfo = _encryptionInfo.asFlow()
     private val job: Job
 
     private val _state = MutableSharedFlow<RtcSlotMembership.State>(replay = 1)
@@ -174,6 +182,7 @@ class RtcSlotMembershipImpl(
         job = coroutineScope.launch {
             launch { collectState() }
             launch { checkSlotEventId() }
+            launch { collectEncryptionInfo() }
             launch { continuouslyApplyRequestedState() }
             launch { leaveOnSlotClosed() }
         }
@@ -228,6 +237,37 @@ class RtcSlotMembershipImpl(
             }
             .distinctUntilChanged()
             .collect(_state)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun collectEncryptionInfo() {
+        combine(slotEvent, requestedStateContent) { slotEvent, requestedStateContent ->
+                slotEvent to requestedStateContent
+            }
+            .flatMapLatest { (slotEvent, requestedStateContent) ->
+                val slotEventContent = slotEvent?.content
+                val encryption = slotEventContent?.encryption
+                if (
+                    slotEventContent == null ||
+                        slotEventContent !is RtcSlotEventContent.Open ||
+                        requestedStateContent !is RtcMemberEventContent.Join ||
+                        encryption == null
+                )
+                    return@flatMapLatest flowOf(NoRtcSlotMembershipEncryptionInfo)
+                encryptionHandlers
+                    .firstOrNull { it.supports(encryption = encryption, transports = requestedStateContent.transports) }
+                    ?.getEncryptionInfo(
+                        roomId = roomId,
+                        slotId = slotId,
+                        memberId = memberId,
+                        encryption = encryption,
+                        transports = requestedStateContent.transports,
+                        config = config.encryption,
+                        memberEvents = memberEvents,
+                    ) ?: flowOf(NoRtcSlotMembershipEncryptionInfo)
+            }
+            .distinctUntilChanged()
+            .collect(_encryptionInfo)
     }
 
     // TODO handle redactions on moderation/force leave

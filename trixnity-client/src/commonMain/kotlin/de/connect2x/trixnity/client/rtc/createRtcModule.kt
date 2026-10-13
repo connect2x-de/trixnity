@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client.rtc
 
+import de.connect2x.trixnity.client.rtc.livekit.LiveKitPerMemberRtcSlotMembershipEncryptionHandler
 import de.connect2x.trixnity.client.rtc.livekit.LiveKitRtcSlotMembershipDelegateLeaveHandler
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4143
@@ -64,6 +65,7 @@ fun createRtcModule() = module {
                     memberEvents = memberEvents,
                     onClose = onClose,
                     delegateLeaveHandlers = getAll(),
+                    encryptionHandlers = getAll(),
                     roomEventEncryptionServices = getAll(),
                     api = get(),
                     currentSyncState = get(),
@@ -77,5 +79,9 @@ fun createRtcModule() = module {
     singleOf(::LiveKitRtcSlotMembershipDelegateLeaveHandler) {
         bind<RtcSlotMembershipDelegateLeaveHandler>()
         named<LiveKitRtcSlotMembershipDelegateLeaveHandler>()
+    }
+    singleOf(::LiveKitPerMemberRtcSlotMembershipEncryptionHandler) {
+        bind<RtcSlotMembershipEncryptionHandler>()
+        named<LiveKitPerMemberRtcSlotMembershipEncryptionHandler>()
     }
 }

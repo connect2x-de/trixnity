@@ -91,6 +91,8 @@ class RtcServiceTest : TrixnityBaseTest() {
                         override val roomId = roomId
                         override val slotId = slotId
                         override val memberId = memberId
+                        override val encryptionInfo: Flow<RtcSlotMembershipEncryptionInfo> =
+                            flowOf(NoRtcSlotMembershipEncryptionInfo)
 
                         override val state =
                             MutableStateFlow<RtcSlotMembership.State>(

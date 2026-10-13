@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.getInMemoryServerDataStore
 import de.connect2x.trixnity.client.mockMatrixClientServerApiClient
 import de.connect2x.trixnity.client.mocks.RoomEventEncryptionServiceMock
 import de.connect2x.trixnity.client.mocks.RtcSlotMembershipDelegateLeaveHandlerMock
+import de.connect2x.trixnity.client.mocks.RtcSlotMembershipEncryptionHandlerMock
 import de.connect2x.trixnity.client.room.RoomEventEncryptionService
 import de.connect2x.trixnity.client.rtc.RtcSlotMembership.State
 import de.connect2x.trixnity.client.rtc.RtcSlotMembershipImpl.Companion.APPLY_REQUESTED_STATE_GRACE_PERIOD
@@ -34,6 +35,7 @@ import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
 import de.connect2x.trixnity.core.model.events.m.rtc.LiveKitRtcTransport
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
@@ -99,6 +101,9 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
             }
         }
     private val delegateLeaveHandlers = listOf<RtcSlotMembershipDelegateLeaveHandler>(delegateLeaveHandler)
+    private val encryptionHandler =
+        RtcSlotMembershipEncryptionHandlerMock().apply { scheduleSetup { returnSupports = false } }
+    private val encryptionHandlers = listOf<RtcSlotMembershipEncryptionHandler>(encryptionHandler)
     private val roomEventEncryptionService = RoomEventEncryptionServiceMock(useInput = true)
     private val roomEventEncryptionServices = listOf<RoomEventEncryptionService>(roomEventEncryptionService)
     private val apiConfig = PortableMockEngineConfig()
@@ -170,6 +175,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
             memberEvents = memberEvents,
             onClose = onClose,
             delegateLeaveHandlers = delegateLeaveHandlers,
+            encryptionHandlers = encryptionHandlers,
             roomEventEncryptionServices = roomEventEncryptionServices,
             api = api,
             currentSyncState = currentSyncState,
@@ -515,8 +521,8 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
         }
     }
 
-    private suspend fun RtcSlotMembership.join() {
-        slotEvent.value = slotEvent(RtcSlotEventContent.Open(CallRtcApplication.Slot, null))
+    private suspend fun RtcSlotMembership.join(encryption: RtcEncryption? = null) {
+        slotEvent.value = slotEvent(RtcSlotEventContent.Open(CallRtcApplication.Slot, encryption))
         sendMessageResponse.add(Result.success(SendEventResponse(EventId("blub"))))
         sendDelayedEventResponse.add(Result.success(SendDelayedEvent.Response(DelayId("delay_0"))))
         delay(10.milliseconds)
@@ -681,6 +687,41 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
         delay(20.milliseconds)
         testScope.backgroundScope.coroutineContext.job.children.count() shouldBe 1
         onCloseCalled shouldBe true
+    }
+
+    @Test
+    fun `encryptionInfo - select and use matching handler`() = runTest {
+        encryptionHandler.returnSupports = true
+        cut().use { cut ->
+            val encryptionInfo = object : RtcSlotMembershipEncryptionInfo {}
+            cut.join(object : RtcEncryption {})
+            val result = backgroundScope.async { cut.encryptionInfo.first() }
+            encryptionHandler.getEncryptionInfo.emit(encryptionInfo)
+            result.await() shouldBe encryptionInfo
+        }
+    }
+
+    @Test
+    fun `encryptionInfo - slot encryption null - no encryption`() = runTest {
+        encryptionHandler.returnSupports = true
+        cut().use { cut ->
+            val encryptionInfo = object : RtcSlotMembershipEncryptionInfo {}
+            cut.join(null)
+            val result = backgroundScope.async { cut.encryptionInfo.first() }
+            encryptionHandler.getEncryptionInfo.emit(encryptionInfo)
+            result.await() shouldBe NoRtcSlotMembershipEncryptionInfo
+        }
+    }
+
+    @Test
+    fun `encryptionInfo - not joined - no encryption`() = runTest {
+        encryptionHandler.returnSupports = true
+        cut().use { cut ->
+            val encryptionInfo = object : RtcSlotMembershipEncryptionInfo {}
+            val result = backgroundScope.async { cut.encryptionInfo.first() }
+            encryptionHandler.getEncryptionInfo.emit(encryptionInfo)
+            result.await() shouldBe NoRtcSlotMembershipEncryptionInfo
+        }
     }
 
     private fun slotEvent(content: RtcSlotEventContent): StateEvent<RtcSlotEventContent> =
