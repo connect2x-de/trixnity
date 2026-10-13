@@ -9208,13 +9208,16 @@ final class de.connect2x.trixnity.core.model.events.m.room/VideoInfo : de.connec
 }
 
 final class de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport : de.connect2x.trixnity.core.model.events.m.rtc/RtcTransport { // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport|null[0]
-    constructor <init>(io.ktor.http/Url) // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.<init>|<init>(io.ktor.http.Url){}[0]
+    constructor <init>(io.ktor.http/Url, kotlin/String? = ...) // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.<init>|<init>(io.ktor.http.Url;kotlin.String?){}[0]
 
+    final val serverName // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.serverName|{}serverName[0]
+        final fun <get-serverName>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.serverName.<get-serverName>|<get-serverName>(){}[0]
     final val url // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.url|{}url[0]
         final fun <get-url>(): io.ktor.http/Url // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.url.<get-url>|<get-url>(){}[0]
 
     final fun component1(): io.ktor.http/Url // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.component1|component1(){}[0]
-    final fun copy(io.ktor.http/Url = ...): de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.copy|copy(io.ktor.http.Url){}[0]
+    final fun component2(): kotlin/String? // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.component2|component2(){}[0]
+    final fun copy(io.ktor.http/Url = ..., kotlin/String? = ...): de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.copy|copy(io.ktor.http.Url;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/LiveKitRtcTransport.toString|toString(){}[0]
