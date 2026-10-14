@@ -35,10 +35,8 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
               "type": "m.call"
             },
             "member": {
-              "device_id":"dummy",
               "id": "{member_id}",
-              "membership": "join",
-              "user_id":"@dummy:test"
+              "membership": "join"
             },
             "msc4354_sticky_key": "{member_id}",
             "slot_id": "m.call#ROOM",
@@ -71,7 +69,7 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
                 RtcMemberEventContent.Join(
                     slotId = CallRtcApplication.SLOT_ID,
                     application = CallRtcApplication.Member(),
-                    member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}")),
+                    member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}"), null, null),
                     transports =
                         RtcMemberEventContent.Join.RtcTransports(
                             listOf(
@@ -116,10 +114,8 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
               "reason":"blub"
             },
             "member": {
-              "device_id":"dummy",
               "id": "{member_id}",
-              "membership": "leave",
-              "user_id":"@dummy:test"
+              "membership": "leave"
             },
             "msc4354_sticky_key": "{member_id}",
             "slot_id": "m.call#ROOM"
@@ -141,7 +137,7 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Leave(
                     slotId = CallRtcApplication.SLOT_ID,
-                    member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}")),
+                    member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}"), null, null),
                     reason = RtcMemberEventContent.Leave.Reason("err", "blub"),
                     stickyKey = "{member_id}",
                 ),
