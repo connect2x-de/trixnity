@@ -87,8 +87,7 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
         encryption is PerMemberRtcEncryption
 
     private data class ReceivedKeysKey(
-        val roomId: RoomId,
-        val sender: UserId,
+        val userId: UserId,
         val memberId: RtcMemberId,
         val senderKey: KeyValue.Curve25519KeyValue,
     )
@@ -144,7 +143,7 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
             (config[PerMemberRtcEncryption] as? PerMemberRtcSlotMembershipEncryptionConfig)
                 ?: PerMemberRtcSlotMembershipEncryptionConfig()
 
-        val unsubscriber = olmEventHandler.subscribe { subscribeOlmEvents(it, receivedKeys, config) }
+        val unsubscriber = olmEventHandler.subscribe { subscribeOlmEvents(roomId, it, receivedKeys, config) }
         invokeOnClose { unsubscriber() }
         launch {
             keyRotationAndDistribution(
@@ -162,10 +161,9 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
                         if (memberEventAndSenderKey == null) return@map emptyList()
                         val key =
                             ReceivedKeysKey(
-                                roomId = memberEventAndSenderKey.first.roomId,
-                                sender = key.first,
+                                userId = key.first,
                                 memberId = key.second,
-                                senderKey = memberEventAndSenderKey.second,
+                                senderKey = memberEventAndSenderKey,
                             )
                         receivedKeys[key]?.map { it.content }.orEmpty()
                     }
@@ -272,14 +270,13 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun ClientEvent.RoomEvent.MessageEvent<*>.resolveSenderIdentity():
-        Flow<Pair<ClientEvent.RoomEvent.MessageEvent<*>, KeyValue.Curve25519KeyValue>?> =
+    private fun ClientEvent.RoomEvent.MessageEvent<*>.resolveSenderIdentity(): Flow<KeyValue.Curve25519KeyValue?> =
         roomTimelineStore.get(id, roomId).flatMapLatest {
             val sessionId =
                 (it?.event?.content as? EncryptedMessageEventContent.MegolmEncryptedMessageEventContent)?.sessionId
                     ?: return@flatMapLatest flowOf(null)
             olmCryptoStore.getInboundMegolmSession(sessionId, roomId).map { inboundMegolmSession ->
-                inboundMegolmSession?.senderKey?.let { this to it }
+                inboundMegolmSession?.senderKey
             }
         }
 
@@ -287,7 +284,7 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
         .resolveUserIdAndDeviceIds(): Set<Pair<UserId, String>> =
         values
             .mapNotNull { event ->
-                val senderKey = event?.resolveSenderIdentity()?.first()?.second ?: return@mapNotNull null
+                val senderKey = event?.resolveSenderIdentity()?.first() ?: return@mapNotNull null
                 val deviceKeys =
                     keyStore.getDeviceKeys(event.sender).first()?.values?.find {
                         it.value.signed.keys.keys.any { key -> key.value == senderKey }
@@ -297,15 +294,16 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
             .toSet()
 
     private fun subscribeOlmEvents(
+        roomId: RoomId,
         container: DecryptedOlmEventContainer,
         receivedKeys: MutableStateFlow<Map<ReceivedKeysKey, List<ReceivedKeys>>>,
         config: PerMemberRtcSlotMembershipEncryptionConfig,
     ) {
         val content = (container.decrypted.content as? RtcEncryptionKeyEventContent) ?: return
+        if (content.roomId != roomId) return
         val key =
             ReceivedKeysKey(
-                roomId = content.roomId,
-                sender = container.decrypted.sender,
+                userId = container.decrypted.sender,
                 memberId = content.memberId ?: content.member?.id ?: return,
                 senderKey = container.encrypted.content.senderKey,
             )
