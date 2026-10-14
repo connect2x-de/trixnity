@@ -12550,6 +12550,11 @@ final object de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication { 
                 final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
             }
 
+            final object ExposesE2ee : de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.ExposesE2ee|null[0]
+                final val value // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.ExposesE2ee.value|{}value[0]
+                    final fun <get-value>(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.ExposesE2ee.value.<get-value>|<get-value>(){}[0]
+            }
+
             final object RenderAudio : de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability { // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.RenderAudio|null[0]
                 final val value // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.RenderAudio.value|{}value[0]
                     final fun <get-value>(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/CallRtcApplication.Member.Capability.RenderAudio.value.<get-value>|<get-value>(){}[0]
