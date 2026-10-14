@@ -3383,17 +3383,19 @@ sealed interface de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventCon
     }
 
     final class Member { // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member|null[0]
-        constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId) // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId){}[0]
+        constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model/UserId? = ..., kotlin/String? = ...) // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.UserId?;kotlin.String?){}[0]
 
         final val deviceId // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.deviceId|{}deviceId[0]
-            final fun <get-deviceId>(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.deviceId.<get-deviceId>|<get-deviceId>(){}[0]
+            final fun <get-deviceId>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.deviceId.<get-deviceId>|<get-deviceId>(){}[0]
         final val id // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.id|{}id[0]
             final fun <get-id>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.id.<get-id>|<get-id>(){}[0]
         final val userId // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.userId|{}userId[0]
-            final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.userId.<get-userId>|<get-userId>(){}[0]
+            final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.userId.<get-userId>|<get-userId>(){}[0]
 
         final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.component1|component1(){}[0]
-        final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId = ...): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId){}[0]
+        final fun component2(): de.connect2x.trixnity.core.model/UserId? // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.component2|component2(){}[0]
+        final fun component3(): kotlin/String? // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.component3|component3(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId = ..., de.connect2x.trixnity.core.model/UserId? = ..., kotlin/String? = ...): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.UserId?;kotlin.String?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Member.toString|toString(){}[0]

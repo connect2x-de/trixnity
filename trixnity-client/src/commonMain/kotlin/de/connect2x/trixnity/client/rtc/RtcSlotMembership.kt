@@ -154,7 +154,7 @@ class RtcSlotMembershipImpl(
     private val initialRequestedStateContent =
         RtcMemberEventContent.Join(
             slotId = slotId,
-            member = RtcMemberEventContent.Member(memberId),
+            member = RtcMemberEventContent.Member(memberId, userInfo.userId, userInfo.deviceId),
             application = application,
             transports = transports,
             stickyKey = memberId.value,
@@ -384,7 +384,7 @@ class RtcSlotMembershipImpl(
                     eventContent =
                         RtcMemberEventContent.Leave(
                             slotId = slotId,
-                            member = RtcMemberEventContent.Member(memberId),
+                            member = RtcMemberEventContent.Member(memberId, userInfo.userId, userInfo.deviceId),
                             reason =
                                 RtcMemberEventContent.Leave.Reason(
                                     RtcApplicationMember.DefaultLeaveReasonCode.DELAYED_LEAVE.value
@@ -560,7 +560,7 @@ class RtcSlotMembershipImpl(
         val joinContent =
             RtcMemberEventContent.Join(
                 slotId = slotId,
-                member = RtcMemberEventContent.Member(memberId),
+                member = RtcMemberEventContent.Member(memberId, userInfo.userId, userInfo.deviceId),
                 application = application,
                 transports = transports,
                 stickyKey = memberId.value,
@@ -573,7 +573,7 @@ class RtcSlotMembershipImpl(
         val leaveContent =
             RtcMemberEventContent.Leave(
                 slotId = slotId,
-                member = RtcMemberEventContent.Member(memberId),
+                member = RtcMemberEventContent.Member(memberId, userInfo.userId, userInfo.deviceId),
                 reason = reason,
                 stickyKey = memberId.value,
             )

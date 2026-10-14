@@ -84,12 +84,13 @@ sealed interface RtcMemberEventContent : StickyEventContent {
 
     @MSC4143
     @Serializable
-    data class Member(@SerialName("id") val id: RtcMemberId) {
+    data class Member(
+        @SerialName("id") val id: RtcMemberId,
         // TODO remove Element flavor: no userId
-        @Deprecated("Element flavor - never use!") @SerialName("user_id") val userId: UserId = UserId("dummy", "test")
+        @SerialName("user_id") val userId: UserId? = null,
         // TODO remove Element flavor: no deviceId
-        @Deprecated("Element flavor - never use!") @SerialName("device_id") val deviceId: String = "dummy"
-    }
+        @SerialName("device_id") val deviceId: String? = null,
+    )
 
     object Serializer : KSerializer<RtcMemberEventContent> {
         override val descriptor = buildClassSerialDescriptor("RtcMemberEventContent")

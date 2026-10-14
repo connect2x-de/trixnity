@@ -124,7 +124,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedJoinContent =
         RtcMemberEventContent.Join(
             slotId = slotId,
-            member = RtcMemberEventContent.Member(memberId),
+            member = RtcMemberEventContent.Member(memberId, userId, "device"),
             application = application,
             transports = transports,
             stickyKey = memberId.value,
@@ -133,7 +133,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            member = RtcMemberEventContent.Member(memberId),
+            member = RtcMemberEventContent.Member(memberId, userId, "device"),
             reason = RtcMemberEventContent.Leave.Reason("dino"),
             stickyKey = memberId.value,
         )
@@ -141,7 +141,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedDelayedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            member = RtcMemberEventContent.Member(memberId),
+            member = RtcMemberEventContent.Member(memberId, userId, "device"),
             reason =
                 RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.DELAYED_LEAVE.value),
             stickyKey = memberId.value,
@@ -150,7 +150,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedSlotClosedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            member = RtcMemberEventContent.Member(memberId),
+            member = RtcMemberEventContent.Member(memberId, userId, "device"),
             reason = RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.SLOT_CLOSED.value),
             stickyKey = memberId.value,
         )
