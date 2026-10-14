@@ -212,6 +212,7 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
 
         launch {
             memberEvents
+                .map { it.filterKeys { it.first != userInfo.userId && it.second != memberId } }
                 .scan(ScanResult(emptyMap(), emptyMap())) { a, b -> ScanResult(previous = a.current, current = b) }
                 .map { (previous, current) ->
                     val (previousJoin, previousLeave) =
