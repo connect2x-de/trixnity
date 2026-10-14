@@ -320,7 +320,7 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
         recipients: Set<Pair<UserId, String>>,
     ) {
         val ownKey = value.next ?: value.current
-        val recipients = recipients - ownKey.distributedTo
+        val recipients = recipients - ownKey.distributedTo - (userInfo.userId to userInfo.deviceId)
         if (recipients.isEmpty()) return
         currentSyncState.retry(
             onError = { error, delay ->
@@ -393,32 +393,28 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
     }
 
     private fun MutableStateFlow<OwnKeys>.invalidateWithRecipients(recipients: Set<Pair<UserId, String>>) =
-        invalidate { ownKey ->
-            ownKey.distributedTo.any { it in recipients }
-        }
-        .also {
-            log.debug {
-                "invalidated because of left recipients: current=${it.current.invalidated} next=${it.next?.invalidated}"
+        invalidate { ownKey -> ownKey.distributedTo.any { it in recipients } }
+            .also {
+                log.debug {
+                    "invalidated because of left recipients: current=${it.current.invalidated} next=${it.next?.invalidated}"
+                }
             }
-        }
 
-    private fun MutableStateFlow<OwnKeys>.invalidateAfterGracePeriod(gracePeriod: Duration) = invalidate { ownKey ->
-        (ownKey.createdAt + gracePeriod) < clock.now()
-    }
-        .also {
-            log.debug {
-                "invalidated because of joined recipients: current=${it.current.invalidated} next=${it.next?.invalidated}"
+    private fun MutableStateFlow<OwnKeys>.invalidateAfterGracePeriod(gracePeriod: Duration) =
+        invalidate { ownKey -> (ownKey.createdAt + gracePeriod) < clock.now() }
+            .also {
+                log.debug {
+                    "invalidated because of joined recipients: current=${it.current.invalidated} next=${it.next?.invalidated}"
+                }
             }
-        }
 
-    private fun MutableStateFlow<OwnKeys>.invalidateWhenNotInvalidated() = invalidate { ownKey ->
-        ownKey.invalidated.not()
-    }
-        .also {
-            log.debug {
-                "invalidated because of periodic rotation: current=${it.current.invalidated} next=${it.next?.invalidated}"
+    private fun MutableStateFlow<OwnKeys>.invalidateWhenNotInvalidated() =
+        invalidate { ownKey -> ownKey.invalidated.not() }
+            .also {
+                log.debug {
+                    "invalidated because of periodic rotation: current=${it.current.invalidated} next=${it.next?.invalidated}"
+                }
             }
-        }
 
     private suspend fun MutableStateFlow<OwnKeys>.createNextKeyOnInvalidation(roomId: RoomId, memberId: RtcMemberId) {
         update { old ->
