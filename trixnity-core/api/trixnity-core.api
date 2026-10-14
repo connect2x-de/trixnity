@@ -8515,6 +8515,11 @@ public final class de/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplicat
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability$ExposesE2ee : de/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability$ExposesE2ee;
+	public fun getValue ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability$RenderAudio : de/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability {
 	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/rtc/CallRtcApplication$Member$Capability$RenderAudio;
 	public fun getValue ()Ljava/lang/String;

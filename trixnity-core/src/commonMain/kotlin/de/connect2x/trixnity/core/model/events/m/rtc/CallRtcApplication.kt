@@ -75,6 +75,10 @@ data object CallRtcApplication {
                 override val value: String = "m.render_video"
             }
 
+            object ExposesE2ee : Capability {
+                override val value: String = "m.exposes_e2ee"
+            }
+
             data class Unknown(override val value: String) : Capability
 
             object Serializer : KSerializer<Capability> {
@@ -88,6 +92,7 @@ data object CallRtcApplication {
                     when (val usageString = decoder.decodeString()) {
                         RenderAudio.value -> RenderAudio
                         RenderVideo.value -> RenderVideo
+                        ExposesE2ee.value -> ExposesE2ee
                         else -> Unknown(usageString)
                     }
             }
