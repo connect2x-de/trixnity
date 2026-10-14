@@ -292,9 +292,193 @@ abstract interface de.connect2x.trixnity.client.room/TypingEventHandler : de.con
 
 abstract interface de.connect2x.trixnity.client.rtc/RtcService { // de.connect2x.trixnity.client.rtc/RtcService|null[0]
     abstract fun getAllSlots(de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>>> // de.connect2x.trixnity.client.rtc/RtcService.getAllSlots|getAllSlots(de.connect2x.trixnity.core.model.RoomId){}[0]
+    abstract fun getCurrentMemberships(): kotlinx.coroutines.flow/Flow<kotlin.collections/Set<de.connect2x.trixnity.client.rtc/RtcSlotMembership>> // de.connect2x.trixnity.client.rtc/RtcService.getCurrentMemberships|getCurrentMemberships(){}[0]
     abstract fun getMembers(de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>> // de.connect2x.trixnity.client.rtc/RtcService.getMembers|getMembers(de.connect2x.trixnity.core.model.RoomId){}[0]
     abstract fun getMembers(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>> // de.connect2x.trixnity.client.rtc/RtcService.getMembers|getMembers(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId){}[0]
     abstract fun getSlot(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>?> // de.connect2x.trixnity.client.rtc/RtcService.getSlot|getSlot(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId){}[0]
+    abstract fun joinSlot(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config = ...): kotlin/Result<de.connect2x.trixnity.client.rtc/RtcSlotMembership> // de.connect2x.trixnity.client.rtc/RtcService.joinSlot|joinSlot(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Config){}[0]
+}
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembership : kotlin/AutoCloseable { // de.connect2x.trixnity.client.rtc/RtcSlotMembership|null[0]
+    abstract val encryptionInfo // de.connect2x.trixnity.client.rtc/RtcSlotMembership.encryptionInfo|{}encryptionInfo[0]
+        abstract fun <get-encryptionInfo>(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo> // de.connect2x.trixnity.client.rtc/RtcSlotMembership.encryptionInfo.<get-encryptionInfo>|<get-encryptionInfo>(){}[0]
+    abstract val memberId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.memberId|{}memberId[0]
+        abstract fun <get-memberId>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.memberId.<get-memberId>|<get-memberId>(){}[0]
+    abstract val roomId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.roomId|{}roomId[0]
+        abstract fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.roomId.<get-roomId>|<get-roomId>(){}[0]
+    abstract val slotId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.slotId|{}slotId[0]
+        abstract fun <get-slotId>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId // de.connect2x.trixnity.client.rtc/RtcSlotMembership.slotId.<get-slotId>|<get-slotId>(){}[0]
+    abstract val state // de.connect2x.trixnity.client.rtc/RtcSlotMembership.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembership.State> // de.connect2x.trixnity.client.rtc/RtcSlotMembership.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun leave(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave.Reason?) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.leave|leave(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave.Reason?){}[0]
+    abstract fun update(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.update|update(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports){}[0]
+
+    sealed interface Error { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error|null[0]
+        final class NetworkError : de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError|null[0]
+            constructor <init>(kotlin/Throwable) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.<init>|<init>(kotlin.Throwable){}[0]
+
+            final val error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.error|{}error[0]
+                final fun <get-error>(): kotlin/Throwable // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): kotlin/Throwable // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.component1|component1(){}[0]
+            final fun copy(kotlin/Throwable = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.copy|copy(kotlin.Throwable){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.NetworkError.toString|toString(){}[0]
+        }
+
+        final class PermissionError : de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError|null[0]
+            constructor <init>(de.connect2x.trixnity.core/MatrixServerException) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.<init>|<init>(de.connect2x.trixnity.core.MatrixServerException){}[0]
+
+            final val error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.core/MatrixServerException // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core/MatrixServerException // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.core/MatrixServerException = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.copy|copy(de.connect2x.trixnity.core.MatrixServerException){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error.PermissionError.toString|toString(){}[0]
+        }
+    }
+
+    sealed interface State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State|null[0]
+        abstract val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.content|{}content[0]
+            abstract fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.content.<get-content>|<get-content>(){}[0]
+
+        final class Join : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.content.<get-content>|<get-content>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Join.toString|toString(){}[0]
+        }
+
+        final class Joining : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.content.<get-content>|<get-content>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Joining.toString|toString(){}[0]
+        }
+
+        final class JoiningError : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Error){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.content.<get-content>|<get-content>(){}[0]
+            final val error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.component1|component1(){}[0]
+            final fun component2(): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.component2|component2(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join = ..., de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Error){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.JoiningError.toString|toString(){}[0]
+        }
+
+        final class Leave : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.content.<get-content>|<get-content>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leave.toString|toString(){}[0]
+        }
+
+        final class Leaving : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.content.<get-content>|<get-content>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.Leaving.toString|toString(){}[0]
+        }
+
+        final class LeavingError : de.connect2x.trixnity.client.rtc/RtcSlotMembership.State { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.<init>|<init>(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Error){}[0]
+
+            final val content // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.content|{}content[0]
+                final fun <get-content>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.content.<get-content>|<get-content>(){}[0]
+            final val error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.error|{}error[0]
+                final fun <get-error>(): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.error.<get-error>|<get-error>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.component1|component1(){}[0]
+            final fun component2(): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.component2|component2(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave = ..., de.connect2x.trixnity.client.rtc/RtcSlotMembership.Error = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.copy|copy(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Error){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.State.LeavingError.toString|toString(){}[0]
+        }
+    }
+
+    final class Config { // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config|null[0]
+        constructor <init>(kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig> = ...) // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.<init>|<init>(kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.collections.Map<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption,de.connect2x.trixnity.client.rtc.RtcSlotMembershipEncryptionConfig>){}[0]
+
+        final val delayedLeaveDelayDuration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.delayedLeaveDelayDuration|{}delayedLeaveDelayDuration[0]
+            final fun <get-delayedLeaveDelayDuration>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.delayedLeaveDelayDuration.<get-delayedLeaveDelayDuration>|<get-delayedLeaveDelayDuration>(){}[0]
+        final val delayedLeaveDelayDurationBuffer // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.delayedLeaveDelayDurationBuffer|{}delayedLeaveDelayDurationBuffer[0]
+            final fun <get-delayedLeaveDelayDurationBuffer>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.delayedLeaveDelayDurationBuffer.<get-delayedLeaveDelayDurationBuffer>|<get-delayedLeaveDelayDurationBuffer>(){}[0]
+        final val encryption // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.encryption|{}encryption[0]
+            final fun <get-encryption>(): kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig> // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.encryption.<get-encryption>|<get-encryption>(){}[0]
+        final val joinStickyDurationFallback // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.joinStickyDurationFallback|{}joinStickyDurationFallback[0]
+            final fun <get-joinStickyDurationFallback>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.joinStickyDurationFallback.<get-joinStickyDurationFallback>|<get-joinStickyDurationFallback>(){}[0]
+        final val joinStickyDurationFallbackBuffer // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.joinStickyDurationFallbackBuffer|{}joinStickyDurationFallbackBuffer[0]
+            final fun <get-joinStickyDurationFallbackBuffer>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.joinStickyDurationFallbackBuffer.<get-joinStickyDurationFallbackBuffer>|<get-joinStickyDurationFallbackBuffer>(){}[0]
+        final val membershipStickyDuration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.membershipStickyDuration|{}membershipStickyDuration[0]
+            final fun <get-membershipStickyDuration>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.membershipStickyDuration.<get-membershipStickyDuration>|<get-membershipStickyDuration>(){}[0]
+        final val membershipStickyDurationBuffer // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.membershipStickyDurationBuffer|{}membershipStickyDurationBuffer[0]
+            final fun <get-membershipStickyDurationBuffer>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.membershipStickyDurationBuffer.<get-membershipStickyDurationBuffer>|<get-membershipStickyDurationBuffer>(){}[0]
+
+        final fun component1(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component1|component1(){}[0]
+        final fun component2(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component2|component2(){}[0]
+        final fun component3(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component3|component3(){}[0]
+        final fun component4(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component4|component4(){}[0]
+        final fun component5(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component5|component5(){}[0]
+        final fun component6(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component6|component6(){}[0]
+        final fun component7(): kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig> // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.component7|component7(){}[0]
+        final fun copy(kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig> = ...): de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.copy|copy(kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.collections.Map<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption,de.connect2x.trixnity.client.rtc.RtcSlotMembershipEncryptionConfig>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config.toString|toString(){}[0]
+    }
+}
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler|null[0]
+    abstract fun supports(de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler.supports|supports(de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+    abstract suspend fun delegateLeave(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events/DelayId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler.delegateLeave|delegateLeave(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.DelayId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+}
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig // de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig|null[0]
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler|null[0]
+    abstract fun getEncryptionInfo(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig>, kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo> // de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler.getEncryptionInfo|getEncryptionInfo(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;kotlin.collections.Map<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption,de.connect2x.trixnity.client.rtc.RtcSlotMembershipEncryptionConfig>;kotlinx.coroutines.flow.Flow<kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent>>>){}[0]
+    abstract fun supports(de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler.supports|supports(de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+}
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo // de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo|null[0]
+
+abstract interface de.connect2x.trixnity.client.rtc/RtcSlotMembershipFactory { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipFactory|null[0]
+    abstract fun create(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config, kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>?>, kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.client.rtc/RtcSlotMembership // de.connect2x.trixnity.client.rtc/RtcSlotMembershipFactory.create|create(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Config;kotlinx.coroutines.flow.Flow<de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent>?>;kotlinx.coroutines.flow.Flow<kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent>>>;kotlin.Function0<kotlin.Unit>){}[0]
 }
 
 abstract interface de.connect2x.trixnity.client.store.cache/CacheTransaction { // de.connect2x.trixnity.client.store.cache/CacheTransaction|null[0]
@@ -1839,6 +2023,13 @@ abstract class de.connect2x.trixnity.client.media/CachedMediaStore : de.connect2
     final suspend fun toByteArray(kotlin/String, kotlinx.coroutines.flow/Flow<kotlin/ByteArray>, kotlinx.coroutines/CoroutineScope?, kotlin/Long?, kotlin/Long?): kotlin/ByteArray? // de.connect2x.trixnity.client.media/CachedMediaStore.toByteArray|toByteArray(kotlin.String;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>;kotlinx.coroutines.CoroutineScope?;kotlin.Long?;kotlin.Long?){}[0]
 }
 
+abstract class de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler : de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler { // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler|null[0]
+    constructor <init>(de.connect2x.trixnity.client.store/RoomTimelineStore, de.connect2x.trixnity.client.store/KeyStore, de.connect2x.trixnity.client.store/OlmCryptoStore, de.connect2x.trixnity.crypto.olm/OlmEventHandler, de.connect2x.trixnity.crypto.olm/OlmEncryptionService, de.connect2x.trixnity.clientserverapi.client/MatrixClientServerApiClient, de.connect2x.trixnity.client/CurrentSyncState, kotlin.time/Clock, de.connect2x.trixnity.core/UserInfo) // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler.<init>|<init>(de.connect2x.trixnity.client.store.RoomTimelineStore;de.connect2x.trixnity.client.store.KeyStore;de.connect2x.trixnity.client.store.OlmCryptoStore;de.connect2x.trixnity.crypto.olm.OlmEventHandler;de.connect2x.trixnity.crypto.olm.OlmEncryptionService;de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient;de.connect2x.trixnity.client.CurrentSyncState;kotlin.time.Clock;de.connect2x.trixnity.core.UserInfo){}[0]
+
+    open fun getEncryptionInfo(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig>, kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo> // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler.getEncryptionInfo|getEncryptionInfo(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;kotlin.collections.Map<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption,de.connect2x.trixnity.client.rtc.RtcSlotMembershipEncryptionConfig>;kotlinx.coroutines.flow.Flow<kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent>>>){}[0]
+    open fun supports(de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler.supports|supports(de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+}
+
 abstract class de.connect2x.trixnity.client.store/StoreTransactionManager : de.connect2x.trixnity.utils/TransactionManager<de.connect2x.trixnity.client.store/StoreReadTransaction, de.connect2x.trixnity.client.store/StoreWriteTransaction> { // de.connect2x.trixnity.client.store/StoreTransactionManager|null[0]
     constructor <init>() // de.connect2x.trixnity.client.store/StoreTransactionManager.<init>|<init>(){}[0]
 
@@ -2836,13 +3027,96 @@ final class de.connect2x.trixnity.client.room/UnencryptedRoomEventEncryptionServ
     final suspend fun encrypt(de.connect2x.trixnity.core.model.events/MessageEventContent, de.connect2x.trixnity.core.model/RoomId): kotlin/Result<de.connect2x.trixnity.core.model.events/MessageEventContent>? // de.connect2x.trixnity.client.room/UnencryptedRoomEventEncryptionService.encrypt|encrypt(de.connect2x.trixnity.core.model.events.MessageEventContent;de.connect2x.trixnity.core.model.RoomId){}[0]
 }
 
+final class de.connect2x.trixnity.client.rtc.livekit/LiveKitPerMemberRtcSlotMembershipEncryptionHandler : de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionHandler { // de.connect2x.trixnity.client.rtc.livekit/LiveKitPerMemberRtcSlotMembershipEncryptionHandler|null[0]
+    constructor <init>(de.connect2x.trixnity.client.store/RoomTimelineStore, de.connect2x.trixnity.client.store/KeyStore, de.connect2x.trixnity.client.store/OlmCryptoStore, de.connect2x.trixnity.crypto.olm/OlmEventHandler, de.connect2x.trixnity.crypto.olm/OlmEncryptionService, de.connect2x.trixnity.clientserverapi.client/MatrixClientServerApiClient, de.connect2x.trixnity.client/CurrentSyncState, kotlin.time/Clock, de.connect2x.trixnity.core/UserInfo) // de.connect2x.trixnity.client.rtc.livekit/LiveKitPerMemberRtcSlotMembershipEncryptionHandler.<init>|<init>(de.connect2x.trixnity.client.store.RoomTimelineStore;de.connect2x.trixnity.client.store.KeyStore;de.connect2x.trixnity.client.store.OlmCryptoStore;de.connect2x.trixnity.crypto.olm.OlmEventHandler;de.connect2x.trixnity.crypto.olm.OlmEncryptionService;de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient;de.connect2x.trixnity.client.CurrentSyncState;kotlin.time.Clock;de.connect2x.trixnity.core.UserInfo){}[0]
+
+    final fun supports(de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryption, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Boolean // de.connect2x.trixnity.client.rtc.livekit/LiveKitPerMemberRtcSlotMembershipEncryptionHandler.supports|supports(de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryption;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+}
+
+final class de.connect2x.trixnity.client.rtc.livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler : de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler { // de.connect2x.trixnity.client.rtc.livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler|null[0]
+    constructor <init>(de.connect2x.trixnity.clientserverapi.client/MatrixClientServerApiClient, de.connect2x.trixnity.core/UserInfo) // de.connect2x.trixnity.client.rtc.livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler.<init>|<init>(de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient;de.connect2x.trixnity.core.UserInfo){}[0]
+
+    final fun supports(de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Boolean // de.connect2x.trixnity.client.rtc.livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler.supports|supports(de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+    final suspend fun delegateLeave(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events/DelayId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?): kotlin/Result<kotlin/Unit> // de.connect2x.trixnity.client.rtc.livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler.delegateLeave|delegateLeave(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.DelayId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?){}[0]
+}
+
+final class de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig : de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionConfig { // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig|null[0]
+    constructor <init>(kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin/Int = ...) // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.<init>|<init>(kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.Int){}[0]
+
+    final val keyRotationGracePeriod // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.keyRotationGracePeriod|{}keyRotationGracePeriod[0]
+        final fun <get-keyRotationGracePeriod>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.keyRotationGracePeriod.<get-keyRotationGracePeriod>|<get-keyRotationGracePeriod>(){}[0]
+    final val periodicKeyRotation // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.periodicKeyRotation|{}periodicKeyRotation[0]
+        final fun <get-periodicKeyRotation>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.periodicKeyRotation.<get-periodicKeyRotation>|<get-periodicKeyRotation>(){}[0]
+    final val receivedKeysBuffer // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.receivedKeysBuffer|{}receivedKeysBuffer[0]
+        final fun <get-receivedKeysBuffer>(): kotlin/Int // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.receivedKeysBuffer.<get-receivedKeysBuffer>|<get-receivedKeysBuffer>(){}[0]
+    final val useKeyDelay // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.useKeyDelay|{}useKeyDelay[0]
+        final fun <get-useKeyDelay>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.useKeyDelay.<get-useKeyDelay>|<get-useKeyDelay>(){}[0]
+
+    final fun component1(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.component1|component1(){}[0]
+    final fun component2(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.component2|component2(){}[0]
+    final fun component3(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.component3|component3(){}[0]
+    final fun component4(): kotlin/Int // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.component4|component4(){}[0]
+    final fun copy(kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ..., kotlin/Int = ...): de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.copy|copy(kotlin.time.Duration;kotlin.time.Duration;kotlin.time.Duration;kotlin.Int){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionConfig.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo : de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo { // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo|null[0]
+    constructor <init>(kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent>>, de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent) // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.<init>|<init>(kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,kotlin.collections.List<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryptionKeyEventContent>>;de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryptionKeyEventContent){}[0]
+
+    final val ownActiveKey // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.ownActiveKey|{}ownActiveKey[0]
+        final fun <get-ownActiveKey>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.ownActiveKey.<get-ownActiveKey>|<get-ownActiveKey>(){}[0]
+    final val receivedKeys // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.receivedKeys|{}receivedKeys[0]
+        final fun <get-receivedKeys>(): kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent>> // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.receivedKeys.<get-receivedKeys>|<get-receivedKeys>(){}[0]
+
+    final fun component1(): kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent>> // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.component2|component2(){}[0]
+    final fun copy(kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent>> = ..., de.connect2x.trixnity.core.model.events.m.rtc/RtcEncryptionKeyEventContent = ...): de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.copy|copy(kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,kotlin.collections.List<de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryptionKeyEventContent>>;de.connect2x.trixnity.core.model.events.m.rtc.RtcEncryptionKeyEventContent){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.client.rtc/PerMemberRtcSlotMembershipEncryptionInfo.toString|toString(){}[0]
+}
+
 final class de.connect2x.trixnity.client.rtc/RtcServiceImpl : de.connect2x.trixnity.client.rtc/RtcService, de.connect2x.trixnity.core/EventHandler { // de.connect2x.trixnity.client.rtc/RtcServiceImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.client.store/RoomStateStore, de.connect2x.trixnity.client.store/StickyEventStore, de.connect2x.trixnity.client.key/KeyService) // de.connect2x.trixnity.client.rtc/RtcServiceImpl.<init>|<init>(de.connect2x.trixnity.client.store.RoomStateStore;de.connect2x.trixnity.client.store.StickyEventStore;de.connect2x.trixnity.client.key.KeyService){}[0]
+    constructor <init>(de.connect2x.trixnity.client.store/RoomStateStore, de.connect2x.trixnity.client.store/StickyEventStore, de.connect2x.trixnity.client.rtc/RtcSlotMembershipFactory, de.connect2x.trixnity.client.key/KeyService) // de.connect2x.trixnity.client.rtc/RtcServiceImpl.<init>|<init>(de.connect2x.trixnity.client.store.RoomStateStore;de.connect2x.trixnity.client.store.StickyEventStore;de.connect2x.trixnity.client.rtc.RtcSlotMembershipFactory;de.connect2x.trixnity.client.key.KeyService){}[0]
 
     final fun getAllSlots(de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>>> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.getAllSlots|getAllSlots(de.connect2x.trixnity.core.model.RoomId){}[0]
+    final fun getCurrentMemberships(): kotlinx.coroutines.flow/Flow<kotlin.collections/Set<de.connect2x.trixnity.client.rtc/RtcSlotMembership>> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.getCurrentMemberships|getCurrentMemberships(){}[0]
     final fun getMembers(de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.getMembers|getMembers(de.connect2x.trixnity.core.model.RoomId){}[0]
     final fun getMembers(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId): kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.getMembers|getMembers(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId){}[0]
     final fun getSlot(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>?> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.getSlot|getSlot(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId){}[0]
+    final fun joinSlot(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config): kotlin/Result<de.connect2x.trixnity.client.rtc/RtcSlotMembership> // de.connect2x.trixnity.client.rtc/RtcServiceImpl.joinSlot|joinSlot(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Config){}[0]
+}
+
+final class de.connect2x.trixnity.client.rtc/RtcSlotMembershipException : kotlin/RuntimeException { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipException|null[0]
+    constructor <init>(kotlin/String) // de.connect2x.trixnity.client.rtc/RtcSlotMembershipException.<init>|<init>(kotlin.String){}[0]
+}
+
+final class de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl : de.connect2x.trixnity.client.rtc/RtcSlotMembership { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId, de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports?, de.connect2x.trixnity.client.rtc/RtcSlotMembership.Config, kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotEventContent>?>, kotlinx.coroutines.flow/Flow<kotlin.collections/Map<kotlin/Pair<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId>, de.connect2x.trixnity.core.model.events/ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent>>>, kotlin/Function0<kotlin/Unit>, kotlin.collections/List<de.connect2x.trixnity.client.rtc/RtcSlotMembershipDelegateLeaveHandler>, kotlin.collections/List<de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionHandler>, kotlin.collections/List<de.connect2x.trixnity.client.room/RoomEventEncryptionService>, de.connect2x.trixnity.clientserverapi.client/MatrixClientServerApiClient, de.connect2x.trixnity.client/CurrentSyncState, de.connect2x.trixnity.client.store/ServerDataStore, de.connect2x.trixnity.core/UserInfo, kotlin.time/Clock, kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId;de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports?;de.connect2x.trixnity.client.rtc.RtcSlotMembership.Config;kotlinx.coroutines.flow.Flow<de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent>?>;kotlinx.coroutines.flow.Flow<kotlin.collections.Map<kotlin.Pair<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId>,de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent<de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent>>>;kotlin.Function0<kotlin.Unit>;kotlin.collections.List<de.connect2x.trixnity.client.rtc.RtcSlotMembershipDelegateLeaveHandler>;kotlin.collections.List<de.connect2x.trixnity.client.rtc.RtcSlotMembershipEncryptionHandler>;kotlin.collections.List<de.connect2x.trixnity.client.room.RoomEventEncryptionService>;de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient;de.connect2x.trixnity.client.CurrentSyncState;de.connect2x.trixnity.client.store.ServerDataStore;de.connect2x.trixnity.core.UserInfo;kotlin.time.Clock;kotlinx.coroutines.CoroutineScope){}[0]
+
+    final val encryptionInfo // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.encryptionInfo|{}encryptionInfo[0]
+        final fun <get-encryptionInfo>(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo> // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.encryptionInfo.<get-encryptionInfo>|<get-encryptionInfo>(){}[0]
+    final val memberId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.memberId|{}memberId[0]
+        final fun <get-memberId>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.memberId.<get-memberId>|<get-memberId>(){}[0]
+    final val roomId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.roomId|{}roomId[0]
+        final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.roomId.<get-roomId>|<get-roomId>(){}[0]
+    final val slotId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.slotId|{}slotId[0]
+        final fun <get-slotId>(): de.connect2x.trixnity.core.model.events.m.rtc/RtcSlotId // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.slotId.<get-slotId>|<get-slotId>(){}[0]
+    final val state // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.client.rtc/RtcSlotMembership.State> // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.state.<get-state>|<get-state>(){}[0]
+
+    final fun close() // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.close|close(){}[0]
+    final fun leave(de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Leave.Reason?) // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.leave|leave(de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Leave.Reason?){}[0]
+    final fun update(de.connect2x.trixnity.core.model/EventId, de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember, de.connect2x.trixnity.core.model.events.m.rtc/RtcMemberEventContent.Join.RtcTransports) // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.update|update(de.connect2x.trixnity.core.model.EventId;de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember;de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent.Join.RtcTransports){}[0]
+
+    final object Companion { // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.Companion|null[0]
+        final val APPLY_REQUESTED_STATE_GRACE_PERIOD // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.Companion.APPLY_REQUESTED_STATE_GRACE_PERIOD|{}APPLY_REQUESTED_STATE_GRACE_PERIOD[0]
+            final fun <get-APPLY_REQUESTED_STATE_GRACE_PERIOD>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.Companion.APPLY_REQUESTED_STATE_GRACE_PERIOD.<get-APPLY_REQUESTED_STATE_GRACE_PERIOD>|<get-APPLY_REQUESTED_STATE_GRACE_PERIOD>(){}[0]
+        final val CLOSE_ON_LEAVE_TIMEOUT // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.Companion.CLOSE_ON_LEAVE_TIMEOUT|{}CLOSE_ON_LEAVE_TIMEOUT[0]
+            final fun <get-CLOSE_ON_LEAVE_TIMEOUT>(): kotlin.time/Duration // de.connect2x.trixnity.client.rtc/RtcSlotMembershipImpl.Companion.CLOSE_ON_LEAVE_TIMEOUT.<get-CLOSE_ON_LEAVE_TIMEOUT>|<get-CLOSE_ON_LEAVE_TIMEOUT>(){}[0]
+    }
 }
 
 final class de.connect2x.trixnity.client.server/ServerDataService : de.connect2x.trixnity.core/EventHandler { // de.connect2x.trixnity.client.server/ServerDataService|null[0]
@@ -4778,6 +5052,8 @@ open class <#A: kotlin/Any?> de.connect2x.trixnity.client.room/TimelineImpl : de
 }
 
 final object de.connect2x.trixnity.client.media/MediaTooLargeException : kotlin/IllegalStateException // de.connect2x.trixnity.client.media/MediaTooLargeException|null[0]
+
+final object de.connect2x.trixnity.client.rtc/NoRtcSlotMembershipEncryptionInfo : de.connect2x.trixnity.client.rtc/RtcSlotMembershipEncryptionInfo // de.connect2x.trixnity.client.rtc/NoRtcSlotMembershipEncryptionInfo|null[0]
 
 final object de.connect2x.trixnity.client.store.repository/NoOpStoreReadTransaction : de.connect2x.trixnity.client.store/StoreReadTransaction // de.connect2x.trixnity.client.store.repository/NoOpStoreReadTransaction|null[0]
 

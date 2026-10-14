@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Support Matrix 1.19
 - Allow to get all valid sticky events
 - Added RtcService
+- Added RtcSlotMembership and per member encryption
 
 ### Changed
 

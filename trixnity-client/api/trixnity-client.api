@@ -1569,20 +1569,262 @@ public final class de/connect2x/trixnity/client/rtc/CreateRtcModuleKt {
 	public static final fun createRtcModule ()Lorg/koin/core/module/Module;
 }
 
+public final class de/connect2x/trixnity/client/rtc/NoRtcSlotMembershipEncryptionInfo : de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionInfo {
+	public static final field INSTANCE Lde/connect2x/trixnity/client/rtc/NoRtcSlotMembershipEncryptionInfo;
+}
+
+public final class de/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionConfig : de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionConfig {
+	public synthetic fun <init> (JJJIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JJJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-UwyO8pc ()J
+	public final fun component2-UwyO8pc ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4 ()I
+	public final fun copy-2d-g_3Q (JJJI)Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionConfig;
+	public static synthetic fun copy-2d-g_3Q$default (Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionConfig;JJJIILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKeyRotationGracePeriod-UwyO8pc ()J
+	public final fun getPeriodicKeyRotation-UwyO8pc ()J
+	public final fun getReceivedKeysBuffer ()I
+	public final fun getUseKeyDelay-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class de/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionHandler : de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionHandler {
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/core/UserInfo;)V
+	public fun getEncryptionInfo-kFUyyQI (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryption;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/util/Map;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+	public fun supports (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryption;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)Z
+}
+
+public final class de/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo : de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionInfo {
+	public fun <init> (Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryptionKeyEventContent;)V
+	public final fun component1 ()Ljava/util/Map;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryptionKeyEventContent;
+	public final fun copy (Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryptionKeyEventContent;)Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryptionKeyEventContent;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOwnActiveKey ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryptionKeyEventContent;
+	public final fun getReceivedKeys ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract interface class de/connect2x/trixnity/client/rtc/RtcService {
 	public abstract fun getAllSlots-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getCurrentMemberships ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun joinSlot-a8RB7-Y (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
+	public static synthetic fun joinSlot-a8RB7-Y$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcService$DefaultImpls {
+	public static synthetic fun joinSlot-a8RB7-Y$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcServiceImpl : de/connect2x/trixnity/client/rtc/RtcService, de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Lde/connect2x/trixnity/client/key/KeyService;)V
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StickyEventStore;Lde/connect2x/trixnity/client/rtc/RtcSlotMembershipFactory;Lde/connect2x/trixnity/client/key/KeyService;)V
 	public fun getAllSlots-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getCurrentMemberships ()Lkotlinx/coroutines/flow/Flow;
 	public fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun joinSlot-a8RB7-Y (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembership : java/lang/AutoCloseable {
+	public abstract fun getEncryptionInfo ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getMemberId-gwg-m3I ()Ljava/lang/String;
+	public abstract fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public abstract fun getSlotId-RBoLkIg ()Ljava/lang/String;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun leave (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;)V
+	public abstract fun update-wqimQMU (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$Config {
+	public synthetic fun <init> (JJJJJJLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JJJJJJLjava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-UwyO8pc ()J
+	public final fun component2-UwyO8pc ()J
+	public final fun component3-UwyO8pc ()J
+	public final fun component4-UwyO8pc ()J
+	public final fun component5-UwyO8pc ()J
+	public final fun component6-UwyO8pc ()J
+	public final fun component7 ()Ljava/util/Map;
+	public final fun copy-5kAiFfk (JJJJJJLjava/util/Map;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;
+	public static synthetic fun copy-5kAiFfk$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;JJJJJJLjava/util/Map;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelayedLeaveDelayDuration-UwyO8pc ()J
+	public final fun getDelayedLeaveDelayDurationBuffer-UwyO8pc ()J
+	public final fun getEncryption ()Ljava/util/Map;
+	public final fun getJoinStickyDurationFallback-UwyO8pc ()J
+	public final fun getJoinStickyDurationFallbackBuffer-UwyO8pc ()J
+	public final fun getMembershipStickyDuration-UwyO8pc ()J
+	public final fun getMembershipStickyDurationBuffer-UwyO8pc ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembership$Error {
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$NetworkError : de/connect2x/trixnity/client/rtc/RtcSlotMembership$Error {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun component1 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Throwable;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$NetworkError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$NetworkError;Ljava/lang/Throwable;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$NetworkError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Ljava/lang/Throwable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$PermissionError : de/connect2x/trixnity/client/rtc/RtcSlotMembership$Error {
+	public fun <init> (Lde/connect2x/trixnity/core/MatrixServerException;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/MatrixServerException;
+	public final fun copy (Lde/connect2x/trixnity/core/MatrixServerException;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$PermissionError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$PermissionError;Lde/connect2x/trixnity/core/MatrixServerException;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error$PermissionError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getError ()Lde/connect2x/trixnity/core/MatrixServerException;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public abstract fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Join : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Join;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Join;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Join;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Joining : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Joining;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Joining;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Joining;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$JoiningError : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public final fun component2 ()Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$JoiningError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$JoiningError;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$JoiningError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public final fun getError ()Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leave : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leave;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leave;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leave;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leaving : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leaving;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leaving;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$Leaving;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$State$LeavingError : de/connect2x/trixnity/client/rtc/RtcSlotMembership$State {
+	public fun <init> (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public final fun component2 ()Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;
+	public final fun copy (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$LeavingError;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$LeavingError;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;ILjava/lang/Object;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$State$LeavingError;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave;
+	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent;
+	public final fun getError ()Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Error;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipDelegateLeaveHandler {
+	public abstract fun delegateLeave-QQWr2R8 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun supports (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)Z
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionConfig {
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionHandler {
+	public abstract fun getEncryptionInfo-kFUyyQI (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryption;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Ljava/util/Map;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun supports (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryption;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)Z
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipEncryptionInfo {
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipFactory {
+	public abstract fun create-Zy3qKx8 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership;
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl : de/connect2x/trixnity/client/rtc/RtcSlotMembership {
+	public static final field Companion Lde/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/client/store/ServerDataStore;Lde/connect2x/trixnity/core/UserInfo;Lkotlin/time/Clock;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public fun getEncryptionInfo ()Lkotlinx/coroutines/flow/Flow;
+	public fun getMemberId-gwg-m3I ()Ljava/lang/String;
+	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun getSlotId-RBoLkIg ()Ljava/lang/String;
+	public fun getState ()Lkotlinx/coroutines/flow/Flow;
+	public fun leave (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;)V
+	public fun update-wqimQMU (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
+}
+
+public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl$Companion {
+	public final fun getAPPLY_REQUESTED_STATE_GRACE_PERIOD-UwyO8pc ()J
+	public final fun getCLOSE_ON_LEAVE_TIMEOUT-UwyO8pc ()J
+}
+
+public final class de/connect2x/trixnity/client/rtc/livekit/LiveKitPerMemberRtcSlotMembershipEncryptionHandler : de/connect2x/trixnity/client/rtc/PerMemberRtcSlotMembershipEncryptionHandler {
+	public fun <init> (Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/KeyStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/crypto/olm/OlmEventHandler;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lkotlin/time/Clock;Lde/connect2x/trixnity/core/UserInfo;)V
+	public fun supports (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcEncryption;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)Z
+}
+
+public final class de/connect2x/trixnity/client/rtc/livekit/LiveKitRtcSlotMembershipDelegateLeaveHandler : de/connect2x/trixnity/client/rtc/RtcSlotMembershipDelegateLeaveHandler {
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/core/UserInfo;)V
+	public fun delegateLeave-QQWr2R8 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun supports (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)Z
 }
 
 public final class de/connect2x/trixnity/client/server/CreateServerModuleKt {

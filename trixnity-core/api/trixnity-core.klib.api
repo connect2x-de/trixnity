@@ -11325,6 +11325,25 @@ final class de.connect2x.trixnity.core.serialization.events/UnsupportedEventCont
     constructor <init>(kotlin.reflect/KClass<*>) // de.connect2x.trixnity.core.serialization.events/UnsupportedEventContentTypeException.<init>|<init>(kotlin.reflect.KClass<*>){}[0]
 }
 
+final class de.connect2x.trixnity.core/MatrixServerException : kotlin/Exception { // de.connect2x.trixnity.core/MatrixServerException|null[0]
+    constructor <init>(io.ktor.http/HttpStatusCode, de.connect2x.trixnity.core/ErrorResponse, kotlin/Long? = ...) // de.connect2x.trixnity.core/MatrixServerException.<init>|<init>(io.ktor.http.HttpStatusCode;de.connect2x.trixnity.core.ErrorResponse;kotlin.Long?){}[0]
+
+    final val errorResponse // de.connect2x.trixnity.core/MatrixServerException.errorResponse|{}errorResponse[0]
+        final fun <get-errorResponse>(): de.connect2x.trixnity.core/ErrorResponse // de.connect2x.trixnity.core/MatrixServerException.errorResponse.<get-errorResponse>|<get-errorResponse>(){}[0]
+    final val retryAfter // de.connect2x.trixnity.core/MatrixServerException.retryAfter|{}retryAfter[0]
+        final fun <get-retryAfter>(): kotlin/Long? // de.connect2x.trixnity.core/MatrixServerException.retryAfter.<get-retryAfter>|<get-retryAfter>(){}[0]
+    final val statusCode // de.connect2x.trixnity.core/MatrixServerException.statusCode|{}statusCode[0]
+        final fun <get-statusCode>(): io.ktor.http/HttpStatusCode // de.connect2x.trixnity.core/MatrixServerException.statusCode.<get-statusCode>|<get-statusCode>(){}[0]
+
+    final fun component1(): io.ktor.http/HttpStatusCode // de.connect2x.trixnity.core/MatrixServerException.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.core/ErrorResponse // de.connect2x.trixnity.core/MatrixServerException.component2|component2(){}[0]
+    final fun component3(): kotlin/Long? // de.connect2x.trixnity.core/MatrixServerException.component3|component3(){}[0]
+    final fun copy(io.ktor.http/HttpStatusCode = ..., de.connect2x.trixnity.core/ErrorResponse = ..., kotlin/Long? = ...): de.connect2x.trixnity.core/MatrixServerException // de.connect2x.trixnity.core/MatrixServerException.copy|copy(io.ktor.http.HttpStatusCode;de.connect2x.trixnity.core.ErrorResponse;kotlin.Long?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core/MatrixServerException.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core/MatrixServerException.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core/MatrixServerException.toString|toString(){}[0]
+}
+
 final class de.connect2x.trixnity.core/UserInfo { // de.connect2x.trixnity.core/UserInfo|null[0]
     constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, de.connect2x.trixnity.core.model.keys/Key.Ed25519Key, de.connect2x.trixnity.core.model.keys/Key.Curve25519Key) // de.connect2x.trixnity.core/UserInfo.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;de.connect2x.trixnity.core.model.keys.Key.Ed25519Key;de.connect2x.trixnity.core.model.keys.Key.Curve25519Key){}[0]
 
@@ -12242,17 +12261,6 @@ open class <#A: kotlin/Any?, #B: kotlin/Any?> de.connect2x.trixnity.core.model.k
         final fun <#A2: kotlin/Any?, #B2: kotlin/Any?> serializer(kotlinx.serialization/KSerializer<#A2>, kotlinx.serialization/KSerializer<#B2>): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.keys/Signed<#A2, #B2>> // de.connect2x.trixnity.core.model.keys/Signed.Companion.serializer|serializer(kotlinx.serialization.KSerializer<0:0>;kotlinx.serialization.KSerializer<0:1>){0§<kotlin.Any?>;1§<kotlin.Any?>}[0]
         final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.core.model.keys/Signed.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
     }
-}
-
-open class de.connect2x.trixnity.core/MatrixServerException : kotlin/Exception { // de.connect2x.trixnity.core/MatrixServerException|null[0]
-    constructor <init>(io.ktor.http/HttpStatusCode, de.connect2x.trixnity.core/ErrorResponse, kotlin/Long? = ...) // de.connect2x.trixnity.core/MatrixServerException.<init>|<init>(io.ktor.http.HttpStatusCode;de.connect2x.trixnity.core.ErrorResponse;kotlin.Long?){}[0]
-
-    final val errorResponse // de.connect2x.trixnity.core/MatrixServerException.errorResponse|{}errorResponse[0]
-        final fun <get-errorResponse>(): de.connect2x.trixnity.core/ErrorResponse // de.connect2x.trixnity.core/MatrixServerException.errorResponse.<get-errorResponse>|<get-errorResponse>(){}[0]
-    final val retryAfter // de.connect2x.trixnity.core/MatrixServerException.retryAfter|{}retryAfter[0]
-        final fun <get-retryAfter>(): kotlin/Long? // de.connect2x.trixnity.core/MatrixServerException.retryAfter.<get-retryAfter>|<get-retryAfter>(){}[0]
-    final val statusCode // de.connect2x.trixnity.core/MatrixServerException.statusCode|{}statusCode[0]
-        final fun <get-statusCode>(): io.ktor.http/HttpStatusCode // de.connect2x.trixnity.core/MatrixServerException.statusCode.<get-statusCode>|<get-statusCode>(){}[0]
 }
 
 sealed class de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm { // de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm|null[0]

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client.rtc
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.flattenNotNull
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.store.RoomStateStore
@@ -9,27 +10,46 @@ import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
+import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.crypto.key.EventTrustLevel
+import de.connect2x.trixnity.utils.nextString
 import kotlin.jvm.JvmName
 import kotlin.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+
+private val log = Logger("de.connect2x.trixnity.client.rtc.RtcService")
 
 @MSC4143
 interface RtcService {
+    fun getCurrentMemberships(): Flow<Set<RtcSlotMembership>>
+
+    fun joinSlot(
+        roomId: RoomId,
+        slotId: RtcSlotId,
+        slotEventId: EventId,
+        application: RtcApplicationMember,
+        transports: RtcMemberEventContent.Join.RtcTransports?,
+        config: RtcSlotMembership.Config = RtcSlotMembership.Config(),
+    ): Result<RtcSlotMembership>
+
     fun getSlot(roomId: RoomId, slotId: RtcSlotId): Flow<ClientEvent.RoomEvent.StateEvent<RtcSlotEventContent>?>
 
     fun getAllSlots(roomId: RoomId): Flow<Map<RtcSlotId, ClientEvent.RoomEvent.StateEvent<RtcSlotEventContent>>>
@@ -49,8 +69,48 @@ interface RtcService {
 class RtcServiceImpl(
     private val roomStateStore: RoomStateStore,
     private val stickyEventStore: StickyEventStore,
+    private val rtcSlotMembershipFactory: RtcSlotMembershipFactory,
     private val keyService: KeyService,
 ) : RtcService, EventHandler {
+    private data class RtcSlotMembershipKey(val roomId: RoomId, val slotId: RtcSlotId, val memberId: RtcMemberId)
+
+    private val requestedSlotMemberships = MutableStateFlow<Map<RtcSlotMembershipKey, RtcSlotMembership>>(emptyMap())
+
+    override fun getCurrentMemberships(): Flow<Set<RtcSlotMembership>> = requestedSlotMemberships.map {
+        it.values.toSet()
+    }
+
+    override fun joinSlot(
+        roomId: RoomId,
+        slotId: RtcSlotId,
+        slotEventId: EventId,
+        application: RtcApplicationMember,
+        transports: RtcMemberEventContent.Join.RtcTransports?,
+        config: RtcSlotMembership.Config,
+    ): Result<RtcSlotMembership> = runCatching {
+        val memberId = RtcMemberId(SecureRandom.nextString(22))
+        val membershipKey = RtcSlotMembershipKey(roomId, slotId, memberId)
+        log.info { "create RtcSlotMembership for $slotId in $roomId" }
+        val newRtcSlotMembership =
+            rtcSlotMembershipFactory.create(
+                roomId = roomId,
+                slotId = slotId,
+                slotEventId = slotEventId,
+                memberId = memberId,
+                application = application,
+                transports = transports,
+                config = config,
+                slotEvent = getSlot(roomId, slotId),
+                memberEvents = getMembers(roomId, slotId),
+                onClose = { requestedSlotMemberships.update { it - membershipKey } },
+            )
+        requestedSlotMemberships.update {
+            if (it[membershipKey] != null) throw RtcSlotMembershipException("membership already exists")
+            it + (membershipKey to newRtcSlotMembership)
+        }
+        newRtcSlotMembership
+    }
+
     override fun getSlot(
         roomId: RoomId,
         slotId: RtcSlotId,
