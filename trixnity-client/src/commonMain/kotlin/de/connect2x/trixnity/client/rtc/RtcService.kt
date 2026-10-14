@@ -166,7 +166,7 @@ class RtcServiceImpl(
                                     content?.slotId != slotId ||
                                         content.member.id != memberId ||
                                         content is RtcMemberEventContent.Join &&
-                                            content.application?.type != slot.content.application?.type
+                                            content.application.type != slot.content.application?.type
                                 )
                                     return@map null
                                 else it
