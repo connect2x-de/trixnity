@@ -6,4 +6,10 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@MSC4143 @MSC4195 @Serializable data class LiveKitRtcTransport(@SerialName("url") val url: Url) : RtcTransport
+@MSC4143
+@MSC4195
+@Serializable
+data class LiveKitRtcTransport(
+    @SerialName("url") val url: Url,
+    @SerialName("server_name") val serverName: String? = null,
+) : RtcTransport

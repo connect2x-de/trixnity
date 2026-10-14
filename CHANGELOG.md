@@ -25,7 +25,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Remove messages with duplicate annotation send error from outbox
 - Add current Element flavor of MSC4143, MSC4196 and MSC4195
 - Allow "redaction" for sticky events
-- Update MSC4354 and MSC4143
+- Update MSC4354, MSC4143 and MSC4195
 
 ### Deprecated
 

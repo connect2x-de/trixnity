@@ -9,8 +9,8 @@ import de.connect2x.trixnity.core.MatrixEndpoint
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcSlotId
-import io.ktor.http.Url
-import io.ktor.resources.Resource
+import io.ktor.http.*
+import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -22,7 +22,7 @@ import kotlinx.serialization.Serializable
 object GetLiveKitToken : MatrixEndpoint<GetLiveKitToken.Request, GetLiveKitToken.Response> {
     @Serializable
     data class Request(
-        @SerialName("server_name") val serverName: String,
+        @SerialName("server_name") val serverName: String? = null,
         @SerialName("url") val url: Url,
         @SerialName("room_id") val roomId: RoomId,
         @SerialName("slot_id") val slotId: RtcSlotId,

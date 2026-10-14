@@ -9525,6 +9525,7 @@ public final class de/connect2x/trixnity/clientserverapi/model/rtc/livekit/GetLi
 
 public final class de/connect2x/trixnity/clientserverapi/model/rtc/livekit/GetLiveKitToken$Request {
 	public static final field Companion Lde/connect2x/trixnity/clientserverapi/model/rtc/livekit/GetLiveKitToken$Request$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Lio/ktor/http/Url;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Lio/ktor/http/Url;
