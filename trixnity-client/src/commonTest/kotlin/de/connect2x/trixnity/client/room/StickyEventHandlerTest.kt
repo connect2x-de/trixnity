@@ -118,7 +118,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -176,7 +175,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -213,7 +211,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -231,7 +228,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -271,7 +267,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -289,7 +284,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -307,7 +301,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                 content =
                     RtcMemberEventContent.Join(
                         CallRtcApplication.SLOT_ID,
-                        EventId("slot"),
                         RtcMemberEventContent.Member(RtcMemberId("memberId")),
                         CallRtcApplication.Member(),
                         null,
@@ -388,7 +381,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
         val decryptedContent =
             RtcMemberEventContent.Join(
                 CallRtcApplication.SLOT_ID,
-                EventId("slot"),
                 RtcMemberEventContent.Member(RtcMemberId("memberId")),
                 CallRtcApplication.Member(),
                 null,
@@ -416,7 +408,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                             content =
                                 RtcMemberEventContent.Join(
                                     CallRtcApplication.SLOT_ID,
-                                    EventId("slot"),
                                     RtcMemberEventContent.Member(RtcMemberId("memberId")),
                                     CallRtcApplication.Member(),
                                     null,
@@ -439,7 +430,6 @@ class StickyEventHandlerTest : TrixnityBaseTest() {
                             content =
                                 RtcMemberEventContent.Join(
                                     CallRtcApplication.SLOT_ID,
-                                    EventId("slot"),
                                     RtcMemberEventContent.Member(RtcMemberId("memberId")),
                                     CallRtcApplication.Member(),
                                     null,

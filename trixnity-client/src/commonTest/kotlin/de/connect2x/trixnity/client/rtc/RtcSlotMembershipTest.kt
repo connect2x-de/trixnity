@@ -72,7 +72,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
     private val roomId = RoomId("room")
     private val slotId = RtcSlotId("slot")
-    private val slotEventId = EventId("$1slot")
     private val memberId = RtcMemberId("member")
     private val userId = UserId("me", "server")
     private val application = CallRtcApplication.Member()
@@ -125,7 +124,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedJoinContent =
         RtcMemberEventContent.Join(
             slotId = slotId,
-            slotEventId = slotEventId,
             member = RtcMemberEventContent.Member(memberId),
             application = application,
             transports = transports,
@@ -135,7 +133,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            slotEventId = slotEventId,
             member = RtcMemberEventContent.Member(memberId),
             reason = RtcMemberEventContent.Leave.Reason("dino"),
             stickyKey = memberId.value,
@@ -144,7 +141,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedDelayedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            slotEventId = slotEventId,
             member = RtcMemberEventContent.Member(memberId),
             reason =
                 RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.DELAYED_LEAVE.value),
@@ -154,7 +150,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
     private val expectedSlotClosedLeaveContent =
         RtcMemberEventContent.Leave(
             slotId = slotId,
-            slotEventId = slotEventId,
             member = RtcMemberEventContent.Member(memberId),
             reason = RtcMemberEventContent.Leave.Reason(RtcApplicationMember.DefaultLeaveReasonCode.SLOT_CLOSED.value),
             stickyKey = memberId.value,
@@ -166,7 +161,6 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
         return RtcSlotMembershipImpl(
             roomId = roomId,
             slotId = slotId,
-            slotEventId = slotEventId,
             memberId = memberId,
             application = application,
             transports = transports,
@@ -327,7 +321,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
             delay(10.milliseconds)
             memberEvents.value = mapOf(Pair(userId, memberId) to memberEvent(expectedJoinContent))
             delay(10.milliseconds)
-            cut.update(slotEventId, application, RtcMemberEventContent.Join.RtcTransports())
+            cut.update(application, RtcMemberEventContent.Join.RtcTransports())
             delay(10.milliseconds)
             memberEvents.value = mapOf(Pair(userId, memberId) to memberEvent(expectedJoinContent2))
 
@@ -420,7 +414,7 @@ class RtcSlotMembershipTest : TrixnityBaseTest() {
             delay(10.milliseconds)
             memberEvents.value = mapOf(Pair(userId, memberId) to memberEvent(expectedJoinContent))
             delay(10.milliseconds)
-            cut.update(slotEventId, application, RtcMemberEventContent.Join.RtcTransports())
+            cut.update(application, RtcMemberEventContent.Join.RtcTransports())
             delay(10.milliseconds)
             memberEvents.value = mapOf(Pair(userId, memberId) to memberEvent(expectedJoinContent2))
 

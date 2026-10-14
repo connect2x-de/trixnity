@@ -70,7 +70,6 @@ interface RtcSlotMembershipFactory {
     fun create(
         roomId: RoomId,
         slotId: RtcSlotId,
-        slotEventId: EventId,
         memberId: RtcMemberId,
         application: RtcApplicationMember,
         transports: RtcMemberEventContent.Join.RtcTransports?,
@@ -90,11 +89,7 @@ interface RtcSlotMembership : AutoCloseable {
     val state: Flow<State>
     val encryptionInfo: Flow<RtcSlotMembershipEncryptionInfo>
 
-    fun update(
-        slotEventId: EventId,
-        application: RtcApplicationMember,
-        transports: RtcMemberEventContent.Join.RtcTransports,
-    )
+    fun update(application: RtcApplicationMember, transports: RtcMemberEventContent.Join.RtcTransports)
 
     fun leave(reason: RtcMemberEventContent.Leave.Reason?)
 
@@ -137,7 +132,6 @@ class RtcSlotMembershipImpl(
     // factory section
     override val roomId: RoomId,
     override val slotId: RtcSlotId,
-    slotEventId: EventId,
     override val memberId: RtcMemberId,
     application: RtcApplicationMember,
     transports: RtcMemberEventContent.Join.RtcTransports?,
@@ -160,7 +154,6 @@ class RtcSlotMembershipImpl(
     private val initialRequestedStateContent =
         RtcMemberEventContent.Join(
             slotId = slotId,
-            slotEventId = slotEventId,
             member = RtcMemberEventContent.Member(memberId),
             application = application,
             transports = transports,
@@ -181,7 +174,6 @@ class RtcSlotMembershipImpl(
     init {
         job = coroutineScope.launch {
             launch { collectState() }
-            launch { checkSlotEventId() }
             launch { collectEncryptionInfo() }
             launch { continuouslyApplyRequestedState() }
             launch { leaveOnSlotClosed() }
@@ -290,23 +282,6 @@ class RtcSlotMembershipImpl(
         }
     }
 
-    private suspend fun checkSlotEventId() {
-        combine(
-                slotEvent.map { it?.id }.distinctUntilChanged(),
-                requestedStateContent.map { it.slotEventId }.distinctUntilChanged(),
-            ) { activeSlotEventId, requestedSlotEventId ->
-                activeSlotEventId to requestedSlotEventId
-            }
-            .collectLatest { (activeSlotEventId, requestedSlotEventId) ->
-                delay(APPLY_REQUESTED_STATE_GRACE_PERIOD)
-                if (activeSlotEventId != requestedSlotEventId) {
-                    log.warn {
-                        "rtc membership currently uses slotEventId $requestedSlotEventId but $activeSlotEventId is active - call ::update to apply the new slotEventId"
-                    }
-                }
-            }
-    }
-
     private suspend fun applyRequestedState(
         requestedStateContent: RtcMemberEventContent,
         leaveDelayId: AtomicReference<DelayId?>,
@@ -409,7 +384,6 @@ class RtcSlotMembershipImpl(
                     eventContent =
                         RtcMemberEventContent.Leave(
                             slotId = slotId,
-                            slotEventId = requestedStateContent.slotEventId,
                             member = RtcMemberEventContent.Member(memberId),
                             reason =
                                 RtcMemberEventContent.Leave.Reason(
@@ -582,15 +556,10 @@ class RtcSlotMembershipImpl(
         }
     }
 
-    override fun update(
-        slotEventId: EventId,
-        application: RtcApplicationMember,
-        transports: RtcMemberEventContent.Join.RtcTransports,
-    ) {
+    override fun update(application: RtcApplicationMember, transports: RtcMemberEventContent.Join.RtcTransports) {
         val joinContent =
             RtcMemberEventContent.Join(
                 slotId = slotId,
-                slotEventId = slotEventId,
                 member = RtcMemberEventContent.Member(memberId),
                 application = application,
                 transports = transports,
@@ -604,7 +573,6 @@ class RtcSlotMembershipImpl(
         val leaveContent =
             RtcMemberEventContent.Leave(
                 slotId = slotId,
-                slotEventId = requestedStateContent.value.slotEventId,
                 member = RtcMemberEventContent.Member(memberId),
                 reason = reason,
                 stickyKey = memberId.value,

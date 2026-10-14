@@ -1725,7 +1725,6 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     MessageEvent(
                         RtcMemberEventContent.Join(
                             CallRtcApplication.SLOT_ID,
-                            EventId("slot"),
                             RtcMemberEventContent.Member(RtcMemberId("memberId1")),
                             CallRtcApplication.Member(),
                             null,
@@ -1745,7 +1744,6 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     MessageEvent(
                         RtcMemberEventContent.Join(
                             CallRtcApplication.SLOT_ID,
-                            EventId("slot"),
                             RtcMemberEventContent.Member(RtcMemberId("memberId2")),
                             CallRtcApplication.Member(),
                             null,
@@ -1765,7 +1763,6 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     MessageEvent(
                         RtcMemberEventContent.Join(
                             CallRtcApplication.SLOT_ID,
-                            EventId("slot"),
                             RtcMemberEventContent.Member(RtcMemberId("memberId1")),
                             CallRtcApplication.Member(),
                             null,
@@ -1785,7 +1782,6 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     MessageEvent(
                         RtcMemberEventContent.Join(
                             CallRtcApplication.SLOT_ID,
-                            EventId("slot"),
                             RtcMemberEventContent.Member(RtcMemberId("memberId")),
                             CallRtcApplication.Member(),
                             null,

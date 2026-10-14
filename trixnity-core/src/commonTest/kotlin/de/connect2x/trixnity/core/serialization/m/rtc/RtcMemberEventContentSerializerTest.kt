@@ -41,7 +41,6 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
               "user_id":"@dummy:test"
             },
             "msc4354_sticky_key": "{member_id}",
-            "slot_event_id":"slot",
             "slot_id": "m.call#ROOM",
             "transports": {
               "can_subscribe": [
@@ -71,7 +70,6 @@ class RtcMemberEventContentSerializerTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Join(
                     slotId = CallRtcApplication.SLOT_ID,
-                    slotEventId = EventId("slot"),
                     application = CallRtcApplication.Member(),
                     member = RtcMemberEventContent.Member(id = RtcMemberId("{member_id}")),
                     transports =
