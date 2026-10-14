@@ -1616,12 +1616,12 @@ public abstract interface class de/connect2x/trixnity/client/rtc/RtcService {
 	public abstract fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun joinSlot-a8RB7-Y (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
-	public static synthetic fun joinSlot-a8RB7-Y$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun joinSlot-56Q8z9U (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
+	public static synthetic fun joinSlot-56Q8z9U$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcService$DefaultImpls {
-	public static synthetic fun joinSlot-a8RB7-Y$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun joinSlot-56Q8z9U$default (Lde/connect2x/trixnity/client/rtc/RtcService;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcServiceImpl : de/connect2x/trixnity/client/rtc/RtcService, de/connect2x/trixnity/core/EventHandler {
@@ -1631,7 +1631,7 @@ public final class de/connect2x/trixnity/client/rtc/RtcServiceImpl : de/connect2
 	public fun getMembers-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getMembers-sZMse74 (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun getSlot-NY4BpOU (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public fun joinSlot-a8RB7-Y (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
+	public fun joinSlot-56Q8z9U (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;)Ljava/lang/Object;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
 
@@ -1642,7 +1642,7 @@ public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembersh
 	public abstract fun getSlotId-RBoLkIg ()Ljava/lang/String;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/Flow;
 	public abstract fun leave (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;)V
-	public abstract fun update-wqimQMU (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
+	public abstract fun update (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcSlotMembership$Config {
@@ -1795,12 +1795,12 @@ public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipException :
 }
 
 public abstract interface class de/connect2x/trixnity/client/rtc/RtcSlotMembershipFactory {
-	public abstract fun create-Zy3qKx8 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership;
+	public abstract fun create-k8MtUgo (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/client/rtc/RtcSlotMembership;
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl : de/connect2x/trixnity/client/rtc/RtcSlotMembership {
 	public static final field Companion Lde/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/client/store/ServerDataStore;Lde/connect2x/trixnity/core/UserInfo;Lkotlin/time/Clock;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;Lde/connect2x/trixnity/client/rtc/RtcSlotMembership$Config;Lkotlinx/coroutines/flow/Flow;Lkotlinx/coroutines/flow/Flow;Lkotlin/jvm/functions/Function0;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/CurrentSyncState;Lde/connect2x/trixnity/client/store/ServerDataStore;Lde/connect2x/trixnity/core/UserInfo;Lkotlin/time/Clock;Lkotlinx/coroutines/CoroutineScope;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
 	public fun getEncryptionInfo ()Lkotlinx/coroutines/flow/Flow;
 	public fun getMemberId-gwg-m3I ()Ljava/lang/String;
@@ -1808,7 +1808,7 @@ public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl : de/c
 	public fun getSlotId-RBoLkIg ()Ljava/lang/String;
 	public fun getState ()Lkotlinx/coroutines/flow/Flow;
 	public fun leave (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Leave$Reason;)V
-	public fun update-wqimQMU (Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
+	public fun update (Lde/connect2x/trixnity/core/model/events/m/rtc/RtcApplicationMember;Lde/connect2x/trixnity/core/model/events/m/rtc/RtcMemberEventContent$Join$RtcTransports;)V
 }
 
 public final class de/connect2x/trixnity/client/rtc/RtcSlotMembershipImpl$Companion {

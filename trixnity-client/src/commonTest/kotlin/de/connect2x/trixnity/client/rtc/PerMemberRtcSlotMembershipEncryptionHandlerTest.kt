@@ -561,7 +561,6 @@ class PerMemberRtcSlotMembershipEncryptionHandlerTest : TrixnityBaseTest() {
         ClientEvent.RoomEvent.MessageEvent(
             RtcMemberEventContent.Join(
                 slotId = slotId,
-                slotEventId = EventId("\$slot"),
                 member = RtcMemberEventContent.Member(memberId),
                 application = CallRtcApplication.Member(),
                 transports = null,
@@ -577,7 +576,6 @@ class PerMemberRtcSlotMembershipEncryptionHandlerTest : TrixnityBaseTest() {
         ClientEvent.RoomEvent.MessageEvent(
             RtcMemberEventContent.Leave(
                 slotId = slotId,
-                slotEventId = EventId("\$slot"),
                 member = RtcMemberEventContent.Member(aliceMemberId),
                 reason = null,
                 stickyKey = aliceMemberId.value,

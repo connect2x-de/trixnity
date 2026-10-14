@@ -10,7 +10,6 @@ import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4354
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
@@ -44,7 +43,6 @@ interface RtcService {
     fun joinSlot(
         roomId: RoomId,
         slotId: RtcSlotId,
-        slotEventId: EventId,
         application: RtcApplicationMember,
         transports: RtcMemberEventContent.Join.RtcTransports?,
         config: RtcSlotMembership.Config = RtcSlotMembership.Config(),
@@ -83,7 +81,6 @@ class RtcServiceImpl(
     override fun joinSlot(
         roomId: RoomId,
         slotId: RtcSlotId,
-        slotEventId: EventId,
         application: RtcApplicationMember,
         transports: RtcMemberEventContent.Join.RtcTransports?,
         config: RtcSlotMembership.Config,
@@ -95,7 +92,6 @@ class RtcServiceImpl(
             rtcSlotMembershipFactory.create(
                 roomId = roomId,
                 slotId = slotId,
-                slotEventId = slotEventId,
                 memberId = memberId,
                 application = application,
                 transports = transports,

@@ -6,7 +6,6 @@ import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4195
 import de.connect2x.trixnity.core.MSC4354
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
@@ -43,7 +42,6 @@ fun createRtcModule() = module {
             override fun create(
                 roomId: RoomId,
                 slotId: RtcSlotId,
-                slotEventId: EventId,
                 memberId: RtcMemberId,
                 application: RtcApplicationMember,
                 transports: RtcMemberEventContent.Join.RtcTransports?,
@@ -56,7 +54,6 @@ fun createRtcModule() = module {
                 RtcSlotMembershipImpl(
                     roomId = roomId,
                     slotId = slotId,
-                    slotEventId = slotEventId,
                     memberId = memberId,
                     application = application,
                     transports = transports,

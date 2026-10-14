@@ -48,10 +48,6 @@ class RtcServiceTest : TrixnityBaseTest() {
     private val room = RoomId("!room:server")
     private val alice = UserId("@alice:server")
     private val bob = UserId("@bob:server")
-
-    private val slotEventId1 = EventId("$1slot")
-    private val slotEventId2 = EventId("$2slot")
-    private val slotEventId3 = EventId("$3slot")
     private val slotId1 = RtcSlotId("m.call", "1")
     private val slotId2 = RtcSlotId("m.call", "2")
     private val slotId3 = RtcSlotId("m.call", "3")
@@ -76,7 +72,6 @@ class RtcServiceTest : TrixnityBaseTest() {
             override fun create(
                 roomId: RoomId,
                 slotId: RtcSlotId,
-                slotEventId: EventId,
                 memberId: RtcMemberId,
                 application: RtcApplicationMember,
                 transports: RtcMemberEventContent.Join.RtcTransports?,
@@ -99,7 +94,6 @@ class RtcServiceTest : TrixnityBaseTest() {
                                 RtcSlotMembership.State.Joining(
                                     RtcMemberEventContent.Join(
                                         slotId = slotId,
-                                        slotEventId = slotEventId1,
                                         member = RtcMemberEventContent.Member(memberId),
                                         application = application,
                                         transports = transports,
@@ -109,7 +103,6 @@ class RtcServiceTest : TrixnityBaseTest() {
                             )
 
                         override fun update(
-                            slotEventId: EventId,
                             application: RtcApplicationMember,
                             transports: RtcMemberEventContent.Join.RtcTransports,
                         ) = Unit
@@ -143,25 +136,13 @@ class RtcServiceTest : TrixnityBaseTest() {
     @Test
     fun `joinSlot » create and register membership`() = runTest {
         val result1 =
-            cut.joinSlot(
-                    roomId = room,
-                    slotId = slotId1,
-                    slotEventId = slotEventId1,
-                    application = CallRtcApplication.Member(),
-                    transports = null,
-                )
+            cut.joinSlot(roomId = room, slotId = slotId1, application = CallRtcApplication.Member(), transports = null)
                 .getOrThrow()
 
         cut.getCurrentMemberships().first() shouldBe setOf(result1)
 
         val result2 =
-            cut.joinSlot(
-                    roomId = room,
-                    slotId = slotId2,
-                    slotEventId = slotEventId2,
-                    application = CallRtcApplication.Member(),
-                    transports = null,
-                )
+            cut.joinSlot(roomId = room, slotId = slotId2, application = CallRtcApplication.Member(), transports = null)
                 .getOrThrow()
         cut.getCurrentMemberships().first() shouldBe setOf(result1, result2)
     }
@@ -176,7 +157,6 @@ class RtcServiceTest : TrixnityBaseTest() {
             cut.joinSlot(
                 roomId = room,
                 slotId = slotId1,
-                slotEventId = slotEventId1,
                 application = CallRtcApplication.Member(),
                 transports = RtcMemberEventContent.Join.RtcTransports(),
             )
@@ -192,7 +172,6 @@ class RtcServiceTest : TrixnityBaseTest() {
             cut.joinSlot(
                     roomId = room,
                     slotId = slotId1,
-                    slotEventId = slotEventId1,
                     application = CallRtcApplication.Member(),
                     transports = RtcMemberEventContent.Join.RtcTransports(),
                 )
@@ -544,7 +523,6 @@ class RtcServiceTest : TrixnityBaseTest() {
             content =
                 RtcMemberEventContent.Join(
                     slotId = slotId,
-                    slotEventId = slotEventId1,
                     member = RtcMemberEventContent.Member(memberId),
                     application = application,
                     stickyKey = stickyKey,
