@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.core.serialization.events
 
 import de.connect2x.trixnity.core.MSC3644
+import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
@@ -12,6 +13,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEven
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.RedactedStateEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedStickyEventContentImpl
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData.UnsignedMessageEventData
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData.UnsignedStateEventData
@@ -875,6 +877,66 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
         )
     }
 
+    @OptIn(MSC4354::class)
+    @Test
+    fun shouldDeserializeRedactedStickyMessageEvent() {
+        val input =
+            """
+        {
+            "content":{
+                "sticky_key": "sticky"
+            },
+            "event_id":"$143273582443PhrSn",
+            "sender":"@example:example.org",
+            "origin_server_ts":1432735824653,
+            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+            "unsigned":{
+                "age":1234,
+                "redacted_because":{
+                    "content":{
+                        "reason":"spam"
+                    },
+                    "event_id":"$143273582443PhrSn",
+                    "sender":"@example:example.org",
+                    "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+                    "origin_server_ts":1432735824653,
+                    "unsigned":{
+                        "age":1234
+                    },
+                    "type":"m.room.redaction",
+                    "redacts":"$143273582443PhrSn"
+                    }
+                },
+            "type":"org.matrix.msc4143.rtc.member"
+        }
+    """
+                .trimToFlatJson()
+        val result =
+            json.decodeFromString(MessageEventSerializer(EventContentSerializerMappings.default.message), input)
+        assertEquals(
+            MessageEvent(
+                RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", "sticky"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(
+                    1234,
+                    redactedBecause =
+                        MessageEvent(
+                            RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
+                            EventId("$143273582443PhrSn"),
+                            UserId("example", "example.org"),
+                            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                            1432735824653,
+                            UnsignedMessageEventData(1234),
+                        ),
+                ),
+            ),
+            result,
+        )
+    }
+
     @Test
     fun shouldDeserializeStateEventWithEmptyContent() {
         val input =
@@ -935,6 +997,66 @@ class ClientEventSerializerTest : TrixnityBaseTest() {
             "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
             "sender":"@example:example.org",
             "type":"m.room.encrypted",
+            "unsigned":{
+                "age":1234,
+                "redacted_because":{
+                    "content":{
+                        "reason":"spam",
+                        "redacts":"$143273582443PhrSn"
+                    },
+                    "event_id":"$143273582443PhrSn",
+                    "origin_server_ts":1432735824653,
+                    "redacts":"$143273582443PhrSn",
+                    "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+                    "sender":"@example:example.org",
+                    "type":"m.room.redaction",
+                    "unsigned":{
+                        "age":1234
+                    }
+                    }
+                }
+        }
+    """
+                .trimToFlatJson()
+        val result =
+            json.encodeToString(MessageEventSerializer(EventContentSerializerMappings.default.message), content)
+        assertEquals(expectedResult, result)
+    }
+
+    @OptIn(MSC4354::class)
+    @Test
+    fun shouldSerializeRedactedStickyMessageEvent() {
+        val content =
+            MessageEvent(
+                RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", "sticky"),
+                EventId("$143273582443PhrSn"),
+                UserId("example", "example.org"),
+                RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                1432735824653,
+                UnsignedMessageEventData(
+                    1234,
+                    redactedBecause =
+                        MessageEvent(
+                            RedactionEventContent(EventId("$143273582443PhrSn"), "spam"),
+                            EventId("$143273582443PhrSn"),
+                            UserId("example", "example.org"),
+                            RoomId("!jEsUZKDJdhlrceRyVU:example.org"),
+                            1432735824653,
+                            UnsignedMessageEventData(1234),
+                        ),
+                ),
+            )
+        val expectedResult =
+            """
+        {
+            "content":{
+                "msc4354_sticky_key":"sticky"
+            },
+            "event_id":"$143273582443PhrSn",
+            "origin_server_ts":1432735824653,
+            "room_id":"!jEsUZKDJdhlrceRyVU:example.org",
+            "sender":"@example:example.org",
+            "type":"org.matrix.msc4143.rtc.member",
             "unsigned":{
                 "age":1234,
                 "redacted_because":{

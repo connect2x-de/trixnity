@@ -78,6 +78,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
+import de.connect2x.trixnity.core.model.events.RedactedStickyEventContentImpl
 import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
@@ -1624,11 +1625,13 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
         }
     }
 
+    @OptIn(MSC4354::class)
     @Test
     fun `TimelineEventRepository - redacted events`() = runTestWithSetup {
         val cut = di.get<TimelineEventRepository>()
-        val key = TimelineEventKey(EventId("\$event1"), RoomId("!room1:server"))
-        val event =
+        val key1 = TimelineEventKey(EventId("\$event1"), RoomId("!room1:server"))
+        val key2 = TimelineEventKey(EventId("\$event2"), RoomId("!room1:server"))
+        val event1 =
             TimelineEvent(
                 MessageEvent(
                     RedactedMessageEventContentImpl("m.room.message"),
@@ -1642,9 +1645,25 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 nextEventId = null,
                 gap = TimelineEvent.Gap.GapBefore("batch"),
             )
+        val event2 =
+            TimelineEvent(
+                MessageEvent(
+                    RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", "stickyKey"),
+                    EventId("\$event1"),
+                    UserId("sender", "server"),
+                    RoomId("!room1:server"),
+                    1234,
+                ),
+                content = Result.success(RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", "stickyKey")),
+                previousEventId = null,
+                nextEventId = null,
+                gap = TimelineEvent.Gap.GapBefore("batch"),
+            )
         rtm.writeTransaction {
-            cut.save(key, event)
-            cut.get(key) shouldBe event
+            cut.save(key1, event1)
+            cut.save(key2, event2)
+            cut.get(key1) shouldBe event1
+            cut.get(key2) shouldBe event2
         }
     }
 
@@ -1716,6 +1735,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
         val sender2 = UserId("sender2", "server")
         val stickyKey1 = "sticky1"
         val stickyKey2 = "sticky2"
+        val stickyKey3 = "sticky3"
         val eventId1 = EventId("\$event1")
         val eventId2 = EventId("\$event2")
 
@@ -1795,6 +1815,20 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 startTime = Instant.fromEpochMilliseconds(24),
                 endTime = Instant.fromEpochMilliseconds(25),
             )
+        val value5 =
+            StoredStickyEvent(
+                event =
+                    MessageEvent(
+                        RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", stickyKey3)
+                            as StickyEventContent,
+                        eventId2,
+                        sender2,
+                        roomId2,
+                        1234,
+                    ),
+                startTime = Instant.fromEpochMilliseconds(24),
+                endTime = Instant.fromEpochMilliseconds(25),
+            )
 
         rtm.writeTransaction {
             cut.save(
@@ -1817,6 +1851,11 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 StickyEventRepositorySecondKey(sender2, stickyKey1),
                 value4,
             )
+            cut.save(
+                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
+                StickyEventRepositorySecondKey(sender2, stickyKey3),
+                value5,
+            )
             cut.get(
                 StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
                 StickyEventRepositorySecondKey(sender1, stickyKey1),
@@ -1833,6 +1872,10 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                 StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
                 StickyEventRepositorySecondKey(sender2, stickyKey1),
             ) shouldBe value4
+            cut.get(
+                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
+                StickyEventRepositorySecondKey(sender2, stickyKey3),
+            ) shouldBe value5
 
             cut.get(StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member")).values shouldBe
                 setOf(value1, value2)
