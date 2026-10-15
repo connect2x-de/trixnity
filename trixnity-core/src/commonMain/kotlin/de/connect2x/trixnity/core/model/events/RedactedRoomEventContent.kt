@@ -24,7 +24,7 @@ data class RedactedMessageEventContentImpl(override val eventType: String) : Red
     override fun copyWith(relatesTo: RelatesTo?) = this
 }
 
-@OptIn(MSC4354::class)
+@MSC4354
 data class RedactedStickyEventContentImpl(override val eventType: String, override val stickyKey: String?) :
     RedactedMessageEventContent, StickyEventContent {
     // TODO serialize when MSC3389 is in spec

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.core.serialization.events
 
+import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.events.RedactedMessageEventContent
 import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.RedactedStateEventContent
@@ -18,17 +19,22 @@ import kotlinx.serialization.json.buildJsonObject
 class RedactedMessageEventContentSerializer(val eventType: String) : KSerializer<RedactedMessageEventContent> {
     override val descriptor = buildClassSerialDescriptor("RedactedMessageEventContent")
 
+    @MSC4354
     override fun deserialize(decoder: Decoder): RedactedMessageEventContent {
         require(decoder is JsonDecoder)
-        val stickyKey = ((decoder.decodeJsonElement() as? JsonObject)?.get("sticky_key") as? JsonPrimitive)?.content
+        val stickyKey =
+            ((decoder.decodeJsonElement() as? JsonObject)?.run { get("sticky_key") ?: get("msc4354_sticky_key") }
+                    as? JsonPrimitive)
+                ?.content
         return if (stickyKey != null) RedactedStickyEventContentImpl(eventType, stickyKey)
         else RedactedMessageEventContentImpl(eventType)
     }
 
+    @MSC4354
     override fun serialize(encoder: Encoder, value: RedactedMessageEventContent) {
         require(encoder is JsonEncoder)
         if (value is RedactedStickyEventContentImpl)
-            encoder.encodeJsonElement(buildJsonObject { "sticky_key" to JsonPrimitive(value.stickyKey) })
+            encoder.encodeJsonElement(buildJsonObject { put("msc4354_sticky_key", JsonPrimitive(value.stickyKey)) })
         else encoder.encodeJsonElement(JsonObject(mapOf()))
     }
 }
