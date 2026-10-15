@@ -271,9 +271,9 @@ class RtcSlotMembershipImpl(
                     select {
                         launch { applyRequestedState(requestedStateContent, leaveDelayId) }.onJoin {}
                         launch {
-                                delay(APPLY_REQUESTED_STATE_GRACE_PERIOD)
-                                activeStateContent.first { it != requestedStateContent }
-                            }
+                            delay(APPLY_REQUESTED_STATE_GRACE_PERIOD)
+                            activeStateContent.first { it != requestedStateContent }
+                        }
                             .onJoin {}
                     }
                     currentCoroutineContext().cancelChildren()
@@ -294,7 +294,6 @@ class RtcSlotMembershipImpl(
             is RtcMemberEventContent.Join -> {
                 val newLeaveDelayId =
                     createDelayedLeave(
-                        requestedStateContent = requestedStateContent,
                         stickyDuration = config.membershipStickyDuration,
                         delayDuration = config.delayedLeaveDelayDuration,
                     )
@@ -368,7 +367,6 @@ class RtcSlotMembershipImpl(
     }
 
     private suspend fun createDelayedLeave(
-        requestedStateContent: RtcMemberEventContent.Join,
         stickyDuration: Duration,
         delayDuration: Duration,
     ): DelayId? {
