@@ -178,7 +178,7 @@ class KeyStore(
                 log.trace { "add $userId to outdated keys, because key ($reason) not found" }
                 tm.writeTransaction { updateOutdatedKeys { it + userId } }
             }
-            log.debug { "possibly wait for outdated keys ($reason) of $userId" }
+            log.trace { "possibly wait for outdated keys ($reason) of $userId" }
             getOutdatedKeysFlow().first { !it.contains(userId) }
             log.trace { "finished wait for outdated keys ($reason) of $userId" }
         }
