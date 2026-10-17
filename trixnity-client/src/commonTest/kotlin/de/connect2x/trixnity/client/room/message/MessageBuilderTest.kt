@@ -4,6 +4,7 @@ import de.connect2x.trixnity.client.mocks.MediaServiceMock
 import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.core.MSC4027
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -162,6 +163,26 @@ class MessageBuilderTest : TrixnityBaseTest() {
         MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
             react(EventId("bla"), "👍")
         } shouldBe ReactionEventContent(RelatesTo.Annotation(EventId("bla"), "👍"))
+    }
+
+    @Test
+    @OptIn(MSC4027::class)
+    fun `react » image reaction with shortcode`() = runTest {
+        val key = "mxc://matrix.org/VOczFYqjdGaUKNwkKsTjDwUa"
+        val expected = ReactionEventContent(RelatesTo.Annotation(EventId("bla"), key), shortcode = ":partyparrot:")
+        MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
+            react(EventId("bla"), key, ":partyparrot:")
+        } shouldBe expected
+        val event = timelineEvent(EventId("bla"))
+        MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
+            react(event, key, ":partyparrot:")
+        } shouldBe expected
+        MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
+            react(event.event as MessageEvent<*>, key, ":partyparrot:")
+        } shouldBe expected
+        MessageBuilder(encryptedRoom, roomService, mediaService, ownUserId).build {
+            react(EventId("bla"), key)
+        } shouldBe ReactionEventContent(RelatesTo.Annotation(EventId("bla"), key))
     }
 
     private val mentionsEventContent = RoomMessageEventContent.TextBased.Text("")
