@@ -11885,6 +11885,10 @@ public final class de/connect2x/trixnity/core/serialization/events/m/rtc/RtcTran
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 }
 
+public final class de/connect2x/trixnity/core/util/IsValidMxcUriKt {
+	public static final fun isValidMxcUri (Ljava/lang/String;)Z
+}
+
 public abstract interface class de/connect2x/trixnity/core/util/Reference {
 	public static final field Companion Lde/connect2x/trixnity/core/util/Reference$Companion;
 }
