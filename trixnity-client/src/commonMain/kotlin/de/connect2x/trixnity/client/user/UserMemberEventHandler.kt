@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.RoomUserStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.store.originalName
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -167,16 +168,18 @@ class UserMemberEventHandler(
                         .awaitAll()
                         .flatten()
                         .toMap()
-                tm.writeTransaction {
-                    roomUserUpdates.forEach { (key, roomUser) ->
-                        roomUserStore.update(key.first, key.second) { oldRoomUser ->
-                            if (
-                                skipWhenAlreadyPresent &&
-                                    oldRoomUser != null &&
-                                    oldRoomUser.event !is ClientEvent.StrippedStateEvent
-                            )
-                                oldRoomUser
-                            else roomUser
+                roomUserUpdates.entries.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                    tm.writeTransaction {
+                        chunk.forEach { (key, roomUser) ->
+                            roomUserStore.update(key.first, key.second) { oldRoomUser ->
+                                if (
+                                    skipWhenAlreadyPresent &&
+                                        oldRoomUser != null &&
+                                        oldRoomUser.event !is ClientEvent.StrippedStateEvent
+                                )
+                                    oldRoomUser
+                                else roomUser
+                            }
                         }
                     }
                 }

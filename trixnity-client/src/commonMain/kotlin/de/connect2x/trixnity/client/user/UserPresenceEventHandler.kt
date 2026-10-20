@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.user
 
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.UserPresence
 import de.connect2x.trixnity.client.store.UserPresenceStore
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -43,9 +44,9 @@ class UserPresenceEventHandler(
                 }
             }
             if (newUserPresences.isNotEmpty())
-                tm.writeTransaction {
-                    newUserPresences.forEach { (userId, userPresence) ->
-                        userPresenceStore.setPresence(userId, userPresence)
+                newUserPresences.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                    tm.writeTransaction {
+                        chunk.forEach { (userId, userPresence) -> userPresenceStore.setPresence(userId, userPresence) }
                     }
                 }
         }

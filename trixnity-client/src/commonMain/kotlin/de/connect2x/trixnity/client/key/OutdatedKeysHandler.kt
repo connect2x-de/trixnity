@@ -9,6 +9,7 @@ import de.connect2x.trixnity.client.store.OlmCryptoStore
 import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.encryptedRooms
@@ -370,9 +371,11 @@ class OutdatedKeysHandler(
                 else -> emptyMap()
             }
         tm.writeTransaction {
-            megolmSessionUpdates.forEach { (roomId, update) ->
-                if (update == null) olmCryptoStore.deleteOutboundMegolmSession(roomId)
-                else olmCryptoStore.updateOutboundMegolmSession(roomId, update)
+            megolmSessionUpdates.entries.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                chunk.forEach { (roomId, update) ->
+                    if (update == null) olmCryptoStore.deleteOutboundMegolmSession(roomId)
+                    else olmCryptoStore.updateOutboundMegolmSession(roomId, update)
+                }
             }
             keyStore.updateCrossSigningKeys(userId) { oldKeys ->
                 val usersMasterKey = oldKeys?.find { it.value.signed.usage.contains(CrossSigningKeysUsage.MasterKey) }

@@ -271,9 +271,9 @@ class RtcSlotMembershipImpl(
                     select {
                         launch { applyRequestedState(requestedStateContent, leaveDelayId) }.onJoin {}
                         launch {
-                            delay(APPLY_REQUESTED_STATE_GRACE_PERIOD)
-                            activeStateContent.first { it != requestedStateContent }
-                        }
+                                delay(APPLY_REQUESTED_STATE_GRACE_PERIOD)
+                                activeStateContent.first { it != requestedStateContent }
+                            }
                             .onJoin {}
                     }
                     currentCoroutineContext().cancelChildren()
@@ -366,10 +366,7 @@ class RtcSlotMembershipImpl(
         }
     }
 
-    private suspend fun createDelayedLeave(
-        stickyDuration: Duration,
-        delayDuration: Duration,
-    ): DelayId? {
+    private suspend fun createDelayedLeave(stickyDuration: Duration, delayDuration: Duration): DelayId? {
         if (serverDataStore.getServerData().capabilities?.capabilities?.delayedEvents == null) return null
         val leaveTransactionId = SecureRandom.nextString(22)
         return currentSyncState.retry(

@@ -1205,7 +1205,7 @@ public final class de/connect2x/trixnity/client/room/RoomServiceImpl : de/connec
 }
 
 public final class de/connect2x/trixnity/client/room/RoomStateEventHandler : de/connect2x/trixnity/client/user/LazyMemberEventHandler, de/connect2x/trixnity/core/EventHandler {
-	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StoreTransactionManager;)V
+	public fun <init> (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientServerApiClient;Lde/connect2x/trixnity/client/store/RoomStateStore;)V
 	public fun handleLazyMemberEvents (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun startInCoroutineScope (Lkotlinx/coroutines/CoroutineScope;)V
 }
@@ -2633,10 +2633,10 @@ public final class de/connect2x/trixnity/client/store/RoomStateStore : de/connec
 	public final fun getByRooms (Ljava/util/Set;Lkotlin/reflect/KClass;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getByStateKey-RNkTX0s (Ljava/lang/String;Lkotlin/reflect/KClass;Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public fun init (Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun save (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lde/connect2x/trixnity/core/model/events/ClientEvent$StateBaseEvent;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun save (Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun save$default (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Lde/connect2x/trixnity/core/model/events/ClientEvent$StateBaseEvent;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public static synthetic fun save$default (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/StoreWriteTransaction;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun save (Lde/connect2x/trixnity/core/model/events/ClientEvent$StateBaseEvent;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun save (Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun save$default (Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/core/model/events/ClientEvent$StateBaseEvent;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun save$default (Lde/connect2x/trixnity/client/store/RoomStateStore;Ljava/util/List;ZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/client/store/RoomStore : de/connect2x/trixnity/client/store/Store {
@@ -2869,11 +2869,16 @@ public abstract interface class de/connect2x/trixnity/client/store/StoreReadTran
 }
 
 public abstract class de/connect2x/trixnity/client/store/StoreTransactionManager : de/connect2x/trixnity/utils/TransactionManager {
+	public static final field Companion Lde/connect2x/trixnity/client/store/StoreTransactionManager$Companion;
+	public static final field TRANSACTION_CHUNK_SIZE I
 	public fun <init> ()V
 	public fun readTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun repositoryReadTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun repositoryWriteTransaction (Lde/connect2x/trixnity/client/store/cache/CacheTransaction;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun writeTransaction (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/client/store/StoreTransactionManager$Companion {
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/StoreWriteTransaction : de/connect2x/trixnity/client/store/StoreReadTransaction, de/connect2x/trixnity/client/store/cache/CacheTransaction, de/connect2x/trixnity/utils/WriteTransaction {

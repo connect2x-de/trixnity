@@ -55,8 +55,7 @@ class RoomStateEventHandlerTest : TrixnityBaseTest() {
                 testScope.testClock,
             )
             .apply { scheduleSetup { init(backgroundScope) } }
-    private val cut =
-        RoomStateEventHandler(api = mockMatrixClientServerApiClient(), roomStateStore = roomStateStore, tm = tm)
+    private val cut = RoomStateEventHandler(api = mockMatrixClientServerApiClient(), roomStateStore = roomStateStore)
 
     private fun stateEvent(content: StateEventContent, stateKey: String = "") =
         ClientEvent.RoomEvent.StateEvent(

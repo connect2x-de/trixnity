@@ -5,6 +5,7 @@ import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.utils.retry
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
@@ -65,7 +66,7 @@ class LoadMembersServiceImpl(
                                                                 notMembership = Membership.LEAVE,
                                                             )
                                                             .getOrThrow()
-                                                    memberEvents.chunked(50).forEach { chunk ->
+                                                    memberEvents.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
                                                         lazyMemberEventHandlers.forEach {
                                                             it.handleLazyMemberEvents(chunk)
                                                         }

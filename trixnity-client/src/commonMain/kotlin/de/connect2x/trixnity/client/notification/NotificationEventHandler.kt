@@ -14,6 +14,7 @@ import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomUserStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationState
 import de.connect2x.trixnity.client.store.StoredNotificationState.SyncWithTimeline.IsRead
@@ -207,77 +208,92 @@ class NotificationEventHandler(
         if (unreadRooms.isNotEmpty()) log.debug { "schedule notification processing for unread rooms $unreadRooms" }
         if (oldPushStates.isNotEmpty()) log.debug { "remove old push state: $oldPushStates" }
 
-        tm.writeTransaction {
-            completelyReadRooms.forEach { roomId ->
-                notificationStore.updateState(roomId) { StoredNotificationState.Read(roomId) }
+        completelyReadRooms.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+            chunk.forEach { roomId ->
+                tm.writeTransaction { notificationStore.updateState(roomId) { StoredNotificationState.Read(roomId) } }
             }
-            removeNotificationRooms.forEach { roomId ->
-                notificationStore.updateState(roomId) { oldState ->
-                    when (oldState) {
-                        is StoredNotificationState.SyncWithoutTimeline -> oldState.copy(notificationsDisabled = true)
-                        is StoredNotificationState.SyncWithTimeline -> oldState.copy(notificationsDisabled = true)
-                        is StoredNotificationState.Push,
-                        is StoredNotificationState.Read -> oldState
+        }
+        removeNotificationRooms.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+            chunk.forEach { roomId ->
+                tm.writeTransaction {
+                    notificationStore.updateState(roomId) { oldState ->
+                        when (oldState) {
+                            is StoredNotificationState.SyncWithoutTimeline ->
+                                oldState.copy(notificationsDisabled = true)
+                            is StoredNotificationState.SyncWithTimeline -> oldState.copy(notificationsDisabled = true)
+                            is StoredNotificationState.Push,
+                            is StoredNotificationState.Read -> oldState
 
-                        null -> StoredNotificationState.Read(roomId)
+                            null -> StoredNotificationState.Read(roomId)
+                        }
                     }
                 }
             }
-            unreadRooms.forEach { unreadRoom ->
-                val roomId = unreadRoom.roomId
-                val lastEventId = unreadRoom.lastEventId
-                notificationStore.updateState(unreadRoom.roomId) { oldState ->
-                    if (lastEventId != null) {
-                        val oldTimelineState = oldState as? StoredNotificationState.SyncWithTimeline
-                        val lastRelevantEventIdChanged =
-                            oldTimelineState?.lastRelevantEventId != unreadRoom.lastRelevantEventId
-                        val receiptsChanged = oldTimelineState?.readReceipts != unreadRoom.readReceipts
-                        val notificationsDisabledChanged =
-                            oldTimelineState?.notificationsDisabled != unreadRoom.notificationsDisabled
-                        StoredNotificationState.SyncWithTimeline(
-                            roomId = roomId,
-                            needsSync = false,
-                            readReceipts = unreadRoom.readReceipts,
-                            lastEventId = lastEventId,
-                            lastRelevantEventId = unreadRoom.lastRelevantEventId,
-                            lastProcessedEventId =
-                                when {
-                                    receiptsChanged || notificationsDisabledChanged -> null
-                                    else -> oldState.lastProcessedEventId
-                                },
-                            expectedMaxNotificationCount =
-                                when {
-                                    unreadRoom.isEncrypted.not() ->
-                                        syncEvents.syncResponse.room
-                                            ?.join
-                                            ?.get(roomId)
-                                            ?.unreadNotifications
-                                            ?.notificationCount ?: oldTimelineState?.expectedMaxNotificationCount
+        }
+        unreadRooms.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+            tm.writeTransaction {
+                chunk.forEach { unreadRoom ->
+                    val roomId = unreadRoom.roomId
+                    val lastEventId = unreadRoom.lastEventId
+                    notificationStore.updateState(unreadRoom.roomId) { oldState ->
+                        if (lastEventId != null) {
+                            val oldTimelineState = oldState as? StoredNotificationState.SyncWithTimeline
+                            val lastRelevantEventIdChanged =
+                                oldTimelineState?.lastRelevantEventId != unreadRoom.lastRelevantEventId
+                            val receiptsChanged = oldTimelineState?.readReceipts != unreadRoom.readReceipts
+                            val notificationsDisabledChanged =
+                                oldTimelineState?.notificationsDisabled != unreadRoom.notificationsDisabled
+                            StoredNotificationState.SyncWithTimeline(
+                                roomId = roomId,
+                                needsSync = false,
+                                readReceipts = unreadRoom.readReceipts,
+                                lastEventId = lastEventId,
+                                lastRelevantEventId = unreadRoom.lastRelevantEventId,
+                                lastProcessedEventId =
+                                    when {
+                                        receiptsChanged || notificationsDisabledChanged -> null
+                                        else -> oldState.lastProcessedEventId
+                                    },
+                                expectedMaxNotificationCount =
+                                    when {
+                                        unreadRoom.isEncrypted.not() ->
+                                            syncEvents.syncResponse.room
+                                                ?.join
+                                                ?.get(roomId)
+                                                ?.unreadNotifications
+                                                ?.notificationCount ?: oldTimelineState?.expectedMaxNotificationCount
 
-                                    else -> null
-                                },
-                            isRead =
-                                when {
-                                    unreadRoom.readReceipts.contains(unreadRoom.lastRelevantEventId) -> IsRead.TRUE
-                                    unreadRoom.readReceipts.isEmpty() -> IsRead.FALSE
-                                    oldTimelineState?.isRead == IsRead.TRUE && lastRelevantEventIdChanged.not() ->
-                                        IsRead.TRUE
-                                    oldTimelineState?.isRead == IsRead.FALSE && receiptsChanged.not() -> IsRead.FALSE
-                                    oldTimelineState?.isRead == IsRead.TRUE -> IsRead.TRUE_BUT_CHECK
-                                    oldTimelineState?.isRead == IsRead.FALSE -> IsRead.FALSE_BUT_CHECK
-                                    else -> oldTimelineState?.isRead ?: IsRead.CHECK
-                                },
-                            notificationsDisabled = unreadRoom.notificationsDisabled,
-                        )
-                    } else {
-                        StoredNotificationState.SyncWithoutTimeline(
-                            roomId = roomId,
-                            notificationsDisabled = unreadRoom.notificationsDisabled,
-                        )
+                                        else -> null
+                                    },
+                                isRead =
+                                    when {
+                                        unreadRoom.readReceipts.contains(unreadRoom.lastRelevantEventId) -> IsRead.TRUE
+                                        unreadRoom.readReceipts.isEmpty() -> IsRead.FALSE
+                                        oldTimelineState?.isRead == IsRead.TRUE && lastRelevantEventIdChanged.not() ->
+                                            IsRead.TRUE
+
+                                        oldTimelineState?.isRead == IsRead.FALSE && receiptsChanged.not() ->
+                                            IsRead.FALSE
+                                        oldTimelineState?.isRead == IsRead.TRUE -> IsRead.TRUE_BUT_CHECK
+                                        oldTimelineState?.isRead == IsRead.FALSE -> IsRead.FALSE_BUT_CHECK
+                                        else -> oldTimelineState?.isRead ?: IsRead.CHECK
+                                    },
+                                notificationsDisabled = unreadRoom.notificationsDisabled,
+                            )
+                        } else {
+                            StoredNotificationState.SyncWithoutTimeline(
+                                roomId = roomId,
+                                notificationsDisabled = unreadRoom.notificationsDisabled,
+                            )
+                        }
                     }
                 }
             }
-            oldPushStates.forEach { oldPushState -> notificationStore.updateState(oldPushState) { null } }
+        }
+        oldPushStates.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+            tm.writeTransaction {
+                chunk.forEach { oldPushState -> notificationStore.updateState(oldPushState) { null } }
+            }
         }
     }
 
@@ -321,8 +337,12 @@ class NotificationEventHandler(
                     if (config.enableExternalNotifications)
                         getAllNotifications(roomId).map { StoredNotificationUpdate.Remove(it.key, roomId) }
                     else emptyList()
+                if (notificationUpdates.isNotEmpty()) {
+                    notificationUpdates.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                        tm.writeTransaction { notificationStore.saveAllUpdates(chunk) }
+                    }
+                }
                 tm.writeTransaction {
-                    notificationStore.saveAllUpdates(notificationUpdates)
                     notificationStore.deleteNotificationsByRoomId(roomId)
                     notificationStore.updateState(roomId) { if (it is StoredNotificationState.Read) null else it }
                 }
@@ -432,68 +452,69 @@ class NotificationEventHandler(
     private suspend fun List<StoredNotificationUpdate>.apply(roomId: RoomId) {
         if (isNotEmpty()) {
             log.debug { "apply notification updates for $roomId" }
-            val reversedThis = asReversed()
-            tm.writeTransaction {
-                if (config.enableExternalNotifications) {
-                    notificationStore.saveAllUpdates(reversedThis)
-                }
-                reversedThis.forEach { update ->
-                    when (update) {
-                        is StoredNotificationUpdate.New -> {
-                            log.trace { "new notification in $roomId ${update.id} $update" }
-                            notificationStore.save(
-                                update.id,
-                                when (val content = update.content) {
-                                    is StoredNotificationUpdate.Content.Message ->
-                                        StoredNotification.Message(
-                                            roomId = roomId,
-                                            eventId = content.eventId,
-                                            sortKey = update.sortKey,
-                                            actions = update.actions,
-                                        )
+            asReversed().chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                tm.writeTransaction {
+                    if (config.enableExternalNotifications) {
+                        notificationStore.saveAllUpdates(chunk)
+                    }
+                    chunk.forEach { update ->
+                        when (update) {
+                            is StoredNotificationUpdate.New -> {
+                                log.trace { "new notification in $roomId ${update.id} $update" }
+                                notificationStore.save(
+                                    update.id,
+                                    when (val content = update.content) {
+                                        is StoredNotificationUpdate.Content.Message ->
+                                            StoredNotification.Message(
+                                                roomId = roomId,
+                                                eventId = content.eventId,
+                                                sortKey = update.sortKey,
+                                                actions = update.actions,
+                                            )
 
-                                    is StoredNotificationUpdate.Content.State ->
-                                        StoredNotification.State(
-                                            roomId = roomId,
-                                            eventId = content.eventId,
-                                            type = content.type,
-                                            stateKey = content.stateKey,
-                                            sortKey = update.sortKey,
-                                            actions = update.actions,
-                                        )
-                                },
-                            )
-                        }
+                                        is StoredNotificationUpdate.Content.State ->
+                                            StoredNotification.State(
+                                                roomId = roomId,
+                                                eventId = content.eventId,
+                                                type = content.type,
+                                                stateKey = content.stateKey,
+                                                sortKey = update.sortKey,
+                                                actions = update.actions,
+                                            )
+                                    },
+                                )
+                            }
 
-                        is StoredNotificationUpdate.Update -> {
-                            log.trace { "updated notification in $roomId ${update.id} $update" }
-                            notificationStore.save(
-                                update.id,
-                                when (val content = update.content) {
-                                    is StoredNotificationUpdate.Content.Message ->
-                                        StoredNotification.Message(
-                                            roomId = roomId,
-                                            eventId = content.eventId,
-                                            sortKey = update.sortKey,
-                                            actions = update.actions,
-                                        )
+                            is StoredNotificationUpdate.Update -> {
+                                log.trace { "updated notification in $roomId ${update.id} $update" }
+                                notificationStore.save(
+                                    update.id,
+                                    when (val content = update.content) {
+                                        is StoredNotificationUpdate.Content.Message ->
+                                            StoredNotification.Message(
+                                                roomId = roomId,
+                                                eventId = content.eventId,
+                                                sortKey = update.sortKey,
+                                                actions = update.actions,
+                                            )
 
-                                    is StoredNotificationUpdate.Content.State ->
-                                        StoredNotification.State(
-                                            roomId = roomId,
-                                            eventId = content.eventId,
-                                            type = content.type,
-                                            stateKey = content.stateKey,
-                                            sortKey = update.sortKey,
-                                            actions = update.actions,
-                                        )
-                                },
-                            )
-                        }
+                                        is StoredNotificationUpdate.Content.State ->
+                                            StoredNotification.State(
+                                                roomId = roomId,
+                                                eventId = content.eventId,
+                                                type = content.type,
+                                                stateKey = content.stateKey,
+                                                sortKey = update.sortKey,
+                                                actions = update.actions,
+                                            )
+                                    },
+                                )
+                            }
 
-                        is StoredNotificationUpdate.Remove -> {
-                            log.trace { "removed notification in $roomId ${update.id} $update" }
-                            notificationStore.delete(update.id)
+                            is StoredNotificationUpdate.Remove -> {
+                                log.trace { "removed notification in $roomId ${update.id} $update" }
+                                notificationStore.delete(update.id)
+                            }
                         }
                     }
                 }

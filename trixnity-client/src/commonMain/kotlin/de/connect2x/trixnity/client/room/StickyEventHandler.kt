@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.StickyEventStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.StoredStickyEvent
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -72,7 +73,9 @@ class StickyEventHandler(
                 StoredStickyEvent(event = stickyEvent, startTime = startTime, endTime = endTime)
             }
             if (stickyEventUpdates.isNotEmpty()) {
-                tm.writeTransaction { stickyEventUpdates.forEach { stickyEventStore.save(it) } }
+                stickyEventUpdates.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                    tm.writeTransaction { chunk.forEach { stickyEventStore.save(it) } }
+                }
             }
         }
     }

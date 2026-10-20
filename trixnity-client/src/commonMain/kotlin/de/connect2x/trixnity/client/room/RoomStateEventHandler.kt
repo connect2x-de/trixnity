@@ -2,7 +2,6 @@ package de.connect2x.trixnity.client.room
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.RoomStateStore
-import de.connect2x.trixnity.client.store.StoreTransactionManager
 import de.connect2x.trixnity.client.user.LazyMemberEventHandler
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -17,11 +16,8 @@ import kotlinx.coroutines.CoroutineScope
 
 private val log = Logger("de.connect2x.trixnity.client.room.RoomStateEventHandler")
 
-class RoomStateEventHandler(
-    private val api: MatrixClientServerApiClient,
-    private val roomStateStore: RoomStateStore,
-    private val tm: StoreTransactionManager,
-) : EventHandler, LazyMemberEventHandler {
+class RoomStateEventHandler(private val api: MatrixClientServerApiClient, private val roomStateStore: RoomStateStore) :
+    EventHandler, LazyMemberEventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
         api.sync
             .subscribeEventList<StateEventContent, StateBaseEvent<StateEventContent>>(Priority.STORE_EVENTS) {
@@ -37,7 +33,7 @@ class RoomStateEventHandler(
     internal suspend fun setState(events: List<StateBaseEvent<*>>, skipWhenAlreadyPresent: Boolean = false) {
         if (events.isNotEmpty()) {
             log.debug { "start save ${events.size} state events" }
-            tm.writeTransaction { roomStateStore.save(events, skipWhenAlreadyPresent) }
+            roomStateStore.save(events, skipWhenAlreadyPresent)
             log.debug { "finished save ${events.size} state events" }
         }
     }

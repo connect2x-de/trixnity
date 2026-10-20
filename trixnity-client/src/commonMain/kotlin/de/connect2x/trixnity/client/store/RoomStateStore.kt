@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.cache.MapDeleteByRoomIdRepositoryObservableCache
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
@@ -64,14 +65,11 @@ class RoomStateStore(
             )
     }
 
-    context(transaction: StoreWriteTransaction)
     suspend fun save(event: StateBaseEvent<*>, skipWhenAlreadyPresent: Boolean = false) {
         save(listOf(event), skipWhenAlreadyPresent)
     }
 
-    context(transaction: StoreWriteTransaction)
     suspend fun save(events: List<StateBaseEvent<*>>, skipWhenAlreadyPresent: Boolean = false) {
-
         events
             .mapNotNull { event ->
                 val roomId = event.roomId ?: return@mapNotNull null
@@ -86,18 +84,23 @@ class RoomStateStore(
             .asReversed()
             .distinct()
             .asReversed()
-            .forEach { (roomId, event, type, stateKey) ->
-                if (skipWhenAlreadyPresent)
-                    roomStateCache.update(
-                        MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey)
-                    ) {
-                        if (it is ClientEvent.StrippedStateEvent) event else it ?: event
+            .chunked(TRANSACTION_CHUNK_SIZE)
+            .forEach { chunk ->
+                tm.writeTransaction {
+                    chunk.forEach { (roomId, event, type, stateKey) ->
+                        if (skipWhenAlreadyPresent)
+                            roomStateCache.update(
+                                MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey)
+                            ) {
+                                if (it is ClientEvent.StrippedStateEvent) event else it ?: event
+                            }
+                        else
+                            roomStateCache.set(
+                                MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey),
+                                event,
+                            )
                     }
-                else
-                    roomStateCache.set(
-                        MapRepositoryCoroutinesCacheKey(RoomStateRepositoryKey(roomId, type), stateKey),
-                        event,
-                    )
+                }
             }
     }
 
