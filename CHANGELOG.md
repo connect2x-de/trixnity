@@ -11,8 +11,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
-- Chunk transactions to prevent too big transactions
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 ### Security
+
+## 5.10.1
+
+### Changed
+
+- Chunk transactions to prevent too big transactions
 
 ## 5.10.0
 
