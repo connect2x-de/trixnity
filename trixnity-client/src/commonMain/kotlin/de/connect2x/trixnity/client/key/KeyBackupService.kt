@@ -10,6 +10,7 @@ import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.model.key.GetRoomKeysBackupVersionResponse
@@ -301,14 +302,20 @@ class KeyBackupServiceImpl(
                         encryptedSession.sessionData.toStoredInboundMegolmSession(sessionId, roomId)
                     }
                     if (storedInboundMegolmSessions.isEmpty()) return@retry
-                    tm.writeTransaction {
-                        storedInboundMegolmSessions.forEach { storedInboundMegolmSession ->
-                            olmCryptoStore.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
-                                if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) it
-                                else storedInboundMegolmSession
+                    storedInboundMegolmSessions.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                        tm.writeTransaction {
+                            chunk.forEach { storedInboundMegolmSession ->
+                                olmCryptoStore.updateInboundMegolmSession(
+                                    storedInboundMegolmSession.sessionId,
+                                    roomId,
+                                ) {
+                                    if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex)
+                                        it
+                                    else storedInboundMegolmSession
+                                }
                             }
+                            roomStore.update(roomId) { it?.copy(keyBackupLoaded = true) }
                         }
-                        roomStore.update(roomId) { it?.copy(keyBackupLoaded = true) }
                     }
                 }
                 log.debug { "loaded megolm sessions from key backup for roomId=$roomId, version=$version" }
@@ -476,10 +483,12 @@ class KeyBackupServiceImpl(
                             .getOrThrow()
                         val notBackedUpInboundMegolmSessionsValues = notBackedUpInboundMegolmSessions
                         if (notBackedUpInboundMegolmSessionsValues.isNotEmpty()) {
-                            tm.writeTransaction {
-                                notBackedUpInboundMegolmSessionsValues.forEach {
-                                    olmCryptoStore.updateInboundMegolmSession(it.sessionId, it.roomId) { session ->
-                                        session?.copy(hasBeenBackedUp = true)
+                            notBackedUpInboundMegolmSessionsValues.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                                tm.writeTransaction {
+                                    chunk.forEach {
+                                        olmCryptoStore.updateInboundMegolmSession(it.sessionId, it.roomId) { session ->
+                                            session?.copy(hasBeenBackedUp = true)
+                                        }
                                     }
                                 }
                             }

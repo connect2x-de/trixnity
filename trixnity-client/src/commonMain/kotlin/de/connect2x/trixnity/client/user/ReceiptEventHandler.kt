@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.RoomUserStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -18,7 +19,6 @@ import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import kotlinx.coroutines.CoroutineScope
 
 private val log = Logger("de.connect2x.trixnity.client.user.ReceiptEventHandler")
-private const val ROOM_USER_RECEIPTS_TRANSACTION_CHUNK_SIZE = 50
 
 class ReceiptEventHandler(
     private val api: MatrixClientServerApiClient,
@@ -64,7 +64,7 @@ class ReceiptEventHandler(
                 .orEmpty()
         }
         if (receipts.isNotEmpty()) {
-            receipts.chunked(ROOM_USER_RECEIPTS_TRANSACTION_CHUNK_SIZE).forEach { roomUserReceiptsChunk ->
+            receipts.chunked(TRANSACTION_CHUNK_SIZE).forEach { roomUserReceiptsChunk ->
                 tm.writeTransaction {
                     roomUserReceiptsChunk.forEach { roomUserReceipts ->
                         roomUserStore.updateReceipts(roomUserReceipts.userId, roomUserReceipts.roomId) {
@@ -85,7 +85,9 @@ class ReceiptEventHandler(
                 syncEvents.syncResponse.room?.knock?.keys.orEmpty() +
                 syncEvents.syncResponse.room?.leave?.keys.orEmpty()
         if (deleteReceiptsByRoomId.isNotEmpty()) {
-            tm.writeTransaction { deleteReceiptsByRoomId.forEach { roomUserStore.deleteReceiptsByRoomId(it) } }
+            deleteReceiptsByRoomId.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                tm.writeTransaction { chunk.forEach { roomUserStore.deleteReceiptsByRoomId(it) } }
+            }
         }
     }
 }

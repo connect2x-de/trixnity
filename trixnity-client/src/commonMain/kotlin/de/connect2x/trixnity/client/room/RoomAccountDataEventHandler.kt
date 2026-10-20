@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.room
 
 import de.connect2x.trixnity.client.store.RoomAccountDataStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
 import de.connect2x.trixnity.core.EventHandler
@@ -24,6 +25,9 @@ class RoomAccountDataEventHandler(
     }
 
     internal suspend fun setRoomAccountData(accountData: List<RoomAccountDataEvent<RoomAccountDataEventContent>>) {
-        if (accountData.isNotEmpty()) tm.writeTransaction { accountData.forEach { roomAccountDataStore.save(it) } }
+        if (accountData.isNotEmpty())
+            accountData.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                chunk.forEach { tm.writeTransaction { roomAccountDataStore.save(it) } }
+            }
     }
 }

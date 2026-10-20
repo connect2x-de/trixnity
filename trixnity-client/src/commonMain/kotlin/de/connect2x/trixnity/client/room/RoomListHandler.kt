@@ -10,6 +10,7 @@ import de.connect2x.trixnity.client.store.RoomStateStore
 import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.ServerDataStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.get
 import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.client.utils.filterContent
@@ -143,8 +144,10 @@ class RoomListHandler(
 
         val finalRoomUpdates = roomUpdates.read { toMap() }.mapValues { it.value.read { toList() } }
         tm.writeTransaction {
-            finalRoomUpdates.forEach { (roomId, updates) ->
-                roomStore.update(roomId) { oldRoom -> updates.fold(oldRoom) { room, update -> update(room) } }
+            finalRoomUpdates.entries.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                chunk.forEach { (roomId, updates) ->
+                    roomStore.update(roomId) { oldRoom -> updates.fold(oldRoom) { room, update -> update(room) } }
+                }
             }
         }
     }

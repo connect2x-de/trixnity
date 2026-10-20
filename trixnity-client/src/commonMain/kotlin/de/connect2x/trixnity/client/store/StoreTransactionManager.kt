@@ -10,6 +10,10 @@ import de.connect2x.trixnity.utils.WriteTransaction
 private val log = Logger("de.connect2x.trixnity.client.store.TransactionManager")
 
 abstract class StoreTransactionManager : TransactionManager<StoreReadTransaction, StoreWriteTransaction> {
+    companion object {
+        const val TRANSACTION_CHUNK_SIZE = 50
+    }
+
     protected abstract suspend fun <T> repositoryReadTransaction(block: suspend StoreReadTransaction.() -> T): T
 
     protected abstract suspend fun <T> repositoryWriteTransaction(

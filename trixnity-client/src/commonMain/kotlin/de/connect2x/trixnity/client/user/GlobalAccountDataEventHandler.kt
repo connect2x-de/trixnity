@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.user
 
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.core.ClientEventEmitter.Priority
@@ -21,6 +22,9 @@ class GlobalAccountDataEventHandler(
 
     internal suspend fun setGlobalAccountData(syncEvents: SyncEvents) {
         val events = syncEvents.syncResponse.accountData?.events
-        if (events?.isNotEmpty() == true) tm.writeTransaction { events.forEach { globalAccountDataStore.save(it) } }
+        if (events?.isNotEmpty() == true)
+            events.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                tm.writeTransaction { chunk.forEach { globalAccountDataStore.save(it) } }
+            }
     }
 }

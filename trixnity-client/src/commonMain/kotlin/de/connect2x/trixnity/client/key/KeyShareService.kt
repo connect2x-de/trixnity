@@ -12,6 +12,7 @@ import de.connect2x.trixnity.client.store.KeySignatureTrustLevel.CrossSigned
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoreTransactionManager.Companion.TRANSACTION_CHUNK_SIZE
 import de.connect2x.trixnity.client.store.StoredRoomKeyBundles
 import de.connect2x.trixnity.client.store.isVerified
 import de.connect2x.trixnity.client.utils.retryLoop
@@ -298,9 +299,11 @@ class KeyShareServiceImpl(
                 }
             }
         if (updates.isNotEmpty()) {
-            tm.writeTransaction {
-                updates.forEach { (roomId, storedRoomKeyBundlesUpdate) ->
-                    keyStore.updateRoomKeyBundles(roomId, storedRoomKeyBundlesUpdate::invoke)
+            updates.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                tm.writeTransaction {
+                    chunk.forEach { (roomId, storedRoomKeyBundlesUpdate) ->
+                        keyStore.updateRoomKeyBundles(roomId, storedRoomKeyBundlesUpdate::invoke)
+                    }
                 }
             }
         }
@@ -455,15 +458,17 @@ class KeyShareServiceImpl(
                         null
                     }
                 }
-                tm.writeTransaction {
-                    storedInboundMegolmSessions.forEach { storedInboundMegolmSession ->
-                        olmCryptoStore.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
-                            // TODO theoretically we could lift the source to Creator or add the sender to the
-                            //  KeyBundle (e.g. by compare export at an index)
-                            if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) {
-                                it
-                            } else {
-                                storedInboundMegolmSession
+                storedInboundMegolmSessions.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                    tm.writeTransaction {
+                        chunk.forEach { storedInboundMegolmSession ->
+                            olmCryptoStore.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
+                                // TODO theoretically we could lift the source to Creator or add the sender to the
+                                //  KeyBundle (e.g. by compare export at an index)
+                                if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) {
+                                    it
+                                } else {
+                                    storedInboundMegolmSession
+                                }
                             }
                         }
                     }
