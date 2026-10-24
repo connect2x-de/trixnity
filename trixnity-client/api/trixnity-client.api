@@ -1444,8 +1444,11 @@ public final class de/connect2x/trixnity/client/room/message/NoticeKt {
 
 public final class de/connect2x/trixnity/client/room/message/ReactKt {
 	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/client/store/TimelineEvent;Ljava/lang/String;)V
+	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/client/store/TimelineEvent;Ljava/lang/String;Ljava/lang/String;)V
 	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;)V
+	public static final fun react (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/lang/String;)V
 	public static final fun react--GFBcm4 (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun react-9n9dhP0 (Lde/connect2x/trixnity/client/room/message/MessageBuilder;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class de/connect2x/trixnity/client/room/message/RedactKt {

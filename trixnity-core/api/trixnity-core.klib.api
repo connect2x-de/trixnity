@@ -32,6 +32,10 @@ open annotation class de.connect2x.trixnity.core/MSC3814 : kotlin/Annotation { /
     constructor <init>() // de.connect2x.trixnity.core/MSC3814.<init>|<init>(){}[0]
 }
 
+open annotation class de.connect2x.trixnity.core/MSC4027 : kotlin/Annotation { // de.connect2x.trixnity.core/MSC4027|null[0]
+    constructor <init>() // de.connect2x.trixnity.core/MSC4027.<init>|<init>(){}[0]
+}
+
 open annotation class de.connect2x.trixnity.core/MSC4140 : kotlin/Annotation { // de.connect2x.trixnity.core/MSC4140|null[0]
     constructor <init>() // de.connect2x.trixnity.core/MSC4140.<init>|<init>(){}[0]
 }
@@ -10085,7 +10089,7 @@ final class de.connect2x.trixnity.core.model.events.m/PushRulesEventContent : de
 }
 
 final class de.connect2x.trixnity.core.model.events.m/ReactionEventContent : de.connect2x.trixnity.core.model.events/MessageEventContent { // de.connect2x.trixnity.core.model.events.m/ReactionEventContent|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? = ..., kotlin/String? = ...) // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.<init>|<init>(de.connect2x.trixnity.core.model.events.m.RelatesTo.Annotation?;kotlin.String?){}[0]
+    constructor <init>(de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? = ..., kotlin/String? = ..., kotlin/String? = ...) // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.<init>|<init>(de.connect2x.trixnity.core.model.events.m.RelatesTo.Annotation?;kotlin.String?;kotlin.String?){}[0]
 
     final val externalUrl // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.externalUrl|{}externalUrl[0]
         final fun <get-externalUrl>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.externalUrl.<get-externalUrl>|<get-externalUrl>(){}[0]
@@ -10093,10 +10097,13 @@ final class de.connect2x.trixnity.core.model.events.m/ReactionEventContent : de.
         final fun <get-mentions>(): de.connect2x.trixnity.core.model.events.m/Mentions? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.mentions.<get-mentions>|<get-mentions>(){}[0]
     final val relatesTo // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.relatesTo|{}relatesTo[0]
         final fun <get-relatesTo>(): de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.relatesTo.<get-relatesTo>|<get-relatesTo>(){}[0]
+    final val shortcode // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.shortcode|{}shortcode[0]
+        final fun <get-shortcode>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.shortcode.<get-shortcode>|<get-shortcode>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.component1|component1(){}[0]
     final fun component2(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? = ..., kotlin/String? = ...): de.connect2x.trixnity.core.model.events.m/ReactionEventContent // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.copy|copy(de.connect2x.trixnity.core.model.events.m.RelatesTo.Annotation?;kotlin.String?){}[0]
+    final fun component3(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.component3|component3(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model.events.m/RelatesTo.Annotation? = ..., kotlin/String? = ..., kotlin/String? = ...): de.connect2x.trixnity.core.model.events.m/ReactionEventContent // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.copy|copy(de.connect2x.trixnity.core.model.events.m.RelatesTo.Annotation?;kotlin.String?;kotlin.String?){}[0]
     final fun copyWith(de.connect2x.trixnity.core.model.events.m/RelatesTo?): de.connect2x.trixnity.core.model.events.m/ReactionEventContent // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.copyWith|copyWith(de.connect2x.trixnity.core.model.events.m.RelatesTo?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.m/ReactionEventContent.hashCode|hashCode(){}[0]

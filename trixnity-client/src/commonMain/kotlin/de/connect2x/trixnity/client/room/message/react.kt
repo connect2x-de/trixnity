@@ -2,6 +2,7 @@ package de.connect2x.trixnity.client.room.message
 
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.core.MSC4027
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
@@ -13,4 +14,15 @@ fun MessageBuilder.react(event: MessageEvent<*>, key: String) = react(event.id, 
 
 fun MessageBuilder.react(eventId: EventId, key: String) {
     content(ReactionEventContent(RelatesTo.Annotation(eventId, key)))
+}
+
+@MSC4027
+fun MessageBuilder.react(event: TimelineEvent, key: String, shortcode: String?) = react(event.eventId, key, shortcode)
+
+@MSC4027
+fun MessageBuilder.react(event: MessageEvent<*>, key: String, shortcode: String?) = react(event.id, key, shortcode)
+
+@MSC4027
+fun MessageBuilder.react(eventId: EventId, key: String, shortcode: String?) {
+    content(ReactionEventContent(RelatesTo.Annotation(eventId, key), shortcode = shortcode))
 }

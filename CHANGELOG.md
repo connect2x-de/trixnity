@@ -9,6 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- Support MSC4027 custom image reaction shortcodes and sending helpers
+
 ### Changed
 
 ### Deprecated
