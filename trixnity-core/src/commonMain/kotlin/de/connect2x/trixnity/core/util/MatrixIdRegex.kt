@@ -6,7 +6,10 @@ internal object MatrixIdRegex {
     private const val DOMAIN_PATTERN =
         """(?:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|\[[0-9a-fA-F:.]{2,45}\]|[0-9a-zA-Z\-.]{1,255})(?::[0-9]{1,5})?"""
 
-    val mxcUri = "[mM][xX][cC]://$DOMAIN_PATTERN/[A-Za-z0-9_-]+".toRegex()
+    /** @see [https://spec.matrix.org/v1.19/client-server-api/#matrix-content-mxc-uris] */
+    // language=Regexp
+    private const val MXC_URI_PATTERN = "[mM][xX][cC]://$DOMAIN_PATTERN/[A-Za-z0-9_-]+"
+    val mxcUri = MXC_URI_PATTERN.toRegex()
 
     /** @see [https://spec.matrix.org/v1.14/appendices/#opaque-identifiers] */
     // language=Regexp

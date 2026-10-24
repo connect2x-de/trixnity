@@ -1,10 +1,50 @@
-package de.connect2x.trixnity.core.util
+package de.connect2x.trixnity.core.model
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.serialization.json.Json
 
-class IsValidMxcUriTest {
+class MxcUriTest {
+    @Test
+    fun `construct from components`() {
+        val uri = MxcUri(serverName = "[::1]:8448", mediaId = "Abc_123-")
+        assertEquals("mxc://[::1]:8448/Abc_123-", uri.full)
+        assertEquals("[::1]:8448", uri.serverName)
+        assertEquals("Abc_123-", uri.mediaId)
+        assertTrue(uri.isValid)
+    }
+
+    @Test
+    fun `preserve case when reading components`() {
+        val uri = MxcUri("MXC://MATRIX.ORG:8448/AbC")
+        assertEquals("MATRIX.ORG:8448", uri.serverName)
+        assertEquals("AbC", uri.mediaId)
+        assertEquals("MXC://MATRIX.ORG:8448/AbC", uri.toString())
+        assertTrue(uri.isValid)
+    }
+
+    @Test
+    fun `validation is opt in`() {
+        val uri = MxcUri("mxc://example.org/../file")
+        assertEquals("mxc://example.org/../file", uri.full)
+        assertFalse(uri.isValid)
+        assertFalse(MxcUri.isValid(uri.full))
+        assertTrue(MxcUri.isValid("mxc://example.org/abc"))
+    }
+
+    @Test
+    fun `serialize as a string`() {
+        assertEquals("\"mxc://example.org/abc\"", Json.encodeToString(MxcUri("mxc://example.org/abc")))
+    }
+
+    @Test
+    fun `deserialize without implicit validation`() {
+        assertEquals(MxcUri("mxc://example.org/abc"), Json.decodeFromString<MxcUri>("\"mxc://example.org/abc\""))
+        assertEquals(MxcUri("invalid"), Json.decodeFromString<MxcUri>("\"invalid\""))
+    }
+
     @Test
     fun `accept valid MXC URIs`() {
         listOf(
@@ -21,7 +61,7 @@ class IsValidMxcUriTest {
                 "mxc://[::ffff:192.0.2.1]/abc",
                 "mxc://example.org/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-",
             )
-            .forEach { assertTrue(isValidMxcUri(it), it) }
+            .forEach { assertTrue(MxcUri.isValid(it), it) }
     }
 
     @Test
@@ -38,7 +78,7 @@ class IsValidMxcUriTest {
                 " mxc://example.org/abc",
                 "mxc://example.org/abc\n",
             )
-            .forEach { assertFalse(isValidMxcUri(it), it) }
+            .forEach { assertFalse(MxcUri.isValid(it), it) }
     }
 
     @Test
@@ -59,16 +99,16 @@ class IsValidMxcUriTest {
                 "[gg::1]",
                 "a".repeat(256),
             )
-            .forEach { assertFalse(isValidMxcUri("mxc://$it/abc"), it) }
+            .forEach { assertFalse(MxcUri.isValid("mxc://$it/abc"), it) }
     }
 
     @Test
     fun `accept grammar boundaries without imposing identifier length limits`() {
         val host = List(4) { "a".repeat(63) }.joinToString(".")
-        assertTrue(isValidMxcUri("mxc://$host:99999/" + "a".repeat(1024)))
-        assertTrue(isValidMxcUri("mxc://example.org:0/abc"))
-        assertTrue(isValidMxcUri("mxc://example.org:00001/abc"))
-        assertTrue(isValidMxcUri("mxc://example.org./abc"))
+        assertTrue(MxcUri.isValid("mxc://$host:99999/" + "a".repeat(1024)))
+        assertTrue(MxcUri.isValid("mxc://example.org:0/abc"))
+        assertTrue(MxcUri.isValid("mxc://example.org:00001/abc"))
+        assertTrue(MxcUri.isValid("mxc://example.org./abc"))
     }
 
     @Test
@@ -93,6 +133,6 @@ class IsValidMxcUriTest {
                 "abc\u0000",
                 "abc\r\n",
             )
-            .forEach { assertFalse(isValidMxcUri("mxc://example.org/$it"), it) }
+            .forEach { assertFalse(MxcUri.isValid("mxc://example.org/$it"), it) }
     }
 }

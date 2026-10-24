@@ -12006,6 +12006,38 @@ final value class de.connect2x.trixnity.core.model/EventId { // de.connect2x.tri
     }
 }
 
+final value class de.connect2x.trixnity.core.model/MxcUri { // de.connect2x.trixnity.core.model/MxcUri|null[0]
+    constructor <init>(kotlin/String) // de.connect2x.trixnity.core.model/MxcUri.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/String) // de.connect2x.trixnity.core.model/MxcUri.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+    final val full // de.connect2x.trixnity.core.model/MxcUri.full|{}full[0]
+        final fun <get-full>(): kotlin/String // de.connect2x.trixnity.core.model/MxcUri.full.<get-full>|<get-full>(){}[0]
+    final val isValid // de.connect2x.trixnity.core.model/MxcUri.isValid|{}isValid[0]
+        final fun <get-isValid>(): kotlin/Boolean // de.connect2x.trixnity.core.model/MxcUri.isValid.<get-isValid>|<get-isValid>(){}[0]
+    final val mediaId // de.connect2x.trixnity.core.model/MxcUri.mediaId|{}mediaId[0]
+        final fun <get-mediaId>(): kotlin/String // de.connect2x.trixnity.core.model/MxcUri.mediaId.<get-mediaId>|<get-mediaId>(){}[0]
+    final val serverName // de.connect2x.trixnity.core.model/MxcUri.serverName|{}serverName[0]
+        final fun <get-serverName>(): kotlin/String // de.connect2x.trixnity.core.model/MxcUri.serverName.<get-serverName>|<get-serverName>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model/MxcUri.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model/MxcUri.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model/MxcUri.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model/MxcUri> { // de.connect2x.trixnity.core.model/MxcUri.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.core.model/MxcUri.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model/MxcUri.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model/MxcUri.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model/MxcUri // de.connect2x.trixnity.core.model/MxcUri.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model/MxcUri) // de.connect2x.trixnity.core.model/MxcUri.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.MxcUri){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.core.model/MxcUri.Companion|null[0]
+        final fun isValid(kotlin/String): kotlin/Boolean // de.connect2x.trixnity.core.model/MxcUri.Companion.isValid|isValid(kotlin.String){}[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model/MxcUri> // de.connect2x.trixnity.core.model/MxcUri.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final value class de.connect2x.trixnity.core.model/Profile { // de.connect2x.trixnity.core.model/Profile|null[0]
     constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.model/ProfileField>) // de.connect2x.trixnity.core.model/Profile.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.model.ProfileField>){}[0]
     constructor <init>(kotlin/Array<out de.connect2x.trixnity.core.model/ProfileField>...) // de.connect2x.trixnity.core.model/Profile.<init>|<init>(kotlin.Array<out|de.connect2x.trixnity.core.model.ProfileField>...){}[0]
@@ -12708,7 +12740,6 @@ final fun de.connect2x.trixnity.core.serialization/canonicalJsonString(kotlinx.s
 final fun de.connect2x.trixnity.core.serialization/createMatrixDataUnitJson(de.connect2x.trixnity.core.serialization.events/RoomVersionStore, de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings = ..., kotlinx.serialization.modules/SerializersModule? = ...): kotlinx.serialization.json/Json // de.connect2x.trixnity.core.serialization/createMatrixDataUnitJson|createMatrixDataUnitJson(de.connect2x.trixnity.core.serialization.events.RoomVersionStore;de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.modules.SerializersModule?){}[0]
 final fun de.connect2x.trixnity.core.serialization/createMatrixEventAndDataUnitJson(de.connect2x.trixnity.core.serialization.events/RoomVersionStore, de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings = ..., kotlinx.serialization.modules/SerializersModule? = ...): kotlinx.serialization.json/Json // de.connect2x.trixnity.core.serialization/createMatrixEventAndDataUnitJson|createMatrixEventAndDataUnitJson(de.connect2x.trixnity.core.serialization.events.RoomVersionStore;de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.modules.SerializersModule?){}[0]
 final fun de.connect2x.trixnity.core.serialization/createMatrixEventJson(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings = ..., kotlinx.serialization.modules/SerializersModule? = ...): kotlinx.serialization.json/Json // de.connect2x.trixnity.core.serialization/createMatrixEventJson|createMatrixEventJson(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings;kotlinx.serialization.modules.SerializersModule?){}[0]
-final fun de.connect2x.trixnity.core.util/isValidMxcUri(kotlin/String): kotlin/Boolean // de.connect2x.trixnity.core.util/isValidMxcUri|isValidMxcUri(kotlin.String){}[0]
 final inline fun <#A: reified de.connect2x.trixnity.core.model.events.block/EventContentBlock> (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder).de.connect2x.trixnity.core.serialization.events/blockOf(de.connect2x.trixnity.core.model.events.block/EventContentBlock.Type<#A>) // de.connect2x.trixnity.core.serialization.events/blockOf|blockOf@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder(de.connect2x.trixnity.core.model.events.block.EventContentBlock.Type<0:0>){0§<de.connect2x.trixnity.core.model.events.block.EventContentBlock>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.core.model.events.block/EventContentBlock> (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder).de.connect2x.trixnity.core.serialization.events/blockOf(de.connect2x.trixnity.core.model.events.block/EventContentBlock.Type<#A>, kotlinx.serialization/KSerializer<#A>) // de.connect2x.trixnity.core.serialization.events/blockOf|blockOf@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder(de.connect2x.trixnity.core.model.events.block.EventContentBlock.Type<0:0>;kotlinx.serialization.KSerializer<0:0>){0§<de.connect2x.trixnity.core.model.events.block.EventContentBlock>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationSlot, #B: reified de.connect2x.trixnity.core.model.events.m.rtc/RtcApplicationMember> (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder).de.connect2x.trixnity.core.serialization.events/rtcApplicationOf(kotlin/String) // de.connect2x.trixnity.core.serialization.events/rtcApplicationOf|rtcApplicationOf@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder(kotlin.String){0§<de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationSlot>;1§<de.connect2x.trixnity.core.model.events.m.rtc.RtcApplicationMember>}[0]
