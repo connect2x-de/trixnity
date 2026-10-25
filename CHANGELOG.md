@@ -19,6 +19,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes.
+
 ### Security
 
 ## 5.10.1

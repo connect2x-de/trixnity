@@ -65,6 +65,26 @@ class MxcUriTest {
     }
 
     @Test
+    fun `accept server names that require backtracking`() {
+        listOf("1.2.3.4.example.org", "1.2.3.4567", "1.2.3.4.example.org:8448").forEach { server ->
+            val uri = "mxc://$server/Abc_123-"
+            assertTrue(MxcUri.isValid(uri), uri)
+            assertTrue(MxcUri(uri).isValid, uri)
+            assertEquals(server, MxcUri(uri).serverName)
+            assertEquals("Abc_123-", MxcUri(uri).mediaId)
+        }
+    }
+
+    @Test
+    fun `reject trailing garbage and line terminators`() {
+        listOf("/garbage", "?query", "#fragment", " ", "\n", "\r", "\r\n", "\u2028", "\u2029").forEach { suffix ->
+            val uri = "mxc://example.org/abc$suffix"
+            assertFalse(MxcUri.isValid(uri), uri)
+            assertFalse(MxcUri(uri).isValid, uri)
+        }
+    }
+
+    @Test
     fun `reject missing components and incorrect schemes`() {
         listOf(
                 "",
