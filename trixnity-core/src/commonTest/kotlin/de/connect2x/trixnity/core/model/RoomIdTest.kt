@@ -48,9 +48,9 @@ class RoomIdTest {
     }
 
     @Test
-    fun `accept broad legacy localparts`() {
+    fun `distinguish valid legacy localparts from reasonable ones`() {
         for (localpart in listOf("a b", "café", "a/b", "a+b", "a\nb")) {
-            assertValidation("!$localpart:example.org", expectedValid = true)
+            assertValidation("!$localpart:example.org", expectedValid = true, expectedReasonable = false)
             assertValidation("!$localpart", expectedValid = false)
         }
     }

@@ -51,7 +51,7 @@ internal object MatrixIdRegex {
 
     // language=Regexp
     private const val REASONABLE_ROOM_ID_PATTERN = "!$OPAQUE_ID_PATTERN(?::$DOMAIN_PATTERN)?"
-    val reasonableRoomId = "^$ROOM_ID_PATTERN$".toRegex()
+    val reasonableRoomId = "^$REASONABLE_ROOM_ID_PATTERN$".toRegex()
 
     /**
      * However, the precise format depends upon the room version specification: early room versions included a domain
