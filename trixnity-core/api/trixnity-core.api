@@ -1421,6 +1421,41 @@ public final class de/connect2x/trixnity/core/model/EventId$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/MxcUri {
+	public static final field Companion Lde/connect2x/trixnity/core/model/MxcUri$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/MxcUri;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public static fun constructor-impl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getFull ()Ljava/lang/String;
+	public static final fun getMediaId-impl (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getServerName-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public static final fun isValid-impl (Ljava/lang/String;)Z
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/MxcUri$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/MxcUri$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize-9g-Oe_w (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/String;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize-vGRN4lg (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/String;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/MxcUri$Companion {
+	public final fun isValid (Ljava/lang/String;)Z
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public final class de/connect2x/trixnity/core/model/Profile {
 	public static final field Companion Lde/connect2x/trixnity/core/model/Profile$Companion;
 	public static final synthetic fun box-impl (Ljava/util/Map;)Lde/connect2x/trixnity/core/model/Profile;

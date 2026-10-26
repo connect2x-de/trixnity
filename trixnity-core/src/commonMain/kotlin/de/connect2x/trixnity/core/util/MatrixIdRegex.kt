@@ -1,10 +1,16 @@
 package de.connect2x.trixnity.core.util
 
 internal object MatrixIdRegex {
+    // Anchors make JS Regex.matches() backtrack instead of rejecting the first partial match.
     /** @see [https://spec.matrix.org/unstable/appendices/#server-name] */
     // language=Regexp
     private const val DOMAIN_PATTERN =
         """(?:[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}|\[[0-9a-fA-F:.]{2,45}\]|[0-9a-zA-Z\-.]{1,255})(?::[0-9]{1,5})?"""
+
+    /** @see [https://spec.matrix.org/v1.19/client-server-api/#matrix-content-mxc-uris] */
+    // language=Regexp
+    private const val MXC_URI_PATTERN = "[mM][xX][cC]://$DOMAIN_PATTERN/[A-Za-z0-9_-]+"
+    val mxcUri = "^$MXC_URI_PATTERN$".toRegex()
 
     /** @see [https://spec.matrix.org/v1.14/appendices/#opaque-identifiers] */
     // language=Regexp
@@ -18,11 +24,11 @@ internal object MatrixIdRegex {
      */
     // language=Regexp
     private const val USER_ID_PATTERN = "@[^:\uD800-\uDFFF]+:$DOMAIN_PATTERN"
-    val userId = USER_ID_PATTERN.toRegex()
+    val userId = "^$USER_ID_PATTERN$".toRegex()
 
     // language=Regexp
     private const val REASONABLE_USER_ID_PATTERN = "@[0-9a-z-=_/+.]+:$DOMAIN_PATTERN"
-    val reasonableUserId = REASONABLE_USER_ID_PATTERN.toRegex()
+    val reasonableUserId = "^$REASONABLE_USER_ID_PATTERN$".toRegex()
 
     /**
      * The localpart of a room alias may contain any valid non-surrogate Unicode codepoints except : and NUL.
@@ -31,7 +37,7 @@ internal object MatrixIdRegex {
      */
     // language=Regexp
     private const val ROOM_ALIAS_PATTERN = "#[^:\uD800-\uDFFF]+:$DOMAIN_PATTERN"
-    val roomAlias = ROOM_ALIAS_PATTERN.toRegex()
+    val roomAlias = "^$ROOM_ALIAS_PATTERN$".toRegex()
 
     /**
      * The localpart of a room ID (opaque_id above) may contain any valid non-surrogate Unicode code points, including
@@ -41,11 +47,11 @@ internal object MatrixIdRegex {
      */
     // language=Regexp
     private const val ROOM_ID_PATTERN = "!(?:$OPAQUE_ID_PATTERN|[^:\uD800-\uDFFF]+:$DOMAIN_PATTERN)"
-    val roomId = ROOM_ID_PATTERN.toRegex()
+    val roomId = "^$ROOM_ID_PATTERN$".toRegex()
 
     // language=Regexp
     private const val REASONABLE_ROOM_ID_PATTERN = "!$OPAQUE_ID_PATTERN(?::$DOMAIN_PATTERN)?"
-    val reasonableRoomId = ROOM_ID_PATTERN.toRegex()
+    val reasonableRoomId = "^$REASONABLE_ROOM_ID_PATTERN$".toRegex()
 
     /**
      * However, the precise format depends upon the room version specification: early room versions included a domain
@@ -55,11 +61,11 @@ internal object MatrixIdRegex {
      */
     // language=Regexp
     private const val EVENT_ID_PATTERN = "\\$(?:$OPAQUE_ID_PATTERN|[^:\uD800-\uDFFF]+:$DOMAIN_PATTERN)"
-    val eventId = EVENT_ID_PATTERN.toRegex()
+    val eventId = "^$EVENT_ID_PATTERN$".toRegex()
 
     // language=Regexp
     private const val REASONABLE_EVENT_ID_PATTERN = "\\$$OPAQUE_ID_PATTERN(?::$DOMAIN_PATTERN)?"
-    val reasonableEventId = REASONABLE_EVENT_ID_PATTERN.toRegex()
+    val reasonableEventId = "^$REASONABLE_EVENT_ID_PATTERN$".toRegex()
 
     /** This matches user ids and room aliases on best-effort basis, it is NOT intended to match all valid ids. */
     // language=Regexp

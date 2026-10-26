@@ -9,15 +9,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- Add `MxcUri` value class with opt-in validation
 - Support MSC4027 custom image reaction shortcodes and sending helpers
 
 ### Changed
+
+- Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes.
 
 ### Security
 
