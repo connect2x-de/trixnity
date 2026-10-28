@@ -77,7 +77,6 @@ fun <T : RoomEventContent> RoomEvent<*>.mergeContentOrNull(content: T): RoomEven
                 originTimestamp = originTimestamp,
                 unsigned = unsigned,
                 stateKey = stateKey,
-                sticky = sticky,
             ) as RoomEvent<T>
 
         else -> null

@@ -4,7 +4,7 @@ import de.connect2x.trixnity.client.getInMemoryRoomStateStore
 import de.connect2x.trixnity.client.getInMemoryStickyEventStore
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.mocks.KeyServiceMock
-import de.connect2x.trixnity.client.store.StoredStickyEvent
+import de.connect2x.trixnity.client.mocks.RoomServiceMock
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
@@ -14,7 +14,6 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventData
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
@@ -30,15 +29,15 @@ import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.EventTrustLevel
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
-import de.connect2x.trixnity.test.utils.testClock
+import de.connect2x.trixnity.test.utils.scheduleSetup
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.JsonObject
 
 @OptIn(MSC4143::class, MSC4354::class, MSC4193::class)
@@ -65,6 +64,8 @@ class RtcServiceTest : TrixnityBaseTest() {
             override fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel> =
                 flowOf(eventTrustLevels[roomId to eventId] ?: EventTrustLevel.Unknown)
         }
+
+    private val roomService = RoomServiceMock().apply { scheduleSetup { getAllStickyMap.value = emptyMap() } }
     private var rtcSlotMembershipFactoryFailure: Throwable? = null
 
     private val rtcSlotMembershipFactory =
@@ -118,9 +119,9 @@ class RtcServiceTest : TrixnityBaseTest() {
     private val cut =
         RtcServiceImpl(
             roomStateStore = roomStateStore,
-            stickyEventStore = stickyEventStore,
             rtcSlotMembershipFactory = rtcSlotMembershipFactory,
             keyService = keyService,
+            roomService = roomService,
         )
 
     @BeforeTest
@@ -550,14 +551,13 @@ class RtcServiceTest : TrixnityBaseTest() {
                     stateKey = event.sender.full,
                 )
             )
-            stickyEventStore.save(
-                @Suppress("UNCHECKED_CAST")
-                StoredStickyEvent(
-                    event = event as MessageEvent<StickyEventContent>,
-                    startTime = testScope.testClock.now(),
-                    endTime = testScope.testClock.now() + 1.minutes,
-                )
-            )
+            roomService.getAllStickyMap.update {
+                it +
+                    (event.roomId to
+                        it[event.roomId]
+                            .orEmpty()
+                            .plus((event.sender to checkNotNull(event.content.stickyKey)) to event))
+            }
         }
     }
 

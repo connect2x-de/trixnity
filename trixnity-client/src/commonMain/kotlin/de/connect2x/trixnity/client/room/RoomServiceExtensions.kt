@@ -58,17 +58,26 @@ inline fun <reified C : StateEventContent> RoomService.getAllState(
 inline fun <reified C : StickyEventContent> RoomService.getSticky(
     roomId: RoomId,
     sender: UserId,
-    stickyKey: String? = null,
+    stickyKey: String,
 ): Flow<ClientEvent.RoomEvent<C>?> = getSticky(roomId, C::class, sender, stickyKey)
 
 @MSC4354
 inline fun <reified C : StickyEventContent> RoomService.getAllSticky(
     roomId: RoomId
-): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> = getAllSticky(roomId, C::class)
+): Flow<List<ClientEvent.RoomEvent.MessageEvent<C>>> = getAllSticky(roomId, C::class)
 
 @MSC4354
 inline fun <reified C : StickyEventContent> RoomService.getAllSticky():
-    Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> = getAllSticky(C::class)
+    Flow<Map<RoomId, List<ClientEvent.RoomEvent.MessageEvent<C>>>> = getAllSticky(C::class)
+
+@MSC4354
+inline fun <reified C : StickyEventContent> RoomService.getAllStickyMap(
+    roomId: RoomId
+): Flow<Map<Pair<UserId, String>, ClientEvent.RoomEvent.MessageEvent<C>>> = getAllStickyMap(roomId, C::class)
+
+@MSC4354
+inline fun <reified C : StickyEventContent> RoomService.getAllStickyMap():
+    Flow<Map<RoomId, Map<Pair<UserId, String>, ClientEvent.RoomEvent.MessageEvent<C>>>> = getAllStickyMap(C::class)
 
 /**
  * Converts a flow of timeline events into a flow of list of timeline events limited by [maxSize].

@@ -225,9 +225,9 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
             )
             roomStickyEventStore.save(
                 StoredStickyEvent(
-                    event = event1,
-                    startTime = Instant.fromEpochMilliseconds(24),
-                    endTime = Instant.fromEpochMilliseconds(24),
+                    roomId = event1.roomId,
+                    eventId = event1.id,
+                    endTime = Instant.fromEpochMilliseconds(242424),
                 )
             )
         }
@@ -240,9 +240,7 @@ class TimelineEventHandlerTest : TrixnityBaseTest() {
                 originTimestamp = 3,
             )
         with(cut) { listOf(redactionEvent).handleRedactions() }
-        roomStickyEventStore
-            .getBySenderAndStickyKey(room, RtcMemberEventContent::class, alice, event1.content.stickyKey)
-            .first() shouldBe null
+        roomStickyEventStore.get(event1.roomId, event1.id).first() shouldBe null
     }
 
     @Test

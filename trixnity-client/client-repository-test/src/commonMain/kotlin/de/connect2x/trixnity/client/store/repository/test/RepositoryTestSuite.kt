@@ -57,16 +57,12 @@ import de.connect2x.trixnity.client.store.repository.RoomUserRepository
 import de.connect2x.trixnity.client.store.repository.SecretKeyRequestRepository
 import de.connect2x.trixnity.client.store.repository.SecretsRepository
 import de.connect2x.trixnity.client.store.repository.StickyEventRepository
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
 import de.connect2x.trixnity.client.store.repository.TimelineEventKey
 import de.connect2x.trixnity.client.store.repository.TimelineEventRelationKey
 import de.connect2x.trixnity.client.store.repository.TimelineEventRelationRepository
 import de.connect2x.trixnity.client.store.repository.TimelineEventRepository
 import de.connect2x.trixnity.client.store.repository.UserPresenceRepository
 import de.connect2x.trixnity.clientserverapi.client.LogoutInfo
-import de.connect2x.trixnity.core.MSC4143
-import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.Profile
@@ -79,7 +75,6 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEven
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RedactedMessageEventContentImpl
 import de.connect2x.trixnity.core.model.events.RedactedStickyEventContentImpl
-import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
@@ -100,9 +95,6 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
-import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
-import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
 import de.connect2x.trixnity.core.model.events.m.secret.SecretKeyRequestEventContent
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
@@ -1725,189 +1717,89 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
         }
     }
 
-    @OptIn(MSC4143::class, MSC4354::class, MSC4193::class)
+    @OptIn(MSC4354::class)
     @Test
     fun `StickyRoomEventRepository - save get and delete`() = runTestWithSetup {
         val cut = di.get<StickyEventRepository>()
         val roomId1 = RoomId("!room1:server")
         val roomId2 = RoomId("!room2:server")
-        val sender1 = UserId("sender1", "server")
-        val sender2 = UserId("sender2", "server")
-        val stickyKey1 = "sticky1"
-        val stickyKey2 = "sticky2"
-        val stickyKey3 = "sticky3"
         val eventId1 = EventId("\$event1")
         val eventId2 = EventId("\$event2")
 
         val value1 =
             StoredStickyEvent(
-                event =
-                    MessageEvent(
-                        RtcMemberEventContent.Join(
-                            CallRtcApplication.SLOT_ID,
-                            RtcMemberEventContent.Member(RtcMemberId("memberId1")),
-                            CallRtcApplication.Member(),
-                            null,
-                            stickyKey1,
-                        ) as StickyEventContent,
-                        eventId1,
-                        sender1,
-                        roomId1,
-                        1234,
-                    ),
-                startTime = Instant.fromEpochMilliseconds(23),
+                roomId = roomId1,
+                eventId = eventId1,
                 endTime = Instant.fromEpochMilliseconds(24),
             )
         val value2 =
             StoredStickyEvent(
-                event =
-                    MessageEvent(
-                        RtcMemberEventContent.Join(
-                            CallRtcApplication.SLOT_ID,
-                            RtcMemberEventContent.Member(RtcMemberId("memberId2")),
-                            CallRtcApplication.Member(),
-                            null,
-                            stickyKey2,
-                        ) as StickyEventContent,
-                        eventId2,
-                        sender1,
-                        roomId1,
-                        1234,
-                    ),
-                startTime = Instant.fromEpochMilliseconds(24),
+                roomId = roomId1,
+                eventId = eventId2,
                 endTime = Instant.fromEpochMilliseconds(25),
             )
         val value3 =
             StoredStickyEvent(
-                event =
-                    MessageEvent(
-                        RtcMemberEventContent.Join(
-                            CallRtcApplication.SLOT_ID,
-                            RtcMemberEventContent.Member(RtcMemberId("memberId1")),
-                            CallRtcApplication.Member(),
-                            null,
-                            stickyKey1,
-                        ) as StickyEventContent,
-                        eventId2,
-                        sender1,
-                        roomId2,
-                        1234,
-                    ),
-                startTime = Instant.fromEpochMilliseconds(23),
-                endTime = Instant.fromEpochMilliseconds(24),
+                roomId = roomId2,
+                eventId = eventId2,
+                endTime = Instant.fromEpochMilliseconds(2),
             )
-        val value4 =
+        val value3Copy =
             StoredStickyEvent(
-                event =
-                    MessageEvent(
-                        RtcMemberEventContent.Join(
-                            CallRtcApplication.SLOT_ID,
-                            RtcMemberEventContent.Member(RtcMemberId("memberId")),
-                            CallRtcApplication.Member(),
-                            null,
-                            stickyKey1,
-                        ) as StickyEventContent,
-                        eventId2,
-                        sender2,
-                        roomId2,
-                        1234,
-                    ),
-                startTime = Instant.fromEpochMilliseconds(24),
-                endTime = Instant.fromEpochMilliseconds(25),
-            )
-        val value5 =
-            StoredStickyEvent(
-                event =
-                    MessageEvent(
-                        RedactedStickyEventContentImpl("org.matrix.msc4143.rtc.member", stickyKey3)
-                            as StickyEventContent,
-                        eventId2,
-                        sender2,
-                        roomId2,
-                        1234,
-                    ),
-                startTime = Instant.fromEpochMilliseconds(24),
-                endTime = Instant.fromEpochMilliseconds(25),
+                roomId = roomId2,
+                eventId = eventId2,
+                endTime = Instant.fromEpochMilliseconds(2424),
             )
 
         rtm.writeTransaction {
             cut.save(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
+                roomId1,
+                eventId1,
                 value1,
             )
             cut.save(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey2),
+                roomId1,
+                eventId2,
                 value2,
             )
             cut.save(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
+                roomId2,
+                eventId2,
                 value3,
             )
-            cut.save(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender2, stickyKey1),
-                value4,
-            )
-            cut.save(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender2, stickyKey3),
-                value5,
-            )
             cut.get(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
+                roomId1,
+                eventId1,
             ) shouldBe value1
             cut.get(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey2),
+                roomId1,
+                eventId2,
             ) shouldBe value2
             cut.get(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
+                roomId2,
+                eventId2,
             ) shouldBe value3
-            cut.get(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender2, stickyKey1),
-            ) shouldBe value4
-            cut.get(
-                StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender2, stickyKey3),
-            ) shouldBe value5
+            cut.get(roomId1).values shouldBe listOf(value1, value2)
 
-            cut.get(StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member")).values shouldBe
-                setOf(value1, value2)
-            cut.getByEventId(roomId1, eventId1) shouldBe
-                Pair(
-                    StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                    StickyEventRepositorySecondKey(sender1, stickyKey1),
-                )
             cut.getByEndTimeBefore(Instant.fromEpochMilliseconds(25)) shouldBe
-                setOf(
-                    Pair(
-                        StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                        StickyEventRepositorySecondKey(sender1, stickyKey1),
-                    ),
-                    Pair(
-                        StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member"),
-                        StickyEventRepositorySecondKey(sender1, stickyKey1),
-                    ),
-                )
-            cut.delete(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
+                setOf(roomId1 to eventId1, roomId2 to eventId2)
+
+            cut.save(
+                roomId2,
+                eventId2,
+                value3Copy,
             )
             cut.get(
-                StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member"),
-                StickyEventRepositorySecondKey(sender1, stickyKey1),
-            ) shouldBe null
+                roomId2,
+                eventId2,
+            ) shouldBe value3Copy
 
-            cut.deleteByRoomId(roomId2)
-            cut.get(StickyEventRepositoryFirstKey(roomId1, "org.matrix.msc4143.rtc.member")).values shouldBe
-                setOf(value2)
-            cut.get(StickyEventRepositoryFirstKey(roomId2, "org.matrix.msc4143.rtc.member")) shouldBe mapOf()
+            cut.deleteByRoomId(roomId1)
+            cut.get(roomId1) shouldBe emptyMap()
+            cut.get(roomId2).values shouldBe setOf(value3Copy)
+
+            cut.delete(roomId2, eventId2)
+            cut.get(roomId2, eventId2) shouldBe null
         }
     }
 

@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.client.integrationtests
 
 import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.encrypt
 import de.connect2x.trixnity.client.room.getAllSticky
@@ -117,10 +116,9 @@ class StickyEventsIT : TrixnityBaseTest() {
                     )
                     .getOrThrow()
 
-                startedClient2.client.room
-                    .getAllSticky<RtcMemberEventContent>(roomId)
-                    .flattenValues()
-                    .firstWithTimeout { it.firstOrNull()?.content == stickyContent }
+                startedClient2.client.room.getAllSticky<RtcMemberEventContent>(roomId).firstWithTimeout {
+                    it.firstOrNull()?.content == stickyContent
+                }
             }
         }
 }

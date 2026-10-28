@@ -29,8 +29,6 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
         val originTimestamp: Long
         val unsigned: UnsignedRoomEventData?
 
-        @MSC4354 val sticky: StickyEventData?
-
         /**
          * Matrix message event
          *
@@ -51,7 +49,7 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
             @JsonNames("sticky")
             @SerialName("msc4354_sticky")
             @MSC4354
-            override val sticky: StickyEventData? = null,
+            val sticky: StickyEventData? = null,
         ) : RoomEvent<C>
 
         /**
@@ -71,11 +69,6 @@ sealed interface ClientEvent<C : EventContent> : Event<C> {
             @SerialName("origin_server_ts") override val originTimestamp: Long,
             @SerialName("unsigned") override val unsigned: UnsignedRoomEventData.UnsignedStateEventData? = null,
             @SerialName("state_key") override val stateKey: String,
-            @OptIn(ExperimentalSerializationApi::class)
-            @JsonNames("sticky")
-            @SerialName("msc4354_sticky")
-            @MSC4354
-            override val sticky: StickyEventData? = null,
         ) : RoomEvent<C>, StateBaseEvent<C>
     }
 

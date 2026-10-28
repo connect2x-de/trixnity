@@ -65,14 +65,7 @@ fun createRoomModule() = module {
     }
     @OptIn(MSC4354::class)
     single<EventHandler>(named<StickyEventHandler>()) {
-        StickyEventHandler(
-            api = get(),
-            stickyEventStore = get(),
-            roomEventEncryptionServices = getAll(),
-            clock = get(),
-            tm = get(),
-            config = get(),
-        )
+        StickyEventHandler(api = get(), stickyEventStore = get(), clock = get(), tm = get(), config = get())
     }
     @OptIn(MSC4354::class) singleOf(::ForgetRoomServiceImpl) { bind<ForgetRoomService>() }
     single<RoomEventEncryptionService>(named<MegolmRoomEventEncryptionService>()) {

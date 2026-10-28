@@ -30,7 +30,6 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
-import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.crypto.SecretType
@@ -187,37 +186,17 @@ class InMemoryTimelineEventRelationRepository :
 
 @MSC4354
 class InMemoryStickyEventRepository :
-    StickyEventRepository,
-    InMemoryFullMapRepository<
-        StickyEventRepositoryFirstKey,
-        StickyEventRepositorySecondKey,
-        StoredStickyEvent<StickyEventContent>,
-    >() {
+    StickyEventRepository, InMemoryFullMapRepository<RoomId, EventId, StoredStickyEvent>() {
     context(transaction: ReadTransaction)
-    override suspend fun getByEndTimeBefore(
-        before: Instant
-    ): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> =
+    override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<RoomId, EventId>> =
         content.value
             .flatMap { (key, values) -> values.filterValues { it.endTime < before }.map { key to it.key } }
             .toSet()
 
     context(transaction: WriteTransaction)
     override suspend fun deleteByRoomId(roomId: RoomId) {
-        content.update { value -> value.filterKeys { it.roomId != roomId } }
+        content.update { value -> value - roomId }
     }
-
-    context(transaction: ReadTransaction)
-    override suspend fun getByEventId(
-        roomId: RoomId,
-        eventId: EventId,
-    ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? =
-        content.value.entries
-            .firstNotNullOfOrNull { (key, values) ->
-                values.entries
-                    .find { it.value.event.roomId == roomId && it.value.event.id == eventId }
-                    ?.let { key to it }
-            }
-            ?.let { it.first to it.second.key }
 }
 
 class InMemoryMediaCacheMappingRepository :

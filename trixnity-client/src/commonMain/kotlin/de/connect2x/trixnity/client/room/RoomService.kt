@@ -4,6 +4,8 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
 import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.media.mappings.EventContentMediaMappings
 import de.connect2x.trixnity.client.media.mappings.findAndCallUriExtractorOrFallback
@@ -17,6 +19,7 @@ import de.connect2x.trixnity.client.store.RoomStore
 import de.connect2x.trixnity.client.store.RoomTimelineStore
 import de.connect2x.trixnity.client.store.StickyEventStore
 import de.connect2x.trixnity.client.store.StoreTransactionManager
+import de.connect2x.trixnity.client.store.StoredStickyEvent
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
 import de.connect2x.trixnity.client.store.TimelineEventRelation
@@ -40,7 +43,6 @@ import de.connect2x.trixnity.core.UserInfo
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
@@ -257,19 +259,25 @@ interface RoomService {
         roomId: RoomId,
         eventContentClass: KClass<C>,
         sender: UserId,
-        stickyKey: String? = null,
-    ): Flow<ClientEvent.RoomEvent<C>?>
+        stickyKey: String,
+    ): Flow<MessageEvent<C>?>
 
     @MSC4354
-    fun <C : StickyEventContent> getAllSticky(
+    fun <C : StickyEventContent> getAllSticky(roomId: RoomId, eventContentClass: KClass<C>): Flow<List<MessageEvent<C>>>
+
+    @MSC4354
+    fun <C : StickyEventContent> getAllSticky(eventContentClass: KClass<C>): Flow<Map<RoomId, List<MessageEvent<C>>>>
+
+    @MSC4354
+    fun <C : StickyEventContent> getAllStickyMap(
         roomId: RoomId,
         eventContentClass: KClass<C>,
-    ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>>
+    ): Flow<Map<Pair<UserId, String>, MessageEvent<C>>>
 
     @MSC4354
-    fun <C : StickyEventContent> getAllSticky(
+    fun <C : StickyEventContent> getAllStickyMap(
         eventContentClass: KClass<C>
-    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>>
+    ): Flow<Map<RoomId, Map<Pair<UserId, String>, MessageEvent<C>>>>
 }
 
 @OptIn(MSC4354::class)
@@ -1046,25 +1054,140 @@ class RoomServiceImpl(
         return roomStateStore.get(roomId, eventContentClass)
     }
 
+    @MSC4354
     override fun <C : StickyEventContent> getSticky(
         roomId: RoomId,
         eventContentClass: KClass<C>,
         sender: UserId,
-        stickyKey: String?,
-    ): Flow<ClientEvent.RoomEvent<C>?> {
-        return stickyEventStore.getBySenderAndStickyKey(roomId, eventContentClass, sender, stickyKey)
-    }
+        stickyKey: String,
+    ): Flow<MessageEvent<C>?> =
+        stickyEventStore
+            .get(roomId)
+            .map { it.values }
+            .toMessageEvents()
+            .flatten(ZERO)
+            .map { stickyEvents ->
+                stickyEvents
+                    .filter { it.sender == sender }
+                    .mapTypeWithStickyKey(eventContentClass, stickyKey)
+                    .getActive()
+            }
 
+    @MSC4354
     override fun <C : StickyEventContent> getAllSticky(
         roomId: RoomId,
         eventContentClass: KClass<C>,
-    ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return stickyEventStore.get(roomId, eventContentClass)
-    }
+    ): Flow<List<MessageEvent<C>>> =
+        stickyEventStore
+            .get(roomId)
+            .map { it.values }
+            .toMessageEvents()
+            .flatten(ZERO)
+            .map { stickyEvents -> stickyEvents.mapType(eventContentClass) }
 
+    @MSC4354
     override fun <C : StickyEventContent> getAllSticky(
         eventContentClass: KClass<C>
-    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return stickyEventStore.get(eventContentClass)
+    ): Flow<Map<RoomId, List<MessageEvent<C>>>> =
+        stickyEventStore
+            .getAll()
+            .map { it.values }
+            .toMessageEvents()
+            .flatten(ZERO)
+            .map { stickyEvents -> stickyEvents.mapType(eventContentClass).groupBy { it.roomId } }
+
+    @MSC4354
+    override fun <C : StickyEventContent> getAllStickyMap(
+        roomId: RoomId,
+        eventContentClass: KClass<C>,
+    ): Flow<Map<Pair<UserId, String>, MessageEvent<C>>> =
+        stickyEventStore
+            .get(roomId)
+            .map { it.values }
+            .toMessageEvents()
+            .flatten(ZERO)
+            .map { stickyEvents ->
+                stickyEvents
+                    .mapTypeWithStickyKey(eventContentClass)
+                    .groupBy { it.sender to checkNotNull((it.content as? StickyEventContent)?.stickyKey) }
+                    .mapValues { (_, candidates) -> checkNotNull(candidates.getActive()) }
+            }
+
+    @MSC4354
+    override fun <C : StickyEventContent> getAllStickyMap(
+        eventContentClass: KClass<C>
+    ): Flow<Map<RoomId, Map<Pair<UserId, String>, MessageEvent<C>>>> =
+        stickyEventStore
+            .getAll()
+            .map { it.values }
+            .toMessageEvents()
+            .flatten(ZERO)
+            .map { stickyEvents ->
+                stickyEvents
+                    .groupBy { it.roomId }
+                    .mapValues { (_, stickyEventsByRoom) ->
+                        stickyEventsByRoom
+                            .mapTypeWithStickyKey(eventContentClass)
+                            .groupBy { it.sender to checkNotNull((it.content as? StickyEventContent)?.stickyKey) }
+                            .mapNotNull { (key, candidates) ->
+                                val active = candidates.getActive()
+                                if (active == null) null else key to active
+                            }
+                            .toMap()
+                    }
+            }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun Flow<Collection<Flow<StoredStickyEvent?>>>.toMessageEvents() = map { list ->
+        list.map { item ->
+            item.flatMapLatest { storedStickyEvent ->
+                if (storedStickyEvent == null) return@flatMapLatest flowOf(null)
+                getTimelineEvent(storedStickyEvent.roomId, storedStickyEvent.eventId).map {
+                    it?.mergedEvent?.getOrNull() as? MessageEvent<*>
+                }
+            }
+        }
     }
+
+    @MSC4354
+    private fun <C : StickyEventContent> List<MessageEvent<*>>.mapType(eventContentClass: KClass<C>) =
+        mapNotNull { stickyEvent ->
+            if (!eventContentClass.isInstance(stickyEvent.content)) return@mapNotNull null
+
+            @Suppress("UNCHECKED_CAST")
+            stickyEvent as MessageEvent<C>
+        }
+
+    @MSC4354
+    private fun <C : StickyEventContent> List<MessageEvent<*>>.mapTypeWithStickyKey(eventContentClass: KClass<C>) =
+        mapNotNull { stickyEvent ->
+            if (
+                !eventContentClass.isInstance(stickyEvent.content) ||
+                    (stickyEvent.content as? StickyEventContent)?.stickyKey == null
+            )
+                return@mapNotNull null
+
+            @Suppress("UNCHECKED_CAST")
+            stickyEvent as MessageEvent<C>
+        }
+
+    @MSC4354
+    private fun <C : StickyEventContent> List<MessageEvent<*>>.mapTypeWithStickyKey(
+        eventContentClass: KClass<C>,
+        stickyKey: String,
+    ) = mapNotNull { stickyEvent ->
+        if (
+            !eventContentClass.isInstance(stickyEvent.content) ||
+                (stickyEvent.content as? StickyEventContent)?.stickyKey != stickyKey
+        )
+            return@mapNotNull null
+
+        @Suppress("UNCHECKED_CAST")
+        stickyEvent as MessageEvent<C>
+    }
+
+    private fun <C : StickyEventContent> List<MessageEvent<C>>.getActive() =
+        maxWithOrNull(
+            compareBy<MessageEvent<C>> { it.originTimestamp + (it.sticky?.durationMs ?: 0) }.thenBy { it.id.full }
+        )
 }
