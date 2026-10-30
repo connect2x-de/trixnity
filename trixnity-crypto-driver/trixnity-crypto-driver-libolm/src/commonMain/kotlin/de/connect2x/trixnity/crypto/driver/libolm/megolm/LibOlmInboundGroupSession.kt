@@ -11,10 +11,10 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class LibOlmInboundGroupSession(val inner: OlmInboundGroupSession) : InboundGroupSession {
     override val sessionId: String
-        get() = inner.sessionId
+        get() = rethrow { inner.sessionId }
 
     override val firstKnownIndex: Int
-        get() = inner.firstKnownIndex.toInt()
+        get() = rethrow { inner.firstKnownIndex.toInt() }
 
     override fun decrypt(message: MegolmMessage): InboundGroupSession.DecryptedMessage = rethrow {
         require(message is LibOlmMegolmMessage)
@@ -24,14 +24,16 @@ value class LibOlmInboundGroupSession(val inner: OlmInboundGroupSession) : Inbou
         InboundGroupSession.DecryptedMessage(plaintext = result.message, messageIndex = result.index.toInt())
     }
 
-    override fun exportAt(index: Int): LibOlmExportedSessionKey = LibOlmExportedSessionKey(inner.export(index.toLong()))
+    override fun exportAt(index: Int): LibOlmExportedSessionKey = rethrow {
+        LibOlmExportedSessionKey(inner.export(index.toLong()))
+    }
 
     override fun exportAtFirstKnownIndex(): LibOlmExportedSessionKey = exportAt(firstKnownIndex)
 
     override fun pickle(pickleKey: PickleKey?): String {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
-        return inner.pickle(pickleKey?.inner)
+        return rethrow { inner.pickle(pickleKey?.inner) }
     }
 
     override fun close() = inner.free()

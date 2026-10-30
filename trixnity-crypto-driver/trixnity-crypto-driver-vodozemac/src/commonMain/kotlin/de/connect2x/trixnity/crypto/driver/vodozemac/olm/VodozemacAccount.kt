@@ -88,7 +88,9 @@ value class VodozemacAccount(val inner: Inner) : Account {
 
     override fun dehydrate(pickleKey: PickleKey): DehydratedDevice {
         require(pickleKey is VodozemacPickleKey)
-        return inner.dehydratedDevice(pickleKey.inner).let { DehydratedDevice(it.ciphertext, it.nonce) }
+
+        val device = rethrow { inner.dehydratedDevice(pickleKey.inner) }
+        return DehydratedDevice(device.ciphertext, device.nonce)
     }
 
     override fun close() = inner.close()

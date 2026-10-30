@@ -32,4 +32,13 @@ abstract class UtilityTest(val driver: CryptoDriver) : TrixnityBaseTest() {
             }
         }
     }
+
+    @Test
+    fun invalidPicklesThrowCryptoDriverException() = runTest {
+        val key = driver.key.pickleKey(Random.nextBytes(32))
+        shouldThrow<CryptoDriverException> { driver.olm.account.fromPickle("invalid", key) }
+        shouldThrow<CryptoDriverException> { driver.olm.session.fromPickle("invalid", key) }
+        shouldThrow<CryptoDriverException> { driver.megolm.groupSession.fromPickle("invalid", key) }
+        shouldThrow<CryptoDriverException> { driver.megolm.inboundGroupSession.fromPickle("invalid", key) }
+    }
 }

@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.crypto.driver.test
 
+import de.connect2x.trixnity.crypto.driver.CryptoDriverException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.string.beBlank
@@ -31,6 +33,19 @@ abstract class PkDecryptionTest(val driver: CryptoDriver) : TrixnityBaseTest() {
             driver.pk.encryption.invoke(pkDecryption.publicKey.base64).use { pkEncryption ->
                 val message = pkEncryption.encrypt("Public key test")
                 pkDecryption.decrypt(message) shouldBe "Public key test"
+            }
+        }
+    }
+
+    @Test
+    fun decryptWithWrongKeyThrowsCryptoDriverException() = runTest {
+        driver.pk.decryption().use { alice ->
+            driver.pk.decryption().use { bob ->
+                driver.pk.encryption(alice.publicKey.base64).use { encryption ->
+                    encryption.encrypt("secret").use { message ->
+                        shouldThrow<CryptoDriverException> { bob.decrypt(message) }
+                    }
+                }
             }
         }
     }
