@@ -4,6 +4,7 @@ import de.connect2x.trixnity.crypto.driver.pkencryption.PkDecryption
 import de.connect2x.trixnity.crypto.driver.pkencryption.PkMessage
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519PublicKey
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacCurve25519SecretKey
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.pkencryption.PkDecryption as Inner
 import kotlin.jvm.JvmInline
 
@@ -19,7 +20,7 @@ value class VodozemacPkDecryption(val inner: Inner) : PkDecryption {
     override fun decrypt(message: PkMessage): String {
         require(message is VodozemacPkMessage)
 
-        return inner.decrypt(message.inner)
+        return rethrow { inner.decrypt(message.inner) }
     }
 
     override fun close() = inner.close()

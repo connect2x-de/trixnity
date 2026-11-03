@@ -13,17 +13,16 @@ import kotlin.jvm.JvmInline
 value class LibOlmSession(private val inner: OlmSession) : Session {
 
     override val sessionId: String
-        get() = inner.sessionId
+        get() = rethrow { inner.sessionId }
 
     override val hasReceivedMessage: Boolean
-        get() = inner.hasReceivedMessage
+        get() = rethrow { inner.hasReceivedMessage }
 
     override fun encrypt(plaintext: String): Message {
-        val result = inner.encrypt(plaintext)
+        val result = rethrow { inner.encrypt(plaintext) }
 
         return when (result.type) {
             OlmMessage.OlmMessageType.INITIAL_PRE_KEY -> LibOlmPreKeyMessage(inner = result.cipherText)
-
             OlmMessage.OlmMessageType.ORDINARY -> LibOlmNormalMessage(inner = result.cipherText)
         }
     }
@@ -46,7 +45,7 @@ value class LibOlmSession(private val inner: OlmSession) : Session {
     override fun pickle(pickleKey: PickleKey?): String {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
-        return inner.pickle(pickleKey?.inner)
+        return rethrow { inner.pickle(pickleKey?.inner) }
     }
 
     override fun close() = inner.free()

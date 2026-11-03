@@ -5,6 +5,7 @@ import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKey
 import de.connect2x.trixnity.crypto.driver.megolm.InboundGroupSessionFactory
 import de.connect2x.trixnity.crypto.driver.megolm.SessionKey
 import de.connect2x.trixnity.crypto.driver.vodozemac.keys.VodozemacPickleKey
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.megolm.InboundGroupSession
 
 object VodozemacInboundGroupSessionFactory : InboundGroupSessionFactory {
@@ -23,6 +24,6 @@ object VodozemacInboundGroupSessionFactory : InboundGroupSessionFactory {
     override fun fromPickle(pickle: String, pickleKey: PickleKey?): VodozemacInboundGroupSession {
         require(pickleKey == null || pickleKey is VodozemacPickleKey)
 
-        return VodozemacInboundGroupSession(InboundGroupSession.fromPickle(pickle, pickleKey?.inner))
+        return rethrow { VodozemacInboundGroupSession(InboundGroupSession.fromPickle(pickle, pickleKey?.inner)) }
     }
 }

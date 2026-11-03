@@ -19,25 +19,25 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class LibOlmAccount(private val inner: OlmAccount) : Account {
     override val ed25519Key: LibOlmEd25519PublicKey
-        get() = LibOlmEd25519PublicKey(inner.identityKeys.ed25519)
+        get() = rethrow { LibOlmEd25519PublicKey(inner.identityKeys.ed25519) }
 
     override val curve25519Key: LibOlmCurve25519PublicKey
-        get() = LibOlmCurve25519PublicKey(inner.identityKeys.curve25519)
+        get() = rethrow { LibOlmCurve25519PublicKey(inner.identityKeys.curve25519) }
 
     override val maxNumberOfOneTimeKeys: Int
         get() =
-            inner.maxNumberOfOneTimeKeys.toInt() /
+            rethrow { inner.maxNumberOfOneTimeKeys }.toInt() /
                 2 // adapted to vodozemac behavior (recommendation how many keys to upload)
 
     override val storedOneTimeKeyCount: Int
-        get() = inner.oneTimeKeys.curve25519.size
+        get() = rethrow { inner.oneTimeKeys }.curve25519.size
 
     override val oneTimeKeys: Map<String, LibOlmCurve25519PublicKey>
-        get() = inner.oneTimeKeys.curve25519.mapValues { LibOlmCurve25519PublicKey(it.value) }
+        get() = rethrow { inner.oneTimeKeys }.curve25519.mapValues { LibOlmCurve25519PublicKey(it.value) }
 
     override val fallbackKey: Pair<String, LibOlmCurve25519PublicKey>?
         get() =
-            with(inner.unpublishedFallbackKey.curve25519) {
+            with(rethrow { inner.unpublishedFallbackKey }.curve25519) {
                 when (size) {
                     0 -> null
                     1 -> entries.first().let { it.key to LibOlmCurve25519PublicKey(it.value) }
@@ -46,14 +46,13 @@ value class LibOlmAccount(private val inner: OlmAccount) : Account {
                 }
             }
 
-    override fun sign(message: String): LibOlmEd25519Signature = LibOlmEd25519Signature(inner.sign(message))
+    override fun sign(message: String): LibOlmEd25519Signature = rethrow { LibOlmEd25519Signature(inner.sign(message)) }
 
     override fun createOutboundSession(identityKey: Curve25519PublicKey, oneTimeKey: Curve25519PublicKey): Session {
         require(identityKey is LibOlmCurve25519PublicKey)
         require(oneTimeKey is LibOlmCurve25519PublicKey)
 
-        val session = OlmSession.createOutbound(inner, identityKey.inner, oneTimeKey.inner)
-
+        val session = rethrow { OlmSession.createOutbound(inner, identityKey.inner, oneTimeKey.inner) }
         return LibOlmSession(session)
     }
 
@@ -80,7 +79,7 @@ value class LibOlmAccount(private val inner: OlmAccount) : Account {
 
     override fun generateOneTimeKeys(count: Int): OneTimeKeyGenerationResult {
         val previous = oneTimeKeys
-        inner.generateOneTimeKeys(count.toLong())
+        rethrow { inner.generateOneTimeKeys(count.toLong()) }
         val new = oneTimeKeys
 
         val created = new.entries - previous.entries
@@ -91,21 +90,19 @@ value class LibOlmAccount(private val inner: OlmAccount) : Account {
 
     override fun generateFallbackKey(): LibOlmCurve25519PublicKey? {
         val previous = fallbackKey
-        inner.generateFallbackKey()
+        rethrow { inner.generateFallbackKey() }
 
         return previous?.second
     }
 
-    override fun forgetFallbackKey() {
-        inner.forgetOldFallbackKey()
-    }
+    override fun forgetFallbackKey(): Unit = rethrow { inner.forgetOldFallbackKey() }
 
-    override fun markKeysAsPublished() = inner.markKeysAsPublished()
+    override fun markKeysAsPublished() = rethrow { inner.markKeysAsPublished() }
 
     override fun pickle(pickleKey: PickleKey?): String {
         require(pickleKey == null || pickleKey is LibOlmPickleKey)
 
-        return inner.pickle(pickleKey?.inner)
+        return rethrow { inner.pickle(pickleKey?.inner) }
     }
 
     override fun dehydrate(pickleKey: PickleKey): DehydratedDevice {

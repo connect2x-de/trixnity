@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.crypto.driver.test
 
+import de.connect2x.trixnity.crypto.driver.CryptoDriverException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
@@ -49,6 +51,19 @@ abstract class SasTest(val driver: CryptoDriver) : TrixnityBaseTest() {
             val bobMac = bobEstablishedSas.calculateMac("Hello world!", "SAS")
 
             aliceMac.base64 shouldBe bobMac.base64
+        }
+    }
+
+    @Test
+    fun verifyMacWithWrongMessageThrowsCryptoDriverException() = runTest {
+        useAll({ driver.sas() }, { driver.sas() }) { alice, bob ->
+            alice.diffieHellman(bob.publicKey).use { established ->
+                established.calculateMac("original", "SAS").use { mac ->
+                    shouldThrow<CryptoDriverException> {
+                        established.verifyMac("modified", "SAS", mac)
+                    }
+                }
+            }
         }
     }
 }

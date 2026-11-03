@@ -1,11 +1,15 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.olm
 
 import de.connect2x.trixnity.crypto.driver.olm.NormalMessageFactory
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.olm.OlmMessage
 
 object VodozemacNormalMessageFactory : NormalMessageFactory {
-    override fun invoke(bytes: ByteArray): VodozemacNormalMessage =
+    override fun invoke(bytes: ByteArray): VodozemacNormalMessage = rethrow {
         VodozemacNormalMessage(OlmMessage.Normal.Text(bytes))
+    }
 
-    override fun invoke(base64: String): VodozemacNormalMessage = VodozemacNormalMessage(OlmMessage.Normal.Text(base64))
+    override fun invoke(base64: String): VodozemacNormalMessage = rethrow {
+        VodozemacNormalMessage(OlmMessage.Normal.Text(base64))
+    }
 }

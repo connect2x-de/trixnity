@@ -1,12 +1,15 @@
 package de.connect2x.trixnity.crypto.driver.vodozemac.megolm
 
 import de.connect2x.trixnity.crypto.driver.megolm.ExportedSessionKeyFactory
+import de.connect2x.trixnity.crypto.driver.vodozemac.rethrow
 import de.connect2x.trixnity.vodozemac.megolm.ExportedSessionKey
 
 object VodozemacExportedSessionKeyFactory : ExportedSessionKeyFactory {
-    override fun invoke(bytes: ByteArray): VodozemacExportedSessionKey =
+    override fun invoke(bytes: ByteArray): VodozemacExportedSessionKey = rethrow {
         VodozemacExportedSessionKey(ExportedSessionKey(bytes))
+    }
 
-    override fun invoke(base64: String): VodozemacExportedSessionKey =
+    override fun invoke(base64: String): VodozemacExportedSessionKey = rethrow {
         VodozemacExportedSessionKey(ExportedSessionKey(base64))
+    }
 }
