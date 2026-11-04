@@ -4,6 +4,7 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import js.iterable.AsyncIterator
@@ -19,15 +20,19 @@ import kotlin.js.toList
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import web.blob.arrayBuffer
 import web.fs.FileSystemDirectoryHandle
 import web.fs.createWritable
@@ -87,13 +92,79 @@ class OpfsMediaStoreTest : TrixnityBaseTest() {
     }
 
     @Test
-    fun shouldNotAddMediaOnException() = test {
+    fun shouldReplaceExistingMedia() = test {
         cut.init(backgroundScope)
-        val file = MutableSharedFlow<ByteArray>()
-        val job = backgroundScope.launch { cut.addMedia("url1", file) }
-        file.emit("h".encodeToByteArray())
-        job.cancelAndJoin()
+        cut.addMedia("url1", "old".encodeToByteArray().toByteArrayFlow())
+        cut.addMedia("url1", "new".encodeToByteArray().toByteArrayFlow())
+        cut.getMedia("url1")?.toByteArray()?.decodeToString() shouldBe "new"
+        tmpPath.values().toList().size shouldBe 0
+    }
+
+    @Test
+    fun shouldNotAddMediaOnCancellation() = test {
+        cut.init(backgroundScope)
+        val started = CompletableDeferred<Unit>()
+        val content = flow {
+            emit("partial".encodeToByteArray())
+            started.complete(Unit)
+            awaitCancellation()
+        }
+        withContext(Dispatchers.Default) {
+            withTimeout(5.seconds) {
+                val job = launch { cut.addMedia("url1", content) }
+                started.await()
+                job.cancelAndJoin()
+            }
+        }
+        cut.getMedia("url1") shouldBe null
+        tmpPath.values().toList().size shouldBe 0
         basePath.values().toList().size shouldBe 1
+    }
+
+    @Test
+    fun shouldRemoveIncompleteDownloadOnFailure() = test {
+        cut.init(backgroundScope)
+        val failure = IllegalStateException("download failed")
+        val content = flow {
+            emit("partial".encodeToByteArray())
+            throw failure
+        }
+
+        shouldThrow<IllegalStateException> {
+            withContext(Dispatchers.Default) { withTimeout(5.seconds) { cut.addMedia("url1", content) } }
+        } shouldBe failure
+        cut.getMedia("url1") shouldBe null
+        tmpPath.values().toList().size shouldBe 0
+
+        cut.addMedia("url1", "retry".encodeToByteArray().toByteArrayFlow())
+        cut.getMedia("url1")?.toByteArray()?.decodeToString() shouldBe "retry"
+    }
+
+    @Test
+    fun shouldRemoveIncompleteDownloadWhenFlowCompletionFails() = test {
+        cut.init(backgroundScope)
+        val failure = IllegalStateException("completion failed")
+        val content = "invalid".encodeToByteArray().toByteArrayFlow().onCompletion { throw failure }
+
+        shouldThrow<IllegalStateException> {
+            withContext(Dispatchers.Default) { withTimeout(5.seconds) { cut.addMedia("url1", content) } }
+        } shouldBe failure
+        cut.getMedia("url1") shouldBe null
+        tmpPath.values().toList().size shouldBe 0
+    }
+
+    @Test
+    fun shouldOnlyExposeCompletedDownloads() = test {
+        cut.init(backgroundScope)
+        val content = flow {
+            emit("first".encodeToByteArray())
+            cut.getMedia("url1") shouldBe null
+            emit("second".encodeToByteArray())
+        }
+
+        withContext(Dispatchers.Default) { withTimeout(5.seconds) { cut.addMedia("url1", content) } }
+        cut.getMedia("url1")?.toByteArray()?.decodeToString() shouldBe "firstsecond"
+        tmpPath.values().toList().size shouldBe 0
     }
 
     @Test

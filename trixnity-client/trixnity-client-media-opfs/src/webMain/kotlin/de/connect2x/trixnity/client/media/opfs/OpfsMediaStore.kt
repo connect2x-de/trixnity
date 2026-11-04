@@ -15,23 +15,30 @@ import de.connect2x.trixnity.utils.writeTo
 import js.buffer.ArrayBuffer
 import js.iterable.asFlow
 import js.objects.unsafeJso
+import js.promise.Promise
+import js.promise.await
+import js.reflect.unsafeCast
 import js.typedarrays.Uint8Array
+import kotlin.js.JsAny
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okio.ByteString.Companion.toByteString
 import org.koin.dsl.module
 import web.events.EventType
 import web.events.addEventHandler
 import web.file.File
 import web.fs.FileSystemDirectoryHandle
+import web.fs.FileSystemFileHandle
 import web.fs.FileSystemGetDirectoryOptions
 import web.fs.FileSystemGetFileOptions
 import web.fs.FileSystemRemoveOptions
@@ -57,6 +64,7 @@ internal class OpfsMediaStore(
 ) : CachedMediaStore(coroutineScope, configuration, clock) {
 
     private val basePathLock = KeyedMutex<String>()
+    private val downloadsLock = KeyedMutex<String>()
 
     private suspend fun tmpPath() = basePath.getDirectoryHandle("tmp", FileSystemGetDirectoryOptions(create = true))
 
@@ -96,16 +104,19 @@ internal class OpfsMediaStore(
         getFileHandle(fileSystemSafe(url), FileSystemGetFileOptions(create = create))
 
     override suspend fun addMedia(url: String, content: ByteArrayFlow) =
-        basePathLock.withLock(url) {
+        downloadsLock.withLock(url) {
+            val downloadsPath = tmpPath()
+            val download = downloadsPath.resolveUrl(url, true)
             @Suppress("UNCHECKED_CAST")
-            val writableFileStream =
-                basePath.resolveUrl(url, true).createWritable() as WritableStream<Uint8Array<ArrayBuffer>>
+            val writableFileStream = download.createWritable() as WritableStream<Uint8Array<ArrayBuffer>>
+            // Saving into downloadsPath first prevents getMedia from finding an incomplete file.
             try {
                 content.writeTo(writableFileStream)
             } catch (throwable: Throwable) {
-                basePath.removeEntry(fileSystemSafe(url))
+                withContext(NonCancellable) { downloadsPath.removeEntry(fileSystemSafe(url)) }
                 throw throwable
             }
+            basePathLock.withLock(url) { download.move(basePath, fileSystemSafe(url)) }
         }
 
     override suspend fun getMedia(url: String): OpfsPlatformMedia? =
@@ -233,6 +244,16 @@ internal class OpfsMediaStore(
             } catch (_: Exception) {}
         }
     }
+}
+
+// https://developer.chrome.com/docs/capabilities/web-apis/file-system-access#renaming-and-moving-files-and-folders
+// https://caniuse.com/mdn-api_filesystemhandle_move
+private suspend fun FileSystemFileHandle.move(destination: FileSystemDirectoryHandle, name: String) {
+    unsafeCast<MovableFileHandle>().move(destination, name).await()
+}
+
+private external interface MovableFileHandle : JsAny {
+    fun move(destination: FileSystemDirectoryHandle, name: String): Promise<JsAny?>
 }
 
 fun MediaStoreModule.Companion.opfs(basePath: FileSystemDirectoryHandle) = MediaStoreModule {
