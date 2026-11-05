@@ -1421,6 +1421,51 @@ public final class de/connect2x/trixnity/core/model/EventId$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/MatrixUri {
+	public static final field Companion Lde/connect2x/trixnity/core/model/MatrixUri$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/MatrixUri;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getFull ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public static final fun isValid-impl (Ljava/lang/String;)Z
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/MatrixUri$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/MatrixUri$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize-6cQXH_g (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/String;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize-ycL2jF0 (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/String;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/MatrixUri$Companion {
+	public final fun from-36RtKAE (Ljava/lang/String;Lio/ktor/http/Parameters;)Ljava/lang/String;
+	public static synthetic fun from-36RtKAE$default (Lde/connect2x/trixnity/core/model/MatrixUri$Companion;Ljava/lang/String;Lio/ktor/http/Parameters;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun from-70yEMqQ (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Parameters;)Ljava/lang/String;
+	public static synthetic fun from-70yEMqQ$default (Lde/connect2x/trixnity/core/model/MatrixUri$Companion;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/Parameters;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun from-fNdwaM0 (Ljava/lang/String;Lio/ktor/http/Parameters;)Ljava/lang/String;
+	public static synthetic fun from-fNdwaM0$default (Lde/connect2x/trixnity/core/model/MatrixUri$Companion;Ljava/lang/String;Lio/ktor/http/Parameters;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun from-gy2z8q8 (Ljava/lang/String;Lio/ktor/http/Parameters;)Ljava/lang/String;
+	public static synthetic fun from-gy2z8q8$default (Lde/connect2x/trixnity/core/model/MatrixUri$Companion;Ljava/lang/String;Lio/ktor/http/Parameters;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun isValid (Ljava/lang/String;)Z
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/MatrixUriKt {
+	public static final fun toMatrixUri (Lde/connect2x/trixnity/core/util/Reference;)Ljava/lang/String;
+	public static final fun toReference-Q4zt8Sw (Ljava/lang/String;)Lde/connect2x/trixnity/core/util/Reference;
+}
+
 public final class de/connect2x/trixnity/core/model/MxcUri {
 	public static final field Companion Lde/connect2x/trixnity/core/model/MxcUri$Companion;
 	public static final synthetic fun box-impl (Ljava/lang/String;)Lde/connect2x/trixnity/core/model/MxcUri;
@@ -12001,5 +12046,9 @@ public final class de/connect2x/trixnity/core/util/Reference$User : de/connect2x
 	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/core/util/ReferenceKt {
+	public static final fun toLink (Lde/connect2x/trixnity/core/util/Reference;)Ljava/lang/String;
 }
 

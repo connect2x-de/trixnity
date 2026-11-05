@@ -5,6 +5,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.toMatrixUri
 import io.ktor.http.Parameters
 import io.ktor.http.URLParserException
 import io.ktor.http.URLProtocol
@@ -193,3 +194,6 @@ sealed interface Reference {
         private val matrixProtocol = URLProtocol("matrix", 0)
     }
 }
+
+/** Serializes Matrix references as Matrix URIs and preserves ordinary links verbatim. */
+fun Reference.toLink(): String = if (this is Reference.Link) url else checkNotNull(toMatrixUri()).full

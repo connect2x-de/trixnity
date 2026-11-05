@@ -12013,6 +12013,37 @@ final value class de.connect2x.trixnity.core.model/EventId { // de.connect2x.tri
     }
 }
 
+final value class de.connect2x.trixnity.core.model/MatrixUri { // de.connect2x.trixnity.core.model/MatrixUri|null[0]
+    constructor <init>(kotlin/String) // de.connect2x.trixnity.core.model/MatrixUri.<init>|<init>(kotlin.String){}[0]
+
+    final val full // de.connect2x.trixnity.core.model/MatrixUri.full|{}full[0]
+        final fun <get-full>(): kotlin/String // de.connect2x.trixnity.core.model/MatrixUri.full.<get-full>|<get-full>(){}[0]
+    final val isValid // de.connect2x.trixnity.core.model/MatrixUri.isValid|{}isValid[0]
+        final fun <get-isValid>(): kotlin/Boolean // de.connect2x.trixnity.core.model/MatrixUri.isValid.<get-isValid>|<get-isValid>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model/MatrixUri.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model/MatrixUri.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model/MatrixUri.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model/MatrixUri> { // de.connect2x.trixnity.core.model/MatrixUri.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.core.model/MatrixUri.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model/MatrixUri.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model/MatrixUri.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model/MatrixUri // de.connect2x.trixnity.core.model/MatrixUri.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model/MatrixUri) // de.connect2x.trixnity.core.model/MatrixUri.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.MatrixUri){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.core.model/MatrixUri.Companion|null[0]
+        final fun from(de.connect2x.trixnity.core.model/RoomAliasId, io.ktor.http/Parameters = ...): de.connect2x.trixnity.core.model/MatrixUri // de.connect2x.trixnity.core.model/MatrixUri.Companion.from|from(de.connect2x.trixnity.core.model.RoomAliasId;io.ktor.http.Parameters){}[0]
+        final fun from(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId, io.ktor.http/Parameters = ...): de.connect2x.trixnity.core.model/MatrixUri // de.connect2x.trixnity.core.model/MatrixUri.Companion.from|from(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId;io.ktor.http.Parameters){}[0]
+        final fun from(de.connect2x.trixnity.core.model/RoomId, io.ktor.http/Parameters = ...): de.connect2x.trixnity.core.model/MatrixUri // de.connect2x.trixnity.core.model/MatrixUri.Companion.from|from(de.connect2x.trixnity.core.model.RoomId;io.ktor.http.Parameters){}[0]
+        final fun from(de.connect2x.trixnity.core.model/UserId, io.ktor.http/Parameters = ...): de.connect2x.trixnity.core.model/MatrixUri // de.connect2x.trixnity.core.model/MatrixUri.Companion.from|from(de.connect2x.trixnity.core.model.UserId;io.ktor.http.Parameters){}[0]
+        final fun isValid(kotlin/String): kotlin/Boolean // de.connect2x.trixnity.core.model/MatrixUri.Companion.isValid|isValid(kotlin.String){}[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model/MatrixUri> // de.connect2x.trixnity.core.model/MatrixUri.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final value class de.connect2x.trixnity.core.model/MxcUri { // de.connect2x.trixnity.core.model/MxcUri|null[0]
     constructor <init>(kotlin/String) // de.connect2x.trixnity.core.model/MxcUri.<init>|<init>(kotlin.String){}[0]
     constructor <init>(kotlin/String, kotlin/String) // de.connect2x.trixnity.core.model/MxcUri.<init>|<init>(kotlin.String;kotlin.String){}[0]
@@ -12709,10 +12740,13 @@ final val de.connect2x.trixnity.core.serialization.events/defaultEphemeralDataUn
     final fun (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings.Companion).<get-defaultEphemeralDataUnit>(): de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings // de.connect2x.trixnity.core.serialization.events/defaultEphemeralDataUnit.<get-defaultEphemeralDataUnit>|<get-defaultEphemeralDataUnit>@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings.Companion(){}[0]
 
 final fun (de.connect2x.trixnity.core.model.push/PushRuleSet).de.connect2x.trixnity.core.model.push/toList(): kotlin.collections/List<de.connect2x.trixnity.core.model.push/PushRule> // de.connect2x.trixnity.core.model.push/toList|toList@de.connect2x.trixnity.core.model.push.PushRuleSet(){}[0]
+final fun (de.connect2x.trixnity.core.model/MatrixUri).de.connect2x.trixnity.core.model/toReference(): de.connect2x.trixnity.core.util/Reference? // de.connect2x.trixnity.core.model/toReference|toReference@de.connect2x.trixnity.core.model.MatrixUri(){}[0]
 final fun (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings.Companion).de.connect2x.trixnity.core.serialization.events/default(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings): de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings // de.connect2x.trixnity.core.serialization.events/default|default@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings.Companion(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings){}[0]
 final fun (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings.Companion).de.connect2x.trixnity.core.serialization.events/defaultDataUnit(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings): de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings // de.connect2x.trixnity.core.serialization.events/defaultDataUnit|defaultDataUnit@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings.Companion(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings){}[0]
 final fun (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings.Companion).de.connect2x.trixnity.core.serialization.events/defaultEphemeralDataUnit(de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings): de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings // de.connect2x.trixnity.core.serialization.events/defaultEphemeralDataUnit|defaultEphemeralDataUnit@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings.Companion(de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings){}[0]
 final fun (de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings.Companion).de.connect2x.trixnity.core.serialization.events/invoke(kotlin/Function1<de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder, kotlin/Unit>): de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings // de.connect2x.trixnity.core.serialization.events/invoke|invoke@de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings.Companion(kotlin.Function1<de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder,kotlin.Unit>){}[0]
+final fun (de.connect2x.trixnity.core.util/Reference).de.connect2x.trixnity.core.model/toMatrixUri(): de.connect2x.trixnity.core.model/MatrixUri? // de.connect2x.trixnity.core.model/toMatrixUri|toMatrixUri@de.connect2x.trixnity.core.util.Reference(){}[0]
+final fun (de.connect2x.trixnity.core.util/Reference).de.connect2x.trixnity.core.util/toLink(): kotlin/String // de.connect2x.trixnity.core.util/toLink|toLink@de.connect2x.trixnity.core.util.Reference(){}[0]
 final fun (de.connect2x.trixnity.core/ClientEventEmitter<*>).de.connect2x.trixnity.core/subscribe(kotlin/Int = ..., kotlin.coroutines/SuspendFunction0<kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.core/subscribe|subscribe@de.connect2x.trixnity.core.ClientEventEmitter<*>(kotlin.Int;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 final fun (de.connect2x.trixnity.core/ClientEventEmitter<*>).de.connect2x.trixnity.core/subscribeChangeAsFlow(kotlin/Int = ...): kotlinx.coroutines.flow/Flow<kotlin/Unit> // de.connect2x.trixnity.core/subscribeChangeAsFlow|subscribeChangeAsFlow@de.connect2x.trixnity.core.ClientEventEmitter<*>(kotlin.Int){}[0]
 final fun (de.connect2x.trixnity.core/ClientEventEmitter<*>).de.connect2x.trixnity.core/subscribeEachEvent(kotlin/Int = ..., kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.core.model.events/ClientEvent<*>, kotlin/Unit>): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.core/subscribeEachEvent|subscribeEachEvent@de.connect2x.trixnity.core.ClientEventEmitter<*>(kotlin.Int;kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.core.model.events.ClientEvent<*>,kotlin.Unit>){}[0]
