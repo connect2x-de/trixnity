@@ -25,6 +25,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes.
 - Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them `CryptoDriverException`
 - Fix OPFS media downloads hanging when encrypted downloads exceed their size limit or fail hash validation.
+- Wait for client completion before closing the Room database
 
 ### Security
 
