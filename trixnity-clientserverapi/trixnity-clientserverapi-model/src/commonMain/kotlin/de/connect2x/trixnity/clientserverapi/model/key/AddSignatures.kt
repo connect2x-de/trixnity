@@ -17,5 +17,5 @@ import kotlinx.serialization.json.JsonElement
 @Resource("/_matrix/client/v3/keys/signatures/upload")
 @HttpMethod(POST)
 data object AddSignatures : MatrixEndpoint<Map<UserId, Map<String, JsonElement>>, AddSignatures.Response> {
-    @Serializable data class Response(@SerialName("failures") val failures: Map<UserId, Map<String, JsonElement>>)
+    @Serializable data class Response(@SerialName("failures") val failures: Map<UserId, Map<String, JsonElement>>? = null)
 }

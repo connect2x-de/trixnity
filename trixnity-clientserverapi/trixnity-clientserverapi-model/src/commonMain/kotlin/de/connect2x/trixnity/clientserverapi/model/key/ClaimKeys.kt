@@ -24,7 +24,7 @@ data object ClaimKeys : MatrixEndpoint<ClaimKeys.Request, ClaimKeys.Response> {
 
     @Serializable
     data class Response(
-        @SerialName("failures") val failures: Map<String, JsonElement>,
+        @SerialName("failures") val failures: Map<String, JsonElement>? = null,
         @SerialName("one_time_keys") val oneTimeKeys: Map<UserId, Map<String, Keys>>,
     )
 }
