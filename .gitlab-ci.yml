@@ -245,8 +245,8 @@ pages:
       when: never
   script:
     - cd website
-    - yarn install --force
-    - yarn build
+    - npm install --force
+    - npm run build
     - mv ./build ../public
   artifacts:
     paths:
