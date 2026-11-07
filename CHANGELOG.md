@@ -15,7 +15,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
-- Made `failures` in `ClaimKeys.Response` and `AddSignatures.Response` nullable
 
 ### Deprecated
 
