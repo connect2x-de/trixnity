@@ -655,7 +655,7 @@ class OlmEncryptionServiceImpl(
     ): SignedCurve25519Key {
         val response = fold(onFailure = { throw EncryptOlmError.NetworkError(it) }, onSuccess = { it })
 
-        when (val failures = response.failures[recipientUserId.domain]) {
+        when (val failures = response.failures?.get(recipientUserId.domain)) {
             is JsonArray if failures.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())
             is JsonObject if failures.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())
             is JsonPrimitive if failures.content.isNotEmpty() -> throw RemoteHomeserverNotReachable(failures.toString())

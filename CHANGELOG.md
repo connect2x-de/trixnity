@@ -26,6 +26,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them `CryptoDriverException`
 - Fix OPFS media downloads hanging when encrypted downloads exceed their size limit or fail hash validation.
 - Wait for client completion before closing the Room database
+- Fix verification and Olm session creation on homeservers omitting `failures` in key upload/claim responses
 
 ### Security
 

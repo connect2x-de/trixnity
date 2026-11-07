@@ -421,7 +421,7 @@ class KeyTrustServiceImpl(
         if (signedDeviceKeys.isNotEmpty() || signedCrossSigningKeys.isNotEmpty()) {
             log.debug { "upload signed keys: ${signedDeviceKeys + signedCrossSigningKeys}" }
             val response = api.key.addSignatures(signedDeviceKeys.toSet(), signedCrossSigningKeys.toSet()).getOrThrow()
-            if (response.failures.isNotEmpty()) {
+            if (!response.failures.isNullOrEmpty()) {
                 log.error { "could not add signatures to server: ${response.failures}" }
                 throw UploadSignaturesException(response.failures.toString())
             }
