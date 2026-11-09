@@ -15,6 +15,6 @@ Override the `modules` in `MatrixClientConfiguration`. For example:
 
 ```kotlin
 matrixClient.create(...){
-    modules = createTrixnityBotModules()
+    modulesFactories = createTrixnityBotModuleFactories()
 }
 ```
