@@ -16,6 +16,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
+- Unexpected exceptions are now bubbled up in `MatrixClient` and `MatrixClientServerApiClient` as per expected
+  structured concurrency rules
 
 ### Deprecated
 
@@ -24,7 +26,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 
 - Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes.
-- Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them `CryptoDriverException`
+- Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them
+  `CryptoDriverException`
 - Fix OPFS media downloads hanging when encrypted downloads exceed their size limit or fail hash validation.
 - Wait for client completion before closing the Room database
 - Fix verification and Olm session creation on homeservers omitting `failures` in key upload/claim responses

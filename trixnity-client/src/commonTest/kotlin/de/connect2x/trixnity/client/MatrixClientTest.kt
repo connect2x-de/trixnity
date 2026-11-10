@@ -58,9 +58,13 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -854,6 +858,32 @@ class MatrixClientTest : TrixnityBaseTest() {
             val accountStore = cut.di.get<AccountStore>()
             accountStore.getAccount()?.userId shouldBe null
         }
+    }
+
+    @Test
+    fun `do not swallow exceptions`() = runTest {
+        val failure = IllegalStateException("internal failure")
+        val parentJob = Job()
+        val callerCoroutineContext = backgroundScope.coroutineContext + parentJob
+
+        val cut =
+            MatrixClient.create(
+                    repositoriesModule = repositoriesModule(),
+                    mediaStoreModule = MediaStoreModule.inMemory(),
+                    cryptoDriverModule = cryptoDriverModule,
+                    coroutineContext = callerCoroutineContext,
+                    configuration = { httpClientEngine = scopedMockEngineWithEndpoints(json, mappings) {} },
+                )
+                .getOrThrow()
+                .shouldNotBeNull()
+
+        cut.use {
+            cut.di.get<CoroutineScope>().launch { throw failure }
+            delay(10.milliseconds)
+        }
+        parentJob.isCancelled shouldBe true
+        @OptIn(InternalCoroutinesApi::class)
+        parentJob.getCancellationException().cause shouldBe failure
     }
 
     private suspend fun TestScope.loginStateSetup(): MatrixClient {
