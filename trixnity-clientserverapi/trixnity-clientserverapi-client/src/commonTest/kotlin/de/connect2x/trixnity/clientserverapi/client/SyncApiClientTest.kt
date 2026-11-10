@@ -13,10 +13,15 @@ import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.block.EventContentBlock
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
-import de.connect2x.trixnity.core.model.events.m.*
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.thread
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.SessionKeyValue
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
@@ -41,12 +46,27 @@ import kotlin.test.fail
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -1600,6 +1620,63 @@ class SyncApiClientTest : TrixnityBaseTest() {
                 secondEndpoint.await()
 
                 states.await() shouldBe listOf(SyncState.STOPPED, SyncState.STARTED, SyncState.RUNNING)
+            }
+    }
+
+    @Test
+    fun `should mark sync as stopped on completion`() = runTest {
+        val parent = Job()
+        val callerCoroutineContext = backgroundScope.coroutineContext + parent
+
+        val syncBatchTokenStore = SyncBatchTokenStore.inMemory()
+        val requestStarted = MutableSharedFlow<CompletableDeferred<Unit>>()
+        val requestCount = MutableStateFlow(0)
+        MatrixClientServerApiClientImpl(
+                baseUrl = Url("https://matrix.host"),
+                httpClientEngine =
+                    scopedMockEngine(withDefaultResponse = false) {
+                        addHandler { request ->
+                            when (requestCount.getAndUpdate { it + 1 }) {
+                                0 -> {
+                                    val complete = CompletableDeferred<Unit>()
+                                    requestStarted.emit(complete)
+                                    complete.await()
+
+                                    respond(
+                                        json.encodeToString(syncResponseSerializer, serverResponse1),
+                                        HttpStatusCode.OK,
+                                        headersOf(HttpHeaders.ContentType, Application.Json.toString()),
+                                    )
+                                }
+
+                                else -> {
+                                    val complete = CompletableDeferred<Unit>()
+                                    requestStarted.emit(complete)
+                                    complete.await()
+
+                                    fail("should be cancelled before complete.await()")
+                                }
+                            }
+                        }
+                    },
+                syncBatchTokenStore = syncBatchTokenStore,
+                coroutineContext = callerCoroutineContext,
+            )
+            .use { matrixRestClient ->
+                syncBatchTokenStore.setSyncBatchToken("some")
+                matrixRestClient.sync.start()
+
+                matrixRestClient.sync.currentSyncState.first { it == SyncState.STARTED }
+                requestStarted.first().complete(Unit)
+                matrixRestClient.sync.currentSyncState.first { it == SyncState.RUNNING }
+
+                // wait for second request but don't complete it
+                requestStarted.first()
+
+                requestCount.value shouldBe 2
+                parent.cancel()
+                delay(10.milliseconds)
+                matrixRestClient.sync.currentSyncState.value shouldBe SyncState.STOPPED
             }
     }
 }

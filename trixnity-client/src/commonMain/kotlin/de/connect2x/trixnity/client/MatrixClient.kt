@@ -54,7 +54,6 @@ import de.connect2x.trixnity.crypto.sign.SignService
 import de.connect2x.trixnity.utils.retry
 import io.ktor.http.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -62,7 +61,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -182,9 +180,13 @@ suspend fun MatrixClient.Companion.create(
     configuration: MatrixClientConfiguration.() -> Unit = {},
 ): Result<MatrixClient> = kotlin.runCatching {
     val config = MatrixClientConfiguration().apply(configuration)
-    val finalCoroutineContext = (config.name?.let { CoroutineName(it) } ?: EmptyCoroutineContext) + coroutineContext
     val coroutineScope =
-        CoroutineScope(finalCoroutineContext + SupervisorJob(coroutineContext[Job]) + coroutineExceptionHandler)
+        CoroutineScope(
+            coroutineContext +
+                Job(coroutineContext[Job]) +
+                CoroutineName(config.name ?: "MatrixClient") +
+                coroutineExceptionHandler
+        )
 
     try {
         val extraModules = listOf(repositoriesModule.create(), mediaStoreModule.create(), cryptoDriverModule.create())
@@ -223,7 +225,7 @@ suspend fun MatrixClient.Companion.create(
             requireNotNull(authProviderData) { "authProviderData must not be null when repositories are empty." }
             val whoAmI =
                 authProviderData.useApi(
-                    coroutineContext = finalCoroutineContext,
+                    coroutineContext = coroutineScope.coroutineContext,
                     httpClientEngine = config.httpClientEngine,
                     httpClientConfig = config.httpClientConfig,
                 ) {
@@ -259,7 +261,7 @@ suspend fun MatrixClient.Companion.create(
                     log.debug { "re-authenticate" }
                     val (newUserId, newDeviceId) =
                         authProviderData.useApi(
-                            coroutineContext = finalCoroutineContext,
+                            coroutineContext = coroutineScope.coroutineContext,
                             httpClientEngine = config.httpClientEngine,
                             httpClientConfig = config.httpClientConfig,
                         ) {
@@ -299,7 +301,7 @@ suspend fun MatrixClient.Companion.create(
                 eventContentSerializerMappings = di.get(),
                 syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
                 syncErrorDelayConfig = config.syncErrorDelayConfig,
-                coroutineContext = finalCoroutineContext,
+                coroutineContext = coroutineScope.coroutineContext,
                 httpClientEngine = config.httpClientEngine,
                 httpClientConfig = config.httpClientConfig,
             )
@@ -438,7 +440,7 @@ private suspend fun onLogout(
 }
 
 private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-    log.error(exception) { "There was an unexpected exception. This should never happen!!!" }
+    log.error(exception) { "There was an unexpected exception in MatrixClient. This should never happen!!!" }
 }
 
 private suspend fun runMigrationsAndInitStores(di: Koin) {

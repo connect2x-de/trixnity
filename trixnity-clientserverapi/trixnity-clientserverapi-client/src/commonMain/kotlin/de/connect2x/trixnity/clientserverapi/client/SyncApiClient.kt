@@ -17,10 +17,8 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.utils.RetryFlowDelayConfig
 import de.connect2x.trixnity.utils.retryLoop
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.plugins.timeout
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
@@ -50,6 +48,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -208,6 +207,7 @@ class SyncApiClientImpl(
     private val syncLoopStartMutex = Mutex()
 
     init {
+        coroutineScope.coroutineContext.job.invokeOnCompletion { _currentSyncState.value = STOPPED }
         coroutineScope.launch { syncLoop() }
         if (log.level <= Level.INFO) {
             coroutineScope.launch { currentSyncState.collect { log.info { "current sync state: $it" } } }

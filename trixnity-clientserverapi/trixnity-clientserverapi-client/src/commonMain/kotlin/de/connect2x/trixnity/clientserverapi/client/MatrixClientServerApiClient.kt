@@ -17,7 +17,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
 import kotlinx.serialization.json.Json
@@ -155,10 +154,12 @@ class MatrixClientServerApiClientImpl(
     override val authProviderType: KClass<out MatrixClientAuthProvider> = authProvider::class
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
-        log.error(exception) { "There was an unexpected exception in sync. This should never happen!!!" }
+        log.error(exception) {
+            "There was an unexpected exception in MatrixClientServerApiClient. This should never happen!!!"
+        }
     }
     private val coroutineScope: CoroutineScope =
-        CoroutineScope(coroutineContext + SupervisorJob(coroutineContext[Job]) + coroutineExceptionHandler)
+        CoroutineScope(coroutineContext + Job(coroutineContext[Job]) + coroutineExceptionHandler)
 
     override val appservice: AppserviceApiClient = AppserviceApiClientImpl(baseClient)
     override val authentication = AuthenticationApiClientImpl(baseClient, authProvider)
