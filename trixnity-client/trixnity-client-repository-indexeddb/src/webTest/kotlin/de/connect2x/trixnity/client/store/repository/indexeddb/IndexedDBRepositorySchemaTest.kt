@@ -13,7 +13,7 @@ class IndexedDBRepositorySchemaTest {
         """
         {
           "name": "repository",
-          "version": 11,
+          "version": 12,
           "stores": {
             "account": {
               "keyPath": null,
@@ -291,43 +291,25 @@ class IndexedDBRepositorySchemaTest {
               "autoIncrement": false,
               "indexes": {}
             },
-            "sticky_event": {
-              "keyPath": [
-                "roomId",
-                "type",
-                "sender",
-                "stickyKey"
-              ],
-              "autoIncrement": false,
-              "indexes": {
-                "endTimeMs": {
-                  "keyPath": "endTimeMs",
-                  "unique": false,
-                  "multiEntry": false
-                },
-                "roomId": {
-                  "keyPath": "roomId",
-                  "unique": false,
-                  "multiEntry": false
-                },
-                "roomId|eventId": {
+            "sticky_event_2": {
                   "keyPath": [
                     "roomId",
-                    "value.event.event_id"
+                    "eventId"
                   ],
-                  "unique": false,
-                  "multiEntry": false
+                  "autoIncrement": false,
+                  "indexes": {
+                    "endTimeMs": {
+                      "keyPath": "endTimeMs",
+                      "unique": false,
+                      "multiEntry": false
+                    },
+                    "roomId": {
+                      "keyPath": "roomId",
+                      "unique": false,
+                      "multiEntry": false
+                    }
+                  }
                 },
-                "roomId|type": {
-                  "keyPath": [
-                    "roomId",
-                    "type"
-                  ],
-                  "unique": false,
-                  "multiEntry": false
-                }
-              }
-            },
             "timeline_event": {
               "keyPath": null,
               "autoIncrement": false,

@@ -255,23 +255,54 @@ class RoomServiceMock : RoomService {
         roomId: RoomId,
         eventContentClass: KClass<C>,
         sender: UserId,
-        stickyKey: String?,
-    ): Flow<ClientEvent.RoomEvent<C>?> {
-        return flowOf(null)
+        stickyKey: String,
+    ): Flow<ClientEvent.RoomEvent.MessageEvent<C>?> {
+        throw NotImplementedError()
     }
 
     @MSC4354
     override fun <C : StickyEventContent> getAllSticky(
         roomId: RoomId,
         eventContentClass: KClass<C>,
-    ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return flowOf(emptyMap())
+    ): Flow<List<ClientEvent.RoomEvent.MessageEvent<C>>> {
+        throw NotImplementedError()
     }
 
     @MSC4354
     override fun <C : StickyEventContent> getAllSticky(
         eventContentClass: KClass<C>
-    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent<C>?>>> {
-        return flowOf(emptyMap())
+    ): Flow<Map<RoomId, List<ClientEvent.RoomEvent.MessageEvent<C>>>> {
+        throw NotImplementedError()
+    }
+
+    val getAllStickyMap =
+        MutableStateFlow<Map<RoomId, Map<Pair<UserId, String>, ClientEvent.RoomEvent.MessageEvent<*>>>>(emptyMap())
+
+    @MSC4354
+    override fun <C : StickyEventContent> getAllStickyMap(
+        roomId: RoomId,
+        eventContentClass: KClass<C>,
+    ): Flow<Map<Pair<UserId, String>, ClientEvent.RoomEvent.MessageEvent<C>>> = getAllStickyMap.map {
+        it[roomId]
+            ?.filterValues { eventContentClass.isInstance(it.content) }
+            ?.mapValues {
+                @Suppress("UNCHECKED_CAST")
+                it.value as ClientEvent.RoomEvent.MessageEvent<C>
+            }
+            .orEmpty()
+    }
+
+    @MSC4354
+    override fun <C : StickyEventContent> getAllStickyMap(
+        eventContentClass: KClass<C>
+    ): Flow<Map<RoomId, Map<Pair<UserId, String>, ClientEvent.RoomEvent.MessageEvent<C>>>> = getAllStickyMap.map {
+        it.mapValues {
+            it.value
+                .filterValues { eventContentClass.isInstance(it.content) }
+                .mapValues {
+                    @Suppress("UNCHECKED_CAST")
+                    it.value as ClientEvent.RoomEvent.MessageEvent<C>
+                }
+        }
     }
 }

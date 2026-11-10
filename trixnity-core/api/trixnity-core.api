@@ -1918,7 +1918,6 @@ public abstract interface class de/connect2x/trixnity/core/model/events/ClientEv
 	public abstract fun getOriginTimestamp ()J
 	public abstract fun getRoomId-7hZGZBE ()Ljava/lang/String;
 	public abstract fun getSender-hu1aZbM ()Ljava/lang/String;
-	public abstract fun getSticky ()Lde/connect2x/trixnity/core/model/events/StickyEventData;
 	public abstract fun getUnsigned ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData;
 }
 
@@ -1942,7 +1941,7 @@ public final class de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent
 	public fun getOriginTimestamp ()J
 	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
 	public fun getSender-hu1aZbM ()Ljava/lang/String;
-	public fun getSticky ()Lde/connect2x/trixnity/core/model/events/StickyEventData;
+	public final fun getSticky ()Lde/connect2x/trixnity/core/model/events/StickyEventData;
 	public fun getUnsigned ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;
 	public synthetic fun getUnsigned ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData;
 	public fun hashCode ()I
@@ -1966,8 +1965,8 @@ public final class de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent
 
 public final class de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent : de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent, de/connect2x/trixnity/core/model/events/ClientEvent$StateBaseEvent {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent$Companion;
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StickyEventData;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StickyEventData;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/core/model/events/StateEventContent;
 	public final fun component2-33FGWrg ()Ljava/lang/String;
 	public final fun component3-hu1aZbM ()Ljava/lang/String;
@@ -1975,9 +1974,8 @@ public final class de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent
 	public final fun component5 ()J
 	public final fun component6 ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
 	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()Lde/connect2x/trixnity/core/model/events/StickyEventData;
-	public final fun copy-gBkZ094 (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StickyEventData;)Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;
-	public static synthetic fun copy-gBkZ094$default (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StickyEventData;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;
+	public final fun copy-pGLDzJM (Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;
+	public static synthetic fun copy-pGLDzJM$default (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$StateEvent;
 	public fun equals (Ljava/lang/Object;)Z
 	public synthetic fun getContent ()Lde/connect2x/trixnity/core/model/events/EventContent;
 	public fun getContent ()Lde/connect2x/trixnity/core/model/events/StateEventContent;
@@ -1989,7 +1987,6 @@ public final class de/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent
 	public synthetic fun getRoomId-rRQUNsA ()Ljava/lang/String;
 	public fun getSender-hu1aZbM ()Ljava/lang/String;
 	public fun getStateKey ()Ljava/lang/String;
-	public fun getSticky ()Lde/connect2x/trixnity/core/model/events/StickyEventData;
 	public fun getUnsigned ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
 	public synthetic fun getUnsigned ()Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData;
 	public fun hashCode ()I
@@ -3057,30 +3054,29 @@ public abstract interface class de/connect2x/trixnity/core/model/events/Unsigned
 	public abstract fun getMembership ()Lde/connect2x/trixnity/core/model/events/m/room/Membership;
 	public abstract fun getRedactedBecause ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public abstract fun getRelations-T1jyR3U ()Ljava/util/Map;
-	public abstract fun getStickyDurationTtlMs ()Ljava/lang/Long;
 	public abstract fun getTransactionId ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData : de/connect2x/trixnity/core/model/events/UnsignedRoomEventData {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData$Companion;
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/Long;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/String;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/String;Ljava/lang/Long;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Long;
 	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4-T1jyR3U ()Ljava/util/Map;
 	public final fun component5 ()Lde/connect2x/trixnity/core/model/events/m/room/Membership;
-	public final fun component6 ()Ljava/lang/Long;
-	public final fun component7-7Giyeiw ()Ljava/lang/String;
-	public final fun copy-Nj5jsf8 (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;
-	public static synthetic fun copy-Nj5jsf8$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;
+	public final fun component6-7Giyeiw ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/Long;
+	public final fun copy-JYFvxd0 (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/String;Ljava/lang/Long;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;
+	public static synthetic fun copy-JYFvxd0$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/lang/String;Ljava/lang/Long;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedMessageEventData;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getAge ()Ljava/lang/Long;
 	public fun getDelayId-7Giyeiw ()Ljava/lang/String;
 	public fun getMembership ()Lde/connect2x/trixnity/core/model/events/m/room/Membership;
 	public fun getRedactedBecause ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public fun getRelations-T1jyR3U ()Ljava/util/Map;
-	public fun getStickyDurationTtlMs ()Ljava/lang/Long;
+	public final fun getStickyDurationRemainingMs ()Ljava/lang/Long;
 	public fun getTransactionId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -3103,11 +3099,10 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 
 public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData : de/connect2x/trixnity/core/model/events/UnsignedRoomEventData {
 	public static final field Companion Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData$Companion;
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Long;
-	public final fun component10 ()Ljava/lang/Long;
-	public final fun component11-7Giyeiw ()Ljava/lang/String;
+	public final fun component10-7Giyeiw ()Ljava/lang/String;
 	public final fun component2 ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Lde/connect2x/trixnity/core/model/events/StateEventContent;
@@ -3116,8 +3111,8 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 	public final fun component7 ()Ljava/util/List;
 	public final fun component8 ()Ljava/util/List;
 	public final fun component9-srQVttY ()Ljava/lang/String;
-	public final fun copy-UvXzTC0 (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
-	public static synthetic fun copy-UvXzTC0$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
+	public final fun copy-wdo0ZXk (Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
+	public static synthetic fun copy-wdo0ZXk$default (Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;Ljava/lang/Long;Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/StateEventContent;Ljava/util/Map;Lde/connect2x/trixnity/core/model/events/m/room/Membership;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/UnsignedRoomEventData$UnsignedStateEventData;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getAge ()Ljava/lang/Long;
 	public fun getDelayId-7Giyeiw ()Ljava/lang/String;
@@ -3128,7 +3123,6 @@ public final class de/connect2x/trixnity/core/model/events/UnsignedRoomEventData
 	public fun getRedactedBecause ()Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;
 	public fun getRelations-T1jyR3U ()Ljava/util/Map;
 	public final fun getReplacesState-srQVttY ()Ljava/lang/String;
-	public fun getStickyDurationTtlMs ()Ljava/lang/Long;
 	public fun getTransactionId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

@@ -2,13 +2,9 @@ package de.connect2x.trixnity.client.store.repository.exposed
 
 import de.connect2x.trixnity.client.store.StoredStickyEvent
 import de.connect2x.trixnity.client.store.repository.StickyEventRepository
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.StickyEventContent
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlin.time.Instant
@@ -28,124 +24,62 @@ import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.upsert
 
 @MSC4354
-internal object ExposedStickyEvent : Table("sticky_event") {
+internal object ExposedStickyEvent : Table("sticky_event_2") {
     val roomId = varchar("room_id", length = 255)
-    val type = varchar("type", length = 255)
-    val sender = varchar("sender", length = 255)
-    val stickyKey = varchar("sticky_key", length = 255)
     val eventId = varchar("event_id", length = 255)
-    override val primaryKey = PrimaryKey(roomId, type, sender, stickyKey)
+    override val primaryKey = PrimaryKey(roomId, eventId)
     val endTimeMs = long("end_time_ms")
     val value = text("value")
 }
 
 @MSC4354
 internal class ExposedStickyEventRepository(private val json: Json) : StickyEventRepository {
-    companion object {
-        private const val STICKY_KEY_NULL = "NULL"
-        private const val STICKY_KEY_NON_NULL_PREFIX = "V-"
-
-        private fun dbStickyKey(stickyKey: String?): String =
-            stickyKey?.let { STICKY_KEY_NON_NULL_PREFIX + it } ?: STICKY_KEY_NULL
-
-        private fun originalStickyKey(stickyKey: String): String? =
-            if (stickyKey == STICKY_KEY_NULL) null else stickyKey.removePrefix(STICKY_KEY_NON_NULL_PREFIX)
-    }
-
     context(transaction: ReadTransaction)
-    override suspend fun get(
-        firstKey: StickyEventRepositoryFirstKey
-    ): Map<StickyEventRepositorySecondKey, StoredStickyEvent<StickyEventContent>> {
+    override suspend fun get(firstKey: RoomId): Map<EventId, StoredStickyEvent> {
         return ExposedStickyEvent.selectAll()
-            .where { ExposedStickyEvent.roomId.eq(firstKey.roomId.full) and ExposedStickyEvent.type.eq(firstKey.type) }
+            .where { ExposedStickyEvent.roomId.eq(firstKey.full) }
             .associate {
-                StickyEventRepositorySecondKey(
-                    UserId(it[ExposedStickyEvent.sender]),
-                    originalStickyKey(it[ExposedStickyEvent.stickyKey]),
-                ) to json.decodeFromString(StoredStickyEvent.Serializer, it[ExposedStickyEvent.value])
+                EventId(it[ExposedStickyEvent.eventId]) to json.decodeFromString(it[ExposedStickyEvent.value])
             }
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun get(
-        firstKey: StickyEventRepositoryFirstKey,
-        secondKey: StickyEventRepositorySecondKey,
-    ): StoredStickyEvent<StickyEventContent>? {
+    override suspend fun get(firstKey: RoomId, secondKey: EventId): StoredStickyEvent? {
         return ExposedStickyEvent.selectAll()
-            .where {
-                ExposedStickyEvent.roomId.eq(firstKey.roomId.full) and
-                    ExposedStickyEvent.type.eq(firstKey.type) and
-                    ExposedStickyEvent.sender.eq(secondKey.sender.full) and
-                    ExposedStickyEvent.stickyKey.eq(dbStickyKey(secondKey.stickyKey))
-            }
+            .where { ExposedStickyEvent.roomId.eq(firstKey.full) and ExposedStickyEvent.eventId.eq(secondKey.full) }
             .firstOrNull()
-            ?.let { json.decodeFromString(StoredStickyEvent.Serializer, it[ExposedStickyEvent.value]) }
+            ?.let { json.decodeFromString(it[ExposedStickyEvent.value]) }
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getByEndTimeBefore(
-        before: Instant
-    ): Set<Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>> {
+    override suspend fun getByEndTimeBefore(before: Instant): Set<Pair<RoomId, EventId>> {
         return ExposedStickyEvent.selectAll()
             .where { ExposedStickyEvent.endTimeMs.less(before.toEpochMilliseconds()) }
-            .map {
-                StickyEventRepositoryFirstKey(RoomId(it[ExposedStickyEvent.roomId]), it[ExposedStickyEvent.type]) to
-                    StickyEventRepositorySecondKey(
-                        UserId(it[ExposedStickyEvent.sender]),
-                        originalStickyKey(it[ExposedStickyEvent.stickyKey]),
-                    )
-            }
+            .map { RoomId(it[ExposedStickyEvent.roomId]) to EventId(it[ExposedStickyEvent.eventId]) }
             .toSet()
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getByEventId(
-        roomId: RoomId,
-        eventId: EventId,
-    ): Pair<StickyEventRepositoryFirstKey, StickyEventRepositorySecondKey>? {
+    override suspend fun getAll(): List<StoredStickyEvent> {
         return ExposedStickyEvent.selectAll()
-            .where { ExposedStickyEvent.roomId.eq(roomId.full) and ExposedStickyEvent.eventId.eq(eventId.full) }
-            .map {
-                StickyEventRepositoryFirstKey(RoomId(it[ExposedStickyEvent.roomId]), it[ExposedStickyEvent.type]) to
-                    StickyEventRepositorySecondKey(
-                        UserId(it[ExposedStickyEvent.sender]),
-                        originalStickyKey(it[ExposedStickyEvent.stickyKey]),
-                    )
-            }
-            .firstOrNull()
-    }
-
-    context(transaction: ReadTransaction)
-    override suspend fun getAll(): List<StoredStickyEvent<StickyEventContent>> {
-        return ExposedStickyEvent.selectAll()
-            .map { json.decodeFromString(StoredStickyEvent.Serializer, it[ExposedStickyEvent.value]) }
+            .map { json.decodeFromString<StoredStickyEvent>(it[ExposedStickyEvent.value]) }
             .toList()
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun save(
-        firstKey: StickyEventRepositoryFirstKey,
-        secondKey: StickyEventRepositorySecondKey,
-        value: StoredStickyEvent<StickyEventContent>,
-    ) {
+    override suspend fun save(firstKey: RoomId, secondKey: EventId, value: StoredStickyEvent) {
         ExposedStickyEvent.upsert {
-            it[ExposedStickyEvent.roomId] = firstKey.roomId.full
-            it[ExposedStickyEvent.type] = firstKey.type
-            it[ExposedStickyEvent.sender] = secondKey.sender.full
-            it[ExposedStickyEvent.stickyKey] = dbStickyKey(secondKey.stickyKey)
-            it[ExposedStickyEvent.eventId] = value.event.id.full
+            it[ExposedStickyEvent.roomId] = firstKey.full
+            it[ExposedStickyEvent.eventId] = secondKey.full
             it[ExposedStickyEvent.endTimeMs] = value.endTime.toEpochMilliseconds()
-            it[ExposedStickyEvent.value] = json.encodeToString(StoredStickyEvent.Serializer, value)
+            it[ExposedStickyEvent.value] = json.encodeToString(value)
         }
     }
 
     context(transaction: WriteTransaction)
-    override suspend fun delete(firstKey: StickyEventRepositoryFirstKey, secondKey: StickyEventRepositorySecondKey) {
+    override suspend fun delete(firstKey: RoomId, secondKey: EventId) {
         ExposedStickyEvent.deleteWhere {
-            ExposedStickyEvent.roomId.eq(firstKey.roomId.full) and
-                ExposedStickyEvent.type.eq(firstKey.type) and
-                ExposedStickyEvent.sender.eq(secondKey.sender.full) and
-                ExposedStickyEvent.stickyKey.eq(dbStickyKey(secondKey.stickyKey))
+            ExposedStickyEvent.roomId.eq(firstKey.full) and ExposedStickyEvent.eventId.eq(secondKey.full)
         }
     }
 
