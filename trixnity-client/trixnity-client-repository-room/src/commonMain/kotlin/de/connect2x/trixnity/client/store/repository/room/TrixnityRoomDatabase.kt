@@ -5,6 +5,7 @@ import androidx.room3.ColumnTypeConverters
 import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.DeleteColumn
+import androidx.room3.DeleteTable
 import androidx.room3.RoomDatabase
 import androidx.room3.RoomDatabaseConstructor
 import androidx.room3.migration.AutoMigrationSpec
@@ -47,7 +48,7 @@ import androidx.room3.migration.AutoMigrationSpec
             RoomStickyEvent::class,
             RoomRoomKeyBundles::class,
         ],
-    version = 10, // tick this value when any entity classes change
+    version = 11, // tick this value when any entity classes change
     autoMigrations =
         [
             AutoMigration(from = 3, to = 4),
@@ -57,6 +58,7 @@ import androidx.room3.migration.AutoMigrationSpec
             AutoMigration(from = 7, to = 8, spec = TrixnityRoomDatabase.Delete7to8MigrationSpec::class),
             AutoMigration(from = 8, to = 9),
             AutoMigration(from = 9, to = 10),
+            AutoMigration(from = 10, to = 11, spec = TrixnityRoomDatabase.Delete10to11MigrationSpec::class),
         ],
     exportSchema = true,
 )
@@ -147,6 +149,8 @@ abstract class TrixnityRoomDatabase : RoomDatabase() {
     @DeleteColumn(tableName = "Account", columnName = "filterId")
     @DeleteColumn(tableName = "Account", columnName = "backgroundFilterId")
     class Delete7to8MigrationSpec : AutoMigrationSpec
+
+    @DeleteTable(tableName = "StickyEvent") class Delete10to11MigrationSpec : AutoMigrationSpec
 }
 
 // The Room compiler generates the `actual` implementations.

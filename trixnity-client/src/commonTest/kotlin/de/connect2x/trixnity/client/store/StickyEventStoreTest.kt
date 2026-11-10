@@ -5,8 +5,6 @@ import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.InMemoryStickyEventRepository
 import de.connect2x.trixnity.client.store.repository.NoOpStoreTransactionManager
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
 import de.connect2x.trixnity.core.MSC4143
 import de.connect2x.trixnity.core.MSC4193
 import de.connect2x.trixnity.core.MSC4354
@@ -19,14 +17,12 @@ import de.connect2x.trixnity.core.model.events.StickyEventData
 import de.connect2x.trixnity.core.model.events.m.rtc.CallRtcApplication
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberEventContent
 import de.connect2x.trixnity.core.model.events.m.rtc.RtcMemberId
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.async
@@ -45,7 +41,6 @@ class StickyEventStoreTest : TrixnityBaseTest() {
         StickyEventStore(
             stickyEventRepository = repo,
             tm = tm,
-            contentMappings = EventContentSerializerMappings.default,
             config = MatrixClientConfiguration(),
             statisticCollector = ObservableCacheStatisticCollector(),
             storeScope = testScope.backgroundScope,
@@ -55,8 +50,6 @@ class StickyEventStoreTest : TrixnityBaseTest() {
     private val roomId = RoomId("!room:server")
     private val eventId = EventId("\$event")
     private val sender = UserId("alice", "server")
-    private val firstKey = StickyEventRepositoryFirstKey(roomId, "org.matrix.msc4143.rtc.member")
-    private val secondKey = StickyEventRepositorySecondKey(sender, "sticky_key")
     private val event =
         RoomEvent.MessageEvent(
             content =
@@ -74,83 +67,69 @@ class StickyEventStoreTest : TrixnityBaseTest() {
             sticky = StickyEventData(durationMs = 1L),
         )
     private val storedStickyEvent =
-        StoredStickyEvent(
-            event = event,
-            startTime = Instant.fromEpochMilliseconds(1),
-            endTime = Instant.fromEpochMilliseconds(2),
-        )
+        StoredStickyEvent(roomId = roomId, eventId = eventId, endTime = Instant.fromEpochMilliseconds(2))
 
     @Test
     fun `deleteByEventId - should delete`() = runTest {
         tm.writeTransaction {
-            repo.save(firstKey, secondKey, storedStickyEvent)
+            repo.save(roomId, eventId, storedStickyEvent)
             cut.deleteByEventId(roomId, eventId)
-            repo.get(firstKey, secondKey) shouldBe null
+            repo.get(roomId, eventId) shouldBe null
         }
     }
 
     @Test
-    fun `save - should save when endTime after`() = runTest {
-        val storedStickyEventWithLaterEndTime = storedStickyEvent.copy(endTime = Instant.fromEpochMilliseconds(3))
+    fun `save - should save`() = runTest {
         tm.writeTransaction {
-            repo.save(firstKey, secondKey, storedStickyEvent)
-            cut.save(storedStickyEventWithLaterEndTime)
-            repo.get(firstKey, secondKey) shouldBe storedStickyEventWithLaterEndTime
-        }
-    }
-
-    @Test
-    fun `save - should skip when endTime before`() = runTest {
-        val storedStickyEventWithEarlierEndTime = storedStickyEvent.copy(endTime = Instant.fromEpochMilliseconds(1))
-        tm.writeTransaction {
-            repo.save(firstKey, secondKey, storedStickyEvent)
-            cut.save(storedStickyEventWithEarlierEndTime)
-            repo.get(firstKey, secondKey) shouldBe storedStickyEvent
-        }
-    }
-
-    @Test
-    fun `save - same endTime - should save when lexicographical higher`() = runTest {
-        val storedStickyEventWithHigherLexi = storedStickyEvent.copy(event = event.copy(id = EventId("\$zzzz")))
-        tm.writeTransaction {
-            repo.save(firstKey, secondKey, storedStickyEvent)
-            cut.save(storedStickyEventWithHigherLexi)
-            repo.get(firstKey, secondKey) shouldBe storedStickyEventWithHigherLexi
-        }
-    }
-
-    @Test
-    fun `save - same endTime - should skip when lexicographical lower`() = runTest {
-        val storedStickyEventWithLowerLexi = storedStickyEvent.copy(event = event.copy(id = EventId("\$aaaa")))
-        tm.writeTransaction {
-            repo.save(firstKey, secondKey, storedStickyEvent)
-            cut.save(storedStickyEventWithLowerLexi)
-            repo.get(firstKey, secondKey) shouldBe storedStickyEvent
+            cut.save(storedStickyEvent)
+            repo.get(roomId, eventId) shouldBe storedStickyEvent
         }
     }
 
     @Test
     fun `deleteInvalid - should delete when invalid`() = runTest {
-        tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
+        tm.writeTransaction { repo.save(roomId, eventId, storedStickyEvent) }
         delay(3.milliseconds)
         tm.writeTransaction {
             cut.deleteInvalid()
-            repo.get(firstKey, secondKey) shouldBe null
+            repo.get(roomId, eventId) shouldBe null
         }
     }
 
     @Test
-    fun `getBySenderAndStickyKey - should return null when not valid`() = runTest {
-        tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
+    fun `get - should return null when not valid`() = runTest {
+        tm.writeTransaction { repo.save(roomId, eventId, storedStickyEvent) }
         delay(3.milliseconds)
-        cut.getBySenderAndStickyKey<RtcMemberEventContent>(roomId, sender, "sticky_key").first() shouldBe null
+        cut.get(roomId, eventId).first() shouldBe null
+        cut.get(roomId).flattenValues(ZERO).first() shouldBe emptyList()
+        cut.getAll().flattenValues(ZERO).first() shouldBe emptyList()
     }
 
     @Test
-    fun `getBySenderAndStickyKey - should return null when not valid anymore`() = runTest {
-        tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
-        val result = backgroundScope.async {
-            cut.getBySenderAndStickyKey<RtcMemberEventContent>(roomId, sender, "sticky_key")
+    fun `get - should return null when not valid anymore`() = runTest {
+        tm.writeTransaction { repo.save(roomId, eventId, storedStickyEvent) }
+        val result1 = backgroundScope.async {
+            cut.get(roomId, eventId)
+                .transform {
+                    yield()
+                    emit(it)
+                }
+                .take(2)
+                .toList()
+        }
+        val result2 = backgroundScope.async {
+            cut.get(roomId)
+                .flattenValues(ZERO)
+                .transform {
+                    yield()
+                    emit(it)
+                }
+                .take(2)
+                .toList()
+        }
+        val result3 = backgroundScope.async {
+            cut.getAll()
+                .flattenValues(ZERO)
                 .transform {
                     yield()
                     emit(it)
@@ -159,46 +138,8 @@ class StickyEventStoreTest : TrixnityBaseTest() {
                 .toList()
         }
         delay(3.milliseconds)
-        result.await() shouldBe listOf(storedStickyEvent.event, null)
-    }
-
-    @Test
-    fun `getAll » get all sticky events`() = runTest {
-        val newStoredStickyEvent =
-            StoredStickyEvent(
-                event =
-                    RoomEvent.MessageEvent(
-                        content =
-                            RtcMemberEventContent.Join(
-                                CallRtcApplication.SLOT_ID,
-                                RtcMemberEventContent.Member(RtcMemberId("memberId")),
-                                CallRtcApplication.Member(),
-                                null,
-                                "sticky_key",
-                            ) as StickyEventContent,
-                        id = eventId,
-                        sender = sender,
-                        roomId = RoomId("other"),
-                        originTimestamp = 2000L,
-                        sticky = StickyEventData(durationMs = 5000L),
-                    ),
-                startTime = Instant.fromEpochMilliseconds(1),
-                endTime = Instant.fromEpochMilliseconds(6000L),
-            )
-        tm.writeTransaction { repo.save(firstKey, secondKey, storedStickyEvent) }
-
-        val result = backgroundScope.async {
-            cut.get<RtcMemberEventContent>().flattenValues(Duration.ZERO).take(3).toList()
-        }
-        delay(1.milliseconds)
-        tm.writeTransaction { cut.save(newStoredStickyEvent) }
-        delay(1.milliseconds)
-
-        result.await() shouldBe
-            listOf(
-                listOf(storedStickyEvent.event),
-                listOf(storedStickyEvent.event, newStoredStickyEvent.event),
-                listOf(newStoredStickyEvent.event),
-            )
+        result1.await() shouldBe listOf(storedStickyEvent, null)
+        result2.await() shouldBe listOf(listOf(storedStickyEvent), listOf())
+        result3.await() shouldBe listOf(listOf(storedStickyEvent), listOf())
     }
 }

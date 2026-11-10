@@ -18,6 +18,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
 - Unexpected exceptions are now bubbled up in `MatrixClient` and `MatrixClientServerApiClient` as per expected
   structured concurrency rules
+- New sticky event implementation for better reliability for decryption, replacements and redactions
 
 ### Deprecated
 

@@ -5,20 +5,9 @@ import de.connect2x.trixnity.client.store.cache.FullMapDeleteByRoomIdRepositoryO
 import de.connect2x.trixnity.client.store.cache.MapRepositoryCoroutinesCacheKey
 import de.connect2x.trixnity.client.store.cache.ObservableCacheStatisticCollector
 import de.connect2x.trixnity.client.store.repository.StickyEventRepository
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositoryFirstKey
-import de.connect2x.trixnity.client.store.repository.StickyEventRepositorySecondKey
 import de.connect2x.trixnity.core.MSC4354
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
-import de.connect2x.trixnity.core.model.events.RoomEventContent
-import de.connect2x.trixnity.core.model.events.StickyEventContent
-import de.connect2x.trixnity.core.model.events.UnknownEventContent
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.contentType
-import io.ktor.util.reflect.*
-import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -35,7 +24,6 @@ import kotlinx.coroutines.isActive
 class StickyEventStore(
     private val stickyEventRepository: StickyEventRepository,
     tm: StoreTransactionManager,
-    private val contentMappings: EventContentSerializerMappings,
     config: MatrixClientConfiguration,
     statisticCollector: ObservableCacheStatisticCollector,
     storeScope: CoroutineScope,
@@ -49,14 +37,9 @@ class StickyEventStore(
                 storeScope,
                 clock,
                 config.cacheExpireDurations.stickyEvent,
-                valueToKeyMapper = {
-                    MapRepositoryCoroutinesCacheKey(
-                        StickyEventRepositoryFirstKey(it.event.roomId, findType(it.event.content)),
-                        StickyEventRepositorySecondKey(it.event.sender, it.event.content.stickyKey),
-                    )
-                },
+                valueToKeyMapper = { MapRepositoryCoroutinesCacheKey(it.roomId, it.eventId) },
             ) {
-                it.firstKey.roomId
+                it.firstKey
             }
             .also(statisticCollector::addCache)
 
@@ -75,141 +58,55 @@ class StickyEventStore(
 
     context(transaction: StoreWriteTransaction)
     suspend fun deleteByEventId(roomId: RoomId, eventId: EventId) {
-        val key = stickyEventRepository.getByEventId(roomId, eventId)
-        if (key != null) {
-            stickyEventCache.set(MapRepositoryCoroutinesCacheKey(key.first, key.second), null)
-        }
+        stickyEventCache.set(MapRepositoryCoroutinesCacheKey(roomId, eventId), null)
     }
 
     context(transaction: StoreWriteTransaction)
-    suspend fun save(storedStickyEvent: StoredStickyEvent<StickyEventContent>) {
-        val event = storedStickyEvent.event
-        if (event.sticky == null || event.content is UnknownEventContent) return
-        val eventType = findType(event.content)
-        stickyEventCache.update(
-            MapRepositoryCoroutinesCacheKey(
-                StickyEventRepositoryFirstKey(event.roomId, eventType),
-                StickyEventRepositorySecondKey(event.sender, event.content.stickyKey),
-            )
-        ) {
-            when {
-                it == null -> storedStickyEvent
-                it.endTime == storedStickyEvent.endTime ->
-                    if (it.event.id.full > storedStickyEvent.event.id.full) it else storedStickyEvent
-
-                it.endTime > storedStickyEvent.endTime -> it
-                else -> storedStickyEvent
-            }
-        }
+    suspend fun save(storedStickyEvent: StoredStickyEvent) {
+        stickyEventCache.set(
+            MapRepositoryCoroutinesCacheKey(storedStickyEvent.roomId, storedStickyEvent.eventId),
+            storedStickyEvent,
+        )
     }
 
     context(transaction: StoreWriteTransaction)
     suspend fun deleteInvalid() {
         val now = clock.now()
         val invalidEvents = stickyEventRepository.getByEndTimeBefore(now)
-        for (invalidEvent in invalidEvents) {
-            stickyEventCache.update(MapRepositoryCoroutinesCacheKey(invalidEvent.first, invalidEvent.second)) {
-                if (it == null || it.endTime < now) null else it
-            }
+        for ((roomId, eventId) in invalidEvents) {
+            stickyEventCache.set(MapRepositoryCoroutinesCacheKey(roomId, eventId), null)
         }
     }
 
-    fun <C : StickyEventContent> get(
-        roomId: RoomId,
-        eventContentClass: KClass<C>,
-    ): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> {
-        val eventType = findType(eventContentClass)
-        return stickyEventCache.getByFirstKey(StickyEventRepositoryFirstKey(roomId, eventType)).map { value ->
-            value
-                .mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid().map { it?.event } }
-                .mapKeys { it.key.sender to it.key.stickyKey }
-        }
-    }
-
-    fun <C : StickyEventContent> get(
-        eventContentClass: KClass<C>
-    ): Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> =
-        stickyEventCache.getAll().map {
-            it.mapValues { entry -> entry.value.filterIsContent(eventContentClass).filterValid().map { it?.event } }
-                .mapKeys { Triple(it.key.firstKey.roomId, it.key.secondKey.sender, it.key.secondKey.stickyKey) }
+    fun getAll(): Flow<Map<Pair<RoomId, EventId>, Flow<StoredStickyEvent?>>> =
+        stickyEventCache.getAll().map { map ->
+            map.mapKeys { (key, _) -> key.firstKey to key.secondKey }.mapValues { (_, value) -> value.filterValid() }
         }
 
-    fun <C : StickyEventContent> getBySenderAndStickyKey(
-        roomId: RoomId,
-        eventContentClass: KClass<C>,
-        sender: UserId,
-        stickyKey: String?,
-    ): Flow<ClientEvent.RoomEvent.MessageEvent<C>?> {
-        val eventType = findType(eventContentClass)
-        return stickyEventCache
-            .get(
-                MapRepositoryCoroutinesCacheKey(
-                    StickyEventRepositoryFirstKey(roomId, eventType),
-                    StickyEventRepositorySecondKey(sender, stickyKey),
-                )
-            )
-            .filterIsContent(eventContentClass)
-            .filterValid()
-            .map { it?.event }
-    }
+    fun get(roomId: RoomId, eventId: EventId): Flow<StoredStickyEvent?> =
+        stickyEventCache.get(MapRepositoryCoroutinesCacheKey(roomId, eventId)).filterValid()
 
-    private fun <C : StickyEventContent> Flow<StoredStickyEvent<*>?>.filterIsContent(eventContentClass: KClass<C>) =
-        map {
-                val event = it?.event
-                if (event?.content?.instanceOf(eventContentClass) == true) it else null
-            }
-            .let {
-                @Suppress("UNCHECKED_CAST")
-                it as Flow<StoredStickyEvent<C>?>
-            }
+    fun get(roomId: RoomId): Flow<Map<EventId, Flow<StoredStickyEvent?>>> =
+        stickyEventCache.getByFirstKey(roomId).map { map -> map.mapValues { (_, value) -> value.filterValid() } }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun <C : StickyEventContent> Flow<StoredStickyEvent<C>?>.filterValid(): Flow<StoredStickyEvent<C>?> =
-        transformLatest {
-            if (it == null || it.endTime < clock.now()) {
+    private fun Flow<StoredStickyEvent?>.filterValid(): Flow<StoredStickyEvent?> = transformLatest {
+        if (it == null || it.endTime < clock.now()) {
+            emit(null)
+            return@transformLatest
+        }
+        emit(it)
+        while (currentCoroutineContext().isActive) {
+            val durationToEndTime = it.endTime - clock.now()
+            if (durationToEndTime <= Duration.ZERO) {
                 emit(null)
-                return@transformLatest
+                break
             }
-            emit(it)
-            while (currentCoroutineContext().isActive) {
-                val durationToEndTime = it.endTime - clock.now()
-                if (durationToEndTime <= Duration.ZERO) {
-                    emit(null)
-                    break
-                }
-                delay(durationToEndTime.coerceAtMost(1.seconds)) // to catch sleeping scheduler cases
-                if (it.endTime < clock.now()) {
-                    emit(null)
-                    break
-                }
+            delay(durationToEndTime.coerceAtMost(1.seconds)) // to catch sleeping scheduler cases
+            if (it.endTime < clock.now()) {
+                emit(null)
+                break
             }
         }
-
-    private fun <C : RoomEventContent> findType(eventContentClass: KClass<C>): String =
-        contentMappings.message.find { it.kClass == eventContentClass }?.type
-            ?: throw IllegalArgumentException(
-                "Cannot find sticky event type, because it is not supported. You need to register it first."
-            )
-
-    private fun <C : RoomEventContent> findType(eventContent: C): String =
-        contentMappings.message.contentType(eventContent)
+    }
 }
-
-@OptIn(MSC4354::class)
-inline fun <reified C : StickyEventContent> StickyEventStore.get(
-    roomId: RoomId
-): Flow<Map<Pair<UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> =
-    get(roomId = roomId, eventContentClass = C::class)
-
-@OptIn(MSC4354::class)
-inline fun <reified C : StickyEventContent> StickyEventStore.get():
-    Flow<Map<Triple<RoomId, UserId, String?>, Flow<ClientEvent.RoomEvent.MessageEvent<C>?>>> =
-    get(eventContentClass = C::class)
-
-@OptIn(MSC4354::class)
-inline fun <reified C : StickyEventContent> StickyEventStore.getBySenderAndStickyKey(
-    roomId: RoomId,
-    sender: UserId,
-    stickyKey: String? = null,
-): Flow<ClientEvent.RoomEvent.MessageEvent<C>?> =
-    getBySenderAndStickyKey(roomId = roomId, eventContentClass = C::class, sender = sender, stickyKey = stickyKey)

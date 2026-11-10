@@ -3,8 +3,9 @@ package de.connect2x.trixnity.client.rtc
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.flattenNotNull
 import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.getAllStickyMap
 import de.connect2x.trixnity.client.store.RoomStateStore
-import de.connect2x.trixnity.client.store.StickyEventStore
 import de.connect2x.trixnity.client.store.get
 import de.connect2x.trixnity.client.store.getByStateKey
 import de.connect2x.trixnity.core.EventHandler
@@ -66,9 +67,9 @@ interface RtcService {
 @OptIn(MSC4354::class, ExperimentalCoroutinesApi::class)
 class RtcServiceImpl(
     private val roomStateStore: RoomStateStore,
-    private val stickyEventStore: StickyEventStore,
     private val rtcSlotMembershipFactory: RtcSlotMembershipFactory,
     private val keyService: KeyService,
+    private val roomService: RoomService,
 ) : RtcService, EventHandler {
     private data class RtcSlotMembershipKey(val roomId: RoomId, val slotId: RtcSlotId, val memberId: RtcMemberId)
 
@@ -155,23 +156,19 @@ class RtcServiceImpl(
         if (slot?.content !is RtcSlotEventContent.Open) {
             return@flatMapLatest flowOf(emptyMap())
         }
-        stickyEventStore.get<RtcMemberEventContent>(roomId).map {
+        roomService.getAllStickyMap<RtcMemberEventContent>(roomId).map {
             it.mapNotNull { (key, value) ->
-                    val memberId = key.second?.let(::RtcMemberId) ?: return@mapNotNull null
+                    val memberId = key.second.let(::RtcMemberId)
+                    val content = value.content
                     (key.first to memberId) to
-                        value
-                            .map {
-                                val content = it?.content
-                                if (
-                                    content?.slotId != slotId ||
-                                        content.member.id != memberId ||
-                                        content is RtcMemberEventContent.Join &&
-                                            content.application.type != slot.content.application?.type
-                                )
-                                    return@map null
-                                else it
-                            }
-                            .filterTrusted(roomIsEncrypted)
+                        if (
+                            content.slotId != slotId ||
+                                content.member.id != memberId ||
+                                content is RtcMemberEventContent.Join &&
+                                    content.application.type != slot.content.application?.type
+                        )
+                            flowOf(null)
+                        else value.filterTrusted(roomIsEncrypted)
                 }
                 .toMap()
         }
@@ -205,15 +202,12 @@ class RtcServiceImpl(
     }
 
     @JvmName("filterRtcMemberTrustLevel")
-    private fun Flow<ClientEvent.RoomEvent.MessageEvent<RtcMemberEventContent>?>.filterTrusted(
+    private fun ClientEvent.RoomEvent.MessageEvent<RtcMemberEventContent>.filterTrusted(
         roomIsEncrypted: Boolean
-    ): Flow<ClientEvent.RoomEvent.MessageEvent<RtcMemberEventContent>?> = flatMapLatest { rtcMemberEvent ->
-        if (rtcMemberEvent == null) return@flatMapLatest flowOf(null)
-        val roomId = rtcMemberEvent.roomId
-        roomStateStore.getByStateKey<MemberEventContent>(roomId, rtcMemberEvent.sender.full).flatMapLatest { memberEvent
-            ->
+    ): Flow<ClientEvent.RoomEvent.MessageEvent<RtcMemberEventContent>?> =
+        roomStateStore.getByStateKey<MemberEventContent>(roomId, sender.full).flatMapLatest { memberEvent ->
             if (memberEvent?.content?.membership != Membership.JOIN) return@flatMapLatest flowOf(null)
-            keyService.getTrustLevel(roomId, rtcMemberEvent.id).map { eventTrustLevel ->
+            keyService.getTrustLevel(roomId, id).map { eventTrustLevel ->
                 val canBeTrusted =
                     when (eventTrustLevel) {
                         EventTrustLevel.Unauthenticated -> !roomIsEncrypted
@@ -222,8 +216,7 @@ class RtcServiceImpl(
                         is EventTrustLevel.Shared -> roomIsEncrypted
                         EventTrustLevel.Unknown -> false
                     }
-                if (canBeTrusted) rtcMemberEvent else null
+                if (canBeTrusted) this else null
             }
         }
-    }
 }

@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMap
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.core.serialization.events.invoke
 import de.connect2x.trixnity.core.serialization.events.stateOf
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.serialization.Serializable
@@ -179,7 +180,10 @@ class SyncResponseSerializerTest {
         val stickyEvents1 = joinedStickyAlias.sticky?.events
         requireNotNull(stickyEvents1)
         require(stickyEvents1.size == 1)
-        require(stickyEvents1.single().sticky?.durationMs == 60000L)
+        require(
+            stickyEvents1.single().shouldBeInstanceOf<ClientEvent.RoomEvent.MessageEvent<*>>().sticky?.durationMs ==
+                60000L
+        )
 
         val decodedMscAlias = json.decodeFromString(serializer, mscAliasPayload)
         val joinedMscAlias = decodedMscAlias.room?.join?.get(RoomId("!room"))
@@ -187,6 +191,9 @@ class SyncResponseSerializerTest {
         val stickyEvents2 = joinedMscAlias.sticky?.events
         requireNotNull(stickyEvents2)
         require(stickyEvents2.size == 1)
-        require(stickyEvents2.single().sticky?.durationMs == 60000L)
+        require(
+            stickyEvents2.single().shouldBeInstanceOf<ClientEvent.RoomEvent.MessageEvent<*>>().sticky?.durationMs ==
+                60000L
+        )
     }
 }

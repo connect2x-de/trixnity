@@ -27,9 +27,9 @@ fun createRtcModule() = module {
     single {
             RtcServiceImpl(
                 roomStateStore = get(),
-                stickyEventStore = get(),
                 rtcSlotMembershipFactory = get(),
                 keyService = get(),
+                roomService = get(),
             )
         }
         .apply {

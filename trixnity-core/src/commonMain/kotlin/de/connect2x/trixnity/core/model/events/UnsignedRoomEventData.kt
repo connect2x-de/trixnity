@@ -19,7 +19,6 @@ sealed interface UnsignedRoomEventData {
     val transactionId: String?
     val relations: Relations?
     val membership: Membership?
-    @MSC4354 val stickyDurationTtlMs: Long?
     @MSC4140 val delayId: DelayId?
 
     @Serializable
@@ -29,16 +28,16 @@ sealed interface UnsignedRoomEventData {
         @SerialName("transaction_id") override val transactionId: String? = null,
         @SerialName("m.relations") override val relations: Relations? = null,
         @SerialName("membership") override val membership: Membership? = null,
-        @MSC4354
-        @OptIn(ExperimentalSerializationApi::class)
-        @JsonNames("sticky_duration_ttl_ms")
-        @SerialName("msc4354_sticky_duration_ttl_ms")
-        override val stickyDurationTtlMs: Long? = null,
         @MSC4140
         @OptIn(ExperimentalSerializationApi::class)
         @JsonNames("delay_id")
         @SerialName("org.matrix.msc4140.delay_id")
         override val delayId: DelayId? = null,
+        @MSC4354
+        @OptIn(ExperimentalSerializationApi::class)
+        @JsonNames("sticky_duration_remaining_ms")
+        @SerialName("msc4354_sticky_duration_ttl_ms")
+        val stickyDurationRemainingMs: Long? = null,
     ) : UnsignedRoomEventData
 
     @Serializable
@@ -52,11 +51,6 @@ sealed interface UnsignedRoomEventData {
         @SerialName("invite_room_state") val inviteRoomState: List<@Contextual StrippedStateEvent<*>>? = null,
         @SerialName("knock_room_state") val knockRoomState: List<@Contextual StrippedStateEvent<*>>? = null,
         @SerialName("replaces_state") val replacesState: EventId? = null,
-        @MSC4354
-        @OptIn(ExperimentalSerializationApi::class)
-        @JsonNames("sticky_duration_ttl_ms")
-        @SerialName("msc4354_sticky_duration_ttl_ms")
-        override val stickyDurationTtlMs: Long? = null,
         @MSC4140
         @OptIn(ExperimentalSerializationApi::class)
         @JsonNames("delay_id")

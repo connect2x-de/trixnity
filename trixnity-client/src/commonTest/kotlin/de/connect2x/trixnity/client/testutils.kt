@@ -311,7 +311,6 @@ fun TrixnityBaseTest.getInMemoryStickyEventStore(setup: suspend StickyEventStore
     StickyEventStore(
             InMemoryStickyEventRepository(),
             NoOpStoreTransactionManager,
-            EventContentSerializerMappings.default,
             MatrixClientConfiguration(),
             ObservableCacheStatisticCollector(),
             testScope.backgroundScope,
