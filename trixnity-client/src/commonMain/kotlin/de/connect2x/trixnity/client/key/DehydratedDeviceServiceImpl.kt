@@ -324,6 +324,7 @@ class DehydratedDeviceServiceImpl(
                 }
             }
         val eventEmitter = object : ClientEventEmitterImpl<List<ClientEvent<*>>>() {}
+        // TODO we should also handle m.room.key_bundle
         // TODO at the end, we only use ::handleOlmEncryptedRoomKeyEventContent and ::handleOlmEvents, so maybe just
         // extract it
         val olmEventHandler =
