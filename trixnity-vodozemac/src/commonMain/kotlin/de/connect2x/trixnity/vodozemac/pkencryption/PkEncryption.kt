@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.vodozemac.pkencryption
 
 import de.connect2x.trixnity.vodozemac.Curve25519PublicKey
+import de.connect2x.trixnity.vodozemac.VodozemacException
 import de.connect2x.trixnity.vodozemac.bindings.pkencryption.PkEncryptionBindings
 import de.connect2x.trixnity.vodozemac.toByteArray
 import de.connect2x.trixnity.vodozemac.utils.*
@@ -12,10 +13,14 @@ class PkEncryption internal constructor(ptr: NativePointer) : Managed(ptr, PkEnc
         construct: (ByteArray, ByteArray, Curve25519PublicKey) -> T,
     ): T = managedReachableScope {
         val result =
-            withResult(NativePointerArray(5)) { PkEncryptionBindings.encrypt(it, ptr, bytes.toInterop(), bytes.size) }
-        val ciphertext = result[0].toByteArray(result[1].intValue)
-        val mac = result[2].toByteArray(result[3].intValue)
-        val ephemeralKey = Curve25519PublicKey(result[4])
+            withResult(NativePointerArray(6)) { PkEncryptionBindings.encrypt(it, ptr, bytes.toInterop(), bytes.size) }
+
+        if (result[0].intValue != 0)
+            throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
+
+        val ciphertext = result[1].toByteArray(result[2].intValue)
+        val mac = result[3].toByteArray(result[4].intValue)
+        val ephemeralKey = Curve25519PublicKey(result[5])
 
         construct(ciphertext, mac, ephemeralKey)
     }

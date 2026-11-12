@@ -110,8 +110,5 @@ sealed interface OlmMessage {
 
         val version: Int
             get() = managedReachableScope { MessageBindings.version(ptr) }
-
-        val macTruncated: Boolean
-            get() = managedReachableScope { MessageBindings.macTruncated(ptr) }
     }
 }

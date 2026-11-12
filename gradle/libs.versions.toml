@@ -10,11 +10,11 @@ trixnityOlmBinaries = "2.0.4" # https://gitlab.com/connect2x/trixnity/trixnity-o
 trixnityOpensslBinaries = "1.0.6" # https://gitlab.com/connect2x/trixnity/trixnity-openssl-binaries/-/releases
 
 ### vodozemac - checksums come from the registry, web has to be sha1 for yarn ###
-vodozemac-tag = "v0.1.3" # https://gitlab.com/connect2x/trixnity/trixnity-vodozemac-binaries/-/packages/
-vodozemac-jvmJni = "422f3995bdb79a81ed849354ff77c973ef71b66f455175a58e60866e8eeb66fa"
-vodozemac-androidJni = "c7b69138ee6c6ac59785a9eefa3e3f4c2e005d5bcc6280e30c1527976d57024d"
-vodozemac-native = "2142f31071d3238f060cfe91bd281eedd82680774793a7a44d644cdefee16c02"
-vodozemac-webNpm = "746386b61df38bab7fb2853a43aacea22e871e75"
+vodozemac-tag = "v0.2.0" # https://gitlab.com/connect2x/trixnity/trixnity-vodozemac-binaries/-/packages/
+vodozemac-jvmJni = "d72371ccb787841f6f22692e3ef41a602eb30c8ebac54e76a2fe83781e6b29c3"
+vodozemac-androidJni = "bc289acd08721c947af79aa1b8e2259e26d22fc16f609b51ac60ccf72cf2e774"
+vodozemac-native = "132f5ea50d5b9eedde0262e1ab2bf47fce13c887cca831c4e8c36f12957be6eb"
+vodozemac-webNpm = "556ace9bec3f46e506b33765e5052454fb4ed914"
 
 ### libraries ###
 okio = "3.18.1" # https://lysine.dev/okio/changelog/
