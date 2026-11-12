@@ -47,6 +47,7 @@ import de.connect2x.trixnity.client.user.createUserModule
 import de.connect2x.trixnity.client.verification.VerificationService
 import de.connect2x.trixnity.client.verification.createVerificationModule
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MSC4143
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
+import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.named
 import org.koin.core.module.dsl.singleOf
@@ -108,8 +110,13 @@ fun createCurrentSyncStateModule() = module {
     single<CurrentSyncState> { CurrentSyncState(get<MatrixClientServerApiClient>()) }
 }
 
+fun createMatrixClientServerApiClientFactoryModule(): Module = module {
+    single<MatrixClientServerApiClientFactory> { MatrixClientServerApiClientFactory }
+}
+
 fun createTrixnityDefaultModuleFactories(): List<ModuleFactory> =
     listOf(
+        ::createMatrixClientServerApiClientFactoryModule,
         ::createMatrixClientStartedModule,
         ::createClockModule,
         ::createServerModule,
@@ -140,6 +147,7 @@ fun createTrixnityDefaultModuleFactories(): List<ModuleFactory> =
  */
 fun createTrixnityBotModuleFactories(): List<ModuleFactory> =
     listOf(
+        ::createMatrixClientServerApiClientFactoryModule,
         ::createMatrixClientStartedModule,
         ::createClockModule,
         ::createServerModule,

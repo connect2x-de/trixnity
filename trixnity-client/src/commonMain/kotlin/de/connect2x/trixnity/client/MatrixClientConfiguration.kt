@@ -3,7 +3,6 @@ package de.connect2x.trixnity.client
 import de.connect2x.trixnity.client.key.KeyService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import de.connect2x.trixnity.clientserverapi.client.sync
 import de.connect2x.trixnity.clientserverapi.model.server.Capability.ForgetForcedUponLeave
 import de.connect2x.trixnity.clientserverapi.model.user.Filters
@@ -85,7 +84,7 @@ data class MatrixClientConfiguration(
     var httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
 
     /**
-     * Inject and override modules into Trixnity. By default, this is [createDefaultTrixnityModules].
+     * Inject and override modules into Trixnity. By default, this is [createTrixnityDefaultModuleFactories].
      *
      * Be aware to always create new modules because a module stores your class instances and therefore is reused, which
      * we don't want!
@@ -96,17 +95,6 @@ data class MatrixClientConfiguration(
      * ```
      */
     var modulesFactories: List<ModuleFactory> = createTrixnityDefaultModuleFactories(),
-
-    /**
-     * If you need to override standard behavior of API clients, provide a [MatrixClientServerApiClientFactory] here,
-     * and override one or more API clients in
-     * [de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient].
-     *
-     * For [serverDiscovery], the standard
-     * [de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl] is always used.
-     */
-    var matrixClientServerApiClientFactory: MatrixClientServerApiClientFactory =
-        object : MatrixClientServerApiClientFactory {},
     val experimentalFeatures: ExperimentalFeatures = ExperimentalFeatures(),
 ) {
 

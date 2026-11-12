@@ -19,6 +19,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Unexpected exceptions are now bubbled up in `MatrixClient` and `MatrixClientServerApiClient` as per expected
   structured concurrency rules
 - New sticky event implementation for better reliability for decryption, replacements and redactions
+- breaking change: `matrixClientServerApiClientFactory` has been removed from the `MatrixClientConfiguration` and put
+  directly in the DI; so in order to override it, add
+  `moduleFactories += { module { single<MatrixClientServerApiClientFactory> { MyMatrixClientServerApiClientFactory() } } }`
 
 ### Deprecated
 
