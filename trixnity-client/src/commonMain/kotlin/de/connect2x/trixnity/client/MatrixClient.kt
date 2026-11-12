@@ -28,6 +28,7 @@ import de.connect2x.trixnity.clientserverapi.client.LogoutInfo
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderDataStore
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import de.connect2x.trixnity.clientserverapi.client.SyncBatchTokenStore
 import de.connect2x.trixnity.clientserverapi.client.SyncEvents
 import de.connect2x.trixnity.clientserverapi.client.SyncState
@@ -295,16 +296,17 @@ suspend fun MatrixClient.Companion.create(
             )
 
         val api =
-            config.matrixClientServerApiClientFactory.create(
-                authProvider = authProvider,
-                json = di.get(),
-                eventContentSerializerMappings = di.get(),
-                syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
-                syncErrorDelayConfig = config.syncErrorDelayConfig,
-                coroutineContext = coroutineScope.coroutineContext,
-                httpClientEngine = config.httpClientEngine,
-                httpClientConfig = config.httpClientConfig,
-            )
+            di.get<MatrixClientServerApiClientFactory>()
+                .create(
+                    authProvider = authProvider,
+                    json = di.get(),
+                    eventContentSerializerMappings = di.get(),
+                    syncBatchTokenStore = AccountStoreSyncBatchTokenStore(accountStore, tm),
+                    syncErrorDelayConfig = config.syncErrorDelayConfig,
+                    coroutineContext = coroutineScope.coroutineContext,
+                    httpClientEngine = config.httpClientEngine,
+                    httpClientConfig = config.httpClientConfig,
+                )
         try {
             val newProfile =
                 if (isFirstInit || initialAccount.profile == null) {
