@@ -9,8 +9,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI (see documentation for
-  details)
+- Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI
+- Added `RoomKeyWithheldEventContent`
 
 ### Changed
 
