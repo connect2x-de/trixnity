@@ -129,6 +129,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
     stateOf<ChildEventContent>("m.space.child")
     stateOf<PolicyEventContent>("m.room.policy")
     stateOf<ImagePackEventContent>("m.room.image_pack")
+    stateOf<ImagePackEventContent>("im.ponies.room_emotes")
     // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
     @OptIn(MSC4143::class) stateOf<RtcSlotEventContent>("org.matrix.msc4143.rtc.slot", RtcSlotEventContent.Serializer)
     // Needs explicit serializer. Otherwise, fails in Wasm production builds at runtime.
