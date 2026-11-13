@@ -108,7 +108,7 @@ interface KeyService {
     /** @return the trust level of a device. */
     fun getTrustLevel(userId: UserId, deviceId: String): Flow<DeviceTrustLevel>
 
-    /** @return the trust level of a device or null, if the timeline event is not a megolm encrypted event. */
+    /** @return the trust level of an event. */
     fun getTrustLevel(roomId: RoomId, eventId: EventId): Flow<EventTrustLevel>
 
     /**
@@ -176,12 +176,11 @@ class KeyServiceImpl(
         log.debug { "bootstrap cross signing" }
         _bootstrapRunning.value = true
 
-        val keyId =
-            generateSequence {
-                    val alphabet = 'a'..'z'
-                    generateSequence { alphabet.random() }.take(24).joinToString("")
-                }
-                .first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
+        val keyId = generateSequence {
+            val alphabet = 'a'..'z'
+            generateSequence { alphabet.random() }.take(24).joinToString("")
+        }
+            .first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
         val result = runCatching {
             val (masterSigningPrivateKey, masterSigningPublicKey) =
                 driver.key.ed25519SecretKey().use { it.base64 to it.publicKey.use(Key::of) }
