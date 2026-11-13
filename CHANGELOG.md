@@ -12,6 +12,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Add `MxcUri` value class with opt-in validation
 - Support MSC4027 custom image reaction shortcodes and sending helpers
 - Add `MatrixUri` and related utils
+- Add support for deserializing `ImagePackEventContent` by type `im.ponies.room_emotes`
 
 ### Changed
 

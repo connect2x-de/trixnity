@@ -176,11 +176,12 @@ class KeyServiceImpl(
         log.debug { "bootstrap cross signing" }
         _bootstrapRunning.value = true
 
-        val keyId = generateSequence {
-            val alphabet = 'a'..'z'
-            generateSequence { alphabet.random() }.take(24).joinToString("")
-        }
-            .first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
+        val keyId =
+            generateSequence {
+                    val alphabet = 'a'..'z'
+                    generateSequence { alphabet.random() }.take(24).joinToString("")
+                }
+                .first { globalAccountDataStore.get<SecretKeyEventContent>(key = it).first() == null }
         val result = runCatching {
             val (masterSigningPrivateKey, masterSigningPublicKey) =
                 driver.key.ed25519SecretKey().use { it.base64 to it.publicKey.use(Key::of) }
