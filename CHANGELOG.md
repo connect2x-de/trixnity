@@ -9,21 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Add `MxcUri` value class with opt-in validation
-- Support MSC4027 custom image reaction shortcodes and sending helpers
-- Add `MatrixUri` and related utils
-- Add support for deserializing `ImagePackEventContent` by type `im.ponies.room_emotes`
-
 ### Changed
-
-- Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
-- Unexpected exceptions are now bubbled up in `MatrixClient` and `MatrixClientServerApiClient` as per expected
-  structured concurrency rules
-- New sticky event implementation for better reliability for decryption, replacements and redactions
-- breaking change: `matrixClientServerApiClientFactory` has been removed from the `MatrixClientConfiguration` and put
-  directly in the DI; so in order to override it, add
-  `moduleFactories += { module { single<MatrixClientServerApiClientFactory> { MyMatrixClientServerApiClientFactory() } } }`
-- Update libvodozemac to 0.2.0
 
 ### Deprecated
 
@@ -31,14 +17,34 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
-- Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes.
-- Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them
+### Security
+
+## 5.11.1
+
+### Added
+
+- Add `MatrixUri` and related utils
+- Add `MxcUri` and related utils
+- Support MSC4027 custom image reaction shortcodes and sending helpers
+- Add support for additionally deserializing `ImagePackEventContent` by type `im.ponies.room_emotes`
+
+### Changed
+
+- Tighten `RoomId.isReasonable()` localpart validation; use `isValid()` for broad legacy ID support.
+- Unexpected exceptions are now bubbled up in `MatrixClient` and `MatrixClientServerApiClient` as per expected
+  structured concurrency rules
+- New sticky event implementation for better reliability regarding decryption, replacements and redactions
+- Moved `MatrixClientServerApiClientFactory` into the DI
+- Update libvodozemac to 0.2.0
+
+### Fixed
+
+- Fix Kotlin/JS validation of legacy room/event IDs and server names with IPv4-like prefixes
+- Crypto drivers leaking `OlmLibraryException` and `VodozemacException` by consistently wrapping them into
   `CryptoDriverException`
-- Fix OPFS media downloads hanging when encrypted downloads exceed their size limit or fail hash validation.
+- Fix OPFS media downloads hanging when encrypted downloads exceed their size limit or fail hash validation
 - Wait for client completion before closing the Room database
 - Fix verification and Olm session creation on homeservers omitting `failures` in key upload/claim responses
-
-### Security
 
 ## 5.10.1
 
