@@ -446,7 +446,6 @@ public final class de/connect2x/trixnity/vodozemac/olm/OlmMessage$DefaultImpls {
 public final class de/connect2x/trixnity/vodozemac/olm/OlmMessage$Message : de/connect2x/trixnity/vodozemac/utils/Managed {
 	public final fun getChainIndex ()J
 	public final fun getCiphertext ()[B
-	public final fun getMacTruncated ()Z
 	public final fun getRatchetKey ()Lde/connect2x/trixnity/vodozemac/Curve25519PublicKey;
 	public final fun getVersion ()I
 }

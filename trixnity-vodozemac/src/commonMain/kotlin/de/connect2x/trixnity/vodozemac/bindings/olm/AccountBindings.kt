@@ -32,11 +32,12 @@ internal object AccountBindings {
     fun maxNumberOfOneTimeKeys(account: NativePointer): Int = vodozemac_olm_account_max_number_of_one_time_keys(account)
 
     fun createOutboundSession(
+        result: InteropPointer,
         account: NativePointer,
         config: NativePointer,
         identityKey: NativePointer,
         oneTimeKey: NativePointer,
-    ): NativePointer = vodozemac_olm_account_create_outbound_session(account, config, identityKey, oneTimeKey)
+    ) = vodozemac_olm_account_create_outbound_session(result, account, config, identityKey, oneTimeKey)
 
     fun createInboundSession(
         result: InteropPointer,
@@ -130,11 +131,12 @@ private external fun vodozemac_olm_account_max_number_of_one_time_keys(account: 
 @ModuleImport("vodozemac", "vodozemac_olm_account_create_outbound_session")
 @ExternalSymbolName("vodozemac_olm_account_create_outbound_session")
 private external fun vodozemac_olm_account_create_outbound_session(
+    result: InteropPointer,
     account: NativePointer,
     session_config: NativePointer,
     identity_key: NativePointer,
     one_time_key: NativePointer,
-): NativePointer
+)
 
 @ModuleImport("vodozemac", "vodozemac_olm_account_create_inbound_session")
 @ExternalSymbolName("vodozemac_olm_account_create_inbound_session")

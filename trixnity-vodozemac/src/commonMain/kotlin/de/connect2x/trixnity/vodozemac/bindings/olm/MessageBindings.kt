@@ -25,8 +25,6 @@ internal object MessageBindings {
 
     fun version(message: NativePointer): Int = vodozemac_olm_message_version(message)
 
-    fun macTruncated(message: NativePointer): Boolean = vodozemac_olm_message_mac_truncated(message) == 1
-
     fun toBytes(result: InteropPointer, message: NativePointer, sessionKeys: NativePointer) =
         vodozemac_olm_message_to_bytes(result, message, sessionKeys)
 
@@ -53,10 +51,6 @@ private external fun vodozemac_olm_message_ciphertext(result: InteropPointer, me
 @ModuleImport("vodozemac", "vodozemac_olm_message_version")
 @ExternalSymbolName("vodozemac_olm_message_version")
 private external fun vodozemac_olm_message_version(message: NativePointer): Int
-
-@ModuleImport("vodozemac", "vodozemac_olm_message_mac_truncated")
-@ExternalSymbolName("vodozemac_olm_message_mac_truncated")
-private external fun vodozemac_olm_message_mac_truncated(message: NativePointer): Int
 
 @ModuleImport("vodozemac", "vodozemac_olm_message_to_bytes")
 @ExternalSymbolName("vodozemac_olm_message_to_bytes")

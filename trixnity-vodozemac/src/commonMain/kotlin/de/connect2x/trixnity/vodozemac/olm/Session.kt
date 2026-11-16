@@ -27,10 +27,15 @@ class Session internal constructor(ptr: NativePointer) : Managed(ptr, SessionBin
         normal: (OlmMessage.Message) -> T,
         preKey: (OlmMessage.Message, SessionKeys) -> T,
     ): T = managedReachableScope {
-        val (kind, messagePtr, sessionKeysPtr) =
-            withResult(NativePointerArray(3)) {
+        val result =
+            withResult(NativePointerArray(4)) {
                 SessionBindings.encrypt(it, ptr, plaintext.toInterop(), plaintext.size)
             }
+
+        if (result[0].intValue != 0)
+            throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
+
+        val (kind, messagePtr, sessionKeysPtr) = Triple(result[1], result[2], result[3])
 
         when (val msgKind = kind.intValue) {
             0 -> normal(OlmMessage.Message(messagePtr))

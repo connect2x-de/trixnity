@@ -65,7 +65,15 @@ class Account internal constructor(ptr: NativePointer) : Managed(ptr, AccountBin
         sessionConfig: OlmSessionConfig = OlmSessionConfig.v1(),
     ): Session =
         managedReachableScope(sessionConfig, identityKey, oneTimeKey) {
-            Session(AccountBindings.createOutboundSession(ptr, sessionConfig.ptr, identityKey.ptr, oneTimeKey.ptr))
+            val result =
+                withResult(NativePointerArray(3)) {
+                    AccountBindings.createOutboundSession(it, ptr, sessionConfig.ptr, identityKey.ptr, oneTimeKey.ptr)
+                }
+
+            if (result[0].intValue != 0)
+                throw VodozemacException(result[1].toByteArray(result[2].intValue).decodeToString())
+
+            Session(result[1])
         }
 
     private fun <I, T> createInboundSessionRaw(

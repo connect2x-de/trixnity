@@ -203,8 +203,6 @@ sealed interface de.connect2x.trixnity.vodozemac.olm/OlmMessage { // de.connect2
             final fun <get-chainIndex>(): kotlin/Long // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.chainIndex.<get-chainIndex>|<get-chainIndex>(){}[0]
         final val ciphertext // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.ciphertext|{}ciphertext[0]
             final fun <get-ciphertext>(): kotlin/ByteArray // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.ciphertext.<get-ciphertext>|<get-ciphertext>(){}[0]
-        final val macTruncated // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.macTruncated|{}macTruncated[0]
-            final fun <get-macTruncated>(): kotlin/Boolean // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.macTruncated.<get-macTruncated>|<get-macTruncated>(){}[0]
         final val ratchetKey // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.ratchetKey|{}ratchetKey[0]
             final fun <get-ratchetKey>(): de.connect2x.trixnity.vodozemac/Curve25519PublicKey // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.ratchetKey.<get-ratchetKey>|<get-ratchetKey>(){}[0]
         final val version // de.connect2x.trixnity.vodozemac.olm/OlmMessage.Message.version|{}version[0]

@@ -23,6 +23,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - breaking change: `matrixClientServerApiClientFactory` has been removed from the `MatrixClientConfiguration` and put
   directly in the DI; so in order to override it, add
   `moduleFactories += { module { single<MatrixClientServerApiClientFactory> { MyMatrixClientServerApiClientFactory() } } }`
+- Update libvodozemac to 0.2.0
 
 ### Deprecated
 
