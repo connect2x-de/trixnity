@@ -780,6 +780,12 @@ abstract interface de.connect2x.trixnity.client.verification/VerificationService
     }
 }
 
+abstract interface de.connect2x.trixnity.client/CustomEventContentSerializerMappings : de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappings { // de.connect2x.trixnity.client/CustomEventContentSerializerMappings|null[0]
+    final object Companion { // de.connect2x.trixnity.client/CustomEventContentSerializerMappings.Companion|null[0]
+        final fun invoke(kotlin/Function1<de.connect2x.trixnity.core.serialization.events/EventContentSerializerMappingsBuilder, kotlin/Unit>): de.connect2x.trixnity.client/CustomEventContentSerializerMappings // de.connect2x.trixnity.client/CustomEventContentSerializerMappings.Companion.invoke|invoke(kotlin.Function1<de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder,kotlin.Unit>){}[0]
+    }
+}
+
 abstract interface de.connect2x.trixnity.client/MatrixClient : kotlin/AutoCloseable { // de.connect2x.trixnity.client/MatrixClient|null[0]
     abstract val api // de.connect2x.trixnity.client/MatrixClient.api|{}api[0]
         abstract fun <get-api>(): de.connect2x.trixnity.clientserverapi.client/MatrixClientServerApiClient // de.connect2x.trixnity.client/MatrixClient.api.<get-api>|<get-api>(){}[0]
@@ -5138,6 +5144,7 @@ final fun de.connect2x.trixnity.client.verification/isVerificationRequestActive(
 final fun de.connect2x.trixnity.client.verification/isVerificationTimedOut(kotlin/Long, kotlin.time/Clock, de.connect2x.trixnity.client.verification/ActiveVerificationState): kotlin/Boolean // de.connect2x.trixnity.client.verification/isVerificationTimedOut|isVerificationTimedOut(kotlin.Long;kotlin.time.Clock;de.connect2x.trixnity.client.verification.ActiveVerificationState){}[0]
 final fun de.connect2x.trixnity.client/createClockModule(): org.koin.core.module/Module // de.connect2x.trixnity.client/createClockModule|createClockModule(){}[0]
 final fun de.connect2x.trixnity.client/createCurrentSyncStateModule(): org.koin.core.module/Module // de.connect2x.trixnity.client/createCurrentSyncStateModule|createCurrentSyncStateModule(){}[0]
+final fun de.connect2x.trixnity.client/createCustomEventContentSerializerMappingsModule(): org.koin.core.module/Module // de.connect2x.trixnity.client/createCustomEventContentSerializerMappingsModule|createCustomEventContentSerializerMappingsModule(){}[0]
 final fun de.connect2x.trixnity.client/createDefaultEventContentSerializerMappingsModule(): org.koin.core.module/Module // de.connect2x.trixnity.client/createDefaultEventContentSerializerMappingsModule|createDefaultEventContentSerializerMappingsModule(){}[0]
 final fun de.connect2x.trixnity.client/createDefaultMatrixClientAuthProviderSerializerMappings(): org.koin.core.module/Module // de.connect2x.trixnity.client/createDefaultMatrixClientAuthProviderSerializerMappings|createDefaultMatrixClientAuthProviderSerializerMappings(){}[0]
 final fun de.connect2x.trixnity.client/createDefaultMatrixJsonModule(): org.koin.core.module/Module // de.connect2x.trixnity.client/createDefaultMatrixJsonModule|createDefaultMatrixJsonModule(){}[0]

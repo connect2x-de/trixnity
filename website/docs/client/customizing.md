@@ -4,7 +4,10 @@ sidebar_position: 15
 
 # Customizing
 
-The client can be customized via dependency injection:
+In order to customize the `MatrixClient`, you can override the implementation of several interfaces via dependency
+injection (DI).
+
+## Dependency Injection
 
 ```kotlin
 matrixClient.create(...){
@@ -12,8 +15,25 @@ matrixClient.create(...){
 }
 
 fun createCustomModule() = module {
-    single<EventContentSerializerMappings> {
-        EventContentSerializerMappings.default + customMappings
+    single<MatrixClientServerApiClientFactory> {
+        object : MatrixClientServerApiClientFactory {
+            override fun create(
+                authProvider: MatrixClientAuthProvider,
+                eventContentSerializerMappings: EventContentSerializerMappings = EventContentSerializerMappings.default,
+                json: Json = createMatrixEventJson(eventContentSerializerMappings),
+                syncBatchTokenStore: SyncBatchTokenStore = SyncBatchTokenStore.inMemory(),
+                syncErrorDelayConfig: RetryFlowDelayConfig = RetryFlowDelayConfig.sync,
+                coroutineContext: CoroutineContext = Dispatchers.Default,
+                asUserId: UserId? = null,
+                asDeviceId: String? = null,
+                httpClientEngine: HttpClientEngine? = null,
+                httpClientConfig: (HttpClientConfig<*>.() -> Unit)? = null,
+            ): MatrixClientServerApiClient {
+                // your code here
+            }
+            
+            // ...
+        }
     }
 }
 ```
@@ -45,15 +65,10 @@ val customMappings = EventContentSerializerMappings { // add this to the modules
 ```
 
 It is also possible to add custom extensible events and content blocks. They also provide backwards compatibility via
-`legecy`. For simplicity the latter is ignored in this example. If you want to support legacy events, take a look at
+`legacy`. For simplicity the latter is ignored in this example. If you want to support legacy events, take a look at
 `TopicEventContent`.
 
 ```kotlin
-val customMappings = EventContentSerializerMappings {
-    blockOf(DinoContentBlock)
-    messageOf<DinoEventContent>("de.connect2x.dino")
-}
-
 @Serializable
 @JvmInline
 value class DinoContentBlock(
@@ -86,3 +101,23 @@ data class DinoEventContent(
     )
 }
 ```
+
+In order to register your custom events, you can use `CustomEventContentSerializerMappings`:
+
+```kotlin
+matrixClient.create(...){
+    modulesFactories += ::myEventsModule
+}
+
+fun myEventsModule() = module {
+    single<CustomEventContentSerializerMappings>(named("MyCustomEventContentSerializerMappings")) {
+        CustomEventContentSerializerMappings {
+            blockOf(DinoContentBlock)
+            messageOf<DinoEventContent>("de.connect2x.dino")
+        }
+    }
+}
+```
+
+Be aware to always use a uniquely named binding so that multiple `CustomEventContentSerializerMappings`do not override
+each other accidentally!

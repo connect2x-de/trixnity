@@ -134,7 +134,15 @@ fun createTrixnityDefaultModuleFactories(): List<ModuleFactory> =
         ::createMediaModule,
         ::createNotificationModule,
         @OptIn(MSC4143::class) ::createRtcModule,
+        ::createCustomEventContentSerializerMappingsModule,
     )
+
+fun createCustomEventContentSerializerMappingsModule(): Module = module {
+    single<EventContentSerializerMappings> {
+        val customEventContentSerializerMappings = getAll<CustomEventContentSerializerMappings>()
+        customEventContentSerializerMappings.fold(EventContentSerializerMappings.default) { a, b -> a + b }
+    }
+}
 
 /**
  * Use this, if you want to create a bot with basic functionality. You don't have access to some data usually provided

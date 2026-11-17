@@ -15,9 +15,23 @@ public final class de/connect2x/trixnity/client/CurrentSyncState : kotlinx/corou
 	public synthetic fun getValue ()Ljava/lang/Object;
 }
 
+public abstract interface class de/connect2x/trixnity/client/CustomEventContentSerializerMappings : de/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings {
+	public static final field Companion Lde/connect2x/trixnity/client/CustomEventContentSerializerMappings$Companion;
+}
+
+public final class de/connect2x/trixnity/client/CustomEventContentSerializerMappings$Companion {
+	public final fun invoke (Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/client/CustomEventContentSerializerMappings;
+}
+
+public final class de/connect2x/trixnity/client/CustomEventContentSerializerMappings$DefaultImpls {
+	public static fun minus (Lde/connect2x/trixnity/client/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
+	public static fun plus (Lde/connect2x/trixnity/client/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
+}
+
 public final class de/connect2x/trixnity/client/DefaultModulesKt {
 	public static final fun createClockModule ()Lorg/koin/core/module/Module;
 	public static final fun createCurrentSyncStateModule ()Lorg/koin/core/module/Module;
+	public static final fun createCustomEventContentSerializerMappingsModule ()Lorg/koin/core/module/Module;
 	public static final fun createDefaultEventContentSerializerMappingsModule ()Lorg/koin/core/module/Module;
 	public static final fun createDefaultMatrixClientAuthProviderSerializerMappings ()Lorg/koin/core/module/Module;
 	public static final fun createDefaultMatrixJsonModule ()Lorg/koin/core/module/Module;
