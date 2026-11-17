@@ -16,6 +16,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Changed
 
 - Report media transfer progress through callbacks in `MediaApiClient` and `MediaService`.
+- Changed `RoomEventEncryptionService::decrypt` to return a `Flow` and retry decryption on missing or withheld keys
 
 ### Deprecated
 

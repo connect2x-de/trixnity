@@ -78,11 +78,18 @@ suspend fun OlmCryptoStore.waitForInboundMegolmSession(
     roomId: RoomId,
     sessionId: String,
     firstKnownIndexLessThen: Long? = null,
+    allowWithheld: Boolean = false,
+    othenThan: StoredInboundMegolmSession? = null,
     onNotExisting: (suspend CoroutineScope.() -> Unit)? = null,
 ): Unit = coroutineScope {
     fun StoredInboundMegolmSession?.matches() =
-        this is StoredInboundMegolmSession.Key &&
-            (firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen)
+        othenThan != null && this != othenThan ||
+            when (this) {
+                is StoredInboundMegolmSession.Key ->
+                    firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen
+                is StoredInboundMegolmSession.Withheld -> allowWithheld
+                null -> false
+            }
 
     val onNotExistingJob =
         if (getInboundMegolmSession(sessionId, roomId).first().matches().not() && onNotExisting != null)

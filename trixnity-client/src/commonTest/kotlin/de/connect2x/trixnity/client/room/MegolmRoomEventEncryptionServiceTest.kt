@@ -31,6 +31,7 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlinx.coroutines.flow.first
 
 class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -131,7 +132,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
         megolmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
         tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession } }
 
-        val result = cut.decrypt(encryptedEvent)
+        val result = cut.decrypt(encryptedEvent).first()
         result?.isFailure shouldBe true
         result?.exceptionOrNull() shouldBe exception
     }
@@ -142,7 +143,7 @@ class MegolmRoomEventEncryptionServiceTest : TrixnityBaseTest() {
         megolmEncryptionServiceMock.returnDecryptMegolm.add(Result.failure(exception))
         tm.writeTransaction { olmCryptoStore.updateInboundMegolmSession(session, room) { storedSession } }
 
-        val result = cut.decrypt(encryptedEvent)
+        val result = cut.decrypt(encryptedEvent).first()
         result?.isFailure shouldBe true
         result?.exceptionOrNull() shouldBe RoomEventEncryptionServiceError(exception)
     }

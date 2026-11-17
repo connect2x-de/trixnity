@@ -31,7 +31,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
-class KeyShareIT : TrixnityBaseTest() {
+class HistoricKeyShareIT : TrixnityBaseTest() {
 
     private lateinit var startedClient1: StartedClient
     private lateinit var startedClient2: StartedClient
@@ -87,11 +87,11 @@ class KeyShareIT : TrixnityBaseTest() {
                                         InitialStateEvent(content = EncryptionEventContent(), ""),
                                         InitialStateEvent(
                                             HistoryVisibilityEventContent(
-                                                HistoryVisibilityEventContent.HistoryVisibility.SHARED
+                                                HistoryVisibilityEventContent.HistoryVisibility.SHARED,
                                             ),
                                             "",
                                         ),
-                                    )
+                                    ),
                             )
                             .getOrThrow()
                             .also {

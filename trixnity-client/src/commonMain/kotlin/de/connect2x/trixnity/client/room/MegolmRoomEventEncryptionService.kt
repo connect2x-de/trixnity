@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.room
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.debug
 import de.connect2x.trixnity.client.key.KeyBackupService
 import de.connect2x.trixnity.client.key.OutgoingRoomKeyRequestEventHandler
 import de.connect2x.trixnity.client.store.OlmCryptoStore
@@ -20,7 +21,10 @@ import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
+import de.connect2x.trixnity.utils.retryFlow
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -52,55 +56,73 @@ class MegolmRoomEventEncryptionService(
         return megolmEncryptionService.encryptMegolmCatching(content, roomId, encryptionEventContent)
     }
 
-    override suspend fun decrypt(event: RoomEvent.MessageEvent<*>): Result<MessageEventContent>? {
+    override suspend fun decrypt(event: RoomEvent.MessageEvent<*>): Flow<Result<MessageEventContent>?> {
         val content = event.content
         val roomId = event.roomId
         val eventId = event.id
 
-        if (roomStore.get(roomId).first() == null) log.warn { "could not find $roomId in local data, waiting started" }
-        if (!roomStore.get(roomId).filterNotNull().first().encrypted) return null
-        val encryptionEventContent =
-            withTimeoutOrNull(30.seconds) {
-                roomStateStore.getByStateKey<EncryptionEventContent>(roomId).filterNotNull().first().content
+        return retryFlow(
+            scheduleBase = Duration.ZERO,
+            onError = { error, _ -> log.debug(error) { "could not decrypt event, retry again" } },
+        ) {
+            if (roomStore.get(roomId).first() == null)
+                log.warn { "could not find $roomId in local data, waiting started" }
+            if (!roomStore.get(roomId).filterNotNull().first().encrypted) {
+                emit(null)
+                return@retryFlow
             }
-        if (encryptionEventContent?.algorithm != EncryptionAlgorithm.Megolm) return null
-        if (content !is MegolmEncryptedMessageEventContent) return null
+            val encryptionEventContent =
+                withTimeoutOrNull(30.seconds) {
+                    roomStateStore.getByStateKey<EncryptionEventContent>(roomId).filterNotNull().first().content
+                }
+            if (encryptionEventContent?.algorithm != EncryptionAlgorithm.Megolm) {
+                emit(null)
+                return@retryFlow
+            }
+            if (content !is MegolmEncryptedMessageEventContent) {
+                emit(null)
+                return@retryFlow
+            }
 
-        val session = olmCryptoStore.getInboundMegolmSession(content.sessionId, roomId).first()
-        if (session == null) {
-            log.debug { "start to wait for inbound megolm session to decrypt $eventId in $roomId" }
-            waitForInboundMegolmSessionAndRequest(roomId, content.sessionId)
-        }
-        log.trace { "try to decrypt event $eventId in $roomId" }
-        @Suppress("UNCHECKED_CAST") val encryptedEvent = event as RoomEvent<MegolmEncryptedMessageEventContent>
+            val session = olmCryptoStore.getInboundMegolmSession(content.sessionId, roomId).first()
 
-        val decryptEventAttempt = megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
-        val exception = decryptEventAttempt.exceptionOrNull()
-        val decryptedEvent =
-            if (
-                exception is RoomEventEncryptionServiceError &&
-                    exception.cause is MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex
-            ) {
+            log.trace { "try to decrypt event $eventId in $roomId" }
+            @Suppress("UNCHECKED_CAST") val encryptedEvent = event as RoomEvent<MegolmEncryptedMessageEventContent>
+
+            val decryptedEventResult = megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
+            emit(decryptedEventResult.map { it.content })
+            val exception = decryptedEventResult.exceptionOrNull() as? RoomEventEncryptionServiceError
+
+            if (exception?.cause is MegolmEncryptionService.DecryptMegolmError) {
                 log.debug {
-                    "unknwon message index, so we request key backup and start to wait for inbound megolm session to decrypt $eventId in $roomId again"
+                    "${exception.cause}, so we request key backup and start to wait for inbound megolm session to decrypt $eventId in $roomId again"
                 }
                 waitForInboundMegolmSessionAndRequest(
-                    roomId,
-                    content.sessionId,
+                    roomId = roomId,
+                    sessionId = content.sessionId,
                     firstKnownIndexLessThen = (session as? StoredInboundMegolmSession.Key)?.firstKnownIndex,
+                    allowWithheld = exception.cause is MegolmEncryptionService.DecryptMegolmError.MegolmKeyNotFound,
+                    othenThan = session,
                 )
-                megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
-            } else decryptEventAttempt
-        log.trace { "decrypted TimelineEvent $eventId in $roomId" }
-        return decryptedEvent.map { it.content }
+                throw exception
+            }
+        }
     }
 
     private suspend fun waitForInboundMegolmSessionAndRequest(
         roomId: RoomId,
         sessionId: String,
         firstKnownIndexLessThen: Long? = null,
+        allowWithheld: Boolean = false,
+        othenThan: StoredInboundMegolmSession? = null,
     ) =
-        olmCryptoStore.waitForInboundMegolmSession(roomId, sessionId, firstKnownIndexLessThen) {
+        olmCryptoStore.waitForInboundMegolmSession(
+            roomId = roomId,
+            sessionId = sessionId,
+            firstKnownIndexLessThen = firstKnownIndexLessThen,
+            allowWithheld = allowWithheld,
+            othenThan = othenThan,
+        ) {
             keyBackupService.version.collectLatest { keyBackupVersion ->
                 if (keyBackupVersion == null) outgoingRoomKeyRequestEventHandler.requestRoomKeys(roomId, sessionId)
                 else keyBackupService.loadMegolmSession(roomId, sessionId)

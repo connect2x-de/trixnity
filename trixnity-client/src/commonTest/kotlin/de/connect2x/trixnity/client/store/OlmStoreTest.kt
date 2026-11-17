@@ -15,6 +15,7 @@ import de.connect2x.trixnity.client.store.repository.OlmAccountRepository
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.test.utils.TrixnityBaseTest
@@ -26,7 +27,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class OlmStoreTest : TrixnityBaseTest() {
     private val tm = NoOpStoreTransactionManager
@@ -163,5 +167,154 @@ class OlmStoreTest : TrixnityBaseTest() {
         shouldThrow<RuntimeException> { tm.writeTransaction { cut.updateOlmAccount { "new_account" } } }
             .message shouldBe "upsi"
         cut.getOlmAccount() shouldBe "old_account"
+    }
+
+    @Test
+    fun `waitForInboundMegolmSession » allowWithheld false ignores withheld and runs onNotExisting`() = runTest {
+        val withheld =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = session.senderKey,
+                sessionId = session.sessionId,
+                roomId = session.roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld } }
+
+        var onNotExistingStarted = false
+        var onNotExistingCancelled = false
+        val job = launch {
+            cut.waitForInboundMegolmSession(session.roomId, session.sessionId, allowWithheld = false) {
+                onNotExistingStarted = true
+                try {
+                    delay(10.seconds)
+                } finally {
+                    onNotExistingCancelled = true
+                }
+            }
+        }
+
+        delay(20.milliseconds)
+        onNotExistingStarted shouldBe true
+        job.isActive shouldBe true
+
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { session } }
+        job.join()
+        onNotExistingCancelled shouldBe true
+    }
+
+    @Test
+    fun `waitForInboundMegolmSession » allowWithheld true accepts withheld without onNotExisting`() = runTest {
+        val withheld =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = session.senderKey,
+                sessionId = session.sessionId,
+                roomId = session.roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld } }
+
+        var onNotExistingCalled = false
+        cut.waitForInboundMegolmSession(session.roomId, session.sessionId, allowWithheld = true) {
+            onNotExistingCalled = true
+        }
+        onNotExistingCalled shouldBe false
+    }
+
+    @Test
+    fun `waitForInboundMegolmSession » allowWithheld true wakes up when withheld arrives`() = runTest {
+        val withheld =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = session.senderKey,
+                sessionId = session.sessionId,
+                roomId = session.roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+        var onNotExistingCalled = false
+        val job = launch {
+            cut.waitForInboundMegolmSession(session.roomId, session.sessionId, allowWithheld = true) {
+                onNotExistingCalled = true
+                delay(10.seconds)
+            }
+        }
+
+        delay(20.milliseconds)
+        onNotExistingCalled shouldBe true
+        job.isActive shouldBe true
+
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld } }
+        job.join()
+    }
+
+    @Test
+    fun `waitForInboundMegolmSession » othenThan waits until session changes`() = runTest {
+        val withheld1 =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = session.senderKey,
+                sessionId = session.sessionId,
+                roomId = session.roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+        val withheld2 = withheld1.copy(code = RoomKeyWithheldCode.Unauthorised, reason = "not allowed")
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld1 } }
+
+        var onNotExistingStarted = false
+        var onNotExistingCancelled = false
+        val job = launch {
+            cut.waitForInboundMegolmSession(
+                session.roomId,
+                session.sessionId,
+                allowWithheld = false,
+                othenThan = withheld1,
+            ) {
+                onNotExistingStarted = true
+                try {
+                    delay(10.seconds)
+                } finally {
+                    onNotExistingCancelled = true
+                }
+            }
+        }
+
+        delay(20.milliseconds)
+        onNotExistingStarted shouldBe true
+        job.isActive shouldBe true
+
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld2 } }
+        job.join()
+        onNotExistingCancelled shouldBe true
+    }
+
+    @Test
+    fun `waitForInboundMegolmSession » othenThan returns immediately when session already differs`() = runTest {
+        val withheld1 =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = session.senderKey,
+                sessionId = session.sessionId,
+                roomId = session.roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+        val withheld2 = withheld1.copy(code = RoomKeyWithheldCode.Unauthorised, reason = "not allowed")
+        tm.writeTransaction { cut.updateInboundMegolmSession(session.sessionId, session.roomId) { withheld2 } }
+
+        var onNotExistingCalled = false
+        cut.waitForInboundMegolmSession(
+            session.roomId,
+            session.sessionId,
+            allowWithheld = false,
+            othenThan = withheld1,
+        ) {
+            onNotExistingCalled = true
+        }
+        onNotExistingCalled shouldBe false
     }
 }

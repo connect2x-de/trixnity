@@ -511,7 +511,7 @@ class VerificationServiceImpl(
             withTimeoutOrNull(6.seconds) {
                 roomService
                     .getTimelineEvent(roomId, eventId) { decryptionTimeout = 5.seconds }
-                    .filter { it?.content != null }
+                    .filter { it?.content?.isSuccess == true }
                     .first()
             } ?: return null
         val request = timelineEvent.content?.getOrNull() as? VerificationRequest ?: return null
