@@ -48,7 +48,7 @@ import androidx.room3.migration.AutoMigrationSpec
             RoomStickyEvent::class,
             RoomRoomKeyBundles::class,
         ],
-    version = 11, // tick this value when any entity classes change
+    version = 12, // tick this value when any entity classes change
     autoMigrations =
         [
             AutoMigration(from = 3, to = 4),
@@ -59,6 +59,7 @@ import androidx.room3.migration.AutoMigrationSpec
             AutoMigration(from = 8, to = 9),
             AutoMigration(from = 9, to = 10),
             AutoMigration(from = 10, to = 11, spec = TrixnityRoomDatabase.Delete10to11MigrationSpec::class),
+            AutoMigration(from = 11, to = 12),
         ],
     exportSchema = true,
 )

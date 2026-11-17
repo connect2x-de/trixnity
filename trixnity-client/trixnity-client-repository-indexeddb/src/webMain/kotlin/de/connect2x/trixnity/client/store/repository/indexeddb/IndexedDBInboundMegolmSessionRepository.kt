@@ -8,6 +8,7 @@ import de.connect2x.trixnity.idb.utils.WrappedTransaction
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.associate
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toSet
@@ -17,12 +18,19 @@ import kotlinx.serialization.serializer
 import web.idb.IDBDatabase
 import web.idb.IDBValidKey
 
-@Serializable data class IndexedDBInboundMegolmSession(val value: StoredInboundMegolmSession, val hasBeenBackedUp: Int)
+@Serializable data class IndexedDBInboundMegolmSession(val value: StoredInboundMegolmSession, val hasBeenBackedUp: Int?)
 
 fun IndexedDBInboundMegolmSession.toStoredInboundMegolmSession() = value
 
 fun StoredInboundMegolmSession.toIndexedDBInboundMegolmSession() =
-    IndexedDBInboundMegolmSession(value = this, hasBeenBackedUp = if (hasBeenBackedUp) 1 else 0)
+    IndexedDBInboundMegolmSession(
+        value = this,
+        hasBeenBackedUp =
+            when (this) {
+                is StoredInboundMegolmSession.Key -> if (hasBeenBackedUp) 1 else 0
+                is StoredInboundMegolmSession.Withheld -> null
+            },
+    )
 
 internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
     InboundMegolmSessionRepository, IndexedDBRepository(objectStoreName) {
@@ -60,12 +68,13 @@ internal class IndexedDBInboundMegolmSessionRepository(private val json: Json) :
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> = withRead { store ->
+    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession.Key> = withRead { store ->
         store
             .index("hasBeenBackedUp")
             .openCursor(IDBValidKey(0))
             .mapNotNull { json.decodeFromDynamicNullable(internalRepository.valueSerializer, it.value) }
             .map { it.toStoredInboundMegolmSession() }
+            .filterIsInstance<StoredInboundMegolmSession.Key>()
             .toSet()
     }
 

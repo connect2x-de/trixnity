@@ -137,7 +137,7 @@ class PerMemberRtcSlotMembershipEncryptionHandlerTest : TrixnityBaseTest() {
                 )
                 .forEach { (sessionId, senderKey, _) ->
                     updateInboundMegolmSession(sessionId, roomId) {
-                        StoredInboundMegolmSession(
+                        StoredInboundMegolmSession.Key(
                             senderKey = senderKey,
                             senderSigningKey = Ed25519KeyValue("senderSigning"),
                             sessionId = sessionId,

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.crypto.olm
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.trimToFlatJson
 import io.kotest.matchers.shouldBe
@@ -11,20 +12,39 @@ import kotlin.test.Test
 class StoredInboundMegolmSessionSerializerTest {
     private val json = createMatrixEventJson()
 
-    val storedInboundMegolmSessionCreator =
-        StoredInboundMegolmSession(
+    val storedInboundMegolmSessionCreator: StoredInboundMegolmSession =
+        StoredInboundMegolmSession.Key(
+            roomId = RoomId("roomId"),
             senderKey = KeyValue.Curve25519KeyValue("senderKey"),
             senderSigningKey = KeyValue.Ed25519KeyValue("senderSigningKey"),
             sessionId = "sessionId",
-            roomId = RoomId("roomId"),
+            source = InboundMegolmSessionSource.Creator,
             firstKnownIndex = 12,
             hasBeenBackedUp = false,
-            source = InboundMegolmSessionSource.Creator,
             sharedHistory = false,
             pickled = "pickled",
         )
 
     val storedInboundMegolmSessionCreatorJson =
+        """
+            {
+              "type": "key",
+              "roomId": "roomId",
+              "senderKey": "senderKey",
+              "senderSigningKey": "senderSigningKey",
+              "sessionId": "sessionId",
+              "source": {
+                "type": "creator"
+              },
+              "firstKnownIndex": 12,
+              "hasBeenBackedUp": false,
+              "sharedHistory": false,
+              "pickled": "pickled"
+            }
+        """
+            .trimToFlatJson()
+
+    val legacySourceStoredInboundMegolmSessionCreatorJson =
         """
             {
               "senderKey": "senderKey",
@@ -58,15 +78,15 @@ class StoredInboundMegolmSessionSerializerTest {
         """
             .trimToFlatJson()
 
-    val storedInboundMegolmSessionBackup =
-        StoredInboundMegolmSession(
+    val storedInboundMegolmSessionBackup: StoredInboundMegolmSession =
+        StoredInboundMegolmSession.Key(
+            roomId = RoomId("roomId"),
             senderKey = KeyValue.Curve25519KeyValue("senderKey"),
             senderSigningKey = KeyValue.Ed25519KeyValue("senderSigningKey"),
             sessionId = "sessionId",
-            roomId = RoomId("roomId"),
+            source = InboundMegolmSessionSource.UnauthenticatedBackup(null),
             firstKnownIndex = 12,
             hasBeenBackedUp = false,
-            source = InboundMegolmSessionSource.UnauthenticatedBackup(null),
             sharedHistory = false,
             pickled = "pickled",
         )
@@ -74,15 +94,16 @@ class StoredInboundMegolmSessionSerializerTest {
     val storedInboundMegolmSessionBackupJson =
         """
             {
+              "type": "key",
+              "roomId": "roomId",
               "senderKey": "senderKey",
               "senderSigningKey": "senderSigningKey",
               "sessionId": "sessionId",
-              "roomId": "roomId",
-              "firstKnownIndex": 12,
-              "hasBeenBackedUp": false,
               "source": {
                 "type": "backup"
               },
+              "firstKnownIndex": 12,
+              "hasBeenBackedUp": false,
               "sharedHistory": false,
               "pickled": "pickled"
             }
@@ -105,15 +126,15 @@ class StoredInboundMegolmSessionSerializerTest {
         """
             .trimToFlatJson()
 
-    val storedInboundMegolmSessionKeyRequest =
-        StoredInboundMegolmSession(
+    val storedInboundMegolmSessionKeyRequest: StoredInboundMegolmSession =
+        StoredInboundMegolmSession.Key(
+            roomId = RoomId("roomId"),
             senderKey = KeyValue.Curve25519KeyValue("senderKey"),
             senderSigningKey = KeyValue.Ed25519KeyValue("senderSigningKey"),
             sessionId = "sessionId",
-            roomId = RoomId("roomId"),
+            source = InboundMegolmSessionSource.KeyRequest(listOf(KeyValue.Curve25519KeyValue("key1"))),
             firstKnownIndex = 12,
             hasBeenBackedUp = false,
-            source = InboundMegolmSessionSource.KeyRequest(listOf(KeyValue.Curve25519KeyValue("key1"))),
             sharedHistory = false,
             pickled = "pickled",
         )
@@ -121,18 +142,19 @@ class StoredInboundMegolmSessionSerializerTest {
     val storedInboundMegolmSessionKeyRequestJson =
         """
             {
+              "type": "key",
+              "roomId": "roomId",
               "senderKey": "senderKey",
               "senderSigningKey": "senderSigningKey",
               "sessionId": "sessionId",
-              "roomId": "roomId",
-              "firstKnownIndex": 12,
-              "hasBeenBackedUp": false,
               "source": {
                 "type": "keyRequest",
                 "forwardingKeyChain": [
                   "key1"
                 ]
               },
+              "firstKnownIndex": 12,
+              "hasBeenBackedUp": false,
               "sharedHistory": false,
               "pickled": "pickled"
             }
@@ -155,18 +177,18 @@ class StoredInboundMegolmSessionSerializerTest {
         """
             .trimToFlatJson()
 
-    val storedInboundMegolmSessionKeyBundle =
-        StoredInboundMegolmSession(
+    val storedInboundMegolmSessionKeyBundle: StoredInboundMegolmSession =
+        StoredInboundMegolmSession.Key(
+            roomId = RoomId("roomId"),
             senderKey = KeyValue.Curve25519KeyValue("senderKey"),
             senderSigningKey = KeyValue.Ed25519KeyValue("senderSigningKey"),
             sessionId = "sessionId",
-            roomId = RoomId("roomId"),
-            firstKnownIndex = 12,
-            hasBeenBackedUp = false,
             source =
                 InboundMegolmSessionSource.KeyBundle(
                     setOf(InboundMegolmSessionSource.KeyBundle.Sender(UserId("alice", "server"), "device"))
                 ),
+            firstKnownIndex = 12,
+            hasBeenBackedUp = false,
             sharedHistory = false,
             pickled = "pickled",
         )
@@ -174,18 +196,45 @@ class StoredInboundMegolmSessionSerializerTest {
     val storedInboundMegolmSessionKeyBundleJson =
         """
             {
+              "type": "key",
+              "roomId": "roomId",
               "senderKey": "senderKey",
               "senderSigningKey": "senderSigningKey",
               "sessionId": "sessionId",
-              "roomId": "roomId",
-              "firstKnownIndex": 12,
-              "hasBeenBackedUp": false,
               "source": {
                 "type": "keyBundle",
                 "sender": [{"userId":"@alice:server","deviceId":"device"}]
               },
+              "firstKnownIndex": 12,
+              "hasBeenBackedUp": false,
               "sharedHistory": false,
               "pickled": "pickled"
+            }
+        """
+            .trimToFlatJson()
+
+    val storedInboundMegolmSessionWithheld: StoredInboundMegolmSession =
+        StoredInboundMegolmSession.Withheld(
+            roomId = RoomId("roomId"),
+            senderKey = KeyValue.Curve25519KeyValue("senderKey"),
+            sessionId = "sessionId",
+            source = InboundMegolmSessionSource.Creator,
+            code = RoomKeyWithheldCode.Blacklisted,
+            reason = "withheld reason",
+        )
+
+    val storedInboundMegolmSessionWithheldJson =
+        """
+            {
+              "type": "withheld",
+              "roomId": "roomId",
+              "senderKey": "senderKey",
+              "sessionId": "sessionId",
+              "source": {
+                "type": "creator"
+              },
+              "code": "m.blacklisted",
+              "reason": "withheld reason"
             }
         """
             .trimToFlatJson()
@@ -199,6 +248,13 @@ class StoredInboundMegolmSessionSerializerTest {
     @Test
     fun shouldDeserializeStoredInboundMegolmSessionCreator() {
         val result = json.decodeFromString<StoredInboundMegolmSession>(storedInboundMegolmSessionCreatorJson)
+        result shouldBe storedInboundMegolmSessionCreator
+    }
+
+    @Test
+    fun shouldDeserializeLegacySourceStoredInboundMegolmSessionCreator() {
+        val result =
+            json.decodeFromString<StoredInboundMegolmSession>(legacySourceStoredInboundMegolmSessionCreatorJson)
         result shouldBe storedInboundMegolmSessionCreator
     }
 
@@ -254,5 +310,17 @@ class StoredInboundMegolmSessionSerializerTest {
     fun shouldDeserializeStoredInboundMegolmSessionKeyBundle() {
         val result = json.decodeFromString<StoredInboundMegolmSession>(storedInboundMegolmSessionKeyBundleJson)
         result shouldBe storedInboundMegolmSessionKeyBundle
+    }
+
+    @Test
+    fun shouldSerializeStoredInboundMegolmSessionWithheld() {
+        val result = json.encodeToString(storedInboundMegolmSessionWithheld)
+        result shouldBe storedInboundMegolmSessionWithheldJson
+    }
+
+    @Test
+    fun shouldDeserializeStoredInboundMegolmSessionWithheld() {
+        val result = json.decodeFromString<StoredInboundMegolmSession>(storedInboundMegolmSessionWithheldJson)
+        result shouldBe storedInboundMegolmSessionWithheld
     }
 }

@@ -19,6 +19,7 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
+import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
@@ -66,7 +67,6 @@ class MegolmRoomEventEncryptionService(
         if (content !is MegolmEncryptedMessageEventContent) return null
 
         val session = olmCryptoStore.getInboundMegolmSession(content.sessionId, roomId).first()
-        val firstKnownIndex = session?.firstKnownIndex
         if (session == null) {
             log.debug { "start to wait for inbound megolm session to decrypt $eventId in $roomId" }
             waitForInboundMegolmSessionAndRequest(roomId, content.sessionId)
@@ -87,7 +87,7 @@ class MegolmRoomEventEncryptionService(
                 waitForInboundMegolmSessionAndRequest(
                     roomId,
                     content.sessionId,
-                    firstKnownIndexLessThen = firstKnownIndex,
+                    firstKnownIndexLessThen = (session as? StoredInboundMegolmSession.Key)?.firstKnownIndex,
                 )
                 megolmEncryptionService.decryptMegolmCatching(encryptedEvent)
             } else decryptEventAttempt

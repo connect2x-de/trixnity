@@ -2,7 +2,9 @@ package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent.*
+import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
@@ -79,7 +81,8 @@ suspend fun OlmCryptoStore.waitForInboundMegolmSession(
     onNotExisting: (suspend CoroutineScope.() -> Unit)? = null,
 ): Unit = coroutineScope {
     fun StoredInboundMegolmSession?.matches() =
-        this != null && (firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen)
+        this is StoredInboundMegolmSession.Key &&
+            (firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen)
 
     val onNotExistingJob =
         if (getInboundMegolmSession(sessionId, roomId).first().matches().not() && onNotExisting != null)

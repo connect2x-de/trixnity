@@ -50,7 +50,7 @@ class OlmCryptoStore(
         MinimalRepositoryObservableCache(olmForgetFallbackKeyAfterRepository, tm, storeScope, clock, Duration.INFINITE)
             .also(statisticCollector::addCache)
 
-    private val _notBackedUpInboundMegolmSessions = MutableStateFlow<Set<StoredInboundMegolmSession>>(setOf())
+    private val _notBackedUpInboundMegolmSessions = MutableStateFlow<Set<StoredInboundMegolmSession.Key>>(setOf())
 
     val notBackedUpInboundMegolmSessions = _notBackedUpInboundMegolmSessions.asStateFlow()
 
@@ -132,7 +132,7 @@ class OlmCryptoStore(
             updater = updater,
             onPersist = { newValue ->
                 _notBackedUpInboundMegolmSessions.update {
-                    if (newValue == null || newValue.hasBeenBackedUp)
+                    if (newValue !is StoredInboundMegolmSession.Key || newValue.hasBeenBackedUp)
                         it.filterNot { it.roomId == roomId && it.sessionId == sessionId }.toSet()
                     else it + newValue
                 }

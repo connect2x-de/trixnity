@@ -96,12 +96,12 @@ class MegolmRoomEventDecryptionServiceTest : TrixnityBaseTest() {
     private val session = "SESSION"
     private val senderKey = Key.Curve25519Key(null, "senderKey")
     private val storedSession =
-        StoredInboundMegolmSession(
-            senderKey.value,
-            Ed25519KeyValue("ed"),
-            session,
-            room,
-            1,
+        StoredInboundMegolmSession.Key(
+            senderKey = senderKey.value,
+            senderSigningKey = Ed25519KeyValue("ed"),
+            sessionId = session,
+            roomId = room,
+            firstKnownIndex = 1,
             hasBeenBackedUp = false,
             source = InboundMegolmSessionSource.Creator,
             sharedHistory = true,

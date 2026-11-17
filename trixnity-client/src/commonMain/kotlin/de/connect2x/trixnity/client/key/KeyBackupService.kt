@@ -244,7 +244,11 @@ class KeyBackupServiceImpl(
                         encryptedSessionData.toStoredInboundMegolmSession(sessionId, roomId)
                     tm.writeTransaction {
                         olmCryptoStore.updateInboundMegolmSession(sessionId, roomId) {
-                            if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) it
+                            if (
+                                it is StoredInboundMegolmSession.Key &&
+                                    it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex
+                            )
+                                it
                             else storedInboundMegolmSession
                         }
                     }
@@ -309,7 +313,10 @@ class KeyBackupServiceImpl(
                                     storedInboundMegolmSession.sessionId,
                                     roomId,
                                 ) {
-                                    if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex)
+                                    if (
+                                        it is StoredInboundMegolmSession.Key &&
+                                            it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex
+                                    )
                                         it
                                     else storedInboundMegolmSession
                                 }
@@ -327,7 +334,7 @@ class KeyBackupServiceImpl(
     private suspend fun RoomKeyBackupSessionData.toStoredInboundMegolmSession(
         sessionId: String,
         roomId: RoomId,
-    ): StoredInboundMegolmSession {
+    ): StoredInboundMegolmSession.Key {
         require(this is EncryptedRoomKeyBackupV1SessionData)
         val storedSecret = checkNotNull(keyStore.getSecrets()[SecretType.M_MEGOLM_BACKUP_V1])
 
@@ -351,7 +358,7 @@ class KeyBackupServiceImpl(
         val senderSigningKey =
             data.senderClaimedKeys.filterIsInstance<Key.Ed25519Key>().firstOrNull()
                 ?: throw IllegalArgumentException("sender claimed key should not be empty")
-        return StoredInboundMegolmSession(
+        return StoredInboundMegolmSession.Key(
             senderKey = data.senderKey,
             sessionId = sessionId,
             roomId = roomId,
@@ -412,6 +419,7 @@ class KeyBackupServiceImpl(
                                 version.version,
                                 RoomsKeyBackup(
                                     notBackedUpInboundMegolmSessions
+                                        .filterIsInstance<StoredInboundMegolmSession.Key>()
                                         .groupBy { it.roomId }
                                         .mapValues { roomEntries ->
                                             RoomKeyBackup(
@@ -487,7 +495,8 @@ class KeyBackupServiceImpl(
                                 tm.writeTransaction {
                                     chunk.forEach {
                                         olmCryptoStore.updateInboundMegolmSession(it.sessionId, it.roomId) { session ->
-                                            session?.copy(hasBeenBackedUp = true)
+                                            (session as? StoredInboundMegolmSession.Key)?.copy(hasBeenBackedUp = true)
+                                                ?: session
                                         }
                                     }
                                 }

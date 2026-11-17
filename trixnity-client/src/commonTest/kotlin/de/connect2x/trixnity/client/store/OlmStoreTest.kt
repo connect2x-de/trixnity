@@ -50,7 +50,7 @@ class OlmStoreTest : TrixnityBaseTest() {
         )
 
     private val session =
-        StoredInboundMegolmSession(
+        StoredInboundMegolmSession.Key(
             senderKey = Curve25519KeyValue("senderCurve"),
             sessionId = "session",
             roomId = RoomId("!room:server"),
@@ -77,7 +77,7 @@ class OlmStoreTest : TrixnityBaseTest() {
             inboundMegolmSessionRepository.save(
                 RoomId("!room:server"),
                 "session1",
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = Curve25519KeyValue("senderCurve1"),
                     senderSigningKey = Ed25519KeyValue("senderEd1"),
                     sessionId = "session1",
@@ -92,7 +92,7 @@ class OlmStoreTest : TrixnityBaseTest() {
             inboundMegolmSessionRepository.save(
                 RoomId("!room:server"),
                 "session2",
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = Curve25519KeyValue("senderCurve2"),
                     senderSigningKey = Ed25519KeyValue("senderEd2"),
                     sessionId = "session2",

@@ -25,6 +25,7 @@ import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
+import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -88,7 +89,7 @@ class IncomingRoomKeyRequestEventHandler(
             ) {
                 val foundInboundMegolmSession =
                     olmStore.getInboundMegolmSession(requestBody.sessionId, requestBody.roomId).first()
-                if (foundInboundMegolmSession != null) {
+                if (foundInboundMegolmSession is StoredInboundMegolmSession.Key) {
                     log.info {
                         "send incoming room key request answer (${request.requestId}) to device $requestingDeviceId"
                     }

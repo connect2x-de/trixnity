@@ -163,7 +163,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         },
                         createDefaultEventContentSerializerMappingsModule(),
                         createDefaultMatrixJsonModule(),
-                    )
+                    ),
                 )
             }
                 .koin
@@ -386,8 +386,8 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         UserId(
                             "alice",
                             "server.org",
-                        ) to setOf(RoomId("!!room:server"))
-                    )
+                        ) to setOf(RoomId("!!room:server")),
+                    ),
                 ),
                 "",
             )
@@ -417,9 +417,9 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                             UserId(
                                 "alice",
                                 "server.org",
-                            ) to null
-                        )
-                    )
+                            ) to null,
+                        ),
+                    ),
             )
 
         rtm.writeTransaction {
@@ -482,7 +482,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
         val roomId1 = RoomId("!room:server")
         val roomId2 = RoomId("!room1:server")
         val inboundSession1 =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue("curve1"),
                 sessionId = "session1",
                 roomId = roomId1,
@@ -494,13 +494,13 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         listOf(
                             Curve25519KeyValue("curveExt1"),
                             Curve25519KeyValue("curveExt2"),
-                        )
+                        ),
                     ),
                 sharedHistory = false,
                 pickled = "pickle1",
             )
         val inboundSession2 =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue("curve2"),
                 sessionId = "session2",
                 roomId = roomId1,
@@ -513,7 +513,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
             )
         val inboundSession2Copy = inboundSession2.copy(pickled = "pickle2Copy")
         val inboundSession3 =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue("curve2"),
                 sessionId = "session1",
                 roomId = roomId2,
@@ -529,28 +529,48 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                                     "domain",
                                 ),
                                 "device",
-                            )
-                        )
+                            ),
+                        ),
                     ),
                 sharedHistory = true,
                 pickled = "pickle3",
+            )
+        val inboundSession4 =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = Curve25519KeyValue("curve3"),
+                sessionId = "session4",
+                roomId = roomId2,
+                source = InboundMegolmSessionSource.Creator,
+                code = de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
             )
 
         rtm.writeTransaction {
             cut.save(inboundSession1.roomId, inboundSession1.sessionId, inboundSession1)
             cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2)
             cut.save(inboundSession3.roomId, inboundSession3.sessionId, inboundSession3)
+            cut.save(inboundSession4.roomId, inboundSession4.sessionId, inboundSession4)
             cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe inboundSession1
             cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2
+            cut.get(inboundSession4.roomId, inboundSession4.sessionId) shouldBe inboundSession4
             cut.get(roomId1) shouldBe
                 mapOf(inboundSession1.sessionId to inboundSession1, inboundSession2.sessionId to inboundSession2)
-            cut.getAll() shouldBe setOf(inboundSession1, inboundSession2, inboundSession3)
-            cut.getByNotBackedUp() shouldBe setOf(inboundSession1)
+            cut.getAll() shouldBe setOf(inboundSession1, inboundSession2, inboundSession3, inboundSession4)
             cut.save(inboundSession2.roomId, inboundSession2.sessionId, inboundSession2Copy)
             cut.get(inboundSession2.roomId, inboundSession2.sessionId) shouldBe inboundSession2Copy
+            val inboundSession4AsKey =
+                inboundSession1.copy(
+                    senderKey = inboundSession4.senderKey,
+                    roomId = inboundSession4.roomId,
+                    sessionId = inboundSession4.sessionId,
+                )
+            cut.save(inboundSession4.roomId, inboundSession4.sessionId, inboundSession4AsKey)
+            cut.get(inboundSession4.roomId, inboundSession4.sessionId) shouldBe inboundSession4AsKey
+            cut.getByNotBackedUp() shouldBe setOf(inboundSession1, inboundSession4AsKey)
             cut.delete(inboundSession1.roomId, inboundSession1.sessionId)
             cut.get(inboundSession1.roomId, inboundSession1.sessionId) shouldBe null
             cut.get(roomId1) shouldBe mapOf(inboundSession2.sessionId to inboundSession2Copy)
+            cut.getByNotBackedUp() shouldBe setOf(inboundSession4AsKey)
         }
     }
 
@@ -743,7 +763,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     mapOf(
                         UserId("bob", "server") to setOf("Device1"),
                         UserId("alice", "server") to setOf("Device2", "Device3"),
-                    )
+                    ),
             )
 
         rtm.writeTransaction {
@@ -1177,7 +1197,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         RoomUserReceipts.Receipt(
                             EventId("event"),
                             ReceiptEventContent.Receipt(1L),
-                        )
+                        ),
                 ),
             )
         val userReceipt2 =
@@ -1189,7 +1209,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         RoomUserReceipts.Receipt(
                             EventId("event"),
                             ReceiptEventContent.Receipt(1L),
-                        )
+                        ),
                 ),
             )
         val userReceipt3 =
@@ -1201,7 +1221,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         RoomUserReceipts.Receipt(
                             EventId("event"),
                             ReceiptEventContent.Receipt(1L),
-                        )
+                        ),
                 ),
             )
 
@@ -1231,7 +1251,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                         RoomUserReceipts.Receipt(
                             EventId("event"),
                             ReceiptEventContent.Receipt(1L),
-                        )
+                        ),
                 ),
             )
 
@@ -1456,14 +1476,14 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     relation1.relatedEventId,
                     relation1.roomId,
                     relation1.relationType,
-                )
+                ),
             ) shouldBe mapOf(relation1.eventId to relation1)
             cut.get(
                 TimelineEventRelationKey(
                     relation2.relatedEventId,
                     relation2.roomId,
                     relation2.relationType,
-                )
+                ),
             ) shouldBe
                 mapOf(
                     relation2.eventId to relation2,
@@ -1483,7 +1503,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                     relation2.relatedEventId,
                     relation2.roomId,
                     relation2.relationType,
-                )
+                ),
             ) shouldBe mapOf(relation3.eventId to relation3)
 
             cut.delete(
@@ -2032,7 +2052,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                             roomId1,
                             EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
                         ),
-                    )
+                    ),
                 ),
             )
         val roomKeyBundle2 =
@@ -2048,7 +2068,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                             roomId2,
                             EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
                         ),
-                    )
+                    ),
                 ),
             )
         val roomKeyBundle2Copy =
@@ -2062,7 +2082,7 @@ abstract class RepositoryTestSuite(private val repositoriesModule: RepositoriesM
                                 roomId2,
                                 EncryptedFile("", EncryptedFile.JWK(""), "", mapOf()),
                             ),
-                        )
+                        ),
             )
 
         rtm.writeTransaction {

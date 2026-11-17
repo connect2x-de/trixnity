@@ -23,6 +23,7 @@ import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
@@ -196,6 +197,46 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     fun `processIncomingKeyRequests » not answer request with trust level Invalid reason`() =
         notAnswerRequest(KeySignatureTrustLevel.Invalid("reason"))
 
+    // this test case is not completely correct, but the spec is too vague regarding the correct json schema to
+    // correctly implement it
+    @Test
+    fun `processIncomingKeyRequests » not answer request when inbound megolm session is withheld`() = runTest {
+        handleEncryptedIncomingKeyRequestsSetup()
+        tm.writeTransaction {
+            olmStore.updateInboundMegolmSession(sessionId, room) {
+                StoredInboundMegolmSession.Withheld(
+                    senderKey = senderKey.value,
+                    sessionId = sessionId,
+                    roomId = room,
+                    source = InboundMegolmSessionSource.Creator,
+                    code = RoomKeyWithheldCode.Unverified,
+                    reason = "unverified",
+                )
+            }
+        }
+        cut.handleEncryptedIncomingKeyRequests(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyRequestEventContent(
+                        KeyRequestAction.REQUEST,
+                        aliceDevice,
+                        "requestId",
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                    ),
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
+            )
+        )
+        cut.processIncomingKeyRequests()
+        cut.processIncomingKeyRequests()
+        sendToDeviceEvents shouldBe null
+    }
+
     private suspend fun handleEncryptedIncomingKeyRequestsSetup() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
@@ -218,7 +259,7 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 val outboundSession = driver.megolm.groupSession()
                 val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey.value,
                     senderSigningKey = senderSigningKey.value,
                     sessionId = sessionId,
@@ -244,7 +285,7 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 val outboundSession = driver.megolm.groupSession()
                 val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey.value,
                     senderSigningKey = senderSigningKey.value,
                     sessionId = sessionId,

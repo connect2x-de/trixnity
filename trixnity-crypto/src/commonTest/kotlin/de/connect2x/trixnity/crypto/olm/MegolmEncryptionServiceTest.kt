@@ -17,6 +17,7 @@ import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
 import de.connect2x.trixnity.core.model.keys.Keys
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
@@ -167,8 +168,8 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         sendToDeviceEvents.firstOrNull()?.get(bob)?.get(bobDeviceId) shouldBe olmCipher
 
         val sessionId = outboundSession.sessionId
-        val storedInboundSession = olmStoreMock.inboundMegolmSession[sessionId to room]
-        assertNotNull(storedInboundSession)
+        val storedInboundSession =
+            olmStoreMock.inboundMegolmSession[sessionId to room].shouldBeInstanceOf<StoredInboundMegolmSession.Key>()
         assertSoftly(storedInboundSession) {
             sessionId shouldBe sessionId
             senderKey shouldBe aliceCurveKey.value
@@ -249,7 +250,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = aliceCurveKey.value,
                 senderSigningKey = aliceEdKey.value,
                 sessionId = inboundSession.sessionId,
@@ -303,7 +304,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val outboundSession = groupSession()
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = bobCurveKey.value,
                 senderSigningKey = bobEdKey.value,
                 sessionId = inboundSession.sessionId,
@@ -346,7 +347,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
 
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = bobCurveKey.value,
                 senderSigningKey = bobEdKey.value,
                 sessionId = inboundSession.sessionId,
@@ -399,11 +400,42 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `decryptMegolm - fail when key was withheld`() = runTest {
+        val session = groupSession()
+        olmStoreMock.inboundMegolmSession[session.sessionId to room] =
+            StoredInboundMegolmSession.Withheld(
+                roomId = room,
+                senderKey = bobCurveKey.value,
+                sessionId = session.sessionId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "device not verified",
+            )
+        val ciphertext = session.encrypt(json.encodeToString(plaintextMegolmEventSerializer, plaintextMegolmEvent))
+        cut.decryptMegolm(
+                MessageEvent(
+                    MegolmEncryptedMessageEventContent(
+                        MegolmMessageValue.of(ciphertext),
+                        bobCurveKey.value,
+                        bobDeviceId,
+                        session.sessionId,
+                    ),
+                    EventId("\$event"),
+                    bob,
+                    room,
+                    1234,
+                )
+            )
+            .exceptionOrNull() shouldBe
+            DecryptMegolmError.MegolmKeyWithheld(RoomKeyWithheldCode.Unverified, "device not verified")
+    }
+
+    @Test
     fun `decryptMegolm - handle manipulated roomId in megolmEvent`() = runTest {
         val outboundSession = groupSession()
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = bobCurveKey.value,
                 senderSigningKey = bobEdKey.value,
                 sessionId = inboundSession.sessionId,
@@ -444,7 +476,7 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
         val outboundSession = groupSession()
         val inboundSession = inboundGroupSession(sessionKey = outboundSession.sessionKey)
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to room] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = bobCurveKey.value,
                 senderSigningKey = bobEdKey.value,
                 sessionId = inboundSession.sessionId,

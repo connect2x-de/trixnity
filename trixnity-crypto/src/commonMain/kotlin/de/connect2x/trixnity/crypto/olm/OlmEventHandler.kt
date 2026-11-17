@@ -15,6 +15,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
 import de.connect2x.trixnity.core.model.events.Event
 import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
@@ -262,45 +263,68 @@ class OlmEventHandlerImpl(
 
     internal suspend fun handleOlmEncryptedRoomKeyEventContent(event: DecryptedOlmEventContainer) {
         val content = event.decrypted.content
-        if (content is RoomKeyEventContent) {
-            log.debug { "got inbound megolm session for room ${content.roomId}" }
-            val senderSigningKey = event.decrypted.senderKeys.keys.filterIsInstance<Ed25519Key>().firstOrNull()
-            if (senderSigningKey == null) {
-                log.warn { "ignore inbound megolm session because it did not contain any sender signing key" }
-                return
-            }
-            try {
-                val (firstKnownIndex, pickledSession) =
-                    useAll(
-                        { driver.megolm.sessionKey(content.sessionKey) },
-                        { driver.megolm.inboundGroupSession(it) },
-                    ) { _, inboundGroupSession ->
-                        inboundGroupSession.firstKnownIndex.toLong() to
-                            inboundGroupSession.pickle(driver.key.pickleKey(store.getOlmPickleKey()))
-                    }
+        when (content) {
+            is RoomKeyEventContent -> {
+                log.debug { "got inbound megolm session for room ${content.roomId}" }
+                val senderSigningKey = event.decrypted.senderKeys.keys.filterIsInstance<Ed25519Key>().firstOrNull()
+                if (senderSigningKey == null) {
+                    log.warn { "ignore inbound megolm session because it did not contain any sender signing key" }
+                    return
+                }
+                try {
+                    val (firstKnownIndex, pickledSession) =
+                        useAll(
+                            { driver.megolm.sessionKey(content.sessionKey) },
+                            { driver.megolm.inboundGroupSession(it) },
+                        ) { _, inboundGroupSession ->
+                            inboundGroupSession.firstKnownIndex.toLong() to
+                                inboundGroupSession.pickle(driver.key.pickleKey(store.getOlmPickleKey()))
+                        }
 
-                store.updateInboundMegolmSession(content.sessionId, content.roomId) {
-                    if (it != null && it.firstKnownIndex <= firstKnownIndex) {
-                        // TODO theoretically we could lift the source to Creator (e.g. by compare export at an index)
-                        it
-                    } else {
-                        StoredInboundMegolmSession(
-                            senderKey = event.encrypted.content.senderKey,
-                            senderSigningKey = senderSigningKey.value,
-                            sessionId = content.sessionId,
-                            roomId = content.roomId,
-                            firstKnownIndex = firstKnownIndex,
-                            hasBeenBackedUp = false,
-                            source = InboundMegolmSessionSource.Creator,
-                            sharedHistory = content.sharedHistory == true,
-                            pickled = pickledSession,
-                        )
+                    store.updateInboundMegolmSession(content.sessionId, content.roomId) {
+                        if (it is StoredInboundMegolmSession.Key && it.firstKnownIndex <= firstKnownIndex) {
+                            // TODO theoretically we could lift the source to Creator (e.g. by compare export at an
+                            // index)
+                            it
+                        } else {
+                            StoredInboundMegolmSession.Key(
+                                senderKey = event.encrypted.content.senderKey,
+                                senderSigningKey = senderSigningKey.value,
+                                sessionId = content.sessionId,
+                                roomId = content.roomId,
+                                firstKnownIndex = firstKnownIndex,
+                                hasBeenBackedUp = false,
+                                source = InboundMegolmSessionSource.Creator,
+                                sharedHistory = content.sharedHistory == true,
+                                pickled = pickledSession,
+                            )
+                        }
+                    }
+                } catch (exception: CryptoDriverException) {
+                    log.warn { "ignore inbound megolm session due to: ${exception.message}" }
+                    null
+                }
+            }
+            is RoomKeyWithheldEventContent -> {
+                val roomId = content.roomId
+                val sessionId = content.sessionId
+                if (roomId != null && sessionId != null) {
+                    log.debug { "got room key withheld event for room $roomId and session $sessionId" }
+                    store.updateInboundMegolmSession(sessionId, roomId) {
+                        if (it is StoredInboundMegolmSession.Key) it
+                        else
+                            StoredInboundMegolmSession.Withheld(
+                                roomId = roomId,
+                                sessionId = sessionId,
+                                senderKey = content.senderKey,
+                                source = InboundMegolmSessionSource.Creator,
+                                code = content.code,
+                                reason = content.reason,
+                            )
                     }
                 }
-            } catch (exception: CryptoDriverException) {
-                log.warn { "ignore inbound megolm session due to: ${exception.message}" }
-                null
             }
+            else -> {}
         }
     }
 

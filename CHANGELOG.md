@@ -11,6 +11,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI
 - Added `RoomKeyWithheldEventContent`
+- Store and use withheld inbound megolm keys
 
 ### Changed
 

@@ -20,6 +20,7 @@ import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm.Megolm
 import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.SessionKeyValue
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.crypto.core.SecureRandom
@@ -73,6 +74,9 @@ interface MegolmEncryptionService {
             DecryptMegolmError, IllegalStateException("error in crypto driver", error)
 
         class MegolmKeyNotFound : DecryptMegolmError, IllegalStateException("megolm key not found")
+
+        data class MegolmKeyWithheld(val code: RoomKeyWithheldCode, val reason: String?) :
+            DecryptMegolmError, IllegalStateException("megolm key withheld")
 
         class MegolmKeyUnknownMessageIndex :
             DecryptMegolmError, IllegalStateException("megolm key with unknown message index")
@@ -182,7 +186,7 @@ class MegolmEncryptionServiceImpl(
                                         newDevices = newUserDevices,
                                     ),
                                     outboundSession.pickle(pickleKey),
-                                    StoredInboundMegolmSession(
+                                    StoredInboundMegolmSession.Key(
                                         senderKey = ownCurve25519Key.value,
                                         sessionId = inboundSession.sessionId,
                                         roomId = roomId,
@@ -311,8 +315,14 @@ class MegolmEncryptionServiceImpl(
                 val encryptedContent = encryptedEvent.content
                 val sessionId = encryptedContent.sessionId
 
-                val storedSession =
-                    store.getInboundMegolmSession(sessionId, roomId) ?: throw DecryptMegolmError.MegolmKeyNotFound()
+                val storedSession = store.getInboundMegolmSession(sessionId, roomId)
+
+                when (storedSession) {
+                    is StoredInboundMegolmSession.Key -> {}
+                    is StoredInboundMegolmSession.Withheld ->
+                        throw DecryptMegolmError.MegolmKeyWithheld(storedSession.code, storedSession.reason)
+                    null -> throw DecryptMegolmError.MegolmKeyNotFound()
+                }
 
                 val pickleKey =
                     try {

@@ -63,8 +63,8 @@ import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.days
@@ -133,7 +133,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
         val inboundSession1 = cryptoDriver.megolm.inboundGroupSession(sessionKey = outboundSession1.sessionKey)
         val inboundSession2 = cryptoDriver.megolm.inboundGroupSession(sessionKey = outboundSession2.sessionKey)
         val sharedSession =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = senderKey,
                 sessionId = inboundSession1.sessionId,
                 roomId = roomId,
@@ -145,7 +145,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 sharedHistory = true,
             )
         val nonSharedSession =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = senderKey,
                 sessionId = inboundSession2.sessionId,
                 roomId = roomId,
@@ -478,7 +478,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 .getInboundMegolmSessions(roomId)
                 .flatten()
                 .first()[outboundSession.sessionId]
-                .shouldNotBeNull()
+                .shouldBeInstanceOf<StoredInboundMegolmSession.Key>()
 
         storedSession.senderKey shouldBe senderKey
         storedSession.sessionId shouldBe outboundSession.sessionId
@@ -551,7 +551,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 )
 
             val existingStoredInboundMegolmSession =
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey,
                     sessionId = outboundSession.sessionId,
                     roomId = roomId,

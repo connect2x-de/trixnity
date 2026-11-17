@@ -24,6 +24,7 @@ import de.connect2x.trixnity.vodozemac.olm.Session
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
@@ -69,7 +70,62 @@ class MigrationTest {
         shouldNotThrowAny { Account.fromPickle(db.olmAccount) }
         shouldNotThrowAny { Session.fromPickle(db.olmSession.pickled) }
         shouldNotThrowAny { GroupSession.fromPickle(db.groupSession.pickled) }
-        shouldNotThrowAny { InboundGroupSession.fromPickle(db.inboundGroupSession.pickled) }
+        shouldNotThrowAny {
+            InboundGroupSession.fromPickle(
+                db.inboundGroupSession.shouldBeInstanceOf<StoredInboundMegolmSession.Key>().pickled
+            )
+        }
+    }
+
+    @Test
+    fun testVodozemacMigrationIgnoresWithheldInboundMegolmSession() = runTest {
+        val repositoriesModule = RepositoriesModule.inMemory().create()
+        val app = koinApplication {
+            modules(
+                listOf(
+                    repositoriesModule,
+                    module {
+                        single { MatrixClientConfiguration(storeTimelineEventContentUnencrypted = true) }
+                        single { backgroundScope }
+                        single<RepositoryMigration> {
+                            VodozemacRepositoryMigration(get(), get(), get(), get(), get(), get(), get())
+                        }
+                        single<StoreTransactionManager> { NoOpStoreTransactionManager }
+                    },
+                    createDefaultEventContentSerializerMappingsModule(),
+                    createDefaultMatrixJsonModule(),
+                )
+            )
+        }
+
+        val json = app.koin.get<Json>()
+        val oldDb = json.decodeFromString<Database>(oldDatabase)
+        val withheldSession =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = oldDb.inboundGroupSession.senderKey,
+                sessionId = "withheldSessionId",
+                roomId = oldDb.inboundGroupSession.roomId,
+                source = de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource.Creator,
+                code = de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode.Unverified,
+                reason = "device not verified",
+            )
+
+        app.applyDatabase(oldDb)
+        val members = app.koin.members
+        members.tm.writeTransaction {
+            members.inboundMegolmSessionRepository.save(
+                firstKey = withheldSession.roomId,
+                secondKey = withheldSession.sessionId,
+                value = withheldSession,
+            )
+        }
+
+        app.koin.get<RepositoryMigration>().run()
+
+        members.tm.readTransaction {
+            members.inboundMegolmSessionRepository.get(withheldSession.roomId, withheldSession.sessionId) shouldBe
+                withheldSession
+        }
     }
 
     private suspend fun KoinApplication.applyDatabase(db: Database) {
