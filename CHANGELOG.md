@@ -23,6 +23,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- Fix `retryFlow` did loop instead of following existing flow-function behavior
+
 ### Security
 
 ## 5.11.1

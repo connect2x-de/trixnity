@@ -6,8 +6,23 @@ import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 
 data class RetryFlowDelayConfig(
@@ -39,13 +54,13 @@ fun <T> retryFlow(
                 try {
                     emit(RetryFlowResult.Suspend) // ensure, that block is not called before a new value is requested
                     emitAll(flow(block).map { RetryFlowResult.Emit(it) })
-                    retryCounter = 0
+                    break
                 } catch (error: Throwable) {
                     if (error is CancellationException) throw error
 
-                    val retryDelay =
+                    val retryDelayBase =
                         (currentDelayConfig.scheduleBase * currentDelayConfig.scheduleFactor.pow(retryCounter))
-                            .coerceAtMost(currentDelayConfig.scheduleLimit)
+                            .coerceIn(Duration.ZERO..currentDelayConfig.scheduleLimit)
 
                     val jitter =
                         if (currentDelayConfig.scheduleJitter.start != currentDelayConfig.scheduleJitter.endInclusive)
@@ -55,11 +70,11 @@ fun <T> retryFlow(
                             )
                         else 1.0
 
-                    onError(error, retryDelay)
+                    onError(error, retryDelayBase)
                     coroutineScope {
                         select {
                             launch {
-                                    delay(retryDelay * jitter)
+                                    delay(retryDelayBase * jitter)
                                     retryCounter++
                                 }
                                 .onJoin {}
@@ -81,7 +96,17 @@ suspend fun retryLoop(
     delayConfig: Flow<RetryFlowDelayConfig> = flowOf(RetryFlowDelayConfig()),
     onError: suspend (error: Throwable, delay: Duration) -> Unit = { _, _ -> },
     block: suspend () -> Unit,
-) = retryFlow<Unit>(delayConfig = delayConfig, onError = onError, block = { block() }).collect()
+) =
+    retryFlow<Unit>(
+            delayConfig = delayConfig,
+            onError = onError,
+            block = {
+                while (currentCoroutineContext().isActive) {
+                    block()
+                }
+            },
+        )
+        .collect()
 
 fun <T> retryFlow(
     scheduleBase: Duration = RetryFlowDelayConfig.default.scheduleBase,
@@ -119,7 +144,11 @@ suspend fun retryLoop(
             scheduleLimit = scheduleLimit,
             scheduleJitter = scheduleJitter,
             onError = onError,
-            block = { block() },
+            block = {
+                while (currentCoroutineContext().isActive) {
+                    block()
+                }
+            },
         )
         .collect()
 

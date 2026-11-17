@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -29,6 +30,22 @@ class RetryFlowTest : TrixnityBaseTest() {
                 .toList()
 
         result shouldBe listOf(1, 2, 3)
+    }
+
+    @Test
+    fun shouldStopEmitValuesWhenFinished() = runTest {
+        val result = backgroundScope.async {
+            retryFlow {
+                    emit(1)
+                    emit(2)
+                    emit(3)
+                }
+                .take(4)
+                .toList()
+        }
+        delay(10.milliseconds)
+
+        result.await() shouldBe listOf(1, 2, 3)
     }
 
     @Test
@@ -169,5 +186,56 @@ class RetryFlowTest : TrixnityBaseTest() {
         delay(1.milliseconds)
         result shouldBe 4
         attempts shouldBe 4
+    }
+
+    @Test
+    fun shouldEmitValueAndRetryWhenExceptionThrownAfterEmit() = runTest {
+        var attempts = 0
+        val result =
+            retryFlow(scheduleBase = 10.milliseconds, scheduleJitter = 1.0..1.0) {
+                    attempts++
+                    if (attempts < 3) {
+                        emit(attempts)
+                        throw RuntimeException("Test exception $attempts")
+                    }
+                    emit(attempts)
+                }
+                .toList()
+
+        result shouldBe listOf(1, 2, 3)
+        attempts shouldBe 3
+    }
+
+    @Test
+    fun shouldKeepLoopingAndRetryInRetryLoop() = runTest {
+        var calls = 0
+        val job = backgroundScope.launch {
+            retryLoop(scheduleBase = 100.milliseconds, scheduleJitter = 1.0..1.0) {
+                calls++
+                if (calls == 2) {
+                    throw RuntimeException("Test exception")
+                }
+                delay(50.milliseconds)
+            }
+        }
+
+        delay(1.milliseconds)
+        calls shouldBe 1
+
+        delay(50.milliseconds)
+        calls shouldBe 2
+
+        delay(50.milliseconds)
+        calls shouldBe 2
+
+        delay(50.milliseconds)
+        calls shouldBe 3
+
+        job.cancel()
+    }
+
+    @Test
+    fun shouldPropagateExceptionOnCancellationInRetryLoop() = runTest {
+        shouldThrow<CancellationException> { retryLoop { throw CancellationException("Test cancellation") } }
     }
 }
