@@ -1,38 +1,28 @@
 package de.connect2x.trixnity.client.room.outbox
 
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.update
 
-class CombinedFileTransferProgress : Flow<FileTransferProgress?> {
-    private val allProgress = MutableStateFlow<Set<MutableStateFlow<FileTransferProgress?>>>(setOf())
+internal class CombinedFileTransferProgress(private val onProgress: (FileTransferProgress?) -> Unit) {
+    private val progresses = mutableListOf<FileTransferProgress?>()
 
-    fun acquire(): MutableStateFlow<FileTransferProgress?> {
-        val new = MutableStateFlow<FileTransferProgress?>(null)
-        allProgress.update { it + new }
-        return new
+    fun acquire(initialProgress: FileTransferProgress?): (FileTransferProgress) -> Unit {
+        val index = progresses.size
+        progresses.add(initialProgress)
+        return { progress ->
+            progresses[index] = progress
+            publish()
+        }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun collect(collector: FlowCollector<FileTransferProgress?>) {
-        allProgress
-            .flatMapLatest { allProgress ->
-                combine(allProgress) {
-                    it.filterNotNull().reduceOrNull { acc, fileTransferProgress ->
-                        val transferred = acc.transferred + fileTransferProgress.transferred
-                        val total =
-                            if (acc.total != null || fileTransferProgress.total != null) {
-                                (acc.total ?: 0) + (fileTransferProgress.total ?: 0)
-                            } else null
-                        FileTransferProgress(transferred, total)
-                    }
-                }
+    fun publish() {
+        val combined =
+            progresses.filterNotNull().reduceOrNull { accumulated, progress ->
+                val total =
+                    if (accumulated.total != null || progress.total != null) {
+                        (accumulated.total ?: 0) + (progress.total ?: 0)
+                    } else null
+                FileTransferProgress(accumulated.transferred + progress.transferred, total)
             }
-            .collect(collector)
+        onProgress(combined)
     }
 }

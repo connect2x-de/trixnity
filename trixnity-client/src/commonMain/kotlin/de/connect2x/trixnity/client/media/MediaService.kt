@@ -37,17 +37,39 @@ interface MediaService {
         uri: String,
         maxSize: Long?,
         expectedSize: Long? = null,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         saveToCache: Boolean = true,
     ): Result<PlatformMedia>
+
+    @Deprecated("use onProgress instead")
+    suspend fun getMedia(
+        uri: String,
+        maxSize: Long?,
+        expectedSize: Long? = null,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean = true,
+    ): Result<PlatformMedia> {
+        return getMedia(uri, maxSize, expectedSize, progress.asProgressCallback(), saveToCache)
+    }
 
     suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
         expectedSize: Long? = null,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         saveToCache: Boolean = true,
     ): Result<PlatformMedia>
+
+    @Deprecated("use onProgress instead")
+    suspend fun getEncryptedMedia(
+        encryptedFile: EncryptedFile,
+        maxSize: Long?,
+        expectedSize: Long? = null,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean = true,
+    ): Result<PlatformMedia> {
+        return getEncryptedMedia(encryptedFile, maxSize, expectedSize, progress.asProgressCallback(), saveToCache)
+    }
 
     suspend fun getThumbnail(
         uri: String,
@@ -57,9 +79,34 @@ interface MediaService {
         expectedSize: Long? = null,
         method: ThumbnailResizingMethod = CROP,
         animated: Boolean = false,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         saveToCache: Boolean = true,
     ): Result<PlatformMedia>
+
+    @Deprecated("use onProgress instead")
+    suspend fun getThumbnail(
+        uri: String,
+        width: Long,
+        height: Long,
+        maxSize: Long?,
+        expectedSize: Long? = null,
+        method: ThumbnailResizingMethod = CROP,
+        animated: Boolean = false,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        saveToCache: Boolean = true,
+    ): Result<PlatformMedia> {
+        return getThumbnail(
+            uri,
+            width,
+            height,
+            maxSize,
+            expectedSize,
+            method,
+            animated,
+            progress.asProgressCallback(),
+            saveToCache,
+        )
+    }
 
     suspend fun prepareUploadMedia(content: ByteArrayFlow, contentType: ContentType?): String
 
@@ -67,11 +114,25 @@ interface MediaService {
 
     suspend fun uploadMedia(
         cacheUri: String,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         keepMediaInCache: Boolean = true,
     ): Result<String>
 
+    @Deprecated("use onProgress instead")
+    suspend fun uploadMedia(
+        cacheUri: String,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        keepMediaInCache: Boolean = true,
+    ): Result<String> {
+        return uploadMedia(cacheUri, progress.asProgressCallback(), keepMediaInCache)
+    }
+
     suspend fun removeCachedMedia(uri: String)
+}
+
+private fun MutableStateFlow<FileTransferProgress?>?.asProgressCallback(): ((FileTransferProgress) -> Unit)? {
+    val flow = this ?: return null
+    return { progress -> flow.value = progress }
 }
 
 class MediaServiceImpl(
@@ -97,14 +158,14 @@ class MediaServiceImpl(
     private suspend fun MediaApiClient.downloadDependingOnServerVersion(
         mxcUri: String,
         maxSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         downloadHandler: suspend (Media) -> Unit,
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
-            download(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
+            download(mxcUri, onProgress = onProgress, downloadHandler = downloadHandler, maxSize = maxSize)
         } else {
             @Suppress("DEPRECATION")
-            downloadLegacy(mxcUri, progress = progress, downloadHandler = downloadHandler, maxSize = maxSize)
+            downloadLegacy(mxcUri, onProgress = onProgress, downloadHandler = downloadHandler, maxSize = maxSize)
         }
 
     private suspend fun checkAvailableSpace(expectedSize: Long?) {
@@ -127,7 +188,7 @@ class MediaServiceImpl(
         maxSize: Long?,
         expectedSize: Long?,
         sha256Hash: String?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
     ): Result<PlatformMedia> = kotlin.runCatching {
         when {
             uri.startsWith(UPLOAD_MEDIA_MXC_URI_PREFIX) -> {
@@ -137,13 +198,13 @@ class MediaServiceImpl(
                     log.debug { "download media: $uri" }
                     if (sha256Hash == null) {
                         api.media
-                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
+                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, onProgress = onProgress) {
                                 it.saveMedia(uri) { this }
                             }
                             .getOrThrow()
                     } else {
                         api.media
-                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, progress = progress) {
+                            .downloadDependingOnServerVersion(uri, maxSize = maxSize, onProgress = onProgress) {
                                 it.saveMedia(uri) {
                                     val sha256ByteFlow = sha256()
                                     sha256ByteFlow.onCompletion { cause ->
@@ -175,7 +236,7 @@ class MediaServiceImpl(
             uri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX) ->
                 mediaStore.getMedia(uri)
                     ?: mediaCacheMappingStore.getMediaCacheMapping(uri)?.mxcUri?.let {
-                        getMedia(it, saveToCache, maxSize, expectedSize, sha256Hash, progress).getOrThrow()
+                        getMedia(it, saveToCache, maxSize, expectedSize, sha256Hash, onProgress).getOrThrow()
                     }
                     ?: throw IllegalArgumentException("cache uri $uri does not exists")
 
@@ -187,19 +248,19 @@ class MediaServiceImpl(
         uri: String,
         maxSize: Long?,
         expectedSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
-    ): Result<PlatformMedia> = getMedia(uri, saveToCache, maxSize, expectedSize, null, progress)
+    ): Result<PlatformMedia> = getMedia(uri, saveToCache, maxSize, expectedSize, null, onProgress)
 
     override suspend fun getEncryptedMedia(
         encryptedFile: EncryptedFile,
         maxSize: Long?,
         expectedSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> = kotlin.runCatching {
         val originalHash = encryptedFile.hashes["sha256"] ?: throw MediaValidationException(null, null)
-        getMedia(encryptedFile.url, saveToCache, maxSize, expectedSize, originalHash, progress)
+        getMedia(encryptedFile.url, saveToCache, maxSize, expectedSize, originalHash, onProgress)
             .getOrThrow()
             .transformByteArrayFlow {
                 it.decryptAes256Ctr(
@@ -218,7 +279,7 @@ class MediaServiceImpl(
         expectedSize: Long?,
         method: ThumbnailResizingMethod,
         animated: Boolean,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> = kotlin.runCatching {
         val thumbnailUrl = "$uri/${width}x$height/${api.json.encodeToJsonElement(method).jsonPrimitive.content}"
@@ -233,7 +294,7 @@ class MediaServiceImpl(
                     maxSize = maxSize,
                     method = method,
                     animated = animated,
-                    progress = progress,
+                    onProgress = onProgress,
                 ) {
                     it.saveMedia(thumbnailUrl) { this }
                 }
@@ -252,7 +313,7 @@ class MediaServiceImpl(
         maxSize: Long?,
         method: ThumbnailResizingMethod,
         animated: Boolean,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         downloadHandler: suspend (Media) -> Unit,
     ): Result<Unit> =
         if (serverDataStore.getServerData().versions.versions.contains(MATRIX_SPEC_1_11)) {
@@ -262,7 +323,7 @@ class MediaServiceImpl(
                 height = height,
                 method = method,
                 animated = animated,
-                progress = progress,
+                onProgress = onProgress,
                 maxSize = maxSize,
                 downloadHandler = downloadHandler,
             )
@@ -273,7 +334,7 @@ class MediaServiceImpl(
                 width = width,
                 height = height,
                 method = method,
-                progress = progress,
+                onProgress = onProgress,
                 maxSize = maxSize,
                 downloadHandler = downloadHandler,
             )
@@ -316,7 +377,7 @@ class MediaServiceImpl(
 
     override suspend fun uploadMedia(
         cacheUri: String,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         keepMediaInCache: Boolean,
     ): Result<String> {
         if (!cacheUri.startsWith(UPLOAD_MEDIA_CACHE_URI_PREFIX))
@@ -346,7 +407,7 @@ class MediaServiceImpl(
                             } ?: ContentType.Application.OctetStream,
                         null,
                     ),
-                    progress = progress,
+                    onProgress = onProgress,
                 )
                 .map { response ->
                     response.contentUri.also { mxcUri ->

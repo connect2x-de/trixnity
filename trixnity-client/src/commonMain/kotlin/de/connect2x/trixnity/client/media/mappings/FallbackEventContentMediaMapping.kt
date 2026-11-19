@@ -3,7 +3,6 @@ package de.connect2x.trixnity.client.media.mappings
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.EventContent
-import kotlinx.coroutines.flow.MutableStateFlow
 
 private val log = Logger("de.connect2x.trixnity.client.media.mappings.FallbackOutboxMessageMediaUploaderMapping")
 
@@ -12,9 +11,9 @@ interface FallBackEventContentMediaUploader : EventContentMediaUploader<EventCon
 internal fun getFallbackEventContentMediaUploader(): FallBackEventContentMediaUploader {
     return object : FallBackEventContentMediaUploader {
         override suspend fun invoke(
-            uploadProgress: MutableStateFlow<FileTransferProgress?>,
+            onUploadProgress: (FileTransferProgress?) -> Unit,
             content: EventContent,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
+            upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String,
         ): EventContent {
             log.trace {
                 "EventContent class ${content::class.simpleName} is not supported by any other media uploader."

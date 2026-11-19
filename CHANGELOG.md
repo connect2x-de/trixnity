@@ -14,6 +14,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Changed
 
+- Report media transfer progress through callbacks in `MediaApiClient` and `MediaService`.
+
 ### Deprecated
 
 ### Removed

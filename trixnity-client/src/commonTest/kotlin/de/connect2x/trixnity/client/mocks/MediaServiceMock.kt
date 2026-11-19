@@ -16,7 +16,7 @@ class MediaServiceMock : MediaService {
         uri: String,
         maxSize: Long?,
         expectedSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> {
         throw NotImplementedError()
@@ -28,7 +28,7 @@ class MediaServiceMock : MediaService {
         encryptedFile: EncryptedFile,
         maxSize: Long?,
         expectedSize: Long?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> {
         return checkNotNull(returnGetEncryptedMedia)
@@ -42,7 +42,7 @@ class MediaServiceMock : MediaService {
         expectedSize: Long?,
         method: ThumbnailResizingMethod,
         animated: Boolean,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         saveToCache: Boolean,
     ): Result<PlatformMedia> {
         throw NotImplementedError()
@@ -70,14 +70,14 @@ class MediaServiceMock : MediaService {
 
     override suspend fun uploadMedia(
         cacheUri: String,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         keepMediaInCache: Boolean,
     ): Result<String> {
         uploadMediaCalled.value = cacheUri
         val currentSize = uploadSizes.value?.getOrNull(currentUploadSize)
-        progress?.value = FileTransferProgress(0, currentSize)
+        onProgress?.invoke(FileTransferProgress(0, currentSize))
         delay(uploadTimer.value)
-        progress?.value = FileTransferProgress(currentSize ?: 0, currentSize)
+        onProgress?.invoke(FileTransferProgress(currentSize ?: 0, currentSize))
         delay(uploadTimer.value)
         currentUploadSize++
         return returnUploadMedia
