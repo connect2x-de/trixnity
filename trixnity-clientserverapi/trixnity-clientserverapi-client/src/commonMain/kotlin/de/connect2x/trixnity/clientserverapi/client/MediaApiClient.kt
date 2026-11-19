@@ -21,38 +21,82 @@ interface MediaApiClient {
     /** @see [UploadMedia] */
     suspend fun upload(
         media: Media,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration = Duration.INFINITE,
     ): Result<UploadMedia.Response>
+
+    @Deprecated("use onProgress instead")
+    suspend fun upload(
+        media: Media,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration = Duration.INFINITE,
+    ): Result<UploadMedia.Response> {
+        return upload(media, progress.asProgressCallback(), timeout)
+    }
 
     /** @see [UploadMediaByContentUri] */
     suspend fun upload(
         serverName: String,
         mediaId: String,
         media: Media,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration = Duration.INFINITE,
     ): Result<Unit>
+
+    @Deprecated("use onProgress instead")
+    suspend fun upload(
+        serverName: String,
+        mediaId: String,
+        media: Media,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration = Duration.INFINITE,
+    ): Result<Unit> {
+        return upload(serverName, mediaId, media, progress.asProgressCallback(), timeout)
+    }
 
     /** @see [DownloadMediaLegacy] */
     @Deprecated("use download instead")
     suspend fun <T> downloadLegacy(
         mxcUri: String,
         allowRemote: Boolean? = null,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration = Duration.INFINITE,
         maxSize: Long? = null,
         downloadHandler: suspend (Media) -> T,
     ): Result<T>
 
+    @Deprecated("use download with onProgress instead")
+    @Suppress("DEPRECATION")
+    suspend fun <T> downloadLegacy(
+        mxcUri: String,
+        allowRemote: Boolean? = null,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration = Duration.INFINITE,
+        maxSize: Long? = null,
+        downloadHandler: suspend (Media) -> T,
+    ): Result<T> {
+        return downloadLegacy(mxcUri, allowRemote, progress.asProgressCallback(), timeout, maxSize, downloadHandler)
+    }
+
     /** @see [DownloadMedia] */
     suspend fun <T> download(
         mxcUri: String,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration? = null,
         maxSize: Long? = null,
         downloadHandler: suspend (Media) -> T,
     ): Result<T>
+
+    @Deprecated("use onProgress instead")
+    suspend fun <T> download(
+        mxcUri: String,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration? = null,
+        maxSize: Long? = null,
+        downloadHandler: suspend (Media) -> T,
+    ): Result<T> {
+        return download(mxcUri, progress.asProgressCallback(), timeout, maxSize, downloadHandler)
+    }
 
     /** @see [DownloadThumbnailLegacy] */
     @Deprecated("use downloadThumbnail instead")
@@ -62,11 +106,37 @@ interface MediaApiClient {
         height: Long,
         method: ThumbnailResizingMethod,
         allowRemote: Boolean? = null,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration = Duration.INFINITE,
         maxSize: Long? = null,
         downloadHandler: suspend (Media) -> T,
     ): Result<T>
+
+    @Deprecated("use downloadThumbnail with onProgress instead")
+    @Suppress("DEPRECATION")
+    suspend fun <T> downloadThumbnailLegacy(
+        mxcUri: String,
+        width: Long,
+        height: Long,
+        method: ThumbnailResizingMethod,
+        allowRemote: Boolean? = null,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration = Duration.INFINITE,
+        maxSize: Long? = null,
+        downloadHandler: suspend (Media) -> T,
+    ): Result<T> {
+        return downloadThumbnailLegacy(
+            mxcUri,
+            width,
+            height,
+            method,
+            allowRemote,
+            progress.asProgressCallback(),
+            timeout,
+            maxSize,
+            downloadHandler,
+        )
+    }
 
     /** @see [DownloadThumbnail] */
     suspend fun <T> downloadThumbnail(
@@ -75,11 +145,36 @@ interface MediaApiClient {
         height: Long,
         method: ThumbnailResizingMethod,
         animated: Boolean? = null,
-        progress: MutableStateFlow<FileTransferProgress?>? = null,
+        onProgress: ((FileTransferProgress) -> Unit)? = null,
         timeout: Duration? = null,
         maxSize: Long? = null,
         downloadHandler: suspend (Media) -> T,
     ): Result<T>
+
+    @Deprecated("use onProgress instead")
+    suspend fun <T> downloadThumbnail(
+        mxcUri: String,
+        width: Long,
+        height: Long,
+        method: ThumbnailResizingMethod,
+        animated: Boolean? = null,
+        progress: MutableStateFlow<FileTransferProgress?>?,
+        timeout: Duration? = null,
+        maxSize: Long? = null,
+        downloadHandler: suspend (Media) -> T,
+    ): Result<T> {
+        return downloadThumbnail(
+            mxcUri,
+            width,
+            height,
+            method,
+            animated,
+            progress.asProgressCallback(),
+            timeout,
+            maxSize,
+            downloadHandler,
+        )
+    }
 
     /** @see [GetUrlPreviewLegacy] */
     @Deprecated("use getUrlPreview instead")
@@ -87,6 +182,11 @@ interface MediaApiClient {
 
     /** @see [GetUrlPreview] */
     suspend fun getUrlPreview(url: String, timestamp: Long? = null): Result<GetUrlPreview.Response>
+}
+
+private fun MutableStateFlow<FileTransferProgress?>?.asProgressCallback(): ((FileTransferProgress) -> Unit)? {
+    val flow = this ?: return null
+    return { progress -> flow.value = progress }
 }
 
 class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient) : MediaApiClient {
@@ -102,20 +202,20 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
 
     override suspend fun upload(
         media: Media,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration,
     ): Result<UploadMedia.Response> =
         baseClient.request(UploadMedia(media.contentDisposition?.parameter("filename")), media) {
             timeout { requestTimeoutMillis = timeout.inWholeMilliseconds }
-            if (progress != null)
-                onUpload { transferred, total -> progress.value = FileTransferProgress(transferred, total) }
+            if (onProgress != null)
+                onUpload { transferred, total -> onProgress(FileTransferProgress(transferred, total)) }
         }
 
     override suspend fun upload(
         serverName: String,
         mediaId: String,
         media: Media,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration,
     ): Result<Unit> =
         baseClient.request(
@@ -123,8 +223,8 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
             media,
         ) {
             timeout { requestTimeoutMillis = timeout.inWholeMilliseconds }
-            if (progress != null)
-                onUpload { transferred, total -> progress.value = FileTransferProgress(transferred, total) }
+            if (onProgress != null)
+                onUpload { transferred, total -> onProgress(FileTransferProgress(transferred, total)) }
         }
 
     @Deprecated("use download instead")
@@ -132,7 +232,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
     override suspend fun <T> downloadLegacy(
         mxcUri: String,
         allowRemote: Boolean?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration,
         maxSize: Long?,
         downloadHandler: suspend (Media) -> T,
@@ -147,7 +247,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
                 method = HttpMethod.Get
                 timeout { requestTimeoutMillis = timeout.inWholeMilliseconds }
                 val activeListeners =
-                    listOfNotNull(getTransferProgressListener(progress), getDownloadLimitListener(maxSize))
+                    listOfNotNull(getTransferProgressListener(onProgress), getDownloadLimitListener(maxSize))
                 if (activeListeners.isNotEmpty()) {
                     onDownload { transferred, total ->
                         activeListeners.forEach { listener -> listener.onProgress(transferred, total) }
@@ -160,7 +260,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
 
     override suspend fun <T> download(
         mxcUri: String,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration?,
         maxSize: Long?,
         downloadHandler: suspend (Media) -> T,
@@ -175,7 +275,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
                 method = HttpMethod.Get
                 if (timeout != null) timeout { requestTimeoutMillis = timeout.plus(10.seconds).inWholeMilliseconds }
                 val activeListeners =
-                    listOfNotNull(getTransferProgressListener(progress), getDownloadLimitListener(maxSize))
+                    listOfNotNull(getTransferProgressListener(onProgress), getDownloadLimitListener(maxSize))
                 if (activeListeners.isNotEmpty()) {
                     onDownload { transferred, total ->
                         activeListeners.forEach { listener -> listener.onProgress(transferred, total) }
@@ -194,7 +294,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
         height: Long,
         method: ThumbnailResizingMethod,
         allowRemote: Boolean?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration,
         maxSize: Long?,
         downloadHandler: suspend (Media) -> T,
@@ -218,7 +318,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
                 this.method = HttpMethod.Get
                 timeout { requestTimeoutMillis = timeout.inWholeMilliseconds }
                 val activeListeners =
-                    listOfNotNull(getTransferProgressListener(progress), getDownloadLimitListener(maxSize))
+                    listOfNotNull(getTransferProgressListener(onProgress), getDownloadLimitListener(maxSize))
                 if (activeListeners.isNotEmpty()) {
                     onDownload { transferred, total ->
                         activeListeners.forEach { listener -> listener.onProgress(transferred, total) }
@@ -235,7 +335,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
         height: Long,
         method: ThumbnailResizingMethod,
         animated: Boolean?,
-        progress: MutableStateFlow<FileTransferProgress?>?,
+        onProgress: ((FileTransferProgress) -> Unit)?,
         timeout: Duration?,
         maxSize: Long?,
         downloadHandler: suspend (Media) -> T,
@@ -259,7 +359,7 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
                 this.method = HttpMethod.Get
                 if (timeout != null) timeout { requestTimeoutMillis = timeout.plus(10.seconds).inWholeMilliseconds }
                 val activeListeners =
-                    listOfNotNull(getTransferProgressListener(progress), getDownloadLimitListener(maxSize))
+                    listOfNotNull(getTransferProgressListener(onProgress), getDownloadLimitListener(maxSize))
                 if (activeListeners.isNotEmpty()) {
                     onDownload { transferred, total ->
                         activeListeners.forEach { listener -> listener.onProgress(transferred, total) }
@@ -270,9 +370,9 @@ class MediaApiClientImpl(private val baseClient: MatrixClientServerApiBaseClient
         )
     }
 
-    private fun getTransferProgressListener(progress: MutableStateFlow<FileTransferProgress?>?): ProgressListener? {
-        if (progress == null) return null
-        return ProgressListener { transferred, total -> progress.value = FileTransferProgress(transferred, total) }
+    private fun getTransferProgressListener(onProgress: ((FileTransferProgress) -> Unit)?): ProgressListener? {
+        if (onProgress == null) return null
+        return ProgressListener { transferred, total -> onProgress(FileTransferProgress(transferred, total)) }
     }
 
     private fun getDownloadLimitListener(maxSize: Long?): ProgressListener? {

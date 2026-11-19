@@ -19,7 +19,6 @@ import de.connect2x.trixnity.client.store.repository.RoomOutboxMessageRepository
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.core.MatrixServerException
@@ -38,7 +37,6 @@ import kotlinx.coroutines.CoroutineStart.UNDISPATCHED
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -180,10 +178,10 @@ class OutboxMessageEventHandler(
         val uploadedContent =
             try {
                 eventContentMediaMappings.findAndCallUploaderOrFallback(
-                    outboxMessage.mediaUploadProgress,
+                    { outboxMessage.mediaUploadProgress.value = it },
                     originalContent,
-                ) { cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?> ->
-                    mediaService.uploadMedia(cacheUri, uploadProgress, outboxMessage.keepMediaInCache).getOrThrow()
+                ) { cacheUri, onProgress ->
+                    mediaService.uploadMedia(cacheUri, onProgress, outboxMessage.keepMediaInCache).getOrThrow()
                 } as MessageEventContent
             } catch (exception: Exception) {
                 val sendError =

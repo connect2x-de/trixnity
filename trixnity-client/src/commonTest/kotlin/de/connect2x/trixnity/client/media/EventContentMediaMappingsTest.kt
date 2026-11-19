@@ -13,7 +13,6 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlinx.coroutines.flow.MutableStateFlow
 
 class EventContentMediaMappingsTest : TrixnityBaseTest() {
     val defaults =
@@ -27,17 +26,14 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
             )
         )
 
-    val uploadProgress: MutableStateFlow<FileTransferProgress?> = MutableStateFlow(null)
-    val upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String =
-        { _, _ ->
-            ""
-        }
+    val onUploadProgress: (FileTransferProgress?) -> Unit = {}
+    val upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String = { _, _ -> "" }
 
     @Test
     fun `runs first found uploader matching the type`() = runTest {
         val content: RoomMessageEventContent = FileBased.File("")
 
-        val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe FileBased.File("1")
@@ -49,7 +45,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
         val content: RoomMessageEventContent =
             RoomMessageEventContent.TextBased.Text("What do you think about Cneoridium dumosum (Nuttall) Hooker F.?")
 
-        val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe content
@@ -60,7 +56,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
     fun `ignores mappings without extractor or uploader as null`() = runTest {
         val content: RoomMessageEventContent = FileBased.Image("dinonuggers")
 
-        val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe content
@@ -71,7 +67,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
     fun `runs the first nonnull result from matching mappings`() = runTest {
         val content: RoomMessageEventContent = FileBased.Audio("Blue-footed booby screeching")
 
-        val newContent = defaults.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe FileBased.Audio("1")
@@ -90,7 +86,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
         val content: FileBased.File = FileBased.File("")
 
-        val newContent = defaults2.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults2.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults2.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe FileBased.Video("1")
@@ -109,7 +105,7 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
         val content: FileBased.File = FileBased.File("")
 
-        val newContent = defaults2.findAndCallUploaderOrFallback(uploadProgress, content, upload)
+        val newContent = defaults2.findAndCallUploaderOrFallback(onUploadProgress, content, upload)
         val uris = defaults2.findAndCallUriExtractorOrFallback(content)
 
         newContent shouldBe FileBased.File("1")
@@ -118,9 +114,9 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     private class FileUploader : EventContentMediaUploader<FileBased.File> {
         override suspend fun invoke(
-            uploadProgress: MutableStateFlow<FileTransferProgress?>,
+            onUploadProgress: (FileTransferProgress?) -> Unit,
             content: FileBased.File,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
+            upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String,
         ): FileBased.File {
             return FileBased.File("1")
         }
@@ -128,9 +124,9 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     private class FileUploader2 : EventContentMediaUploader<FileBased.File> {
         override suspend fun invoke(
-            uploadProgress: MutableStateFlow<FileTransferProgress?>,
+            onUploadProgress: (FileTransferProgress?) -> Unit,
             content: FileBased.File,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
+            upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String,
         ): FileBased.File {
             return FileBased.File("2")
         }
@@ -138,9 +134,9 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     private class AudioUploader : EventContentMediaUploader<FileBased.Audio> {
         override suspend fun invoke(
-            uploadProgress: MutableStateFlow<FileTransferProgress?>,
+            onUploadProgress: (FileTransferProgress?) -> Unit,
             content: FileBased.Audio,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
+            upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String,
         ): FileBased.Audio {
             return FileBased.Audio("1")
         }
@@ -148,9 +144,9 @@ class EventContentMediaMappingsTest : TrixnityBaseTest() {
 
     private class FileBasedUploader : EventContentMediaUploader<FileBased> {
         override suspend fun invoke(
-            uploadProgress: MutableStateFlow<FileTransferProgress?>,
+            onUploadProgress: (FileTransferProgress?) -> Unit,
             content: FileBased,
-            upload: suspend (cacheUri: String, uploadProgress: MutableStateFlow<FileTransferProgress?>) -> String,
+            upload: suspend (cacheUri: String, onProgress: (FileTransferProgress) -> Unit) -> String,
         ): FileBased {
             return FileBased.Video("1")
         }
