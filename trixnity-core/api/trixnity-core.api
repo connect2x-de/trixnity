@@ -4776,6 +4776,44 @@ public final class de/connect2x/trixnity/core/model/events/m/RoomKeyRequestEvent
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent : de/connect2x/trixnity/core/model/events/ToDeviceEventContent {
+	public static final field Companion Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-rRQUNsA ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun component4 ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun component5 ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy-ZN_orIQ (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent;
+	public static synthetic fun copy-ZN_orIQ$default (Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlgorithm ()Lde/connect2x/trixnity/core/model/keys/EncryptionAlgorithm;
+	public final fun getCode ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getRoomId-rRQUNsA ()Ljava/lang/String;
+	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun getSessionId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/core/model/events/m/RoomKeyWithheldEventContent$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class de/connect2x/trixnity/core/model/events/m/ServerAggregation {
 	public abstract fun getRelationType ()Lde/connect2x/trixnity/core/model/events/m/RelationType;
 }

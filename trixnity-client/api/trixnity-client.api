@@ -1079,7 +1079,7 @@ public final class de/connect2x/trixnity/client/room/GetTimelineEventsConfigKt {
 
 public final class de/connect2x/trixnity/client/room/MegolmRoomEventEncryptionService : de/connect2x/trixnity/client/room/RoomEventEncryptionService {
 	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;Lde/connect2x/trixnity/client/user/LoadMembersService;Lde/connect2x/trixnity/client/store/RoomStateStore;Lde/connect2x/trixnity/client/store/OlmCryptoStore;Lde/connect2x/trixnity/client/key/KeyBackupService;Lde/connect2x/trixnity/client/key/OutgoingRoomKeyRequestEventHandler;Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService;)V
-	public fun decrypt-YNEx5aM (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun decrypt (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun encrypt-Rv9TJ6o (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -1094,7 +1094,7 @@ public final class de/connect2x/trixnity/client/room/RoomAccountDataEventHandler
 }
 
 public abstract interface class de/connect2x/trixnity/client/room/RoomEventEncryptionService {
-	public abstract fun decrypt-YNEx5aM (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun decrypt (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun encrypt-Rv9TJ6o (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -1405,7 +1405,7 @@ public final class de/connect2x/trixnity/client/room/TypingEventHandlerImpl : de
 
 public final class de/connect2x/trixnity/client/room/UnencryptedRoomEventEncryptionService : de/connect2x/trixnity/client/room/RoomEventEncryptionService {
 	public fun <init> (Lde/connect2x/trixnity/client/store/RoomStore;)V
-	public fun decrypt-YNEx5aM (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun decrypt (Lde/connect2x/trixnity/core/model/events/ClientEvent$RoomEvent$MessageEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun encrypt-Rv9TJ6o (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -2892,8 +2892,8 @@ public final class de/connect2x/trixnity/client/store/StoreExtensionsKt {
 	public static final fun getPrevious (Lde/connect2x/trixnity/client/store/RoomTimelineStore;Lde/connect2x/trixnity/client/store/TimelineEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun members-R_GNm0M (Lde/connect2x/trixnity/client/store/RoomStateStore;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun membersCount-RxWrHTc (Lde/connect2x/trixnity/client/store/RoomStateStore;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/Membership;[Lde/connect2x/trixnity/core/model/events/m/room/Membership;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun waitForInboundMegolmSession-Tr2lM24 (Lde/connect2x/trixnity/client/store/OlmCryptoStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun waitForInboundMegolmSession-Tr2lM24$default (Lde/connect2x/trixnity/client/store/OlmCryptoStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun waitForInboundMegolmSession-JtzWUO4 (Lde/connect2x/trixnity/client/store/OlmCryptoStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ZLde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun waitForInboundMegolmSession-JtzWUO4$default (Lde/connect2x/trixnity/client/store/OlmCryptoStore;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;ZLde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/client/store/StoreReadTransaction : de/connect2x/trixnity/utils/ReadTransaction {
