@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.client.key
 
 import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.continually
 import de.connect2x.trixnity.client.getInMemoryKeyStore
 import de.connect2x.trixnity.client.getInMemoryOlmStore
@@ -92,6 +93,7 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
     private val api = mockMatrixClientServerApiClient(apiConfig)
 
     private val currentSyncState = MutableStateFlow(SyncState.STOPPED)
+    private val config = MatrixClientConfiguration()
 
     private val cut =
         OutdatedKeysHandler(
@@ -105,6 +107,7 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
                 currentSyncState = CurrentSyncState(currentSyncState),
                 userInfo = UserInfo(us, ourDevice, Key.Ed25519Key(null, ""), Key.Curve25519Key(null, "")),
                 tm = tm,
+                config = config,
             )
             .apply { startInCoroutineScope(testScope.backgroundScope) }
 
@@ -845,6 +848,146 @@ class OutdatedKeysHandlerTest : TrixnityBaseTest() {
             }
             keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
             olmCryptoStore.getOutboundMegolmSession(room1) shouldBe null
+        }
+
+    @Test
+    fun `updateOutdatedkey » device keys » add newly cross-signed device to megolm sessions when excludeNotCrossSignedDevices is true`() =
+        runTest {
+            config.excludeUntrustedDevices = true
+            currentSyncState.value = SyncState.RUNNING
+            keyTrustServiceMock.returnCalculateDeviceKeysTrustLevel = KeySignatureTrustLevel.CrossSigned(false)
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(aliceDevice1 to StoredDeviceKeys(aliceKey1, KeySignatureTrustLevel.NotCrossSigned))
+                }
+            }
+            apiConfig.endpoints {
+                matrixJsonEndpoint(GetKeys) {
+                    GetKeys.Response(
+                        mapOf(),
+                        mapOf(alice to mapOf(aliceDevice1 to aliceKey1)),
+                        mapOf(),
+                        mapOf(),
+                        mapOf(),
+                    )
+                }
+            }
+            val room1 = RoomId("!room1:server")
+            tm.writeTransaction {
+                roomStore.update(room1) { simpleRoom.copy(roomId = room1, encrypted = true) }
+                roomStateStore.save(
+                    StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("\$event1"),
+                        alice,
+                        room1,
+                        1234,
+                        stateKey = alice.full,
+                    )
+                )
+                olmCryptoStore.updateOutboundMegolmSession(room1) {
+                    StoredOutboundMegolmSession(
+                        roomId = room1,
+                        createdAt = testClock.now(),
+                        encryptedMessageCount = 1,
+                        newDevices = emptyMap(),
+                        pickled = "",
+                    )
+                }
+                keyStore.updateOutdatedKeys { setOf(alice) }
+            }
+            keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
+            olmCryptoStore.getOutboundMegolmSession(room1)?.newDevices shouldBe mapOf(alice to setOf(aliceDevice1))
+        }
+
+    @Test
+    fun `updateOutdatedkey » device keys » reset megolm sessions when device becomes not cross-signed and excludeNotCrossSignedDevices is true`() =
+        runTest {
+            config.excludeUntrustedDevices = true
+            currentSyncState.value = SyncState.RUNNING
+            keyTrustServiceMock.returnCalculateDeviceKeysTrustLevel = KeySignatureTrustLevel.NotCrossSigned
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(aliceDevice1 to StoredDeviceKeys(aliceKey1, KeySignatureTrustLevel.CrossSigned(false)))
+                }
+            }
+            apiConfig.endpoints {
+                matrixJsonEndpoint(GetKeys) {
+                    GetKeys.Response(
+                        mapOf(),
+                        mapOf(alice to mapOf(aliceDevice1 to aliceKey1)),
+                        mapOf(),
+                        mapOf(),
+                        mapOf(),
+                    )
+                }
+            }
+            val room1 = RoomId("!room1:server")
+            tm.writeTransaction {
+                roomStore.update(room1) { simpleRoom.copy(roomId = room1, encrypted = true) }
+                olmCryptoStore.updateOutboundMegolmSession(room1) {
+                    StoredOutboundMegolmSession(
+                        roomId = room1,
+                        createdAt = testClock.now(),
+                        encryptedMessageCount = 1,
+                        newDevices = emptyMap(),
+                        pickled = "",
+                    )
+                }
+                keyStore.updateOutdatedKeys { setOf(alice) }
+            }
+            keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
+            olmCryptoStore.getOutboundMegolmSession(room1) shouldBe null
+        }
+
+    @Test
+    fun `updateOutdatedkey » device keys » ignore cross-signing transitions when excludeNotCrossSignedDevices is false`() =
+        runTest {
+            config.excludeUntrustedDevices = false
+            currentSyncState.value = SyncState.RUNNING
+            keyTrustServiceMock.returnCalculateDeviceKeysTrustLevel = KeySignatureTrustLevel.NotCrossSigned
+            tm.writeTransaction {
+                keyStore.updateDeviceKeys(alice) {
+                    mapOf(aliceDevice1 to StoredDeviceKeys(aliceKey1, KeySignatureTrustLevel.CrossSigned(false)))
+                }
+            }
+            apiConfig.endpoints {
+                matrixJsonEndpoint(GetKeys) {
+                    GetKeys.Response(
+                        mapOf(),
+                        mapOf(alice to mapOf(aliceDevice1 to aliceKey1)),
+                        mapOf(),
+                        mapOf(),
+                        mapOf(),
+                    )
+                }
+            }
+            val room1 = RoomId("!room1:server")
+            val existingSession =
+                StoredOutboundMegolmSession(
+                    roomId = room1,
+                    createdAt = testClock.now(),
+                    encryptedMessageCount = 1,
+                    newDevices = emptyMap(),
+                    pickled = "",
+                )
+            tm.writeTransaction {
+                roomStore.update(room1) { simpleRoom.copy(roomId = room1, encrypted = true) }
+                roomStateStore.save(
+                    StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId("\$event1"),
+                        alice,
+                        room1,
+                        1234,
+                        stateKey = alice.full,
+                    )
+                )
+                olmCryptoStore.updateOutboundMegolmSession(room1) { existingSession }
+                keyStore.updateOutdatedKeys { setOf(alice) }
+            }
+            keyStore.getOutdatedKeysFlow().first { it.isEmpty() }
+            olmCryptoStore.getOutboundMegolmSession(room1) shouldBe existingSession
         }
 
     private fun markMasterKeysAsNotAllDeviceKeysCrossSigned(

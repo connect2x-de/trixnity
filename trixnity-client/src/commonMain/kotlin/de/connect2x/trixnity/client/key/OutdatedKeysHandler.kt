@@ -3,6 +3,7 @@ package de.connect2x.trixnity.client.key
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.CurrentSyncState
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.OlmCryptoStore
@@ -65,6 +66,7 @@ class OutdatedKeysHandler(
     private val currentSyncState: CurrentSyncState,
     private val userInfo: UserInfo,
     private val tm: StoreTransactionManager,
+    private val config: MatrixClientConfiguration,
 ) : EventHandler, LazyMemberEventHandler {
     override fun startInCoroutineScope(scope: CoroutineScope) {
         api.sync
@@ -190,6 +192,7 @@ class OutdatedKeysHandler(
             userIds.chunked(25).forEach { userIdChunk ->
                 userIdChunk.forEach { userId ->
                     launch {
+                        val oldDevices = keyStore.getDeviceKeys(userId).first().orEmpty()
                         keysResponse.masterKeys?.get(userId)?.let { masterKey ->
                             handleOutdatedCrossSigningKey(
                                 userId = userId,
@@ -228,6 +231,7 @@ class OutdatedKeysHandler(
                         keysResponse.deviceKeys?.get(userId)?.let { devices ->
                             handleOutdatedDeviceKeys(
                                 userId = userId,
+                                oldDevices = oldDevices,
                                 devices = devices,
                                 encryptedRooms = encryptedRooms,
                                 getMembershipsAllowedToReceiveKey = membershipsAllowedToReceiveKey,
@@ -295,11 +299,11 @@ class OutdatedKeysHandler(
 
     private suspend fun handleOutdatedDeviceKeys(
         userId: UserId,
+        oldDevices: Map<String, StoredDeviceKeys>,
         devices: Map<String, SignedDeviceKeys>,
         encryptedRooms: Deferred<Set<RoomId>>,
         getMembershipsAllowedToReceiveKey: Deferred<Map<RoomId, Set<Membership>>>,
     ) {
-        val oldDevices = keyStore.getDeviceKeys(userId).first().orEmpty()
         val newDevices =
             devices
                 .filter { (deviceId, deviceKeys) ->
@@ -322,8 +326,22 @@ class OutdatedKeysHandler(
                     }
                     StoredDeviceKeys(deviceKeys, trustLevel)
                 }
-        val addedDevices = newDevices.keys - oldDevices.keys
-        val removedDevices = oldDevices.keys - newDevices.keys
+        val addedDevices =
+            (newDevices.keys - oldDevices.keys) +
+                newDevices
+                    .filter { (deviceId, newDevice) ->
+                        val oldDevice = oldDevices[deviceId]
+                        oldDevice != null && !oldDevice.trustLevel.isTrusted() && newDevice.trustLevel.isTrusted()
+                    }
+                    .keys
+        val removedDevices =
+            (oldDevices.keys - newDevices.keys) +
+                newDevices
+                    .filter { (deviceId, newDevice) ->
+                        val oldDevice = oldDevices[deviceId]
+                        oldDevice != null && oldDevice.trustLevel.isTrusted() && !newDevice.trustLevel.isTrusted()
+                    }
+                    .keys
         val megolmSessionUpdates: Map<RoomId, ((StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?)?> =
             when {
                 removedDevices.isNotEmpty() -> {
@@ -414,6 +432,16 @@ class OutdatedKeysHandler(
             else -> null
         }
     }
+
+    private fun KeySignatureTrustLevel.isTrusted(): Boolean =
+        when (this) {
+            is KeySignatureTrustLevel.CrossSigned -> true
+            is KeySignatureTrustLevel.Valid -> true
+            KeySignatureTrustLevel.NotCrossSigned -> !config.excludeUntrustedDevices
+            KeySignatureTrustLevel.Blocked -> false
+            is KeySignatureTrustLevel.Invalid -> false
+            is KeySignatureTrustLevel.NotAllDeviceKeysCrossSigned -> false
+        }
 
     private suspend fun KeyStore.isTracked(userId: UserId): Boolean = getDeviceKeys(userId).first() != null
 }
