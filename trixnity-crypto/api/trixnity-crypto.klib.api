@@ -246,8 +246,20 @@ abstract interface de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de
             final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.CryptoDriverError.toString|toString(){}[0]
         }
 
-        final class DehydratedDeviceNotCrossSigned : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned|null[0]
-            constructor <init>() // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned.<init>|<init>(){}[0]
+        final class DeviceNotTrusted : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted|null[0]
+            constructor <init>(de.connect2x.trixnity.crypto.key/DeviceTrustLevel, kotlin/Boolean) // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.<init>|<init>(de.connect2x.trixnity.crypto.key.DeviceTrustLevel;kotlin.Boolean){}[0]
+
+            final val dehydrated // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.dehydrated|{}dehydrated[0]
+                final fun <get-dehydrated>(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.dehydrated.<get-dehydrated>|<get-dehydrated>(){}[0]
+            final val trustLevel // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.trustLevel|{}trustLevel[0]
+                final fun <get-trustLevel>(): de.connect2x.trixnity.crypto.key/DeviceTrustLevel // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.trustLevel.<get-trustLevel>|<get-trustLevel>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.crypto.key/DeviceTrustLevel // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.component1|component1(){}[0]
+            final fun component2(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.component2|component2(){}[0]
+            final fun copy(de.connect2x.trixnity.crypto.key/DeviceTrustLevel = ..., kotlin/Boolean = ...): de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.copy|copy(de.connect2x.trixnity.crypto.key.DeviceTrustLevel;kotlin.Boolean){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.DeviceNotTrusted.toString|toString(){}[0]
         }
 
         final class NetworkError : de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/OlmEncryptionService.EncryptOlmError.NetworkError|null[0]
@@ -880,7 +892,7 @@ final class de.connect2x.trixnity.crypto.olm/MegolmEncryptionServiceImpl : de.co
 }
 
 final class de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl : de.connect2x.trixnity.crypto.olm/OlmEncryptionService { // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.core/UserInfo, kotlinx.serialization.json/Json, de.connect2x.trixnity.crypto.olm/OlmStore, de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler, de.connect2x.trixnity.crypto.sign/SignService, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver) // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.<init>|<init>(de.connect2x.trixnity.core.UserInfo;kotlinx.serialization.json.Json;de.connect2x.trixnity.crypto.olm.OlmStore;de.connect2x.trixnity.crypto.olm.OlmEncryptionServiceRequestHandler;de.connect2x.trixnity.crypto.sign.SignService;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver){}[0]
+    constructor <init>(de.connect2x.trixnity.core/UserInfo, kotlinx.serialization.json/Json, de.connect2x.trixnity.crypto.olm/OlmStore, de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceRequestHandler, de.connect2x.trixnity.crypto.sign/SignService, kotlin.time/Clock, de.connect2x.trixnity.crypto.driver/CryptoDriver, kotlin/Boolean = ...) // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.<init>|<init>(de.connect2x.trixnity.core.UserInfo;kotlinx.serialization.json.Json;de.connect2x.trixnity.crypto.olm.OlmStore;de.connect2x.trixnity.crypto.olm.OlmEncryptionServiceRequestHandler;de.connect2x.trixnity.crypto.sign.SignService;kotlin.time.Clock;de.connect2x.trixnity.crypto.driver.CryptoDriver;kotlin.Boolean){}[0]
 
     final suspend fun decryptOlm(de.connect2x.trixnity.core.model.events/ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>): kotlin/Result<de.connect2x.trixnity.core.model.events/PlaintextOlmEvent<*>> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.decryptOlm|decryptOlm(de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent<de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent>){}[0]
     final suspend fun encryptOlm(de.connect2x.trixnity.core.model.events/EventContent, de.connect2x.trixnity.core.model/UserId, kotlin/String): kotlin/Result<de.connect2x.trixnity.core.model.events.m.room/EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent> // de.connect2x.trixnity.crypto.olm/OlmEncryptionServiceImpl.encryptOlm|encryptOlm(de.connect2x.trixnity.core.model.events.EventContent;de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]

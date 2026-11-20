@@ -589,8 +589,17 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$Encrypt
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DehydratedDeviceNotCrossSigned : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
-	public fun <init> ()V
+public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DeviceNotTrusted : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
+	public fun <init> (Lde/connect2x/trixnity/crypto/key/DeviceTrustLevel;Z)V
+	public final fun component1 ()Lde/connect2x/trixnity/crypto/key/DeviceTrustLevel;
+	public final fun component2 ()Z
+	public final fun copy (Lde/connect2x/trixnity/crypto/key/DeviceTrustLevel;Z)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DeviceNotTrusted;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DeviceNotTrusted;Lde/connect2x/trixnity/crypto/key/DeviceTrustLevel;ZILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$DeviceNotTrusted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDehydrated ()Z
+	public final fun getTrustLevel ()Lde/connect2x/trixnity/crypto/key/DeviceTrustLevel;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError$NetworkError : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/OlmEncryptionService$EncryptOlmError {
@@ -630,7 +639,8 @@ public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionService$OlmReco
 }
 
 public final class de/connect2x/trixnity/crypto/olm/OlmEncryptionServiceImpl : de/connect2x/trixnity/crypto/olm/OlmEncryptionService {
-	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;)V
+	public fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;Z)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/UserInfo;Lkotlinx/serialization/json/Json;Lde/connect2x/trixnity/crypto/olm/OlmStore;Lde/connect2x/trixnity/crypto/olm/OlmEncryptionServiceRequestHandler;Lde/connect2x/trixnity/crypto/sign/SignService;Lkotlin/time/Clock;Lde/connect2x/trixnity/crypto/driver/CryptoDriver;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun decryptOlm-gIAlu-s (Lde/connect2x/trixnity/core/model/events/ClientEvent$ToDeviceEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun encryptOlm (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun encryptOlm-Wo0uVPo (Lde/connect2x/trixnity/core/model/events/EventContent;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
