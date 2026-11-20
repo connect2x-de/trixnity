@@ -17,6 +17,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Report media transfer progress through callbacks in `MediaApiClient` and `MediaService`.
 - Changed `RoomEventEncryptionService::decrypt` to return a `Flow` and retry decryption on missing or withheld keys
+- Replaced `OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned` with
+  `DeviceNotTrusted(trustLevel, dehydrated)` and allow to reject untrusted devices (`Blocked`, `Invalid`, `Unknown`)
+  during Olm encryption
 
 ### Deprecated
 

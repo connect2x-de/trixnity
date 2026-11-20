@@ -72,9 +72,9 @@ interface OlmEncryptionService {
         class RemoteHomeserverNotReachable(val reason: String) :
             EncryptOlmError, IllegalStateException("remote server error while claiming keys")
 
-        class DehydratedDeviceNotCrossSigned :
+        data class DeviceNotTrusted(val trustLevel: DeviceTrustLevel, val dehydrated: Boolean) :
             EncryptOlmError,
-            IllegalStateException("when encrypting to dehydrated device, the device must be cross signed")
+            IllegalStateException("device is not trusted (trustLevel=$trustLevel, dehydrated=$dehydrated)")
     }
 
     /**
@@ -165,6 +165,7 @@ class OlmEncryptionServiceImpl(
     private val signService: SignService,
     private val clock: Clock,
     private val driver: CryptoDriver,
+    private val excludeUntrustedDevices: Boolean = true,
 ) : OlmEncryptionService {
     private val ownUserId: UserId = userInfo.userId
     private val ownDeviceId: String = userInfo.deviceId
@@ -249,13 +250,19 @@ class OlmEncryptionServiceImpl(
                     val recipientDeviceKeys =
                         store.getDeviceKeys(recipientUserId)?.get(recipientDeviceId)
                             ?: throw EncryptOlmError.NoOlmSupported("device keys not found")
-                    val recipientTrustLevel = store.getTrustLevel(recipientUserId, recipientDeviceId)
-                    @OptIn(MSC3814::class)
-                    if (
-                        recipientDeviceKeys.signed.dehydrated == true &&
-                            recipientTrustLevel !is DeviceTrustLevel.CrossSigned
-                    )
-                        throw EncryptOlmError.DehydratedDeviceNotCrossSigned()
+                    val recipientTrustLevel =
+                        store.getTrustLevel(recipientUserId, recipientDeviceId) ?: DeviceTrustLevel.Unknown
+                    @OptIn(MSC3814::class) val dehydrated = recipientDeviceKeys.signed.dehydrated == true
+                    val isTrusted =
+                        when (recipientTrustLevel) {
+                            is DeviceTrustLevel.CrossSigned -> true
+                            is DeviceTrustLevel.Valid -> !dehydrated
+                            DeviceTrustLevel.NotCrossSigned -> !dehydrated && !excludeUntrustedDevices
+                            DeviceTrustLevel.Blocked -> false
+                            is DeviceTrustLevel.Invalid -> false
+                            DeviceTrustLevel.Unknown -> false
+                        }
+                    if (!isTrusted) throw EncryptOlmError.DeviceNotTrusted(recipientTrustLevel, dehydrated)
                     val recipientIdentityKey =
                         recipientDeviceKeys.get<Curve25519Key>()
                             ?: throw EncryptOlmError.NoOlmSupported("identity key not found")

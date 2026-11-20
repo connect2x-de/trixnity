@@ -10,8 +10,10 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
 import de.connect2x.trixnity.core.model.events.EventContent
 import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
+import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.keys.CrossSigningKeys
@@ -29,6 +31,7 @@ import de.connect2x.trixnity.crypto.driver.CryptoDriverException
 import de.connect2x.trixnity.crypto.driver.megolm.GroupSession
 import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.invoke
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.get
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService.DecryptMegolmError
@@ -243,42 +246,81 @@ class MegolmEncryptionServiceImpl(
                 olmEncryptionService
                     .encryptOlm(roomKeyEventContent, newDevicesWithoutUs)
                     .mapNotNull { (recipient, encryptOlmResult) ->
-                        encryptOlmResult
-                            .onFailure {
-                                val e = it as? EncryptOlmError
-                                when (e) {
-                                    is EncryptOlmError.CryptoDriverError ->
-                                        throw EncryptMegolmError.CryptoDriverError(e.error)
+                        val eventContent: ToDeviceEventContent? =
+                            encryptOlmResult.fold(
+                                onSuccess = { it },
+                                onFailure = {
+                                    when (val error = it as? EncryptOlmError) {
+                                        is EncryptOlmError.CryptoDriverError ->
+                                            throw EncryptMegolmError.CryptoDriverError(error.error)
 
-                                    is EncryptOlmError.NetworkError -> throw EncryptMegolmError.NetworkError(e.error)
+                                        is EncryptOlmError.NetworkError ->
+                                            throw EncryptMegolmError.NetworkError(error.error)
 
-                                    is EncryptOlmError.DehydratedDeviceNotCrossSigned -> {
-                                        log.info {
-                                            "will not send megolm session to $recipient, because dehydrated device not cross signed"
+                                        is EncryptOlmError.DeviceNotTrusted if error.dehydrated -> {
+                                            log.info {
+                                                "will not send megolm session to $recipient, because dehydrated device is not trusted (trustLevel=${error.trustLevel})"
+                                            }
+                                            null
+                                        }
+
+                                        is EncryptOlmError.DeviceNotTrusted -> {
+                                            val withheld =
+                                                when (error.trustLevel) {
+                                                    DeviceTrustLevel.Blocked ->
+                                                        RoomKeyWithheldCode.Blacklisted to "device is blocked"
+                                                    DeviceTrustLevel.NotCrossSigned ->
+                                                        RoomKeyWithheldCode.Unverified to "device is not cross-signed"
+                                                    is DeviceTrustLevel.CrossSigned,
+                                                    is DeviceTrustLevel.Valid,
+                                                    is DeviceTrustLevel.Invalid,
+                                                    DeviceTrustLevel.Unknown -> null
+                                                }
+                                            if (withheld != null) {
+                                                val (code, reason) = withheld
+                                                log.info {
+                                                    "sending withheld ($code) to $recipient, because device is not trusted (trustLevel=${error.trustLevel})"
+                                                }
+                                                RoomKeyWithheldEventContent(
+                                                    roomId = roomId,
+                                                    sessionId = sessionId,
+                                                    senderKey = ownCurve25519Key.value,
+                                                    algorithm = Megolm,
+                                                    code = code,
+                                                    reason = reason,
+                                                )
+                                            } else {
+                                                log.info {
+                                                    "will not send megolm session to $recipient, because device is not trusted (trustLevel=${error.trustLevel})"
+                                                }
+                                                null
+                                            }
+                                        }
+
+                                        is EncryptOlmError.NoOlmSupported -> {
+                                            log.info {
+                                                "will not send megolm session to $recipient, because olm not supported"
+                                            }
+                                            null
+                                        }
+
+                                        is EncryptOlmError.RemoteHomeserverNotReachable -> {
+                                            // TODO happens rarely, but we need a recovery mechanism (e.g. request room
+                                            // keys)!
+                                            log.warn {
+                                                "will not send megolm session to $recipient, because remote homeserver not reachable and therefore new olm session could not be created"
+                                            }
+                                            null
+                                        }
+
+                                        null -> {
+                                            log.error(it) { "unexpected error" }
+                                            null
                                         }
                                     }
-
-                                    is EncryptOlmError.NoOlmSupported -> {
-                                        log.info {
-                                            "will not send megolm session to $recipient, because olm not supported"
-                                        }
-                                    }
-
-                                    is EncryptOlmError.RemoteHomeserverNotReachable -> {
-                                        // TODO happens rarely, but we need a recovery mechanism (e.g. request room
-                                        // keys)!
-                                        log.warn {
-                                            "will not send megolm session to $recipient, because remote homeserver not reachable and therefore new olm session could not be created"
-                                        }
-                                    }
-
-                                    null -> {
-                                        log.error(it) { "unexpected error" }
-                                    }
-                                }
-                            }
-                            .getOrNull()
-                            ?.let { recipient to it }
+                                },
+                            )
+                        eventContent?.let { recipient to it }
                     }
                     .groupBy { it.first.first }
                     .mapValues { it.value.associate { it.first.second to it.second } }

@@ -7,6 +7,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.PlaintextMegolmEvent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
@@ -25,6 +26,7 @@ import de.connect2x.trixnity.core.serialization.createMatrixEventJson
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
 import de.connect2x.trixnity.crypto.driver.vodozemac.VodozemacCryptoDriver
 import de.connect2x.trixnity.crypto.invoke
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.mocks.MegolmEncryptionServiceRequestHandlerMock
 import de.connect2x.trixnity.crypto.mocks.OlmEncryptionServiceMock
 import de.connect2x.trixnity.crypto.mocks.OlmStoreMock
@@ -233,6 +235,69 @@ class MegolmEncryptionServiceTest : TrixnityBaseTest() {
             olmStoreMock.outboundMegolmSession.shouldBeEmpty()
             olmStoreMock.inboundMegolmSession.shouldBeEmpty()
         }
+
+    @Test
+    fun `encryptMegolm - send room key withheld event when device is not trusted`() = runTest {
+        val bobDeviceId2 = "BOBDEVICE2"
+        val bobDeviceId3 = "BOBDEVICE3"
+        val bobDeviceId4 = "BOBDEVICE4"
+        val bobDeviceId5 = "BOBDEVICE5"
+        val olmCipher = OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = aliceCurveKey.value)
+        fun deviceKeys(deviceId: String, dehydrated: Boolean? = null): SignedDeviceKeys =
+            Signed(
+                DeviceKeys(
+                    userId = bob,
+                    deviceId = deviceId,
+                    algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                    keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                    dehydrated = dehydrated,
+                )
+            )
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to deviceKeys(bobDeviceId),
+                bobDeviceId2 to deviceKeys(bobDeviceId2),
+                bobDeviceId3 to deviceKeys(bobDeviceId3),
+                bobDeviceId4 to deviceKeys(bobDeviceId4, dehydrated = true),
+                bobDeviceId5 to deviceKeys(bobDeviceId5),
+            )
+        olmEncryptionService.encryptOlm[bob to bobDeviceId] = Result.success(olmCipher)
+        olmEncryptionService.encryptOlm[bob to bobDeviceId2] =
+            Result.failure(EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = false))
+        olmEncryptionService.encryptOlm[bob to bobDeviceId3] =
+            Result.failure(EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Blocked, dehydrated = false))
+        olmEncryptionService.encryptOlm[bob to bobDeviceId4] =
+            Result.failure(EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = true))
+        olmEncryptionService.encryptOlm[bob to bobDeviceId5] =
+            Result.failure(EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Invalid("bad"), dehydrated = false))
+
+        val result = cut.encryptMegolm(decryptedMegolmEventContent, room, EncryptionEventContent()).getOrThrow()
+
+        val sendToDeviceEvents = megolmEncryptionServiceRequestHandlerMock.sendToDeviceParams.firstOrNull()
+        assertNotNull(sendToDeviceEvents)
+        sendToDeviceEvents[bob] shouldBe
+            mapOf(
+                bobDeviceId to olmCipher,
+                bobDeviceId2 to
+                    RoomKeyWithheldEventContent(
+                        roomId = room,
+                        sessionId = result.sessionId,
+                        senderKey = aliceCurveKey.value,
+                        algorithm = EncryptionAlgorithm.Megolm,
+                        code = RoomKeyWithheldCode.Unverified,
+                        reason = "device is not cross-signed",
+                    ),
+                bobDeviceId3 to
+                    RoomKeyWithheldEventContent(
+                        roomId = room,
+                        sessionId = result.sessionId,
+                        senderKey = aliceCurveKey.value,
+                        algorithm = EncryptionAlgorithm.Megolm,
+                        code = RoomKeyWithheldCode.Blacklisted,
+                        reason = "device is blocked",
+                    ),
+            )
+    }
 
     private fun createExistingOutboundSession() {
         val outboundSession = groupSession()

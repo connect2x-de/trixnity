@@ -338,9 +338,9 @@ abstract class PerMemberRtcSlotMembershipEncryptionHandler(
                                     is EncryptOlmError.CryptoDriverError -> throw e
                                     is EncryptOlmError.NetworkError -> throw e
 
-                                    is EncryptOlmError.DehydratedDeviceNotCrossSigned -> {
+                                    is EncryptOlmError.DeviceNotTrusted -> {
                                         log.debug {
-                                            "will not distribute key to $recipient, because dehydrated device not cross signed"
+                                            "will not distribute key to $recipient, because device is not trusted (trustLevel=${e.trustLevel}, dehydrated=${e.dehydrated})"
                                         }
                                     }
 

@@ -140,9 +140,9 @@ class KeyShareServiceImpl(
                                     is EncryptOlmError.CryptoDriverError -> throw e
                                     is EncryptOlmError.NetworkError -> throw e
 
-                                    is EncryptOlmError.DehydratedDeviceNotCrossSigned -> {
+                                    is EncryptOlmError.DeviceNotTrusted -> {
                                         log.debug {
-                                            "will not send key bundle to $recipient, because dehydrated device not cross signed"
+                                            "will not send key bundle to $recipient, because device is not trusted (trustLevel=${e.trustLevel}, dehydrated=${e.dehydrated})"
                                         }
                                     }
 
