@@ -198,11 +198,14 @@ class OlmEncryptionServiceImpl(
         val claimOneTimeKeysResponse = async {
             combine(finished, claimRequests) { finished, claimRequests -> finished + claimRequests }
                 .first { it == recipients }
-            requests.claimKeys(
-                claimRequests.value
-                    .groupBy { it.first }
-                    .mapValues { it.value.associate { it.second to KeyAlgorithm.SignedCurve25519 } }
-            )
+            val requestsToClaim = claimRequests.value
+            if (requestsToClaim.isEmpty()) Result.success(ClaimKeys.Response(emptyMap(), emptyMap()))
+            else
+                requests.claimKeys(
+                    requestsToClaim
+                        .groupBy { it.first }
+                        .mapValues { it.value.associate { it.second to KeyAlgorithm.SignedCurve25519 } }
+                )
         }
         recipients
             .associateWith { recipient ->

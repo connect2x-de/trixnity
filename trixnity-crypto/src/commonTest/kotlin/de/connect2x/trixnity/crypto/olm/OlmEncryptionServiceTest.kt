@@ -43,6 +43,7 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.maps.shouldBeEmpty
@@ -249,6 +250,28 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
 
         results.get(UserId("unknown", "server") to "d")?.exceptionOrNull() shouldBe
             EncryptOlmError.NoOlmSupported("device keys not found")
+    }
+
+    @Test
+    fun `encryptOlm - encrypt multiple with no valid device does not call claimKeys`() = runTest {
+        mockClaimKeys()
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
+            )
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+
+        cut.encryptOlm(decryptedOlmEventContent, setOf(bob to bobDeviceId))
+        olmEncryptionServiceRequestHandlerMock.claimKeysParams.shouldBeEmpty()
     }
 
     @Test
