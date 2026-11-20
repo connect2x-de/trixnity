@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.client.crypto
 
+import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.core.EventHandler
 import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
@@ -30,7 +31,18 @@ fun createCryptoModule() = module {
     singleOf(::ClientOlmEncryptionServiceRequestHandler) { bind<OlmEncryptionServiceRequestHandler>() }
     singleOf(::ClientMegolmEncryptionServiceRequestHandler) { bind<MegolmEncryptionServiceRequestHandler>() }
     singleOf(::ClientOlmStore) { bind<OlmStore>() }
-    singleOf(::OlmEncryptionServiceImpl) { bind<OlmEncryptionService>() }
+    single<OlmEncryptionService> {
+        OlmEncryptionServiceImpl(
+            userInfo = get(),
+            json = get(),
+            store = get(),
+            requests = get(),
+            signService = get(),
+            clock = get(),
+            driver = get(),
+            excludeUntrustedDevices = get<MatrixClientConfiguration>().excludeUntrustedDevices,
+        )
+    }
     singleOf(::MegolmEncryptionServiceImpl) { bind<MegolmEncryptionService>() }
     single<OlmEventHandler> {
             OlmEventHandlerImpl(
