@@ -165,7 +165,9 @@ class UserApiClientImpl(
                             }
                     }
             coroutineScope {
-                eventsByType.values.forEach { launch { sendToDeviceUnsafe(it, transactionId).getOrThrow() } }
+                eventsByType.values.forEachIndexed { index, item ->
+                    launch { sendToDeviceUnsafe(item, "$transactionId-$index").getOrThrow() }
+                }
             }
         }
     }

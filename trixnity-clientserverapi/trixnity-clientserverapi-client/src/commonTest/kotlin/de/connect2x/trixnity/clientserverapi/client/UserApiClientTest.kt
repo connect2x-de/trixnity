@@ -371,8 +371,9 @@ class UserApiClientTest : TrixnityBaseTest() {
                     scopedMockEngine(false) {
                         addHandler { request ->
                             request.method shouldBe HttpMethod.Put
+                            println(request.url.encodedPath)
                             when {
-                                request.url.fullPath.startsWith("/_matrix/client/v3/sendToDevice/m.room_key/") -> {
+                                request.url.fullPath == "/_matrix/client/v3/sendToDevice/m.room_key/txnId-0" -> {
                                     endpointsCalled.update { it + "m.room_key" }
                                     request.body.toByteArray().decodeToString() shouldBe
                                         """
@@ -392,9 +393,7 @@ class UserApiClientTest : TrixnityBaseTest() {
                                             .trimToFlatJson()
                                 }
 
-                                request.url.fullPath.startsWith(
-                                    "/_matrix/client/v3/sendToDevice/m.room.encrypted/"
-                                ) -> {
+                                request.url.fullPath == "/_matrix/client/v3/sendToDevice/m.room.encrypted/txnId-1" -> {
                                     endpointsCalled.update { it + "m.room.encrypted" }
                                     request.body.toByteArray().decodeToString() shouldBe
                                         """
@@ -449,7 +448,8 @@ class UserApiClientTest : TrixnityBaseTest() {
                                     senderKey = Curve25519KeyValue("keyValue"),
                                 ),
                         )
-                )
+                ),
+                "txnId",
             )
             .getOrThrow()
         endpointsCalled.value shouldHaveSize 2
