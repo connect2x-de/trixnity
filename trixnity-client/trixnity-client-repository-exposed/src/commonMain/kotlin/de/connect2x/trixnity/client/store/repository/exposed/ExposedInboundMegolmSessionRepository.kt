@@ -8,6 +8,7 @@ import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import de.connect2x.trixnity.utils.ReadTransaction
 import de.connect2x.trixnity.utils.WriteTransaction
 import kotlinx.coroutines.flow.associate
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toSet
@@ -27,7 +28,7 @@ internal object ExposedInboundMegolmSession : Table("inbound_megolm_session") {
     val roomId = varchar("room_id", length = 255)
     override val primaryKey = PrimaryKey(senderKey, sessionId, roomId)
     val firstKnownIndex = long("first_known_index").nullable()
-    val hasBeenBackedUp = bool("has_been_backed_up")
+    val hasBeenBackedUp = bool("has_been_backed_up").nullable()
     val isTrusted = bool("is_trusted").nullable()
     val senderSigningKey = text("sender_signing_key").nullable()
     val forwardingCurve25519KeyChain = text("forwarding_curve25519_key_chain").nullable()
@@ -56,10 +57,11 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
     }
 
     context(transaction: ReadTransaction)
-    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> {
+    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession.Key> {
         return ExposedInboundMegolmSession.selectAll()
             .where { ExposedInboundMegolmSession.hasBeenBackedUp.eq(false) }
             .map { it.mapToStoredInboundMegolmSession() }
+            .filterIsInstance<StoredInboundMegolmSession.Key>()
             .toSet()
     }
 
@@ -72,7 +74,7 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
         val value = this[ExposedInboundMegolmSession.value]
         return if (value == null) {
             @OptIn(StoredInboundMegolmSession.BackwardsCompatible::class)
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue(this[ExposedInboundMegolmSession.senderKey]),
                 sessionId = this[ExposedInboundMegolmSession.sessionId],
                 roomId = RoomId(this[ExposedInboundMegolmSession.roomId]),
@@ -96,7 +98,7 @@ internal class ExposedInboundMegolmSessionRepository(private val json: Json) : I
             it[sessionId] = value.sessionId
             it[roomId] = value.roomId.full
             it[firstKnownIndex] = null
-            it[hasBeenBackedUp] = value.hasBeenBackedUp
+            it[hasBeenBackedUp] = (value as? StoredInboundMegolmSession.Key)?.hasBeenBackedUp
             it[isTrusted] = null
             it[senderSigningKey] = null
             it[forwardingCurve25519KeyChain] = null

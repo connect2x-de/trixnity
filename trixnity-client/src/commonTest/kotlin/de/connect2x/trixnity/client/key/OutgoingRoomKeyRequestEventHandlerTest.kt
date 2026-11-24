@@ -27,6 +27,7 @@ import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
 import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.crypto.driver.CryptoDriver
@@ -118,7 +119,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         )
 
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = forwardedRoomKeyEvent.senderKey,
                 senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
                 sessionId = forwardedRoomKeyEvent.sessionId,
@@ -149,7 +150,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         )
 
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = forwardedRoomKeyEvent.senderKey,
                 senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
                 sessionId = forwardedRoomKeyEvent.sessionId,
@@ -172,7 +173,7 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         setDeviceKeys(true)
         val forwardedRoomKeyEvent = forwardedRoomKeyEvent()
         val existingSession =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = forwardedRoomKeyEvent.senderKey,
                 senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
                 sessionId = forwardedRoomKeyEvent.sessionId,
@@ -193,6 +194,44 @@ class OutgoingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
         )
 
         olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe existingSession
+    }
+
+    @Test
+    fun `replace withheld inbound megolm session`() = runTest {
+        clearOutdatedKeys { keyStore }
+        setDeviceKeys(true)
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(sessionId, room) {
+                StoredInboundMegolmSession.Withheld(
+                    senderKey = senderKey.value,
+                    sessionId = sessionId,
+                    roomId = room,
+                    source = InboundMegolmSessionSource.Creator,
+                    code = RoomKeyWithheldCode.Unverified,
+                    reason = "unverified",
+                )
+            }
+        }
+        val forwardedRoomKeyEvent = forwardedRoomKeyEvent()
+        cut.handleOutgoingKeyRequestAnswer(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(forwardedRoomKeyEvent, alice, keysOf(aliceDevice2Key), null, alice, keysOf()),
+            )
+        )
+
+        olmCryptoStore.getInboundMegolmSession(sessionId, room).first() shouldBe
+            StoredInboundMegolmSession.Key(
+                senderKey = forwardedRoomKeyEvent.senderKey,
+                senderSigningKey = forwardedRoomKeyEvent.senderClaimedKey,
+                sessionId = forwardedRoomKeyEvent.sessionId,
+                roomId = forwardedRoomKeyEvent.roomId,
+                firstKnownIndex = 0,
+                hasBeenBackedUp = false,
+                source = InboundMegolmSessionSource.KeyRequest(listOf(forwardingSenderKey.value)),
+                sharedHistory = false,
+                pickled = pickleToInbound(forwardedRoomKeyEvent.sessionKey),
+            )
     }
 
     @Test

@@ -8,7 +8,7 @@ interface InboundMegolmSessionRepository : MapRepository<RoomId, String, StoredI
     override fun serializeKey(firstKey: RoomId, secondKey: String): String = firstKey.full + secondKey
 
     context(transaction: ReadTransaction)
-    suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession>
+    suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession.Key>
 
     context(transaction: ReadTransaction)
     suspend fun getAll(): Set<StoredInboundMegolmSession>

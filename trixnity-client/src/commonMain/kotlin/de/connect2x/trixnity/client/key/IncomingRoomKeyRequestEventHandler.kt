@@ -13,6 +13,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
 import de.connect2x.trixnity.core.model.events.m.ForwardedRoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.ExportedSessionKeyValue
 import de.connect2x.trixnity.core.subscribe
@@ -25,6 +26,7 @@ import de.connect2x.trixnity.crypto.olm.DecryptedOlmEventContainer
 import de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 import de.connect2x.trixnity.crypto.olm.OlmEventHandler
+import de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -88,43 +90,55 @@ class IncomingRoomKeyRequestEventHandler(
             ) {
                 val foundInboundMegolmSession =
                     olmStore.getInboundMegolmSession(requestBody.sessionId, requestBody.roomId).first()
-                if (foundInboundMegolmSession != null) {
+                val unencryptedAnswer =
+                    when (foundInboundMegolmSession) {
+                        is StoredInboundMegolmSession.Key -> {
+                            val account = checkNotNull(accountStore.getAccount()) { "No account found" }
+                            val session =
+                                driver.megolm.inboundGroupSession
+                                    .fromPickle(
+                                        foundInboundMegolmSession.pickled,
+                                        driver.key.pickleKey(account.olmPickleKey),
+                                    )
+                                    .use(InboundGroupSession::exportAtFirstKnownIndex)
+                            ForwardedRoomKeyEventContent(
+                                roomId = foundInboundMegolmSession.roomId,
+                                senderKey = foundInboundMegolmSession.senderKey,
+                                sessionId = foundInboundMegolmSession.sessionId,
+                                sessionKey = ExportedSessionKeyValue.of(session),
+                                senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
+                                forwardingKeyChain =
+                                    when (val source = foundInboundMegolmSession.source) {
+                                        is InboundMegolmSessionSource.UnauthenticatedBackup ->
+                                            source.forwardingKeyChain.orEmpty()
+                                        is InboundMegolmSessionSource.KeyRequest -> source.forwardingKeyChain
+                                        is InboundMegolmSessionSource.KeyBundle,
+                                        InboundMegolmSessionSource.Creator -> emptyList()
+                                    },
+                                algorithm = EncryptionAlgorithm.Megolm,
+                                sharedHistory = foundInboundMegolmSession.sharedHistory,
+                            )
+                        }
+                        is StoredInboundMegolmSession.Withheld -> {
+                            RoomKeyWithheldEventContent(
+                                roomId = foundInboundMegolmSession.roomId,
+                                senderKey = foundInboundMegolmSession.senderKey,
+                                sessionId = foundInboundMegolmSession.sessionId,
+                                algorithm = EncryptionAlgorithm.Megolm,
+                                code = foundInboundMegolmSession.code,
+                                reason = foundInboundMegolmSession.reason,
+                            )
+                        }
+                        null -> null
+                    }
+                val encryptedAnswer = unencryptedAnswer?.let {
+                    olmEncryptionService.encryptOlm(unencryptedAnswer, ownUserId, requestingDeviceId).getOrNull()
+                }
+                if (encryptedAnswer != null) {
                     log.info {
                         "send incoming room key request answer (${request.requestId}) to device $requestingDeviceId"
                     }
-                    val account = checkNotNull(accountStore.getAccount()) { "No account found" }
-                    val session =
-                        driver.megolm.inboundGroupSession
-                            .fromPickle(foundInboundMegolmSession.pickled, driver.key.pickleKey(account.olmPickleKey))
-                            .use(InboundGroupSession::exportAtFirstKnownIndex)
-                    val encryptedAnswer =
-                        olmEncryptionService
-                            .encryptOlm(
-                                ForwardedRoomKeyEventContent(
-                                    roomId = foundInboundMegolmSession.roomId,
-                                    senderKey = foundInboundMegolmSession.senderKey,
-                                    sessionId = foundInboundMegolmSession.sessionId,
-                                    sessionKey = ExportedSessionKeyValue.of(session),
-                                    senderClaimedKey = foundInboundMegolmSession.senderSigningKey,
-                                    forwardingKeyChain =
-                                        when (val source = foundInboundMegolmSession.source) {
-                                            is InboundMegolmSessionSource.UnauthenticatedBackup ->
-                                                source.forwardingKeyChain.orEmpty()
-                                            is InboundMegolmSessionSource.KeyRequest -> source.forwardingKeyChain
-                                            is InboundMegolmSessionSource.KeyBundle,
-                                            InboundMegolmSessionSource.Creator -> emptyList()
-                                        },
-                                    algorithm = EncryptionAlgorithm.Megolm,
-                                    sharedHistory = foundInboundMegolmSession.sharedHistory,
-                                ),
-                                ownUserId,
-                                requestingDeviceId,
-                            )
-                            .getOrNull()
-                    if (encryptedAnswer != null)
-                        api.user
-                            .sendToDevice(mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer)))
-                            .getOrThrow()
+                    api.user.sendToDevice(mapOf(ownUserId to mapOf(requestingDeviceId to encryptedAnswer))).getOrThrow()
                 } else log.info { "got a room key request (${request}), but did not found a matching room key" }
             }
             incomingRoomKeyRequests.update { it - request }

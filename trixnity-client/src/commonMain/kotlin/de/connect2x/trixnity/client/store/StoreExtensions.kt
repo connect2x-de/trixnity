@@ -2,7 +2,9 @@ package de.connect2x.trixnity.client.store
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent.*
+import de.connect2x.trixnity.core.model.events.ClientEvent.GlobalAccountDataEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomAccountDataEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.GlobalAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
@@ -75,11 +77,19 @@ suspend fun RoomTimelineStore.getPrevious(event: TimelineEvent): TimelineEvent? 
 suspend fun OlmCryptoStore.waitForInboundMegolmSession(
     roomId: RoomId,
     sessionId: String,
-    firstKnownIndexLessThen: Long? = null,
+    firstKnownIndexLessThan: Long? = null,
+    allowWithheld: Boolean = false,
+    othenThan: StoredInboundMegolmSession? = null,
     onNotExisting: (suspend CoroutineScope.() -> Unit)? = null,
 ): Unit = coroutineScope {
     fun StoredInboundMegolmSession?.matches() =
-        this != null && (firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen)
+        othenThan != null && this != othenThan ||
+            when (this) {
+                is StoredInboundMegolmSession.Key ->
+                    firstKnownIndexLessThan == null || this.firstKnownIndex < firstKnownIndexLessThan
+                is StoredInboundMegolmSession.Withheld -> allowWithheld
+                null -> false
+            }
 
     val onNotExistingJob =
         if (getInboundMegolmSession(sessionId, roomId).first().matches().not() && onNotExisting != null)

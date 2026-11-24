@@ -69,6 +69,22 @@ abstract interface de.connect2x.trixnity.crypto.olm/MegolmEncryptionService { //
             constructor <init>() // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex.<init>|<init>(){}[0]
         }
 
+        final class MegolmKeyWithheld : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode, kotlin/String?) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.<init>|<init>(de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+
+            final val code // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.code|{}code[0]
+                final fun <get-code>(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.code.<get-code>|<get-code>(){}[0]
+            final val reason // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.reason|{}reason[0]
+                final fun <get-reason>(): kotlin/String? // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.reason.<get-reason>|<get-reason>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.component1|component1(){}[0]
+            final fun component2(): kotlin/String? // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.component2|component2(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode = ..., kotlin/String? = ...): de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.copy|copy(de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld.toString|toString(){}[0]
+        }
+
         final class ValidationFailed : de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError, kotlin/IllegalStateException { // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed|null[0]
             constructor <init>(kotlin/String) // de.connect2x.trixnity.crypto.olm/MegolmEncryptionService.DecryptMegolmError.ValidationFailed.<init>|<init>(kotlin.String){}[0]
 
@@ -654,6 +670,130 @@ sealed interface de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource { /
     }
 }
 
+sealed interface de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession|null[0]
+    abstract val roomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.roomId|{}roomId[0]
+        abstract fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.roomId.<get-roomId>|<get-roomId>(){}[0]
+    abstract val senderKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderKey|{}senderKey[0]
+        abstract fun <get-senderKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderKey.<get-senderKey>|<get-senderKey>(){}[0]
+    abstract val sessionId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sessionId|{}sessionId[0]
+        abstract fun <get-sessionId>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sessionId.<get-sessionId>|<get-sessionId>(){}[0]
+    abstract val source // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.source|{}source[0]
+        abstract fun <get-source>(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.source.<get-source>|<get-source>(){}[0]
+
+    open annotation class BackwardsCompatible : kotlin/Annotation { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.BackwardsCompatible|null[0]
+        constructor <init>() // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.BackwardsCompatible.<init>|<init>(){}[0]
+    }
+
+    final class Key : de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key|null[0]
+        constructor <init>(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue, kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long, kotlin/Boolean, kotlin/Boolean, kotlin.collections/List<de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue>, kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.Boolean;kotlin.Boolean;kotlin.collections.List<de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue>;kotlin.String){}[0]
+        constructor <init>(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue, kotlin/String, de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource, kotlin/Long, kotlin/Boolean, kotlin/Boolean, kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;kotlin.Long;kotlin.Boolean;kotlin.Boolean;kotlin.String){}[0]
+
+        final val firstKnownIndex // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.firstKnownIndex|{}firstKnownIndex[0]
+            final fun <get-firstKnownIndex>(): kotlin/Long // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.firstKnownIndex.<get-firstKnownIndex>|<get-firstKnownIndex>(){}[0]
+        final val hasBeenBackedUp // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.hasBeenBackedUp|{}hasBeenBackedUp[0]
+            final fun <get-hasBeenBackedUp>(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.hasBeenBackedUp.<get-hasBeenBackedUp>|<get-hasBeenBackedUp>(){}[0]
+        final val pickled // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.pickled|{}pickled[0]
+            final fun <get-pickled>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.pickled.<get-pickled>|<get-pickled>(){}[0]
+        final val roomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.roomId|{}roomId[0]
+            final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.roomId.<get-roomId>|<get-roomId>(){}[0]
+        final val senderKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.senderKey|{}senderKey[0]
+            final fun <get-senderKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.senderKey.<get-senderKey>|<get-senderKey>(){}[0]
+        final val senderSigningKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.senderSigningKey|{}senderSigningKey[0]
+            final fun <get-senderSigningKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.senderSigningKey.<get-senderSigningKey>|<get-senderSigningKey>(){}[0]
+        final val sessionId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.sessionId|{}sessionId[0]
+            final fun <get-sessionId>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.sessionId.<get-sessionId>|<get-sessionId>(){}[0]
+        final val sharedHistory // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.sharedHistory|{}sharedHistory[0]
+            final fun <get-sharedHistory>(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.sharedHistory.<get-sharedHistory>|<get-sharedHistory>(){}[0]
+        final val source // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.source|{}source[0]
+            final fun <get-source>(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.source.<get-source>|<get-source>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component1|component1(){}[0]
+        final fun component2(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component2|component2(){}[0]
+        final fun component3(): de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component3|component3(){}[0]
+        final fun component4(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component4|component4(){}[0]
+        final fun component5(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component5|component5(){}[0]
+        final fun component6(): kotlin/Long // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component6|component6(){}[0]
+        final fun component7(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component7|component7(){}[0]
+        final fun component8(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component8|component8(){}[0]
+        final fun component9(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.component9|component9(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model/RoomId = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue = ..., kotlin/String = ..., de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource = ..., kotlin/Long = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/String = ...): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.copy|copy(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;kotlin.Long;kotlin.Boolean;kotlin.Boolean;kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key> { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession.Key){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.Companion|null[0]
+            final val $childSerializers // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Key.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final class Withheld : de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld|null[0]
+        constructor <init>(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, kotlin/String, de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource, de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode, kotlin/String? = ...) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.<init>|<init>(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.String;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+
+        final val code // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.code|{}code[0]
+            final fun <get-code>(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.code.<get-code>|<get-code>(){}[0]
+        final val reason // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.reason|{}reason[0]
+            final fun <get-reason>(): kotlin/String? // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.reason.<get-reason>|<get-reason>(){}[0]
+        final val roomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.roomId|{}roomId[0]
+            final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.roomId.<get-roomId>|<get-roomId>(){}[0]
+        final val senderKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.senderKey|{}senderKey[0]
+            final fun <get-senderKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.senderKey.<get-senderKey>|<get-senderKey>(){}[0]
+        final val sessionId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.sessionId|{}sessionId[0]
+            final fun <get-sessionId>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.sessionId.<get-sessionId>|<get-sessionId>(){}[0]
+        final val source // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.source|{}source[0]
+            final fun <get-source>(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.source.<get-source>|<get-source>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component1|component1(){}[0]
+        final fun component2(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component2|component2(){}[0]
+        final fun component3(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component3|component3(){}[0]
+        final fun component4(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component4|component4(){}[0]
+        final fun component5(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component5|component5(){}[0]
+        final fun component6(): kotlin/String? // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.component6|component6(){}[0]
+        final fun copy(de.connect2x.trixnity.core.model/RoomId = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue = ..., kotlin/String = ..., de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource = ..., de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode = ..., kotlin/String? = ...): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.copy|copy(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;kotlin.String;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.toString|toString(){}[0]
+
+        final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld> { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer|null[0]
+            final val descriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer.descriptor|{}descriptor[0]
+                final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+            final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer.childSerializers|childSerializers(){}[0]
+            final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+            final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession.Withheld){}[0]
+        }
+
+        final object Companion { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.Companion|null[0]
+            final val $childSerializers // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.Companion.$childSerializers|{}$childSerializers[0]
+
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Withheld.Companion.serializer|serializer(){}[0]
+        }
+    }
+
+    final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion.serializer|serializer(){}[0]
+        final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+    }
+
+    final object Serializer : kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession> { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession){}[0]
+    }
+}
+
 sealed interface de.connect2x.trixnity.crypto.sign/SignWith { // de.connect2x.trixnity.crypto.sign/SignWith|null[0]
     final class KeyPair : de.connect2x.trixnity.crypto.sign/SignWith { // de.connect2x.trixnity.crypto.sign/SignWith.KeyPair|null[0]
         constructor <init>(kotlin/String, kotlin/String) // de.connect2x.trixnity.crypto.sign/SignWith.KeyPair.<init>|<init>(kotlin.String;kotlin.String){}[0]
@@ -822,71 +962,6 @@ final class de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex { /
 
     final object Companion { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex.Companion|null[0]
         final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmMessageIndex.Companion.serializer|serializer(){}[0]
-    }
-}
-
-final class de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession|null[0]
-    constructor <init>(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue, kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long, kotlin/Boolean, de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource, kotlin/Boolean, kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.Boolean;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;kotlin.Boolean;kotlin.String){}[0]
-    constructor <init>(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue, kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/Long, kotlin/Boolean, kotlin/Boolean, kotlin.collections/List<de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue>, kotlin/String) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.<init>|<init>(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.Boolean;kotlin.Boolean;kotlin.collections.List<de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue>;kotlin.String){}[0]
-
-    final val firstKnownIndex // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.firstKnownIndex|{}firstKnownIndex[0]
-        final fun <get-firstKnownIndex>(): kotlin/Long // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.firstKnownIndex.<get-firstKnownIndex>|<get-firstKnownIndex>(){}[0]
-    final val hasBeenBackedUp // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.hasBeenBackedUp|{}hasBeenBackedUp[0]
-        final fun <get-hasBeenBackedUp>(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.hasBeenBackedUp.<get-hasBeenBackedUp>|<get-hasBeenBackedUp>(){}[0]
-    final val pickled // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.pickled|{}pickled[0]
-        final fun <get-pickled>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.pickled.<get-pickled>|<get-pickled>(){}[0]
-    final val roomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.roomId|{}roomId[0]
-        final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.roomId.<get-roomId>|<get-roomId>(){}[0]
-    final val senderKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderKey|{}senderKey[0]
-        final fun <get-senderKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderKey.<get-senderKey>|<get-senderKey>(){}[0]
-    final val senderSigningKey // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderSigningKey|{}senderSigningKey[0]
-        final fun <get-senderSigningKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.senderSigningKey.<get-senderSigningKey>|<get-senderSigningKey>(){}[0]
-    final val sessionId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sessionId|{}sessionId[0]
-        final fun <get-sessionId>(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sessionId.<get-sessionId>|<get-sessionId>(){}[0]
-    final val sharedHistory // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sharedHistory|{}sharedHistory[0]
-        final fun <get-sharedHistory>(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.sharedHistory.<get-sharedHistory>|<get-sharedHistory>(){}[0]
-    final val source // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.source|{}source[0]
-        final fun <get-source>(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.source.<get-source>|<get-source>(){}[0]
-
-    final fun component1(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component1|component1(){}[0]
-    final fun component2(): de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component2|component2(){}[0]
-    final fun component3(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component3|component3(){}[0]
-    final fun component4(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component4|component4(){}[0]
-    final fun component5(): kotlin/Long // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component5|component5(){}[0]
-    final fun component6(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component6|component6(){}[0]
-    final fun component7(): de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component7|component7(){}[0]
-    final fun component8(): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component8|component8(){}[0]
-    final fun component9(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.component9|component9(){}[0]
-    final fun copy(de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Ed25519KeyValue = ..., kotlin/String = ..., de.connect2x.trixnity.core.model/RoomId = ..., kotlin/Long = ..., kotlin/Boolean = ..., de.connect2x.trixnity.crypto.olm/InboundMegolmSessionSource = ..., kotlin/Boolean = ..., kotlin/String = ...): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.copy|copy(de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue;kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.Long;kotlin.Boolean;de.connect2x.trixnity.crypto.olm.InboundMegolmSessionSource;kotlin.Boolean;kotlin.String){}[0]
-    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.equals|equals(kotlin.Any?){}[0]
-    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.hashCode|hashCode(){}[0]
-    final fun toString(): kotlin/String // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.toString|toString(){}[0]
-
-    open annotation class BackwardsCompatible : kotlin/Annotation { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.BackwardsCompatible|null[0]
-        constructor <init>() // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.BackwardsCompatible.<init>|<init>(){}[0]
-    }
-
-    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession> { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer.childSerializers|childSerializers(){}[0]
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession){}[0]
-    }
-
-    final object Companion { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion|null[0]
-        final val $childSerializers // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion.$childSerializers|{}$childSerializers[0]
-
-        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession> // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Companion.serializer|serializer(){}[0]
-    }
-
-    final object Serializer : kotlinx.serialization/KSerializer<de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession> { // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer|null[0]
-        final val descriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.descriptor|{}descriptor[0]
-            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
-
-        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession) // de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession.Serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession){}[0]
     }
 }
 

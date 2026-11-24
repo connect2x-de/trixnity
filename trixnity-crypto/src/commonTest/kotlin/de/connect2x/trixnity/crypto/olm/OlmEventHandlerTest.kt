@@ -13,6 +13,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.ToDeviceEvent
 import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
@@ -25,6 +26,7 @@ import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
 import de.connect2x.trixnity.core.model.keys.KeyValue.Ed25519KeyValue
 import de.connect2x.trixnity.core.model.keys.Keys
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.SessionKeyValue
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.keysOf
@@ -47,7 +49,6 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContainAnyOf
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -391,7 +392,11 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
             )
         )
 
-        assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
+        assertSoftly(
+            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldBeInstanceOf<
+                StoredInboundMegolmSession.Key
+            >()
+        ) {
             roomId shouldBe roomId
             sessionId shouldBe outboundSession.sessionId
             senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -417,7 +422,7 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
             )
 
         olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue("BOB_IDEN"),
                 senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
                 sessionId = outboundSession.sessionId,
@@ -436,7 +441,11 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
             )
         )
 
-        assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
+        assertSoftly(
+            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldBeInstanceOf<
+                StoredInboundMegolmSession.Key
+            >()
+        ) {
             roomId shouldBe roomId
             sessionId shouldBe outboundSession.sessionId
             senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -464,7 +473,7 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                 )
 
             olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] =
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = Curve25519KeyValue("BOB_IDEN"),
                     senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
                     sessionId = outboundSession.sessionId,
@@ -490,7 +499,11 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                 )
             )
 
-            assertSoftly(olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldNotBeNull()) {
+            assertSoftly(
+                olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldBeInstanceOf<
+                    StoredInboundMegolmSession.Key
+                >()
+            ) {
                 roomId shouldBe roomId
                 sessionId shouldBe outboundSession.sessionId
                 senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
@@ -498,6 +511,178 @@ class OlmEventHandlerTest : TrixnityBaseTest() {
                 pickled shouldBe "existing_pickled"
             }
         }
+
+    @Test
+    fun `handleOlmEncryptedRoomKeyEventContent - replace withheld inbound megolm session`() = runTest {
+        val outboundSession = groupSession()
+
+        val eventContent =
+            RoomKeyEventContent(
+                roomId,
+                outboundSession.sessionId,
+                SessionKeyValue.of(outboundSession.sessionKey),
+                EncryptionAlgorithm.Megolm,
+            )
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
+
+        olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId] =
+            StoredInboundMegolmSession.Withheld(
+                roomId = roomId,
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                sessionId = outboundSession.sessionId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unverified,
+                reason = "unverified",
+            )
+
+        cut.handleOlmEncryptedRoomKeyEventContent(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(eventContent, bob, keysOf(Key.Ed25519Key(null, "BOB_SIGN")), null, alice, keysOf()),
+            )
+        )
+
+        assertSoftly(
+            olmStoreMock.inboundMegolmSession[outboundSession.sessionId to roomId].shouldBeInstanceOf<
+                StoredInboundMegolmSession.Key
+            >()
+        ) {
+            roomId shouldBe roomId
+            sessionId shouldBe outboundSession.sessionId
+            senderKey shouldBe Curve25519KeyValue("BOB_IDEN")
+            senderSigningKey shouldBe Ed25519KeyValue("BOB_SIGN")
+        }
+    }
+
+    @Test
+    fun `handleOlmEncryptedRoomKeyEventContent - store withheld inbound megolm session`() = runTest {
+        val eventContent =
+            RoomKeyWithheldEventContent(
+                roomId = roomId,
+                sessionId = "sessionId",
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                algorithm = EncryptionAlgorithm.Megolm,
+                code = RoomKeyWithheldCode.Unauthorised,
+                reason = "not allowed",
+            )
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
+
+        cut.handleOlmEncryptedRoomKeyEventContent(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(eventContent, bob, keysOf(Key.Ed25519Key(null, "BOB_SIGN")), null, alice, keysOf()),
+            )
+        )
+
+        olmStoreMock.inboundMegolmSession["sessionId" to roomId] shouldBe
+            StoredInboundMegolmSession.Withheld(
+                roomId = roomId,
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                sessionId = "sessionId",
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.Unauthorised,
+                reason = "not allowed",
+            )
+    }
+
+    @Test
+    fun `handleOlmEncryptedRoomKeyEventContent - not overwrite key with withheld inbound megolm session`() = runTest {
+        val existingKey =
+            StoredInboundMegolmSession.Key(
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                senderSigningKey = Ed25519KeyValue("BOB_SIGN"),
+                sessionId = "sessionId",
+                roomId = roomId,
+                firstKnownIndex = 0,
+                hasBeenBackedUp = false,
+                source = InboundMegolmSessionSource.Creator,
+                sharedHistory = false,
+                pickled = "existing_pickled",
+            )
+        olmStoreMock.inboundMegolmSession["sessionId" to roomId] = existingKey
+
+        val eventContent =
+            RoomKeyWithheldEventContent(
+                roomId = roomId,
+                sessionId = "sessionId",
+                senderKey = Curve25519KeyValue("BOB_IDEN"),
+                algorithm = EncryptionAlgorithm.Megolm,
+                code = RoomKeyWithheldCode.Unauthorised,
+                reason = "not allowed",
+            )
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
+
+        cut.handleOlmEncryptedRoomKeyEventContent(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(eventContent, bob, keysOf(Key.Ed25519Key(null, "BOB_SIGN")), null, alice, keysOf()),
+            )
+        )
+
+        olmStoreMock.inboundMegolmSession["sessionId" to roomId] shouldBe existingKey
+    }
+
+    @Test
+    fun `handleOlmEncryptedRoomKeyEventContent - ignore withheld event without roomId or sessionId`() = runTest {
+        val encryptedEvent =
+            ToDeviceEvent(
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue("BOB_IDEN")),
+                bob,
+            )
+
+        cut.handleOlmEncryptedRoomKeyEventContent(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyWithheldEventContent(
+                        roomId = null,
+                        sessionId = "sessionId",
+                        senderKey = Curve25519KeyValue("BOB_IDEN"),
+                        algorithm = EncryptionAlgorithm.Megolm,
+                        code = RoomKeyWithheldCode.NoOlm,
+                    ),
+                    bob,
+                    keysOf(Key.Ed25519Key(null, "BOB_SIGN")),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
+            )
+        )
+        cut.handleOlmEncryptedRoomKeyEventContent(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyWithheldEventContent(
+                        roomId = roomId,
+                        sessionId = null,
+                        senderKey = Curve25519KeyValue("BOB_IDEN"),
+                        algorithm = EncryptionAlgorithm.Megolm,
+                        code = RoomKeyWithheldCode.NoOlm,
+                    ),
+                    bob,
+                    keysOf(Key.Ed25519Key(null, "BOB_SIGN")),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
+            )
+        )
+
+        olmStoreMock.inboundMegolmSession shouldBe emptyMap()
+    }
 
     @Test
     fun `handleMemberEvents - remove megolm session`() = runTest {

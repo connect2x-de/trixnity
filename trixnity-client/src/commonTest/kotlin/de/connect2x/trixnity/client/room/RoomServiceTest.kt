@@ -310,6 +310,94 @@ class RoomServiceTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `getTimelineEvent » event can be decrypted » emit error and update store when decryption succeeds later`() =
+        runTest {
+            val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
+            val withheldError =
+                DecryptMegolmError.MegolmKeyWithheld(
+                    de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode.Unverified,
+                    "unverified",
+                )
+            roomEventDecryptionServiceMock.returnDecryptFlow = {
+                emit(Result.failure(withheldError))
+                delay(50.milliseconds)
+                emit(Result.success(expectedDecryptedEvent))
+            }
+            tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+
+            val results = cut.getTimelineEvent(room, eventId).take(3).toList()
+            results[0]?.content shouldBe null
+            results[1]?.content?.exceptionOrNull() shouldBe TimelineEventContentError.DecryptionError(withheldError)
+            results[2]?.content?.getOrNull() shouldBe expectedDecryptedEvent
+
+            // Once decrypted and persisted in store, subsequent calls should not re-decrypt
+            cut.getTimelineEvent(room, eventId).first()?.content?.getOrNull() shouldBe expectedDecryptedEvent
+            roomEventDecryptionServiceMock.decryptCounter shouldBe 1
+        }
+
+    @Test
+    fun `getTimelineEvent » event can be decrypted » emit timeout after intermediate error`() = runTest {
+        val withheldError = DecryptMegolmError.MegolmKeyNotFound()
+        roomEventDecryptionServiceMock.returnDecryptFlow = {
+            emit(Result.failure(withheldError))
+            delay(10.seconds)
+        }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+
+        val results = cut.getTimelineEvent(room, eventId) { decryptionTimeout = 50.milliseconds }.take(3).toList()
+        results[0]?.content shouldBe null
+        results[1]?.content?.exceptionOrNull() shouldBe TimelineEventContentError.DecryptionError(withheldError)
+        results[2]?.content?.exceptionOrNull() shouldBe TimelineEventContentError.DecryptionTimeout
+    }
+
+    @Test
+    fun `getTimelineEvent » event can be decrypted » retry after early MegolmKeyNotFound error`() = runTest {
+        val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
+        val keyNotFoundError = RoomEventEncryptionServiceError(DecryptMegolmError.MegolmKeyNotFound())
+        roomEventDecryptionServiceMock.returnDecryptFlow = {
+            emit(Result.failure(keyNotFoundError))
+            delay(10.seconds)
+        }
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+
+        val firstAttempt = cut.getTimelineEvent(room, eventId).first { it?.content != null }
+        firstAttempt?.content?.exceptionOrNull() shouldBe TimelineEventContentError.DecryptionError(keyNotFoundError)
+
+        roomEventDecryptionServiceMock.returnDecryptFlow = { emit(Result.success(expectedDecryptedEvent)) }
+        val secondAttempt = cut.getTimelineEvent(room, eventId).first { it?.content != null }
+        secondAttempt?.content?.getOrNull() shouldBe expectedDecryptedEvent
+        roomEventDecryptionServiceMock.decryptCounter shouldBe 2
+    }
+
+    @Test
+    fun `getTimelineEvent » event can be decrypted » retry when failure is cached in content`() = runTest {
+        val expectedDecryptedEvent = RoomMessageEventContent.TextBased.Text("decrypted")
+        val keyNotFoundError = RoomEventEncryptionServiceError(DecryptMegolmError.MegolmKeyNotFound())
+        tm.writeTransaction {
+            roomTimelineStore.add(
+                encryptedTimelineEvent.copy(
+                    content = Result.failure(TimelineEventContentError.DecryptionError(keyNotFoundError))
+                )
+            )
+        }
+        roomEventDecryptionServiceMock.returnDecryptFlow = { emit(Result.success(expectedDecryptedEvent)) }
+
+        val result = cut.getTimelineEvent(room, eventId).first { it?.content?.isSuccess == true }
+        result?.content?.getOrNull() shouldBe expectedDecryptedEvent
+        roomEventDecryptionServiceMock.decryptCounter shouldBe 1
+    }
+
+    @Test
+    fun `getTimelineEvent » event can be decrypted » emit algorithm not supported when decrypt emits null`() = runTest {
+        roomEventDecryptionServiceMock.returnDecrypt = null
+        tm.writeTransaction { roomTimelineStore.add(encryptedTimelineEvent) }
+
+        val result = cut.getTimelineEvent(room, eventId).first { it?.content?.isFailure == true }
+        result.shouldNotBeNull()
+        result.content?.exceptionOrNull() shouldBe TimelineEventContentError.DecryptionAlgorithmNotSupported
+    }
+
+    @Test
     fun `getTimelineEvent » content has been replaced » replace content with content of other timeline event`() =
         runTest {
             tm.writeTransaction {

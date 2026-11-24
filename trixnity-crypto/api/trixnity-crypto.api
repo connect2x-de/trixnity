@@ -426,6 +426,19 @@ public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$Decr
 	public fun <init> ()V
 }
 
+public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyWithheld : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
+	public fun <init> (Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;)V
+	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyWithheld;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyWithheld;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$MegolmKeyWithheld;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError$ValidationFailed : java/lang/IllegalStateException, de/connect2x/trixnity/crypto/olm/MegolmEncryptionService$DecryptMegolmError {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -736,50 +749,62 @@ public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmMessageIn
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession {
+public abstract interface class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession {
 	public static final field Companion Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Companion;
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Ljava/lang/String;JZLde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;ZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Ljava/lang/String;JZZLjava/util/List;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
-	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4-7hZGZBE ()Ljava/lang/String;
-	public final fun component5 ()J
-	public final fun component6 ()Z
-	public final fun component7 ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
-	public final fun component8 ()Z
-	public final fun component9 ()Ljava/lang/String;
-	public final fun copy-LzvnXY4 (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Ljava/lang/String;JZLde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;ZLjava/lang/String;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;
-	public static synthetic fun copy-LzvnXY4$default (Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Ljava/lang/String;JZLde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;ZLjava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFirstKnownIndex ()J
-	public final fun getHasBeenBackedUp ()Z
-	public final fun getPickled ()Ljava/lang/String;
-	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
-	public final fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
-	public final fun getSenderSigningKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;
-	public final fun getSessionId ()Ljava/lang/String;
-	public final fun getSharedHistory ()Z
-	public final fun getSource ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final synthetic class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$$serializer;
-	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+	public abstract fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public abstract fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public abstract fun getSessionId ()Ljava/lang/String;
+	public abstract fun getSource ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
 }
 
 public abstract interface annotation class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$BackwardsCompatible : java/lang/annotation/Annotation {
 }
 
 public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key : de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession {
+	public static final field Companion Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key$Companion;
+	public synthetic fun <init> (Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Ljava/lang/String;JZZLjava/util/List;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;JZZLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-7hZGZBE ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun component3 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
+	public final fun component6 ()J
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy-1681haA (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;JZZLjava/lang/String;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key;
+	public static synthetic fun copy-1681haA$default (Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;JZZLjava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFirstKnownIndex ()J
+	public final fun getHasBeenBackedUp ()Z
+	public final fun getPickled ()Ljava/lang/String;
+	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun getSenderSigningKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Ed25519KeyValue;
+	public fun getSessionId ()Ljava/lang/String;
+	public final fun getSharedHistory ()Z
+	public fun getSource ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Key$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -790,6 +815,44 @@ public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$S
 	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
 	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+}
+
+public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld : de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession {
+	public static final field Companion Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-7hZGZBE ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
+	public final fun component5 ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun copy-qv99HPQ (Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld;
+	public static synthetic fun copy-qv99HPQ$default (Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld;Ljava/lang/String;Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;Ljava/lang/String;Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCode ()Lde/connect2x/trixnity/core/model/keys/RoomKeyWithheldCode;
+	public final fun getReason ()Ljava/lang/String;
+	public fun getRoomId-7hZGZBE ()Ljava/lang/String;
+	public fun getSenderKey ()Lde/connect2x/trixnity/core/model/keys/KeyValue$Curve25519KeyValue;
+	public fun getSessionId ()Ljava/lang/String;
+	public fun getSource ()Lde/connect2x/trixnity/crypto/olm/InboundMegolmSessionSource;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/crypto/olm/StoredInboundMegolmSession$Withheld$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class de/connect2x/trixnity/crypto/olm/StoredOlmSession {

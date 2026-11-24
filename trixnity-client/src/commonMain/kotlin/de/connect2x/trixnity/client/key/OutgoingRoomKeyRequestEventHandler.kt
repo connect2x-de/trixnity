@@ -97,9 +97,9 @@ class OutgoingRoomKeyRequestEventHandlerImpl(
             val newForwardingCurve25519KeyChain = content.forwardingKeyChain + event.encrypted.content.senderKey
             tm.writeTransaction {
                 olmCryptoStore.updateInboundMegolmSession(content.sessionId, content.roomId) {
-                    if (it != null && it.firstKnownIndex <= firstKnownIndex) it
+                    if (it is StoredInboundMegolmSession.Key && it.firstKnownIndex <= firstKnownIndex) it
                     else
-                        StoredInboundMegolmSession(
+                        StoredInboundMegolmSession.Key(
                             senderKey = content.senderKey,
                             sessionId = content.sessionId,
                             roomId = content.roomId,

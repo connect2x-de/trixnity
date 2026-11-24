@@ -5,7 +5,14 @@ import de.connect2x.trixnity.utils.RetryFlowDelayConfig
 import de.connect2x.trixnity.utils.retryFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 
 fun <T> StateFlow<SyncState>.retryFlow(
     delayConfigWhenSyncRunning: RetryFlowDelayConfig = RetryFlowDelayConfig().copy(scheduleLimit = 10.seconds),
@@ -40,7 +47,11 @@ suspend fun StateFlow<SyncState>.retryLoop(
             delayConfigWhenSyncRunning = delayConfigWhenSyncRunning,
             delayConfigWhenSyncNotRunning = delayConfigWhenSyncNotRunning,
             onError = onError,
-            block = { block() },
+            block = {
+                while (currentCoroutineContext().isActive) {
+                    block()
+                }
+            },
         )
         .collect()
 

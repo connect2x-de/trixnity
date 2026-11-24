@@ -34,6 +34,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -348,6 +349,7 @@ class PerformanceIT : TrixnityBaseTest() {
                                     launch {
                                         val decryptedContent = withTimeout(5.seconds) {
                                             client.roomEventEncryptionServices.decrypt(event)
+                                                .first { it?.isSuccess == true }
                                                 ?.getOrThrow()
                                         }
                                         decryptedContent.shouldNotBeNull()

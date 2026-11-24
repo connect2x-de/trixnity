@@ -62,6 +62,7 @@ import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.utils.KeyedMutex
 import de.connect2x.trixnity.utils.nextString
 import de.connect2x.trixnity.utils.retry
+import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -317,9 +318,7 @@ class RoomServiceImpl(
     }
 
     private fun TimelineEvent.canBeDecrypted(): Boolean =
-        this.event is MessageEvent &&
-            this.event.isEncrypted &&
-            (this.content == null || this.content.exceptionOrNull() is TimelineEventContentError.DecryptionTimeout)
+        this.event is MessageEvent && this.event.isEncrypted && this.content?.isSuccess != true
 
     private val getTimelineEventFetchMutex = KeyedMutex<Pair<EventId, RoomId>>()
     private val getTimelineEventDecryptionMutex = KeyedMutex<Pair<EventId, RoomId>>()
@@ -389,51 +388,76 @@ class RoomServiceImpl(
                     val event = timelineEvent.event
                     if (cfg.decryptionTimeout > ZERO && timelineEvent.canBeDecrypted() && event is MessageEvent) {
                         log.trace { "getTimelineEvent: try decrypt ${timelineEvent.eventId}" }
-                        val decryptedEventContent =
-                            try {
-                                withTimeout(cfg.decryptionTimeout) {
-                                    getTimelineEventDecryptionMutex.withLock(timelineEvent.eventId to roomId) {
-                                        val decryptionResult = roomEventEncryptionServices.decrypt(event)
-                                        if (decryptionResult != null) {
-                                            try {
-                                                Result.success(decryptionResult.getOrThrow())
-                                            } catch (exception: Exception) {
-                                                log.trace {
-                                                    "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (${exception.message})"
+                        try {
+                            withTimeout(cfg.decryptionTimeout) {
+                                getTimelineEventDecryptionMutex.withLock(timelineEvent.eventId to roomId) {
+                                    roomEventEncryptionServices
+                                        .decrypt(event)
+                                        .map { decryptionResult ->
+                                            if (decryptionResult != null) {
+                                                try {
+                                                    Result.success(decryptionResult.getOrThrow())
+                                                } catch (error: Throwable) {
+                                                    if (error is CancellationException) throw error
+                                                    log.trace {
+                                                        "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (${error.message})"
+                                                    }
+                                                    Result.failure(TimelineEventContentError.DecryptionError(error))
                                                 }
-                                                Result.failure(TimelineEventContentError.DecryptionError(exception))
+                                            } else {
+                                                log.trace {
+                                                    "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (algorithm not supported)"
+                                                }
+                                                Result.failure(
+                                                    TimelineEventContentError.DecryptionAlgorithmNotSupported
+                                                )
                                             }
-                                        } else {
-                                            log.trace {
-                                                "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (algorithm not supported)"
-                                            }
-                                            Result.failure(TimelineEventContentError.DecryptionAlgorithmNotSupported)
                                         }
-                                    }
-                                }
-                            } catch (timeout: TimeoutCancellationException) {
-                                log.trace { "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (timeout)" }
-                                Result.failure(TimelineEventContentError.DecryptionTimeout)
-                            }
-                        if (decryptedEventContent.isSuccess) {
-                            log.trace { "getTimelineEvent: update decrypted TimelineEvent in store" }
-                            fun updater(oldEvent: TimelineEvent?): TimelineEvent? =
-                                // we check here again, because an event could be redacted at the same time
-                                if (oldEvent?.canBeDecrypted() == true)
-                                    timelineEvent.copy(content = decryptedEventContent)
-                                else oldEvent
+                                        .collect { decryptedEventContent ->
+                                            if (decryptedEventContent.isSuccess) {
+                                                log.trace {
+                                                    "getTimelineEvent: update decrypted TimelineEvent in store"
+                                                }
+                                                fun updater(oldEvent: TimelineEvent?): TimelineEvent? =
+                                                    // we check here again, because an event could be redacted at the
+                                                    // same time
+                                                    if (oldEvent?.canBeDecrypted() == true)
+                                                        timelineEvent.copy(content = decryptedEventContent)
+                                                    else oldEvent
 
-                            if (this@RoomServiceImpl.matrixClientConfig.storeTimelineEventContentUnencrypted) {
-                                tm.writeTransaction {
-                                    roomTimelineStore.update(timelineEvent.eventId, roomId, ::updater)
-                                }
-                            } else {
-                                withCacheTransaction {
-                                    roomTimelineStore.updateCacheOnly(timelineEvent.eventId, roomId, ::updater)
+                                                if (
+                                                    this@RoomServiceImpl.matrixClientConfig
+                                                        .storeTimelineEventContentUnencrypted
+                                                ) {
+                                                    tm.writeTransaction {
+                                                        roomTimelineStore.update(
+                                                            timelineEvent.eventId,
+                                                            roomId,
+                                                            ::updater,
+                                                        )
+                                                    }
+                                                } else {
+                                                    withCacheTransaction {
+                                                        roomTimelineStore.updateCacheOnly(
+                                                            timelineEvent.eventId,
+                                                            roomId,
+                                                            ::updater,
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                emit(timelineEvent.copy(content = decryptedEventContent))
+                                            }
+                                        }
                                 }
                             }
-                        } else {
-                            emit(timelineEvent.copy(content = decryptedEventContent))
+                        } catch (_: TimeoutCancellationException) {
+                            log.trace { "getTimelineEvent: failed decrypt ${timelineEvent.eventId} (timeout)" }
+                            emit(
+                                timelineEvent.copy(
+                                    content = Result.failure(TimelineEventContentError.DecryptionTimeout)
+                                )
+                            )
                         }
                     }
                 }

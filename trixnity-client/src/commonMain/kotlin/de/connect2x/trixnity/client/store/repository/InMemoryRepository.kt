@@ -227,8 +227,11 @@ class InMemoryRoomKeyBundlesRepository :
 class InMemoryInboundMegolmSessionRepository :
     InboundMegolmSessionRepository, InMemoryMapRepository<RoomId, String, StoredInboundMegolmSession>() {
     context(transaction: ReadTransaction)
-    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
-        getAll().filter { it.hasBeenBackedUp.not() }.toSet()
+    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession.Key> =
+        getAll()
+            .filter { it is StoredInboundMegolmSession.Key && it.hasBeenBackedUp.not() }
+            .filterIsInstance<StoredInboundMegolmSession.Key>()
+            .toSet()
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): Set<StoredInboundMegolmSession> =

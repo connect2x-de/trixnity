@@ -21,10 +21,12 @@ class MegolmEncryptionServiceMock : MegolmEncryptionService {
     }
 
     val returnDecryptMegolm = mutableListOf<Result<PlaintextMegolmEvent<*>>>()
+    var onDecryptMegolm: (suspend () -> Unit)? = null
 
     override suspend fun decryptMegolm(
         encryptedEvent: RoomEvent<MegolmEncryptedMessageEventContent>
     ): Result<PlaintextMegolmEvent<*>> {
+        onDecryptMegolm?.invoke()
         return if (returnDecryptMegolm.size > 1) returnDecryptMegolm.removeFirst() else returnDecryptMegolm.first()
     }
 }

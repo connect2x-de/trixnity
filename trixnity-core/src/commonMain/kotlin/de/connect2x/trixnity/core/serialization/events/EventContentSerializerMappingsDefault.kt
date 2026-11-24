@@ -28,6 +28,7 @@ import de.connect2x.trixnity.core.model.events.m.RecentEmojiEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyBundleEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyEventContent
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.StickerEventContent
 import de.connect2x.trixnity.core.model.events.m.TagEventContent
 import de.connect2x.trixnity.core.model.events.m.TypingEventContent
@@ -141,6 +142,7 @@ private val eventContentSerializerMappingsDefault = EventContentSerializerMappin
 
     toDeviceOf<EncryptedToDeviceEventContent>("m.room.encrypted")
     toDeviceOf<RoomKeyEventContent>("m.room_key")
+    toDeviceOf<RoomKeyWithheldEventContent>("m.room_key.withheld")
     toDeviceOf<RoomKeyRequestEventContent>("m.room_key_request")
     toDeviceOf<ForwardedRoomKeyEventContent>("m.forwarded_room_key")
     toDeviceOf<DummyEventContent>("m.dummy")

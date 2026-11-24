@@ -201,11 +201,13 @@ class KeyShareServiceImpl(
         val inboundMegolmSessions =
             olmCryptoStore.getInboundMegolmSessions(roomId).flatten(Duration.INFINITE).first().values
         val (sharedInboundMegolmSessions, notSharedInboundMegolmSessions) =
-            inboundMegolmSessions.asSequence().filterNotNull().partition { it.sharedHistory }
+            inboundMegolmSessions.asSequence().filterNotNull().partition {
+                it is StoredInboundMegolmSession.Key && it.sharedHistory
+            }
         val account = checkNotNull(accountStore.getAccount())
         return RoomKeyBundle(
             roomKeys =
-                sharedInboundMegolmSessions.map { session ->
+                sharedInboundMegolmSessions.filterIsInstance<StoredInboundMegolmSession.Key>().map { session ->
                     val sessionKey =
                         cryptoDriver.megolm.inboundGroupSession
                             .fromPickle(session.pickled, cryptoDriver.key.pickleKey(account.olmPickleKey))
@@ -219,14 +221,19 @@ class KeyShareServiceImpl(
                     )
                 },
             withheld =
-                notSharedInboundMegolmSessions.map { session ->
-                    RoomKeyBundle.RoomKeyWhithheld(
-                        roomId = session.roomId,
-                        senderKey = session.senderKey,
-                        sessionId = session.sessionId,
-                        code = RoomKeyWithheldCode.HistoryNotShared,
-                        reason = "room key not marked as shared",
-                    )
+                notSharedInboundMegolmSessions.mapNotNull { session ->
+                    when (session) {
+                        is StoredInboundMegolmSession.Key ->
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = session.roomId,
+                                senderKey = session.senderKey,
+                                sessionId = session.sessionId,
+                                code = RoomKeyWithheldCode.HistoryNotShared,
+                                reason = "room key not marked as shared",
+                            )
+
+                        is StoredInboundMegolmSession.Withheld -> null
+                    }
                 },
         )
     }
@@ -431,10 +438,14 @@ class KeyShareServiceImpl(
                         val senderSigningKey =
                             roomKey.senderClaimedKeys.filterIsInstance<Key.Ed25519Key>().firstOrNull()
                         if (senderSigningKey == null) {
-                            log.warn { "senderClaimedKey must not be empty" }
+                            log.warn { "ignore roomKey, because senderClaimedKey must not be empty" }
                             return@mapNotNull null
                         }
-                        StoredInboundMegolmSession(
+                        if (roomKey.roomId != roomId) {
+                            log.warn { "ignore roomKey, because roomId does not match" }
+                            return@mapNotNull null
+                        }
+                        StoredInboundMegolmSession.Key(
                             senderKey = roomKey.senderKey,
                             sessionId = roomKey.sessionId,
                             roomId = roomId,
@@ -464,11 +475,61 @@ class KeyShareServiceImpl(
                             olmCryptoStore.updateInboundMegolmSession(storedInboundMegolmSession.sessionId, roomId) {
                                 // TODO theoretically we could lift the source to Creator or add the sender to the
                                 //  KeyBundle (e.g. by compare export at an index)
-                                if (it != null && it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex) {
+                                if (
+                                    it is StoredInboundMegolmSession.Key &&
+                                        it.firstKnownIndex <= storedInboundMegolmSession.firstKnownIndex
+                                ) {
                                     it
                                 } else {
                                     storedInboundMegolmSession
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            val withheldKeys = sharedKeyBundle.withheld
+            if (!withheldKeys.isNullOrEmpty()) {
+                val storedWithheldSessions = withheldKeys.mapNotNull { withheld ->
+                    val sessionId = withheld.sessionId
+                    if (withheld.roomId != roomId) {
+                        log.warn { "ignore withheld, because roomId does not match" }
+                        return@mapNotNull null
+                    }
+                    if (sessionId == null) {
+                        log.debug { "ignore withheld, because sessionId is null" }
+                        return@mapNotNull null
+                    }
+                    if (withheld.code !is RoomKeyWithheldCode.HistoryNotShared) {
+                        log.debug { "ignore withheld, because code !is RoomKeyWithheldCode.HistoryNotShared" }
+                        return@mapNotNull null
+                    }
+
+                    StoredInboundMegolmSession.Withheld(
+                        roomId = roomId,
+                        sessionId = sessionId,
+                        senderKey = withheld.senderKey,
+                        source =
+                            InboundMegolmSessionSource.KeyBundle(
+                                setOf(
+                                    InboundMegolmSessionSource.KeyBundle.Sender(
+                                        roomKeyBundle.senderUserId,
+                                        roomKeyBundle.senderDeviceId,
+                                    )
+                                )
+                            ),
+                        code = withheld.code,
+                        reason = withheld.reason,
+                    )
+                }
+                storedWithheldSessions.chunked(TRANSACTION_CHUNK_SIZE).forEach { chunk ->
+                    tm.writeTransaction {
+                        chunk.forEach { storedInboundMegolmSession ->
+                            olmCryptoStore.updateInboundMegolmSession(
+                                storedInboundMegolmSession.sessionId,
+                                storedInboundMegolmSession.roomId,
+                            ) { oldSession ->
+                                oldSession as? StoredInboundMegolmSession.Key ?: storedInboundMegolmSession
                             }
                         }
                     }

@@ -14,16 +14,16 @@ abstract class de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDB
 }
 
 final class de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession { // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession|null[0]
-    constructor <init>(de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession, kotlin/Int) // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.<init>|<init>(de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession;kotlin.Int){}[0]
+    constructor <init>(de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession, kotlin/Int?) // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.<init>|<init>(de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession;kotlin.Int?){}[0]
 
     final val hasBeenBackedUp // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.hasBeenBackedUp|{}hasBeenBackedUp[0]
-        final fun <get-hasBeenBackedUp>(): kotlin/Int // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.hasBeenBackedUp.<get-hasBeenBackedUp>|<get-hasBeenBackedUp>(){}[0]
+        final fun <get-hasBeenBackedUp>(): kotlin/Int? // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.hasBeenBackedUp.<get-hasBeenBackedUp>|<get-hasBeenBackedUp>(){}[0]
     final val value // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.value|{}value[0]
         final fun <get-value>(): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.value.<get-value>|<get-value>(){}[0]
 
     final fun component1(): de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.component1|component1(){}[0]
-    final fun component2(): kotlin/Int // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.component2|component2(){}[0]
-    final fun copy(de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession = ..., kotlin/Int = ...): de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.copy|copy(de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession;kotlin.Int){}[0]
+    final fun component2(): kotlin/Int? // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.component2|component2(){}[0]
+    final fun copy(de.connect2x.trixnity.crypto.olm/StoredInboundMegolmSession = ..., kotlin/Int? = ...): de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.copy|copy(de.connect2x.trixnity.crypto.olm.StoredInboundMegolmSession;kotlin.Int?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.client.store.repository.indexeddb/IndexedDBInboundMegolmSession.toString|toString(){}[0]

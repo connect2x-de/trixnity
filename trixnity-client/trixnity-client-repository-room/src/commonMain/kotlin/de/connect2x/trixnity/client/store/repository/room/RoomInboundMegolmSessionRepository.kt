@@ -20,7 +20,7 @@ data class RoomInboundMegolmSession(
     val sessionId: String,
     val roomId: RoomId,
     val firstKnownIndex: Long?,
-    val hasBeenBackedUp: Boolean,
+    val hasBeenBackedUp: Boolean?,
     val isTrusted: Boolean?,
     val senderSigningKey: String?,
     val forwardingCurve25519KeyChain: String?,
@@ -62,8 +62,11 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
         dao.get(secondKey, firstKey)?.toModel()
 
     context(transaction: ReadTransaction)
-    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession> =
-        dao.getNotBackedUp().map { entity -> entity.toModel() }.toSet()
+    override suspend fun getByNotBackedUp(): Set<StoredInboundMegolmSession.Key> =
+        dao.getNotBackedUp()
+            .map { entity -> entity.toModel() }
+            .filterIsInstance<StoredInboundMegolmSession.Key>()
+            .toSet()
 
     context(transaction: ReadTransaction)
     override suspend fun getAll(): Set<StoredInboundMegolmSession> =
@@ -77,7 +80,7 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
                 sessionId = value.sessionId,
                 roomId = value.roomId,
                 firstKnownIndex = null,
-                hasBeenBackedUp = value.hasBeenBackedUp,
+                hasBeenBackedUp = (value as? StoredInboundMegolmSession.Key)?.hasBeenBackedUp,
                 isTrusted = null,
                 senderSigningKey = null,
                 forwardingCurve25519KeyChain = null,
@@ -95,12 +98,12 @@ internal class RoomInboundMegolmSessionRepository(db: TrixnityRoomDatabase, priv
     private fun RoomInboundMegolmSession.toModel(): StoredInboundMegolmSession =
         if (value == null)
             @OptIn(StoredInboundMegolmSession.BackwardsCompatible::class)
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = Curve25519KeyValue(senderKey),
                 sessionId = sessionId,
                 roomId = roomId,
                 firstKnownIndex = checkNotNull(firstKnownIndex),
-                hasBeenBackedUp = hasBeenBackedUp,
+                hasBeenBackedUp = checkNotNull(hasBeenBackedUp),
                 isTrusted = checkNotNull(isTrusted),
                 senderSigningKey = KeyValue.Ed25519KeyValue(checkNotNull(senderSigningKey)),
                 forwardingCurve25519KeyChain = json.decodeFromString(checkNotNull(forwardingCurve25519KeyChain)),

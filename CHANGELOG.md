@@ -9,18 +9,22 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
-- Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI (see documentation for
-  details)
+- Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI
+- Added `RoomKeyWithheldEventContent`
+- Store and use withheld inbound megolm keys
 
 ### Changed
 
 - Report media transfer progress through callbacks in `MediaApiClient` and `MediaService`.
+- Changed `RoomEventEncryptionService::decrypt` to return a `Flow` and retry decryption on missing or withheld keys
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fix `retryFlow` did loop instead of following existing flow-function behavior
 
 ### Security
 

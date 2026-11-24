@@ -63,8 +63,8 @@ import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.maps.shouldBeEmpty
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.days
@@ -133,7 +133,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
         val inboundSession1 = cryptoDriver.megolm.inboundGroupSession(sessionKey = outboundSession1.sessionKey)
         val inboundSession2 = cryptoDriver.megolm.inboundGroupSession(sessionKey = outboundSession2.sessionKey)
         val sharedSession =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = senderKey,
                 sessionId = inboundSession1.sessionId,
                 roomId = roomId,
@@ -145,7 +145,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 sharedHistory = true,
             )
         val nonSharedSession =
-            StoredInboundMegolmSession(
+            StoredInboundMegolmSession.Key(
                 senderKey = senderKey,
                 sessionId = inboundSession2.sessionId,
                 roomId = roomId,
@@ -182,6 +182,52 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                             reason = "room key not marked as shared",
                         )
                     ),
+            )
+    }
+
+    @Test
+    fun `createRoomKeyBundle - ignores withheld inbound megolm sessions`() = runTest {
+        val outboundSession = cryptoDriver.megolm.groupSession()
+        outboundSession.encrypt("bla")
+        val inboundSession = cryptoDriver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
+        val sharedSession =
+            StoredInboundMegolmSession.Key(
+                senderKey = senderKey,
+                sessionId = inboundSession.sessionId,
+                roomId = roomId,
+                firstKnownIndex = 24,
+                hasBeenBackedUp = true,
+                senderSigningKey = Ed25519KeyValue("edKey"),
+                source = InboundMegolmSessionSource.Creator,
+                pickled = inboundSession.pickle(),
+                sharedHistory = true,
+            )
+        val withheldSession =
+            StoredInboundMegolmSession.Withheld(
+                senderKey = senderKey,
+                sessionId = "withheldSession",
+                roomId = roomId,
+                source = InboundMegolmSessionSource.Creator,
+                code = RoomKeyWithheldCode.HistoryNotShared,
+                reason = "not shared",
+            )
+        tm.writeTransaction {
+            olmCryptoStore.updateInboundMegolmSession(inboundSession.sessionId, roomId) { sharedSession }
+            olmCryptoStore.updateInboundMegolmSession(withheldSession.sessionId, roomId) { withheldSession }
+        }
+        cut.createRoomKeyBundle(roomId) shouldBe
+            RoomKeyBundle(
+                roomKeys =
+                    listOf(
+                        RoomKeyBundle.HistoricRoomKey(
+                            roomId = roomId,
+                            senderKey = senderKey,
+                            sessionId = inboundSession.sessionId,
+                            senderClaimedKeys = Keys(Ed25519Key(null, Ed25519KeyValue("edKey"))),
+                            sessionKey = ExportedSessionKeyValue.of(inboundSession.exportAtFirstKnownIndex()),
+                        )
+                    ),
+                withheld = emptyList(),
             )
     }
 
@@ -478,7 +524,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 .getInboundMegolmSessions(roomId)
                 .flatten()
                 .first()[outboundSession.sessionId]
-                .shouldNotBeNull()
+                .shouldBeInstanceOf<StoredInboundMegolmSession.Key>()
 
         storedSession.senderKey shouldBe senderKey
         storedSession.sessionId shouldBe outboundSession.sessionId
@@ -551,7 +597,7 @@ class KeyShareServiceTest : TrixnityBaseTest() {
                 )
 
             val existingStoredInboundMegolmSession =
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey,
                     sessionId = outboundSession.sessionId,
                     roomId = roomId,
@@ -574,6 +620,163 @@ class KeyShareServiceTest : TrixnityBaseTest() {
 
             olmCryptoStore.getInboundMegolmSessions(roomId).flatten().first()[outboundSession.sessionId] shouldBe
                 existingStoredInboundMegolmSession
+        }
+
+    @Test
+    fun `applyRoomKeyBundle - imports withheld keys and replaces withheld with room key ignoring invalid entries`() =
+        runTest {
+            val outboundSession = cryptoDriver.megolm.groupSession()
+            outboundSession.encrypt("test")
+
+            val existingKeySessionId = "existingKeySession"
+            val existingKeySession =
+                StoredInboundMegolmSession.Key(
+                    senderKey = senderKey,
+                    sessionId = existingKeySessionId,
+                    roomId = roomId,
+                    firstKnownIndex = 0,
+                    hasBeenBackedUp = true,
+                    senderSigningKey = Ed25519KeyValue("edKey"),
+                    source = InboundMegolmSessionSource.Creator,
+                    pickled = "pickle",
+                    sharedHistory = false,
+                )
+            val existingWithheldSession =
+                StoredInboundMegolmSession.Withheld(
+                    roomId = roomId,
+                    senderKey = senderKey,
+                    sessionId = outboundSession.sessionId,
+                    source = InboundMegolmSessionSource.Creator,
+                    code = RoomKeyWithheldCode.Unverified,
+                    reason = "unverified",
+                )
+            tm.writeTransaction {
+                olmCryptoStore.updateInboundMegolmSession(existingKeySessionId, roomId) { existingKeySession }
+                olmCryptoStore.updateInboundMegolmSession(outboundSession.sessionId, roomId) { existingWithheldSession }
+            }
+
+            val otherRoom = RoomId("!other:server")
+            val roomKeyBundle =
+                RoomKeyBundle(
+                    roomKeys =
+                        listOf(
+                            RoomKeyBundle.HistoricRoomKey(
+                                roomId = roomId,
+                                senderKey = senderKey,
+                                senderClaimedKeys = Keys(Ed25519Key(null, Ed25519KeyValue("edKey"))),
+                                sessionId = outboundSession.sessionId,
+                                sessionKey =
+                                    ExportedSessionKeyValue.of(
+                                        cryptoDriver.megolm
+                                            .inboundGroupSession(outboundSession.sessionKey)
+                                            .exportAtFirstKnownIndex()
+                                    ),
+                            ),
+                            RoomKeyBundle.HistoricRoomKey(
+                                roomId = otherRoom,
+                                senderKey = senderKey,
+                                senderClaimedKeys = Keys(Ed25519Key(null, Ed25519KeyValue("edKey"))),
+                                sessionId = "wrongRoomKeySession",
+                                sessionKey =
+                                    ExportedSessionKeyValue.of(
+                                        cryptoDriver.megolm
+                                            .inboundGroupSession(outboundSession.sessionKey)
+                                            .exportAtFirstKnownIndex()
+                                    ),
+                            ),
+                        ),
+                    withheld =
+                        listOf(
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = roomId,
+                                senderKey = senderKey,
+                                sessionId = "withheldSession",
+                                code = RoomKeyWithheldCode.HistoryNotShared,
+                                reason = "not shared",
+                            ),
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = roomId,
+                                senderKey = senderKey,
+                                sessionId = existingKeySessionId,
+                                code = RoomKeyWithheldCode.HistoryNotShared,
+                                reason = "should not overwrite key",
+                            ),
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = otherRoom,
+                                senderKey = senderKey,
+                                sessionId = "wrongRoomWithheld",
+                                code = RoomKeyWithheldCode.HistoryNotShared,
+                                reason = "wrong room",
+                            ),
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = roomId,
+                                senderKey = senderKey,
+                                sessionId = null,
+                                code = RoomKeyWithheldCode.HistoryNotShared,
+                                reason = "null sessionId",
+                            ),
+                            RoomKeyBundle.RoomKeyWhithheld(
+                                roomId = roomId,
+                                senderKey = senderKey,
+                                sessionId = "wrongCodeWithheld",
+                                code = RoomKeyWithheldCode.Unauthorised,
+                                reason = "wrong code",
+                            ),
+                        ),
+                )
+
+            val storedBundle =
+                StoredRoomKeyBundles.Bundle(
+                    senderUserId = alice,
+                    senderDeviceId = aliceDevice,
+                    content =
+                        RoomKeyBundleEventContent(
+                            roomId = roomId,
+                            file =
+                                EncryptedFile(
+                                    url = "mxc://example.org/key-bundle",
+                                    key = EncryptedFile.JWK(key = "key"),
+                                    initialisationVector = "iv",
+                                    hashes = mapOf("sha256" to "hash"),
+                                ),
+                        ),
+                )
+
+            val storedRoomKeyBundles =
+                StoredRoomKeyBundles(
+                    roomId = roomId,
+                    acceptFrom = alice,
+                    acceptUntil = testClock.now() + 1.days,
+                    bundles = setOf(storedBundle),
+                )
+            tm.writeTransaction { keyStore.updateRoomKeyBundles(roomId) { storedRoomKeyBundles } }
+
+            mediaService.returnGetEncryptedMedia =
+                Result.success(
+                    ByteArrayFlowPlatformMedia(json.encodeToString(roomKeyBundle).encodeToByteArray().toByteArrayFlow())
+                )
+
+            cut.applyRoomKeyBundle(storedRoomKeyBundles).getOrThrow()
+
+            keyStore.getRoomKeyBundles(roomId) shouldBe null
+
+            val sessions = olmCryptoStore.getInboundMegolmSessions(roomId).flatten().first()
+            sessions.keys shouldBe setOf(outboundSession.sessionId, existingKeySessionId, "withheldSession")
+            sessions[outboundSession.sessionId].shouldBeInstanceOf<StoredInboundMegolmSession.Key>()
+            sessions[existingKeySessionId] shouldBe existingKeySession
+            sessions["withheldSession"] shouldBe
+                StoredInboundMegolmSession.Withheld(
+                    roomId = roomId,
+                    sessionId = "withheldSession",
+                    senderKey = senderKey,
+                    source =
+                        InboundMegolmSessionSource.KeyBundle(
+                            setOf(InboundMegolmSessionSource.KeyBundle.Sender(alice, aliceDevice))
+                        ),
+                    code = RoomKeyWithheldCode.HistoryNotShared,
+                    reason = "not shared",
+                )
+            olmCryptoStore.getInboundMegolmSessions(otherRoom).flatten().first().shouldBeEmpty()
         }
 
     @Test

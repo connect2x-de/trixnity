@@ -10306,6 +10306,47 @@ final class de.connect2x.trixnity.core.model.events.m/RoomKeyRequestEventContent
     }
 }
 
+final class de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent : de.connect2x.trixnity.core.model.events/ToDeviceEventContent { // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/RoomId? = ..., kotlin/String? = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue, de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm, de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode, kotlin/String? = ...) // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.<init>|<init>(de.connect2x.trixnity.core.model.RoomId?;kotlin.String?;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm;de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+
+    final val algorithm // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.algorithm|{}algorithm[0]
+        final fun <get-algorithm>(): de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.algorithm.<get-algorithm>|<get-algorithm>(){}[0]
+    final val code // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.code|{}code[0]
+        final fun <get-code>(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.code.<get-code>|<get-code>(){}[0]
+    final val reason // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.reason|{}reason[0]
+        final fun <get-reason>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.reason.<get-reason>|<get-reason>(){}[0]
+    final val roomId // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.roomId|{}roomId[0]
+        final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.roomId.<get-roomId>|<get-roomId>(){}[0]
+    final val senderKey // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.senderKey|{}senderKey[0]
+        final fun <get-senderKey>(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.senderKey.<get-senderKey>|<get-senderKey>(){}[0]
+    final val sessionId // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.sessionId|{}sessionId[0]
+        final fun <get-sessionId>(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.sessionId.<get-sessionId>|<get-sessionId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/RoomId? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component2|component2(){}[0]
+    final fun component3(): de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component3|component3(){}[0]
+    final fun component4(): de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component4|component4(){}[0]
+    final fun component5(): de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component5|component5(){}[0]
+    final fun component6(): kotlin/String? // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.component6|component6(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/RoomId? = ..., kotlin/String? = ..., de.connect2x.trixnity.core.model.keys/KeyValue.Curve25519KeyValue = ..., de.connect2x.trixnity.core.model.keys/EncryptionAlgorithm = ..., de.connect2x.trixnity.core.model.keys/RoomKeyWithheldCode = ..., kotlin/String? = ...): de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.copy|copy(de.connect2x.trixnity.core.model.RoomId?;kotlin.String?;de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue;de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm;de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent> { // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent) // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent> // de.connect2x.trixnity.core.model.events.m/RoomKeyWithheldEventContent.Companion.serializer|serializer(){}[0]
+    }
+}
+
 final class de.connect2x.trixnity.core.model.events.m/SigningKeyUpdateDataUnitContent : de.connect2x.trixnity.core.model.events/EphemeralDataUnitContent { // de.connect2x.trixnity.core.model.events.m/SigningKeyUpdateDataUnitContent|null[0]
     constructor <init>(de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/CrossSigningKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model.keys/Signed<de.connect2x.trixnity.core.model.keys/CrossSigningKeys, de.connect2x.trixnity.core.model/UserId>? = ..., de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.core.model.events.m/SigningKeyUpdateDataUnitContent.<init>|<init>(de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.CrossSigningKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.keys.Signed<de.connect2x.trixnity.core.model.keys.CrossSigningKeys,de.connect2x.trixnity.core.model.UserId>?;de.connect2x.trixnity.core.model.UserId){}[0]
 

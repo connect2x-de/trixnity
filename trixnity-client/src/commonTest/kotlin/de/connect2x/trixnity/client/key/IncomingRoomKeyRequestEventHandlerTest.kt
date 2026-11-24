@@ -18,11 +18,13 @@ import de.connect2x.trixnity.core.model.events.PlaintextOlmEvent
 import de.connect2x.trixnity.core.model.events.ToDeviceEventContent
 import de.connect2x.trixnity.core.model.events.m.KeyRequestAction
 import de.connect2x.trixnity.core.model.events.m.RoomKeyRequestEventContent
+import de.connect2x.trixnity.core.model.events.m.RoomKeyWithheldEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventContent.OlmEncryptedToDeviceEventContent
 import de.connect2x.trixnity.core.model.keys.DeviceKeys
 import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.KeyValue.Curve25519KeyValue
+import de.connect2x.trixnity.core.model.keys.RoomKeyWithheldCode
 import de.connect2x.trixnity.core.model.keys.Signed
 import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.model.keys.keysOf
@@ -37,6 +39,7 @@ import de.connect2x.trixnity.testutils.PortableMockEngineConfig
 import de.connect2x.trixnity.testutils.matrixJsonEndpoint
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlin.test.Test
 
 class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
@@ -196,6 +199,128 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
     fun `processIncomingKeyRequests » not answer request with trust level Invalid reason`() =
         notAnswerRequest(KeySignatureTrustLevel.Invalid("reason"))
 
+    @Test
+    fun `processIncomingKeyRequests » answer request with RoomKeyWithheldEventContent when inbound megolm session is withheld`() =
+        runTest {
+            handleEncryptedIncomingKeyRequestsSetup()
+            tm.writeTransaction {
+                olmStore.updateInboundMegolmSession(sessionId, room) {
+                    StoredInboundMegolmSession.Withheld(
+                        senderKey = senderKey.value,
+                        sessionId = sessionId,
+                        roomId = room,
+                        source = InboundMegolmSessionSource.Creator,
+                        code = RoomKeyWithheldCode.Unverified,
+                        reason = "unverified",
+                    )
+                }
+            }
+            cut.handleEncryptedIncomingKeyRequests(
+                DecryptedOlmEventContainer(
+                    encryptedEvent,
+                    PlaintextOlmEvent(
+                        RoomKeyRequestEventContent(
+                            KeyRequestAction.REQUEST,
+                            aliceDevice,
+                            "requestId",
+                            RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                        ),
+                        alice,
+                        keysOf(),
+                        null,
+                        alice,
+                        keysOf(),
+                    ),
+                )
+            )
+            cut.processIncomingKeyRequests()
+            olmEncryptionServiceMock.encryptOlmCalled shouldBe
+                Triple(
+                    RoomKeyWithheldEventContent(
+                        roomId = room,
+                        senderKey = senderKey.value,
+                        sessionId = sessionId,
+                        algorithm = EncryptionAlgorithm.Megolm,
+                        code = RoomKeyWithheldCode.Unverified,
+                        reason = "unverified",
+                    ),
+                    alice,
+                    aliceDevice,
+                )
+            sendToDeviceEvents?.get(alice)?.get(aliceDevice) shouldBe
+                OlmEncryptedToDeviceEventContent(ciphertext = mapOf(), senderKey = Curve25519KeyValue(""))
+
+            sendToDeviceEvents = null
+            cut.processIncomingKeyRequests()
+            sendToDeviceEvents shouldBe null
+        }
+
+    @Test
+    fun `processIncomingKeyRequests » not answer request when inbound megolm session is not found`() = runTest {
+        handleEncryptedIncomingKeyRequestsSetup()
+        tm.writeTransaction { olmStore.updateInboundMegolmSession(sessionId, room) { null } }
+        cut.handleEncryptedIncomingKeyRequests(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyRequestEventContent(
+                        KeyRequestAction.REQUEST,
+                        aliceDevice,
+                        "requestId",
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                    ),
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
+            )
+        )
+        cut.processIncomingKeyRequests()
+        olmEncryptionServiceMock.encryptOlmCalled shouldBe null
+        sendToDeviceEvents shouldBe null
+    }
+
+    @Test
+    fun `processIncomingKeyRequests » not answer request when encrypting withheld answer fails`() = runTest {
+        handleEncryptedIncomingKeyRequestsSetup()
+        olmEncryptionServiceMock.returnEncryptOlm = Result.failure(RuntimeException("encrypt failed"))
+        tm.writeTransaction {
+            olmStore.updateInboundMegolmSession(sessionId, room) {
+                StoredInboundMegolmSession.Withheld(
+                    senderKey = senderKey.value,
+                    sessionId = sessionId,
+                    roomId = room,
+                    source = InboundMegolmSessionSource.Creator,
+                    code = RoomKeyWithheldCode.Unverified,
+                    reason = "unverified",
+                )
+            }
+        }
+        cut.handleEncryptedIncomingKeyRequests(
+            DecryptedOlmEventContainer(
+                encryptedEvent,
+                PlaintextOlmEvent(
+                    RoomKeyRequestEventContent(
+                        KeyRequestAction.REQUEST,
+                        aliceDevice,
+                        "requestId",
+                        RoomKeyRequestEventContent.RequestedKeyInfo(room, sessionId, EncryptionAlgorithm.Megolm),
+                    ),
+                    alice,
+                    keysOf(),
+                    null,
+                    alice,
+                    keysOf(),
+                ),
+            )
+        )
+        cut.processIncomingKeyRequests()
+        olmEncryptionServiceMock.encryptOlmCalled?.first.shouldBeInstanceOf<RoomKeyWithheldEventContent>()
+        sendToDeviceEvents shouldBe null
+    }
+
     private suspend fun handleEncryptedIncomingKeyRequestsSetup() {
         tm.writeTransaction {
             keyStore.updateDeviceKeys(alice) {
@@ -218,7 +343,7 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 val outboundSession = driver.megolm.groupSession()
                 val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey.value,
                     senderSigningKey = senderSigningKey.value,
                     sessionId = sessionId,
@@ -244,7 +369,7 @@ class IncomingRoomKeyRequestEventHandlerTest : TrixnityBaseTest() {
                 val outboundSession = driver.megolm.groupSession()
                 val inboundSession = driver.megolm.inboundGroupSession(sessionKey = outboundSession.sessionKey)
 
-                StoredInboundMegolmSession(
+                StoredInboundMegolmSession.Key(
                     senderKey = senderKey.value,
                     senderSigningKey = senderSigningKey.value,
                     sessionId = sessionId,
