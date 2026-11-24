@@ -29,6 +29,7 @@ import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.get
+import de.connect2x.trixnity.crypto.key.isTrusted
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.DecryptOlmError
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptOlmError
@@ -252,17 +253,16 @@ class OlmEncryptionServiceImpl(
                             ?: throw EncryptOlmError.NoOlmSupported("device keys not found")
                     val recipientTrustLevel =
                         store.getTrustLevel(recipientUserId, recipientDeviceId) ?: DeviceTrustLevel.Unknown
-                    @OptIn(MSC3814::class) val dehydrated = recipientDeviceKeys.signed.dehydrated == true
                     val isTrusted =
-                        when (recipientTrustLevel) {
-                            is DeviceTrustLevel.CrossSigned -> true
-                            is DeviceTrustLevel.Valid -> !dehydrated
-                            DeviceTrustLevel.NotCrossSigned -> !dehydrated && !excludeUntrustedDevices
-                            DeviceTrustLevel.Blocked -> false
-                            is DeviceTrustLevel.Invalid -> false
-                            DeviceTrustLevel.Unknown -> false
-                        }
-                    if (!isTrusted) throw EncryptOlmError.DeviceNotTrusted(recipientTrustLevel, dehydrated)
+                        recipientDeviceKeys.signed.isTrusted(
+                            trustLevel = recipientTrustLevel,
+                            excludeUntrusted = excludeUntrustedDevices,
+                        )
+                    if (!isTrusted)
+                        throw EncryptOlmError.DeviceNotTrusted(
+                            recipientTrustLevel,
+                            @OptIn(MSC3814::class) recipientDeviceKeys.signed.dehydrated == true,
+                        )
                     val recipientIdentityKey =
                         recipientDeviceKeys.get<Curve25519Key>()
                             ?: throw EncryptOlmError.NoOlmSupported("identity key not found")

@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.crypto.key
 
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.model.keys.DeviceKeys
+
 sealed interface DeviceTrustLevel {
 
     /** The device key is valid, but not cross signed. */
@@ -20,3 +23,14 @@ sealed interface DeviceTrustLevel {
     /** There are no information for this device. */
     data object Unknown : DeviceTrustLevel
 }
+
+@OptIn(MSC3814::class)
+fun DeviceKeys.isTrusted(trustLevel: DeviceTrustLevel, excludeUntrusted: Boolean) =
+    when (trustLevel) {
+        is DeviceTrustLevel.CrossSigned -> true
+        is DeviceTrustLevel.Valid -> dehydrated != true
+        DeviceTrustLevel.NotCrossSigned -> dehydrated != true && !excludeUntrusted
+        DeviceTrustLevel.Blocked -> false
+        is DeviceTrustLevel.Invalid -> false
+        DeviceTrustLevel.Unknown -> false
+    }

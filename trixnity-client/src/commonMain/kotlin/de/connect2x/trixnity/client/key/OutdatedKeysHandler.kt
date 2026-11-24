@@ -15,6 +15,7 @@ import de.connect2x.trixnity.client.store.StoredCrossSigningKeys
 import de.connect2x.trixnity.client.store.StoredDeviceKeys
 import de.connect2x.trixnity.client.store.encryptedRooms
 import de.connect2x.trixnity.client.store.getByRooms
+import de.connect2x.trixnity.client.store.toDeviceTrustLevel
 import de.connect2x.trixnity.client.user.LazyMemberEventHandler
 import de.connect2x.trixnity.client.utils.retryLoop
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -39,6 +40,7 @@ import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 import de.connect2x.trixnity.core.subscribeEventList
 import de.connect2x.trixnity.core.unsubscribeOnCompletion
 import de.connect2x.trixnity.crypto.key.get
+import de.connect2x.trixnity.crypto.key.isTrusted
 import de.connect2x.trixnity.crypto.olm.StoredOutboundMegolmSession
 import de.connect2x.trixnity.crypto.olm.membershipsAllowedToReceiveKey
 import de.connect2x.trixnity.crypto.sign.SignService
@@ -331,7 +333,7 @@ class OutdatedKeysHandler(
                 newDevices
                     .filter { (deviceId, newDevice) ->
                         val oldDevice = oldDevices[deviceId]
-                        oldDevice != null && !oldDevice.trustLevel.isTrusted() && newDevice.trustLevel.isTrusted()
+                        oldDevice != null && !oldDevice.isTrusted() && newDevice.isTrusted()
                     }
                     .keys
         val removedDevices =
@@ -339,7 +341,7 @@ class OutdatedKeysHandler(
                 newDevices
                     .filter { (deviceId, newDevice) ->
                         val oldDevice = oldDevices[deviceId]
-                        oldDevice != null && oldDevice.trustLevel.isTrusted() && !newDevice.trustLevel.isTrusted()
+                        oldDevice != null && oldDevice.isTrusted() && !newDevice.isTrusted()
                     }
                     .keys
         val megolmSessionUpdates: Map<RoomId, ((StoredOutboundMegolmSession?) -> StoredOutboundMegolmSession?)?> =
@@ -433,15 +435,8 @@ class OutdatedKeysHandler(
         }
     }
 
-    private fun KeySignatureTrustLevel.isTrusted(): Boolean =
-        when (this) {
-            is KeySignatureTrustLevel.CrossSigned -> true
-            is KeySignatureTrustLevel.Valid -> true
-            KeySignatureTrustLevel.NotCrossSigned -> !config.excludeUntrustedDevices
-            KeySignatureTrustLevel.Blocked -> false
-            is KeySignatureTrustLevel.Invalid -> false
-            is KeySignatureTrustLevel.NotAllDeviceKeysCrossSigned -> false
-        }
+    private fun StoredDeviceKeys.isTrusted(): Boolean =
+        value.signed.isTrusted(trustLevel.toDeviceTrustLevel(), config.excludeUntrustedDevices)
 
     private suspend fun KeyStore.isTracked(userId: UserId): Boolean = getDeviceKeys(userId).first() != null
 }
