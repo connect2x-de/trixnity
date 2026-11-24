@@ -16,6 +16,7 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean?,
     ): Result<OlmEncryptedToDeviceEventContent> {
         encryptOlmCalled = Triple(content, recipientUserId, recipientDeviceId)
         return returnEncryptOlm ?: Result.failure(NotImplementedError())
@@ -24,6 +25,7 @@ class OlmEncryptionServiceMock : OlmEncryptionService {
     override suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean?,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> {
         encryptOlmCalled = Triple(content, recipients.first().first, recipients.first().second)
         return recipients.associateWith { returnEncryptOlm ?: Result.failure(NotImplementedError()) }

@@ -24,6 +24,7 @@ sealed interface DeviceTrustLevel {
     data object Unknown : DeviceTrustLevel
 }
 
+// // https://spec.matrix.org/v1.19/client-server-api/#recommended-client-behaviour
 @OptIn(MSC3814::class)
 fun DeviceKeys.isTrusted(trustLevel: DeviceTrustLevel, excludeUntrusted: Boolean) =
     when (trustLevel) {

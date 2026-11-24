@@ -13,7 +13,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Added `RoomKeyWithheldEventContent`
 - Store and use withheld inbound megolm keys
 - Added `excludeUntrustedDevices` feature flag (enabled by default) to exclude non-cross-signed devices from encrypted
-  to-device messages and send `m.room_key.withheld` (`m.unverified` / `m.blacklisted`) for untrusted devices
+  to-device messages and send `m.room_key.withheld` (`m.unverified`) for untrusted devices
 
 ### Changed
 

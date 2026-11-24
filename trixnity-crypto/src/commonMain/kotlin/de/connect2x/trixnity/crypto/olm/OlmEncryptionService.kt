@@ -87,6 +87,7 @@ interface OlmEncryptionService {
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean? = null,
     ): Result<OlmEncryptedToDeviceEventContent>
 
     /**
@@ -98,6 +99,7 @@ interface OlmEncryptionService {
     suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean? = null,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>>
 
     data class OlmRecovery(val userId: UserId, val deviceId: String, val lastTry: Instant)
@@ -177,11 +179,14 @@ class OlmEncryptionServiceImpl(
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean?,
     ): Result<OlmEncryptedToDeviceEventContent> =
         encryptOlm(
                 content = content,
                 recipientUserId = recipientUserId,
                 recipientDeviceId = recipientDeviceId,
+                excludeUntrustedDevices =
+                    excludeUntrustedDevices ?: this@OlmEncryptionServiceImpl.excludeUntrustedDevices,
                 forceNewSessionWhenNotLastUsedAfter = null,
                 claimOneTimeKey = {
                     requests
@@ -194,6 +199,7 @@ class OlmEncryptionServiceImpl(
     override suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean?,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> = coroutineScope {
         val finished = MutableStateFlow(setOf<Pair<UserId, String>>())
         val claimRequests = MutableStateFlow(setOf<Pair<UserId, String>>())
@@ -217,6 +223,8 @@ class OlmEncryptionServiceImpl(
                             content = content,
                             recipientUserId = recipientUserId,
                             recipientDeviceId = recipientDeviceId,
+                            excludeUntrustedDevices =
+                                excludeUntrustedDevices ?: this@OlmEncryptionServiceImpl.excludeUntrustedDevices,
                             forceNewSessionWhenNotLastUsedAfter = null,
                             claimOneTimeKey = {
                                 claimRequests.update { it + recipient }
@@ -240,6 +248,7 @@ class OlmEncryptionServiceImpl(
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean,
         forceNewSessionWhenNotLastUsedAfter: Instant?,
         claimOneTimeKey: suspend () -> SignedCurve25519Key,
     ): Result<OlmEncryptedToDeviceEventContent?> =
@@ -429,6 +438,7 @@ class OlmEncryptionServiceImpl(
             content = DummyEventContent,
             recipientUserId = olmRecovery.userId,
             recipientDeviceId = olmRecovery.deviceId,
+            excludeUntrustedDevices = excludeUntrustedDevices,
             forceNewSessionWhenNotLastUsedAfter = olmRecovery.lastTry,
             claimOneTimeKey = {
                 requests

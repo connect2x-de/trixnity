@@ -8,22 +8,41 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedToDeviceEventCont
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService
 
 class OlmEncryptionServiceMock : OlmEncryptionService {
+    data class EncryptOlmCall(
+        val content: EventContent,
+        val recipients: Set<Pair<UserId, String>>,
+        val excludeUntrustedDevices: Boolean?,
+    )
+
     val encryptOlm = mutableMapOf<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>>()
+    val encryptOlmWithoutExcludingUntrusted =
+        mutableMapOf<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>>()
+    val encryptOlmCalls = mutableListOf<EncryptOlmCall>()
 
     override suspend fun encryptOlm(
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
-    ): Result<OlmEncryptedToDeviceEventContent> = checkNotNull(encryptOlm[recipientUserId to recipientDeviceId])
+        excludeUntrustedDevices: Boolean?,
+    ): Result<OlmEncryptedToDeviceEventContent> {
+        encryptOlmCalls.add(
+            EncryptOlmCall(content, setOf(recipientUserId to recipientDeviceId), excludeUntrustedDevices)
+        )
+        val map = if (excludeUntrustedDevices == false) encryptOlmWithoutExcludingUntrusted else encryptOlm
+        return checkNotNull(map[recipientUserId to recipientDeviceId])
+    }
 
     var encryptOlmRecipients: Set<Pair<UserId, String>> = emptySet()
 
     override suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean?,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> {
         encryptOlmRecipients = recipients
-        return encryptOlm
+        encryptOlmCalls.add(EncryptOlmCall(content, recipients, excludeUntrustedDevices))
+        val map = if (excludeUntrustedDevices == false) encryptOlmWithoutExcludingUntrusted else encryptOlm
+        return recipients.mapNotNull { recipient -> map[recipient]?.let { recipient to it } }.toMap()
     }
 
     var recoverOlm: Result<OlmEncryptedToDeviceEventContent?>? = null

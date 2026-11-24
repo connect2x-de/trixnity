@@ -242,9 +242,10 @@ class MegolmEncryptionServiceImpl(
                     sharedHistory = sharedHistory,
                 )
 
-            val eventsToSend =
+            val withheldRecipients: MutableSet<Pair<UserId, String>> = mutableSetOf()
+            val roomKeysToSend =
                 olmEncryptionService
-                    .encryptOlm(roomKeyEventContent, newDevicesWithoutUs)
+                    .encryptOlm(content = roomKeyEventContent, recipients = newDevicesWithoutUs)
                     .mapNotNull { (recipient, encryptOlmResult) ->
                         val eventContent: ToDeviceEventContent? =
                             encryptOlmResult.fold(
@@ -264,37 +265,18 @@ class MegolmEncryptionServiceImpl(
                                             null
                                         }
 
+                                        is EncryptOlmError.DeviceNotTrusted if
+                                            error.trustLevel is DeviceTrustLevel.NotCrossSigned
+                                         -> {
+                                            withheldRecipients.add(recipient)
+                                            null
+                                        }
+
                                         is EncryptOlmError.DeviceNotTrusted -> {
-                                            val withheld =
-                                                when (error.trustLevel) {
-                                                    DeviceTrustLevel.Blocked ->
-                                                        RoomKeyWithheldCode.Blacklisted to "device is blocked"
-                                                    DeviceTrustLevel.NotCrossSigned ->
-                                                        RoomKeyWithheldCode.Unverified to "device is not cross-signed"
-                                                    is DeviceTrustLevel.CrossSigned,
-                                                    is DeviceTrustLevel.Valid,
-                                                    is DeviceTrustLevel.Invalid,
-                                                    DeviceTrustLevel.Unknown -> null
-                                                }
-                                            if (withheld != null) {
-                                                val (code, reason) = withheld
-                                                log.info {
-                                                    "sending withheld ($code) to $recipient, because device is not trusted (trustLevel=${error.trustLevel})"
-                                                }
-                                                RoomKeyWithheldEventContent(
-                                                    roomId = roomId,
-                                                    sessionId = sessionId,
-                                                    senderKey = ownCurve25519Key.value,
-                                                    algorithm = Megolm,
-                                                    code = code,
-                                                    reason = reason,
-                                                )
-                                            } else {
-                                                log.info {
-                                                    "will not send megolm session to $recipient, because device is not trusted (trustLevel=${error.trustLevel})"
-                                                }
-                                                null
+                                            log.info {
+                                                "will not send megolm session to $recipient, because device is not trusted (trustLevel=${error.trustLevel})"
                                             }
+                                            null
                                         }
 
                                         is EncryptOlmError.NoOlmSupported -> {
@@ -314,7 +296,7 @@ class MegolmEncryptionServiceImpl(
                                         }
 
                                         null -> {
-                                            log.error(it) { "unexpected error" }
+                                            log.error(it) { "unexpected error encrypting megolm key" }
                                             null
                                         }
                                     }
@@ -322,6 +304,52 @@ class MegolmEncryptionServiceImpl(
                             )
                         eventContent?.let { recipient to it }
                     }
+
+            val withheldToSend =
+                if (withheldRecipients.isEmpty()) emptyList()
+                else {
+                    val withheldEventContent =
+                        RoomKeyWithheldEventContent(
+                            roomId = roomId,
+                            sessionId = sessionId,
+                            senderKey = ownCurve25519Key.value,
+                            algorithm = Megolm,
+                            code = RoomKeyWithheldCode.Unverified,
+                            reason = "device is not cross-signed",
+                        )
+                    olmEncryptionService
+                        .encryptOlm(
+                            content = withheldEventContent,
+                            recipients = withheldRecipients,
+                            excludeUntrustedDevices = false,
+                        )
+                        .mapNotNull { (recipient, encryptOlmResult) ->
+                            val eventContent: ToDeviceEventContent? =
+                                encryptOlmResult.fold(
+                                    onSuccess = { it },
+                                    onFailure = {
+                                        when (val error = it as? EncryptOlmError) {
+                                            is EncryptOlmError.CryptoDriverError ->
+                                                throw EncryptMegolmError.CryptoDriverError(error.error)
+
+                                            is EncryptOlmError.NetworkError ->
+                                                throw EncryptMegolmError.NetworkError(error.error)
+
+                                            is EncryptOlmError.DeviceNotTrusted,
+                                            is EncryptOlmError.NoOlmSupported,
+                                            is EncryptOlmError.RemoteHomeserverNotReachable,
+                                            null -> {
+                                                log.error(it) { "unexpected error encrypting withheld" }
+                                                null
+                                            }
+                                        }
+                                    },
+                                )
+                            eventContent?.let { recipient to it }
+                        }
+                }
+            val eventsToSend =
+                (roomKeysToSend + withheldToSend)
                     .groupBy { it.first.first }
                     .mapValues { it.value.associate { it.first.second to it.second } }
             if (eventsToSend.isNotEmpty()) {
