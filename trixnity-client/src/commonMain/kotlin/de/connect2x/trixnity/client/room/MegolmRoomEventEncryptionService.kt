@@ -100,7 +100,7 @@ class MegolmRoomEventEncryptionService(
                 waitForInboundMegolmSessionAndRequest(
                     roomId = roomId,
                     sessionId = content.sessionId,
-                    firstKnownIndexLessThen = (session as? StoredInboundMegolmSession.Key)?.firstKnownIndex,
+                    firstKnownIndexLessThan = (session as? StoredInboundMegolmSession.Key)?.firstKnownIndex,
                     allowWithheld = exception.cause is MegolmEncryptionService.DecryptMegolmError.MegolmKeyNotFound,
                     othenThan = session,
                 )
@@ -112,14 +112,14 @@ class MegolmRoomEventEncryptionService(
     private suspend fun waitForInboundMegolmSessionAndRequest(
         roomId: RoomId,
         sessionId: String,
-        firstKnownIndexLessThen: Long? = null,
+        firstKnownIndexLessThan: Long? = null,
         allowWithheld: Boolean = false,
         othenThan: StoredInboundMegolmSession? = null,
     ) =
         olmCryptoStore.waitForInboundMegolmSession(
             roomId = roomId,
             sessionId = sessionId,
-            firstKnownIndexLessThen = firstKnownIndexLessThen,
+            firstKnownIndexLessThan = firstKnownIndexLessThan,
             allowWithheld = allowWithheld,
             othenThan = othenThan,
         ) {

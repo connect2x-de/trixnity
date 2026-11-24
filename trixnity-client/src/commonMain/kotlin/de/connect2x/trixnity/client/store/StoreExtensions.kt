@@ -77,7 +77,7 @@ suspend fun RoomTimelineStore.getPrevious(event: TimelineEvent): TimelineEvent? 
 suspend fun OlmCryptoStore.waitForInboundMegolmSession(
     roomId: RoomId,
     sessionId: String,
-    firstKnownIndexLessThen: Long? = null,
+    firstKnownIndexLessThan: Long? = null,
     allowWithheld: Boolean = false,
     othenThan: StoredInboundMegolmSession? = null,
     onNotExisting: (suspend CoroutineScope.() -> Unit)? = null,
@@ -86,7 +86,7 @@ suspend fun OlmCryptoStore.waitForInboundMegolmSession(
         othenThan != null && this != othenThan ||
             when (this) {
                 is StoredInboundMegolmSession.Key ->
-                    firstKnownIndexLessThen == null || this.firstKnownIndex < firstKnownIndexLessThen
+                    firstKnownIndexLessThan == null || this.firstKnownIndex < firstKnownIndexLessThan
                 is StoredInboundMegolmSession.Withheld -> allowWithheld
                 null -> false
             }
