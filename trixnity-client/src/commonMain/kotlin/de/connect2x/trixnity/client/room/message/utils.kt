@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.client.room.message
 
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.Mentions
@@ -12,7 +12,7 @@ internal suspend fun RoomService.getTimelineEventWithContentAndTimeout(roomId: R
             decryptionTimeout = 5.seconds
             allowReplaceContent = false
         }
-        .firstWithContent()
+        .firstWithKeys()
 
 operator fun Mentions.plus(other: Mentions): Mentions {
     return Mentions(users = other.users.orEmpty() + users.orEmpty(), room = other.room ?: room)

@@ -6,7 +6,7 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.key.getDeviceKey
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.KeyStore
 import de.connect2x.trixnity.client.store.NotificationStore
@@ -640,7 +640,7 @@ class NotificationEventHandler(
     private fun Flow<Flow<TimelineEvent>>.decrypt() =
         chunked(10)
             .flatMapConcat { chunk ->
-                coroutineScope { chunk.map { async { it.firstWithContent() } }.awaitAll().asFlow() }
+                coroutineScope { chunk.map { async { it.firstWithKeys() } }.awaitAll().asFlow() }
             }
             .mapNotNull { it.mergedEvent?.getOrNull() }
 

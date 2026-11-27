@@ -1192,6 +1192,7 @@ public final class de/connect2x/trixnity/client/room/RoomService$DefaultImpls {
 
 public final class de/connect2x/trixnity/client/room/RoomServiceExtensionsKt {
 	public static final fun firstWithContent (Lkotlinx/coroutines/flow/Flow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun firstWithKeys (Lkotlinx/coroutines/flow/Flow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getTimeline (Lde/connect2x/trixnity/client/room/RoomService;Lkotlin/jvm/functions/Function2;)Lde/connect2x/trixnity/client/room/Timeline;
 	public static synthetic fun getTimeline$default (Lde/connect2x/trixnity/client/room/RoomService;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Lde/connect2x/trixnity/client/room/Timeline;
 	public static final fun getTimelineEventsAround-DLl7ESE (Lde/connect2x/trixnity/client/room/RoomService;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
