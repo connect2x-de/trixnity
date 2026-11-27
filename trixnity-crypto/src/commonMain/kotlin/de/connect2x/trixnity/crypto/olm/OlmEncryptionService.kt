@@ -29,6 +29,7 @@ import de.connect2x.trixnity.crypto.driver.useAll
 import de.connect2x.trixnity.crypto.invoke
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.get
+import de.connect2x.trixnity.crypto.key.isTrusted
 import de.connect2x.trixnity.crypto.of
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.DecryptOlmError
 import de.connect2x.trixnity.crypto.olm.OlmEncryptionService.EncryptOlmError
@@ -72,9 +73,9 @@ interface OlmEncryptionService {
         class RemoteHomeserverNotReachable(val reason: String) :
             EncryptOlmError, IllegalStateException("remote server error while claiming keys")
 
-        class DehydratedDeviceNotCrossSigned :
+        data class DeviceNotTrusted(val trustLevel: DeviceTrustLevel, val dehydrated: Boolean) :
             EncryptOlmError,
-            IllegalStateException("when encrypting to dehydrated device, the device must be cross signed")
+            IllegalStateException("device is not trusted (trustLevel=$trustLevel, dehydrated=$dehydrated)")
     }
 
     /**
@@ -86,6 +87,7 @@ interface OlmEncryptionService {
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean? = null,
     ): Result<OlmEncryptedToDeviceEventContent>
 
     /**
@@ -97,6 +99,7 @@ interface OlmEncryptionService {
     suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean? = null,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>>
 
     data class OlmRecovery(val userId: UserId, val deviceId: String, val lastTry: Instant)
@@ -165,6 +168,7 @@ class OlmEncryptionServiceImpl(
     private val signService: SignService,
     private val clock: Clock,
     private val driver: CryptoDriver,
+    private val excludeUntrustedDevices: Boolean = true,
 ) : OlmEncryptionService {
     private val ownUserId: UserId = userInfo.userId
     private val ownDeviceId: String = userInfo.deviceId
@@ -175,11 +179,14 @@ class OlmEncryptionServiceImpl(
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean?,
     ): Result<OlmEncryptedToDeviceEventContent> =
         encryptOlm(
                 content = content,
                 recipientUserId = recipientUserId,
                 recipientDeviceId = recipientDeviceId,
+                excludeUntrustedDevices =
+                    excludeUntrustedDevices ?: this@OlmEncryptionServiceImpl.excludeUntrustedDevices,
                 forceNewSessionWhenNotLastUsedAfter = null,
                 claimOneTimeKey = {
                     requests
@@ -192,17 +199,21 @@ class OlmEncryptionServiceImpl(
     override suspend fun encryptOlm(
         content: EventContent,
         recipients: Set<Pair<UserId, String>>,
+        excludeUntrustedDevices: Boolean?,
     ): Map<Pair<UserId, String>, Result<OlmEncryptedToDeviceEventContent>> = coroutineScope {
         val finished = MutableStateFlow(setOf<Pair<UserId, String>>())
         val claimRequests = MutableStateFlow(setOf<Pair<UserId, String>>())
         val claimOneTimeKeysResponse = async {
             combine(finished, claimRequests) { finished, claimRequests -> finished + claimRequests }
                 .first { it == recipients }
-            requests.claimKeys(
-                claimRequests.value
-                    .groupBy { it.first }
-                    .mapValues { it.value.associate { it.second to KeyAlgorithm.SignedCurve25519 } }
-            )
+            val requestsToClaim = claimRequests.value
+            if (requestsToClaim.isEmpty()) Result.success(ClaimKeys.Response(emptyMap(), emptyMap()))
+            else
+                requests.claimKeys(
+                    requestsToClaim
+                        .groupBy { it.first }
+                        .mapValues { it.value.associate { it.second to KeyAlgorithm.SignedCurve25519 } }
+                )
         }
         recipients
             .associateWith { recipient ->
@@ -212,6 +223,8 @@ class OlmEncryptionServiceImpl(
                             content = content,
                             recipientUserId = recipientUserId,
                             recipientDeviceId = recipientDeviceId,
+                            excludeUntrustedDevices =
+                                excludeUntrustedDevices ?: this@OlmEncryptionServiceImpl.excludeUntrustedDevices,
                             forceNewSessionWhenNotLastUsedAfter = null,
                             claimOneTimeKey = {
                                 claimRequests.update { it + recipient }
@@ -235,6 +248,7 @@ class OlmEncryptionServiceImpl(
         content: EventContent,
         recipientUserId: UserId,
         recipientDeviceId: String,
+        excludeUntrustedDevices: Boolean,
         forceNewSessionWhenNotLastUsedAfter: Instant?,
         claimOneTimeKey: suspend () -> SignedCurve25519Key,
     ): Result<OlmEncryptedToDeviceEventContent?> =
@@ -246,13 +260,18 @@ class OlmEncryptionServiceImpl(
                     val recipientDeviceKeys =
                         store.getDeviceKeys(recipientUserId)?.get(recipientDeviceId)
                             ?: throw EncryptOlmError.NoOlmSupported("device keys not found")
-                    val recipientTrustLevel = store.getTrustLevel(recipientUserId, recipientDeviceId)
-                    @OptIn(MSC3814::class)
-                    if (
-                        recipientDeviceKeys.signed.dehydrated == true &&
-                            recipientTrustLevel !is DeviceTrustLevel.CrossSigned
-                    )
-                        throw EncryptOlmError.DehydratedDeviceNotCrossSigned()
+                    val recipientTrustLevel =
+                        store.getTrustLevel(recipientUserId, recipientDeviceId) ?: DeviceTrustLevel.Unknown
+                    val isTrusted =
+                        recipientDeviceKeys.signed.isTrusted(
+                            trustLevel = recipientTrustLevel,
+                            excludeUntrusted = excludeUntrustedDevices,
+                        )
+                    if (!isTrusted)
+                        throw EncryptOlmError.DeviceNotTrusted(
+                            recipientTrustLevel,
+                            @OptIn(MSC3814::class) recipientDeviceKeys.signed.dehydrated == true,
+                        )
                     val recipientIdentityKey =
                         recipientDeviceKeys.get<Curve25519Key>()
                             ?: throw EncryptOlmError.NoOlmSupported("identity key not found")
@@ -419,6 +438,7 @@ class OlmEncryptionServiceImpl(
             content = DummyEventContent,
             recipientUserId = olmRecovery.userId,
             recipientDeviceId = olmRecovery.deviceId,
+            excludeUntrustedDevices = excludeUntrustedDevices,
             forceNewSessionWhenNotLastUsedAfter = olmRecovery.lastTry,
             claimOneTimeKey = {
                 requests

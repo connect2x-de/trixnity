@@ -16,6 +16,7 @@ import de.connect2x.trixnity.core.model.keys.EncryptionAlgorithm
 import de.connect2x.trixnity.core.model.keys.Key
 import de.connect2x.trixnity.core.model.keys.Key.Curve25519Key
 import de.connect2x.trixnity.core.model.keys.Key.Ed25519Key
+import de.connect2x.trixnity.core.model.keys.KeyAlgorithm
 import de.connect2x.trixnity.core.model.keys.Keys
 import de.connect2x.trixnity.core.model.keys.OlmMessageValue
 import de.connect2x.trixnity.core.model.keys.SessionKeyValue
@@ -43,6 +44,7 @@ import de.connect2x.trixnity.test.utils.TrixnityBaseTest
 import de.connect2x.trixnity.test.utils.runTest
 import de.connect2x.trixnity.test.utils.testClock
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.maps.shouldBeEmpty
@@ -140,6 +142,8 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
                         )
                     )
             )
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.Valid(false))
+        olmStoreMock.deviceTrustLevels[alice] = mapOf(aliceDeviceId to DeviceTrustLevel.Valid(false))
         olmStoreMock.olmSessions.clear()
         olmStoreMock.roomMembers[room] = setOf(alice, bob)
         olmStoreMock.olmAccount.value = aliceAccount.pickle()
@@ -252,6 +256,28 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
     }
 
     @Test
+    fun `encryptOlm - encrypt multiple with no valid device does not call claimKeys`() = runTest {
+        mockClaimKeys()
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
+            )
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+
+        cut.encryptOlm(decryptedOlmEventContent, setOf(bob to bobDeviceId))
+        olmEncryptionServiceRequestHandlerMock.claimKeysParams.shouldBeEmpty()
+    }
+
+    @Test
     fun `encryptOlm - encrypt for verified dehydrated device`() = runTest {
         mockClaimKeys()
         olmStoreMock.devices[bob] =
@@ -288,7 +314,160 @@ class OlmEncryptionServiceTest : TrixnityBaseTest() {
             )
         olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
         val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
-        result.exceptionOrNull().shouldBeInstanceOf<EncryptOlmError.DehydratedDeviceNotCrossSigned>()
+        result.exceptionOrNull() shouldBe
+            EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = true)
+    }
+
+    @Test
+    fun `encryptOlm - is Failure when try to encrypt with valid dehydrated device`() = runTest {
+        olmStoreMock.devices[bob] =
+            mapOf(
+                bobDeviceId to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDeviceId,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                            dehydrated = true,
+                        )
+                    )
+            )
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.Valid(false))
+        val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
+        result.exceptionOrNull() shouldBe
+            EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Valid(false), dehydrated = true)
+    }
+
+    @Test
+    fun `encryptOlm - is Failure when try to encrypt with blocked device`() = runTest {
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.Blocked)
+        val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
+        result.exceptionOrNull() shouldBe EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Blocked, dehydrated = false)
+    }
+
+    @Test
+    fun `encryptOlm - is Failure when try to encrypt with invalid device`() = runTest {
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.Invalid("bad signature"))
+        val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
+        result.exceptionOrNull() shouldBe
+            EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Invalid("bad signature"), dehydrated = false)
+    }
+
+    @Test
+    fun `encryptOlm - is Failure when try to encrypt with unknown device trust level`() = runTest {
+        olmStoreMock.deviceTrustLevels.remove(bob)
+        val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
+        result.exceptionOrNull() shouldBe EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.Unknown, dehydrated = false)
+    }
+
+    @Test
+    fun `encryptOlm - is Failure when try to encrypt with not cross-signed device and excludeNotCrossSignedDevices is true`() =
+        runTest {
+            olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+            val result = cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId)
+            result.exceptionOrNull() shouldBe
+                EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = false)
+        }
+
+    @Test
+    fun `encryptOlm - encrypt for valid device without cross-signing when excludeNotCrossSignedDevices is true`() =
+        runTest {
+            mockClaimKeys()
+            olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.Valid(false))
+            shouldEncryptOlm()
+        }
+
+    @Test
+    fun `encryptOlm - encrypt for cross-signed device when excludeNotCrossSignedDevices is true`() = runTest {
+        mockClaimKeys()
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.CrossSigned(false))
+        shouldEncryptOlm()
+    }
+
+    @Test
+    fun `encryptOlm - encrypt for not cross-signed device when defaultExcludeUntrustedDevices is false`() = runTest {
+        mockClaimKeys()
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+        val cutAllowNotCrossSigned =
+            OlmEncryptionServiceImpl(
+                UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
+                json,
+                olmStoreMock,
+                olmEncryptionServiceRequestHandlerMock,
+                mockSignService,
+                testScope.testClock,
+                driver,
+                excludeUntrustedDevices = false,
+            )
+        val encryptedMessage =
+            cutAllowNotCrossSigned.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId).getOrThrow()
+        val encryptedCipherText = encryptedMessage.ciphertext[bobCurveKey.value.value]
+        assertNotNull(encryptedCipherText)
+        encryptedMessage.senderKey shouldBe aliceCurveKey.value
+    }
+
+    @Test
+    fun `encryptOlm - encrypt for not cross-signed device when excludeUntrustedDevices parameter is false`() = runTest {
+        mockClaimKeys()
+        olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+        val encryptedMessage =
+            cut.encryptOlm(decryptedOlmEventContent, bob, bobDeviceId, excludeUntrustedDevices = false).getOrThrow()
+        val encryptedCipherText = encryptedMessage.ciphertext[bobCurveKey.value.value]
+        assertNotNull(encryptedCipherText)
+        encryptedMessage.senderKey shouldBe aliceCurveKey.value
+    }
+
+    @Test
+    fun `encryptOlm - is Failure for not cross-signed device when excludeUntrustedDevices parameter is true despite default false`() =
+        runTest {
+            olmStoreMock.deviceTrustLevels[bob] = mapOf(bobDeviceId to DeviceTrustLevel.NotCrossSigned)
+            val cutAllowNotCrossSigned =
+                OlmEncryptionServiceImpl(
+                    UserInfo(alice, aliceDeviceId, aliceEdKey, aliceCurveKey),
+                    json,
+                    olmStoreMock,
+                    olmEncryptionServiceRequestHandlerMock,
+                    mockSignService,
+                    testScope.testClock,
+                    driver,
+                    excludeUntrustedDevices = false,
+                )
+            val result =
+                cutAllowNotCrossSigned.encryptOlm(
+                    decryptedOlmEventContent,
+                    bob,
+                    bobDeviceId,
+                    excludeUntrustedDevices = true,
+                )
+            result.exceptionOrNull() shouldBe
+                EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = false)
+        }
+
+    @Test
+    fun `encryptOlm - encrypt multiple skips claiming keys for not cross-signed devices`() = runTest {
+        mockClaimKeys()
+        val bobDevice2Id = "BOBDE2"
+        olmStoreMock.devices[bob] =
+            olmStoreMock.devices[bob].orEmpty() +
+                (bobDevice2Id to
+                    Signed(
+                        DeviceKeys(
+                            userId = bob,
+                            deviceId = bobDevice2Id,
+                            algorithms = setOf(EncryptionAlgorithm.Olm, EncryptionAlgorithm.Megolm),
+                            keys = Keys(keysOf(bobCurveKey, bobEdKey)),
+                        )
+                    ))
+        olmStoreMock.deviceTrustLevels[bob] =
+            mapOf(bobDeviceId to DeviceTrustLevel.CrossSigned(false), bobDevice2Id to DeviceTrustLevel.NotCrossSigned)
+
+        val results = cut.encryptOlm(decryptedOlmEventContent, setOf(bob to bobDeviceId, bob to bobDevice2Id))
+        results[bob to bobDeviceId]?.isSuccess shouldBe true
+        results[bob to bobDevice2Id]?.exceptionOrNull() shouldBe
+            EncryptOlmError.DeviceNotTrusted(DeviceTrustLevel.NotCrossSigned, dehydrated = false)
+        olmEncryptionServiceRequestHandlerMock.claimKeysParams shouldBe
+            listOf(mapOf(bob to mapOf(bobDeviceId to KeyAlgorithm.SignedCurve25519)))
     }
 
     @Test

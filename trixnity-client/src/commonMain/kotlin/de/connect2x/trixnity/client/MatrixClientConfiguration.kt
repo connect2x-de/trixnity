@@ -59,6 +59,12 @@ data class MatrixClientConfiguration(
      */
     var defaultKeyBackupEnabled: Boolean = true,
 
+    /**
+     * Exclude not-cross-signed devices from receiving encrypted to-device messages (such as room keys or secrets). When
+     * sending room keys, an `m.room_key.withheld` event with code `m.unverified` is sent instead.
+     */
+    var excludeUntrustedDevices: Boolean = true,
+
     /** Specifies how long values are kept in the cache when not used by anyone. */
     var cacheExpireDurations: CacheExpireDurations = CacheExpireDurations.default(1.minutes),
 

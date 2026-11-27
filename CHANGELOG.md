@@ -12,11 +12,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI
 - Added `RoomKeyWithheldEventContent`
 - Store and use withheld inbound megolm keys
+- Added `excludeUntrustedDevices` feature flag (enabled by default) to exclude non-cross-signed devices from encrypted
+  to-device messages and send `m.room_key.withheld` (`m.unverified`) for untrusted devices
 
 ### Changed
 
 - Report media transfer progress through callbacks in `MediaApiClient` and `MediaService`.
 - Changed `RoomEventEncryptionService::decrypt` to return a `Flow` and retry decryption on missing or withheld keys
+- Replaced `OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned` with
+  `DeviceNotTrusted(trustLevel, dehydrated)` and allow to reject untrusted devices (`Blocked`, `Invalid`, `Unknown`)
+  during Olm encryption
 
 ### Deprecated
 

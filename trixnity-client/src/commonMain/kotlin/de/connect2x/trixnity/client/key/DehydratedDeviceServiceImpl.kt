@@ -352,6 +352,7 @@ class DehydratedDeviceServiceImpl(
                         signService = signService,
                         clock = clock,
                         driver = driver,
+                        excludeUntrustedDevices = config.excludeUntrustedDevices,
                     ),
                 signService = signService,
                 requestHandler =

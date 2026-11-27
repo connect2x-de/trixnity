@@ -133,7 +133,7 @@ class OlmEventHandlerImpl(
                                                                 throw exception
                                                             is OlmEncryptionService.EncryptOlmError.RemoteHomeserverNotReachable,
                                                             is OlmEncryptionService.EncryptOlmError.CryptoDriverError,
-                                                            is OlmEncryptionService.EncryptOlmError.DehydratedDeviceNotCrossSigned,
+                                                            is OlmEncryptionService.EncryptOlmError.DeviceNotTrusted,
                                                             is OlmEncryptionService.EncryptOlmError.NoOlmSupported,
                                                             null -> {
                                                                 log.warn(exception) {
