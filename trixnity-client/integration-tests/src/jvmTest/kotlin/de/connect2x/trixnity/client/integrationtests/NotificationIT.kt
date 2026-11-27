@@ -6,7 +6,7 @@ import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.notification.Notification
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.client.room.getTimeline
 import de.connect2x.trixnity.client.room.message.mentions
 import de.connect2x.trixnity.client.room.message.replace
@@ -37,6 +37,10 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -49,10 +53,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 @Testcontainers
 class NotificationIT : TrixnityBaseTest() {
@@ -62,22 +62,25 @@ class NotificationIT : TrixnityBaseTest() {
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
-    @Container
-    val synapseDocker = synapseDocker()
+    @Container val synapseDocker = synapseDocker()
 
     @BeforeTest
     fun beforeEach(): Unit = runBlocking {
-        val baseUrl = URLBuilder(
-            protocol = URLProtocol.HTTP,
-            host = synapseDocker.host,
-            port = synapseDocker.firstMappedPort
-        ).build()
-        startedClient1 = registerAndStartClient(
-            "client1", "user1", baseUrl,
-            RepositoriesModule.exposed(newDatabase())
-        )
-        startedClient2 =
-            registerAndStartClient("client2", "user2", baseUrl, RepositoriesModule.exposed(newDatabase()))
+        val baseUrl =
+            URLBuilder(
+                    protocol = URLProtocol.HTTP,
+                    host = synapseDocker.host,
+                    port = synapseDocker.firstMappedPort,
+                )
+                .build()
+        startedClient1 =
+            registerAndStartClient(
+                "client1",
+                "user1",
+                baseUrl,
+                RepositoriesModule.exposed(newDatabase()),
+            )
+        startedClient2 = registerAndStartClient("client2", "user2", baseUrl, RepositoriesModule.exposed(newDatabase()))
     }
 
     @AfterTest
@@ -88,359 +91,421 @@ class NotificationIT : TrixnityBaseTest() {
     }
 
     @Test
-    fun simpleNotifications(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30.seconds) {
-            val room =
-                startedClient1.client.api.room.createRoom(
-                    initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), "")),
-                    invite = setOf(startedClient2.client.userId)
-                ).getOrThrow()
-            startedClient2.client.api.room.joinRoom(room).getOrThrow()
-            startedClient1.client.user.getById(room, startedClient2.client.userId)
-                .first { it?.membership == JOIN }
-            startedClient2.client.room.getById(room)
-                .first { it?.membership == JOIN }
-            startedClient2.client.syncOnce()
-
-            val notifications = startedClient2.client.notification.getAll().flatten().stateIn(scope)
-            suspend fun checkNotifications(vararg expected: String) {
+    fun simpleNotifications(): Unit =
+        runBlocking(Dispatchers.Default) {
+            withTimeout(30.seconds) {
+                val room =
+                    startedClient1.client.api.room
+                        .createRoom(
+                            initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), "")),
+                            invite = setOf(startedClient2.client.userId),
+                        )
+                        .getOrThrow()
+                startedClient2.client.api.room.joinRoom(room).getOrThrow()
+                startedClient1.client.user.getById(room, startedClient2.client.userId).first { it?.membership == JOIN }
+                startedClient2.client.room.getById(room).first { it?.membership == JOIN }
                 startedClient2.client.syncOnce()
-                startedClient2.client.room.getById(room).first()?.lastEventId?.let {
-                    val timeline = startedClient2.client.room.getTimeline()
-                    timeline.init(room, it)
-                    timeline.state.first().elements
-                        .map { it.firstWithContent() }
-                        .map { it.eventId.full + ": " + it.content?.getOrNull() }
-                        .forEach { println(it) }
-                }
-                startedClient2.client.notification.processPending()
-                notifications.map { notifications ->
+
+                val notifications = startedClient2.client.notification.getAll().flatten().stateIn(scope)
+                suspend fun checkNotifications(vararg expected: String) {
+                    startedClient2.client.syncOnce()
+                    startedClient2.client.room.getById(room).first()?.lastEventId?.let {
+                        val timeline = startedClient2.client.room.getTimeline()
+                        timeline.init(room, it)
+                        timeline.state
+                            .first()
+                            .elements
+                            .map { it.firstWithKeys() }
+                            .map { it.eventId.full + ": " + it.content?.getOrNull() }
+                            .forEach { println(it) }
+                    }
+                    startedClient2.client.notification.processPending()
                     notifications
-                        .filterIsInstance<Notification.Message>()
-                        .mapNotNull { it.timelineEvent.content?.getOrNull() }
-                        .filterIsInstance<RoomMessageEventContent.TextBased.Text>()
-                        .map { it.body }
-                }.firstWithTimeout(expected.toList())
-            }
+                        .map { notifications ->
+                            notifications
+                                .filterIsInstance<Notification.Message>()
+                                .mapNotNull { it.timelineEvent.content?.getOrNull() }
+                                .filterIsInstance<RoomMessageEventContent.TextBased.Text>()
+                                .map { it.body }
+                        }
+                        .firstWithTimeout(expected.toList())
+                }
 
-            withCluePrintln("no initial notifications") {
-                startedClient1.client.room.sendMessage(room) { text("0") }
-                startedClient1.client.room.sendMessage(room) { text("1") }
-                startedClient1.client.room.waitForOutboxSent()
+                withCluePrintln("no initial notifications") {
+                    startedClient1.client.room.sendMessage(room) { text("0") }
+                    startedClient1.client.room.sendMessage(room) { text("1") }
+                    startedClient1.client.room.waitForOutboxSent()
 
-                checkNotifications()
-            }
+                    checkNotifications()
+                }
 
-            withCluePrintln("initial notifications") {
-                startedClient2.client.api.room.setReadMarkers(
-                    room,
-                    null,
-                    startedClient2.client.room.getById(room).first()?.lastEventId
-                ).getOrThrow()
-                startedClient1.client.room.sendMessage(room) { text("2") }
-                startedClient1.client.room.sendMessage(room) { text("3") }
-                startedClient1.client.room.waitForOutboxSent()
+                withCluePrintln("initial notifications") {
+                    startedClient2.client.api.room
+                        .setReadMarkers(
+                            room,
+                            null,
+                            startedClient2.client.room.getById(room).first()?.lastEventId,
+                        )
+                        .getOrThrow()
+                    startedClient1.client.room.sendMessage(room) { text("2") }
+                    startedClient1.client.room.sendMessage(room) { text("3") }
+                    startedClient1.client.room.waitForOutboxSent()
 
-                checkNotifications("2", "3")
-            }
+                    checkNotifications("2", "3")
+                }
 
-            withCluePrintln("read notifications") {
-                startedClient2.client.api.room.setReadMarkers(
-                    room,
-                    null,
-                    startedClient2.client.room.getById(room).first()?.lastEventId
-                ).getOrThrow()
+                withCluePrintln("read notifications") {
+                    startedClient2.client.api.room
+                        .setReadMarkers(
+                            room,
+                            null,
+                            startedClient2.client.room.getById(room).first()?.lastEventId,
+                        )
+                        .getOrThrow()
 
-                checkNotifications()
-            }
+                    checkNotifications()
+                }
 
-            withCluePrintln("fake read notifications") {
-                startedClient1.client.room.sendMessage(room) { text("2") }
-                startedClient1.client.room.waitForOutboxSent()
+                withCluePrintln("fake read notifications") {
+                    startedClient1.client.room.sendMessage(room) { text("2") }
+                    startedClient1.client.room.waitForOutboxSent()
 
-                startedClient2.client.api.room.setReadMarkers(
-                    room,
-                    null,
-                    EventId("\$fantasy")
-                ).getOrThrow()
+                    startedClient2.client.api.room
+                        .setReadMarkers(
+                            room,
+                            null,
+                            EventId("\$fantasy"),
+                        )
+                        .getOrThrow()
 
-                checkNotifications("2")
+                    checkNotifications("2")
+                }
             }
         }
-    }
 
     @Test
-    fun complexNotifications(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30.seconds) {
-            val notifications = startedClient2.client.notification.getAll().flatten().stateIn(scope)
+    fun complexNotifications(): Unit =
+        runBlocking(Dispatchers.Default) {
+            withTimeout(30.seconds) {
+                val notifications = startedClient2.client.notification.getAll().flatten().stateIn(scope)
 
-            suspend fun checkNotifications(check: (List<Notification>) -> Boolean): List<Notification> {
-                startedClient2.client.syncOnce()
-                startedClient2.client.notification.processPending()
-                return notifications.firstWithTimeout { check(it) }
-            }
-
-            val rooms = withCluePrintln("create rooms") {
-                val unencryptedRoom = startedClient1.client.api.room.createRoom().getOrThrow()
-                val encryptedRoom = startedClient1.client.api.room.createRoom(
-                    initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-                ).getOrThrow()
-                val unencryptedRoomWithoutNotifications = startedClient1.client.api.room.createRoom().getOrThrow()
-                val encryptedRoomWithoutNotifications = startedClient1.client.api.room.createRoom(
-                    initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-                ).getOrThrow()
-
-                val currentPushRules = startedClient2.client.user.getAccountData<PushRulesEventContent>().first()
-                startedClient2.client.api.push.setPushRule(
-                    "global",
-                    PushRuleKind.OVERRIDE,
-                    unencryptedRoomWithoutNotifications.full,
-                    SetPushRule.Request(
-                        conditions = setOf(
-                            PushCondition.EventMatch(
-                                key = "room_id",
-                                pattern = unencryptedRoomWithoutNotifications.full
-                            )
-                        ),
-                        actions = setOf(),
-                    ),
-                )
-                startedClient2.client.api.push.setPushRule(
-                    "global",
-                    PushRuleKind.OVERRIDE,
-                    encryptedRoomWithoutNotifications.full,
-                    SetPushRule.Request(
-                        conditions = setOf(
-                            PushCondition.EventMatch(
-                                key = "room_id",
-                                pattern = encryptedRoomWithoutNotifications.full
-                            )
-                        ),
-                        actions = setOf(),
-                    ),
-                )
-                startedClient2.client.api.push.setPushRuleEnabled(
-                    "global",
-                    PushRuleKind.UNDERRIDE,
-                    ServerDefaultPushRules.RoomOneToOne.id,
-                    false,
-                )
-                startedClient2.client.api.push.setPushRuleEnabled(
-                    "global",
-                    PushRuleKind.UNDERRIDE,
-                    ServerDefaultPushRules.Message.id,
-                    false,
-                )
-                startedClient2.client.user.getAccountData<PushRulesEventContent>()
-                    .firstWithTimeout { it != currentPushRules }
-                listOf(
-                    unencryptedRoom,
-                    encryptedRoom,
-                    unencryptedRoomWithoutNotifications,
-                    encryptedRoomWithoutNotifications
-                )
-            }
-            val roomsWithNotifications = 2
-
-            withCluePrintln("send invites") {
-                rooms.forEach { room ->
-                    startedClient1.client.api.room.inviteUser(room, startedClient2.client.userId).getOrThrow()
-                }
-            }
-
-            withCluePrintln("state notifications") {
-                checkNotifications { it.size == roomsWithNotifications }.forEach { notification ->
-                    val stateEvent = notification.shouldBeInstanceOf<Notification.State>().stateEvent
-                    stateEvent.roomId shouldBeIn rooms.take(roomsWithNotifications)
-                    stateEvent.content.shouldBeInstanceOf<MemberEventContent>().displayName shouldBe "user2"
-                }
-            }
-
-            withCluePrintln("join rooms") {
-                rooms.forEach { room ->
-                    startedClient2.client.room.getById(room).firstWithTimeout { it?.membership == INVITE }
-                    startedClient2.client.api.room.joinRoom(room).getOrThrow()
-                }
-            }
-
-            withCluePrintln("no state notifications") {
-                checkNotifications { it.isEmpty() }
-            }
-
-            withCluePrintln("set initial receipt") {
-                rooms.forEach { room ->
-                    startedClient2.client.api.room.setReadMarkers(
-                        room,
-                        null,
-                        startedClient2.client.room.getById(room).first()?.lastEventId
-                    ).getOrThrow()
-                }
-            }
-
-            val helloMessage = "Hello!"
-
-            withCluePrintln("no notifications from us") {
-                rooms.forEach { room ->
-                    startedClient2.client.room.sendMessage(room) { text("Hi!") }
-                }
-                startedClient2.client.room.waitForOutboxSent()
-
-                checkNotifications { it.isEmpty() }
-            }
-
-            withCluePrintln("send message and redact notification") {
-                val notificationMessages = sendMessageAndReceiveNotifications(
-                    rooms = rooms,
-                    roomsWithNotifications = roomsWithNotifications,
-                    helloMessage = helloMessage,
-                    checkNotifications = ::checkNotifications
-                )
-
-                withCluePrintln("send redact") {
-                    rooms.forEachIndexed { index, room ->
-                        startedClient1.client.api.room.redactEvent(room, notificationMessages[index])
-                    }
-                }
-
-                withCluePrintln("receive redacted notifications") {
-                    checkNotifications { it.isEmpty() }
-                }
-            }
-
-            withCluePrintln("send message and replace without notification") {
-                val notificationMessages = sendMessageAndReceiveNotifications(
-                    rooms = rooms,
-                    roomsWithNotifications = roomsWithNotifications,
-                    helloMessage = helloMessage,
-                    checkNotifications = ::checkNotifications
-                )
-
-                withCluePrintln("send replace") {
-                    rooms.forEachIndexed { index, room ->
-                        startedClient1.client.room.sendMessage(room) {
-                            text("Hello!")
-                            replace(notificationMessages[index])
-                            // no mentions
-                        }
-                    }
-                    startedClient1.client.room.waitForOutboxSent()
-                }
-
-                withCluePrintln("receive removed notifications") {
+                suspend fun checkNotifications(check: (List<Notification>) -> Boolean): List<Notification> {
+                    startedClient2.client.syncOnce()
                     startedClient2.client.notification.processPending()
+                    return notifications.firstWithTimeout { check(it) }
+                }
+
+                val rooms =
+                    withCluePrintln("create rooms") {
+                        val unencryptedRoom = startedClient1.client.api.room.createRoom().getOrThrow()
+                        val encryptedRoom =
+                            startedClient1.client.api.room
+                                .createRoom(
+                                    initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), "")),
+                                )
+                                .getOrThrow()
+                        val unencryptedRoomWithoutNotifications =
+                            startedClient1.client.api.room.createRoom().getOrThrow()
+                        val encryptedRoomWithoutNotifications =
+                            startedClient1.client.api.room
+                                .createRoom(
+                                    initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), "")),
+                                )
+                                .getOrThrow()
+
+                        val currentPushRules =
+                            startedClient2.client.user.getAccountData<PushRulesEventContent>().first()
+                        startedClient2.client.api.push.setPushRule(
+                            "global",
+                            PushRuleKind.OVERRIDE,
+                            unencryptedRoomWithoutNotifications.full,
+                            SetPushRule.Request(
+                                conditions =
+                                    setOf(
+                                        PushCondition.EventMatch(
+                                            key = "room_id",
+                                            pattern = unencryptedRoomWithoutNotifications.full,
+                                        ),
+                                    ),
+                                actions = setOf(),
+                            ),
+                        )
+                        startedClient2.client.api.push.setPushRule(
+                            "global",
+                            PushRuleKind.OVERRIDE,
+                            encryptedRoomWithoutNotifications.full,
+                            SetPushRule.Request(
+                                conditions =
+                                    setOf(
+                                        PushCondition.EventMatch(
+                                            key = "room_id",
+                                            pattern = encryptedRoomWithoutNotifications.full,
+                                        ),
+                                    ),
+                                actions = setOf(),
+                            ),
+                        )
+                        startedClient2.client.api.push.setPushRuleEnabled(
+                            "global",
+                            PushRuleKind.UNDERRIDE,
+                            ServerDefaultPushRules.RoomOneToOne.id,
+                            false,
+                        )
+                        startedClient2.client.api.push.setPushRuleEnabled(
+                            "global",
+                            PushRuleKind.UNDERRIDE,
+                            ServerDefaultPushRules.Message.id,
+                            false,
+                        )
+                        startedClient2.client.user.getAccountData<PushRulesEventContent>().firstWithTimeout {
+                            it != currentPushRules
+                        }
+                        listOf(
+                            unencryptedRoom,
+                            encryptedRoom,
+                            unencryptedRoomWithoutNotifications,
+                            encryptedRoomWithoutNotifications,
+                        )
+                    }
+                val roomsWithNotifications = 2
+
+                withCluePrintln("send invites") {
+                    rooms.forEach { room ->
+                        startedClient1.client.api.room.inviteUser(room, startedClient2.client.userId).getOrThrow()
+                    }
+                }
+
+                withCluePrintln("state notifications") {
+                    checkNotifications { it.size == roomsWithNotifications }
+                        .forEach { notification ->
+                            val stateEvent = notification.shouldBeInstanceOf<Notification.State>().stateEvent
+                            stateEvent.roomId shouldBeIn rooms.take(roomsWithNotifications)
+                            stateEvent.content.shouldBeInstanceOf<MemberEventContent>().displayName shouldBe "user2"
+                        }
+                }
+
+                withCluePrintln("join rooms") {
+                    rooms.forEach { room ->
+                        startedClient2.client.room.getById(room).firstWithTimeout { it?.membership == INVITE }
+                        startedClient2.client.api.room.joinRoom(room).getOrThrow()
+                    }
+                }
+
+                withCluePrintln("no state notifications") {
                     checkNotifications { it.isEmpty() }
                 }
-            }
 
-            val notificationMessages = withCluePrintln("send message and replace notification") {
-                val notificationMessages = sendMessageAndReceiveNotifications(
-                    rooms = rooms,
-                    roomsWithNotifications = roomsWithNotifications,
-                    helloMessage = helloMessage,
-                    checkNotifications = ::checkNotifications
-                )
-
-                val replaceMessages = withCluePrintln("send replace") {
-                    rooms.mapIndexed { index, room ->
-                        startedClient1.client.room.sendMessage(room) {
-                            text("$helloMessage!!")
-                            replace(notificationMessages[index])
-                            mentions(setOf(startedClient2.client.userId))
-                        }.let { transactionId ->
-                            startedClient1.client.room.getOutbox(room).flatten()
-                                .mapNotNull { it.find { it.transactionId == transactionId }?.eventId }
-                                .firstWithTimeout()
-                        }
-                    }
-                }
-
-                withCluePrintln("receive replaced notifications") {
-                    checkNotifications {
-                        it.size == roomsWithNotifications && it.any {
-                            val content = (it as? Notification.Message)?.timelineEvent?.content?.getOrNull()
-                            (content as? RoomMessageEventContent.TextBased.Text)?.body == "$helloMessage!!"
-                        }
-                    }
-                }
-                replaceMessages
-            }
-
-            withCluePrintln("send message and remove notification when read") {
-                withCluePrintln("send receipt") {
-                    rooms.forEachIndexed { index, room ->
-                        startedClient2.client.api.room.setReadMarkers(room, null, notificationMessages[index])
+                withCluePrintln("set initial receipt") {
+                    rooms.forEach { room ->
+                        startedClient2.client.api.room
+                            .setReadMarkers(
+                                room,
+                                null,
+                                startedClient2.client.room.getById(room).first()?.lastEventId,
+                            )
                             .getOrThrow()
                     }
                 }
 
-                withCluePrintln("receive removed notifications") {
+                val helloMessage = "Hello!"
+
+                withCluePrintln("no notifications from us") {
+                    rooms.forEach { room ->
+                        startedClient2.client.room.sendMessage(room) { text("Hi!") }
+                    }
+                    startedClient2.client.room.waitForOutboxSent()
+
                     checkNotifications { it.isEmpty() }
+                }
+
+                withCluePrintln("send message and redact notification") {
+                    val notificationMessages =
+                        sendMessageAndReceiveNotifications(
+                            rooms = rooms,
+                            roomsWithNotifications = roomsWithNotifications,
+                            helloMessage = helloMessage,
+                            checkNotifications = ::checkNotifications,
+                        )
+
+                    withCluePrintln("send redact") {
+                        rooms.forEachIndexed { index, room ->
+                            startedClient1.client.api.room.redactEvent(room, notificationMessages[index])
+                        }
+                    }
+
+                    withCluePrintln("receive redacted notifications") {
+                        checkNotifications { it.isEmpty() }
+                    }
+                }
+
+                withCluePrintln("send message and replace without notification") {
+                    val notificationMessages =
+                        sendMessageAndReceiveNotifications(
+                            rooms = rooms,
+                            roomsWithNotifications = roomsWithNotifications,
+                            helloMessage = helloMessage,
+                            checkNotifications = ::checkNotifications,
+                        )
+
+                    withCluePrintln("send replace") {
+                        rooms.forEachIndexed { index, room ->
+                            startedClient1.client.room.sendMessage(room) {
+                                text("Hello!")
+                                replace(notificationMessages[index])
+                                // no mentions
+                            }
+                        }
+                        startedClient1.client.room.waitForOutboxSent()
+                    }
+
+                    withCluePrintln("receive removed notifications") {
+                        startedClient2.client.notification.processPending()
+                        checkNotifications { it.isEmpty() }
+                    }
+                }
+
+                val notificationMessages =
+                    withCluePrintln("send message and replace notification") {
+                        val notificationMessages =
+                            sendMessageAndReceiveNotifications(
+                                rooms = rooms,
+                                roomsWithNotifications = roomsWithNotifications,
+                                helloMessage = helloMessage,
+                                checkNotifications = ::checkNotifications,
+                            )
+
+                        val replaceMessages =
+                            withCluePrintln("send replace") {
+                                rooms.mapIndexed { index, room ->
+                                    startedClient1.client.room
+                                        .sendMessage(room) {
+                                            text("$helloMessage!!")
+                                            replace(notificationMessages[index])
+                                            mentions(setOf(startedClient2.client.userId))
+                                        }
+                                        .let { transactionId ->
+                                            startedClient1.client.room
+                                                .getOutbox(room)
+                                                .flatten()
+                                                .mapNotNull { it.find { it.transactionId == transactionId }?.eventId }
+                                                .firstWithTimeout()
+                                        }
+                                }
+                            }
+
+                        withCluePrintln("receive replaced notifications") {
+                            checkNotifications {
+                                it.size == roomsWithNotifications &&
+                                    it.any {
+                                        val content = (it as? Notification.Message)?.timelineEvent?.content?.getOrNull()
+                                        (content as? RoomMessageEventContent.TextBased.Text)?.body == "$helloMessage!!"
+                                    }
+                            }
+                        }
+                        replaceMessages
+                    }
+
+                withCluePrintln("send message and remove notification when read") {
+                    withCluePrintln("send receipt") {
+                        rooms.forEachIndexed { index, room ->
+                            startedClient2.client.api.room
+                                .setReadMarkers(room, null, notificationMessages[index])
+                                .getOrThrow()
+                        }
+                    }
+
+                    withCluePrintln("receive removed notifications") {
+                        checkNotifications { it.isEmpty() }
+                    }
                 }
             }
         }
-    }
 
     private suspend inline fun sendMessageAndReceiveNotifications(
         rooms: List<RoomId>,
         roomsWithNotifications: Int,
         helloMessage: String,
-        checkNotifications: suspend (check: (List<Notification>) -> Boolean) -> List<Notification>
+        checkNotifications: suspend (check: (List<Notification>) -> Boolean) -> List<Notification>,
     ): List<EventId> {
-        val notificationMessages = withCluePrintln("send messages") {
-            rooms.map { room ->
-                startedClient1.client.room.sendMessage(room) {
-                    text(helloMessage)
-                    mentions(setOf(startedClient2.client.userId))
-                }.let { transactionId ->
-                    startedClient1.client.room.getOutbox(room).flatten()
-                        .mapNotNull { it.find { it.transactionId == transactionId }?.eventId }
-                        .firstWithTimeout()
+        val notificationMessages =
+            withCluePrintln("send messages") {
+                rooms.map { room ->
+                    startedClient1.client.room
+                        .sendMessage(room) {
+                            text(helloMessage)
+                            mentions(setOf(startedClient2.client.userId))
+                        }
+                        .let { transactionId ->
+                            startedClient1.client.room
+                                .getOutbox(room)
+                                .flatten()
+                                .mapNotNull { it.find { it.transactionId == transactionId }?.eventId }
+                                .firstWithTimeout()
+                        }
                 }
             }
-        }
 
         withCluePrintln("receive notifications") {
-            checkNotifications { it.size == roomsWithNotifications }.also {
-                it.forEach { notification ->
-                    val messageNotification = notification.shouldBeInstanceOf<Notification.Message>().timelineEvent
-                    messageNotification.eventId shouldBeIn notificationMessages.take(roomsWithNotifications)
-                    messageNotification.content?.getOrNull()
-                        .shouldBeInstanceOf<RoomMessageEventContent.TextBased.Text>()
-                        .body shouldBe helloMessage
+            checkNotifications { it.size == roomsWithNotifications }
+                .also {
+                    it.forEach { notification ->
+                        val messageNotification = notification.shouldBeInstanceOf<Notification.Message>().timelineEvent
+                        messageNotification.eventId shouldBeIn notificationMessages.take(roomsWithNotifications)
+                        messageNotification.content
+                            ?.getOrNull()
+                            .shouldBeInstanceOf<RoomMessageEventContent.TextBased.Text>()
+                            .body shouldBe helloMessage
+                    }
                 }
-            }
         }
         return notificationMessages
     }
 
     @Test
     @Suppress("DEPRECATION")
-    fun testPushNotificationForNormalMessageLegacy(): Unit = runBlocking(Dispatchers.Default) {
-        withTimeout(30.seconds) {
-            val notifications = startedClient2.client.notification.getNotifications()
-                .scan(listOf<NotificationService.Notification>()) { old, new -> old + new }
-                .stateIn(scope)
+    fun testPushNotificationForNormalMessageLegacy(): Unit =
+        runBlocking(Dispatchers.Default) {
+            withTimeout(30.seconds) {
+                val notifications =
+                    startedClient2.client.notification
+                        .getNotifications()
+                        .scan(listOf<NotificationService.Notification>()) { old, new -> old + new }
+                        .stateIn(scope)
 
-            val room = startedClient1.client.api.room.createRoom(
-                invite = setOf(startedClient2.client.userId),
-                initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
-            ).getOrThrow()
+                val room =
+                    startedClient1.client.api.room
+                        .createRoom(
+                            invite = setOf(startedClient2.client.userId),
+                            initialState = listOf(InitialStateEvent(content = EncryptionEventContent(), "")),
+                        )
+                        .getOrThrow()
 
-            withCluePrintln("first notification") {
-                notifications.firstWithTimeout { it.size == 1 }.getOrNull(0).shouldNotBeNull()
-                    .event.shouldBeInstanceOf<ClientEvent.StateBaseEvent<*>>()
-                    .content.shouldBeInstanceOf<MemberEventContent>().displayName shouldBe "user2"
-            }
+                withCluePrintln("first notification") {
+                    notifications
+                        .firstWithTimeout { it.size == 1 }
+                        .getOrNull(0)
+                        .shouldNotBeNull()
+                        .event
+                        .shouldBeInstanceOf<ClientEvent.StateBaseEvent<*>>()
+                        .content
+                        .shouldBeInstanceOf<MemberEventContent>()
+                        .displayName shouldBe "user2"
+                }
 
-            startedClient2.client.room.getById(room).firstWithTimeout { it?.membership == INVITE }
-            startedClient2.client.api.room.joinRoom(room).getOrThrow()
+                startedClient2.client.room.getById(room).firstWithTimeout { it?.membership == INVITE }
+                startedClient2.client.api.room.joinRoom(room).getOrThrow()
 
-            startedClient1.client.room.sendMessage(room) { text("Hello ${startedClient2.client.userId.full}!") }
-            withCluePrintln("second notification") {
-                notifications.firstWithTimeout { it.size == 3 }.getOrNull(2).shouldNotBeNull()
-                    .event.content.shouldBeInstanceOf<RoomMessageEventContent.TextBased.Text>()
-                    .body shouldStartWith "Hello"
+                startedClient1.client.room.sendMessage(room) { text("Hello ${startedClient2.client.userId.full}!") }
+                withCluePrintln("second notification") {
+                    notifications
+                        .firstWithTimeout { it.size == 3 }
+                        .getOrNull(2)
+                        .shouldNotBeNull()
+                        .event
+                        .content
+                        .shouldBeInstanceOf<RoomMessageEventContent.TextBased.Text>()
+                        .body shouldStartWith "Hello"
+                }
             }
         }
-    }
 }

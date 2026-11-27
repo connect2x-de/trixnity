@@ -11,6 +11,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.StateBaseEvent
 import de.connect2x.trixnity.core.model.events.RoomAccountDataEventContent
 import de.connect2x.trixnity.core.model.events.StateEventContent
 import de.connect2x.trixnity.core.model.events.StickyEventContent
+import de.connect2x.trixnity.crypto.olm.MegolmEncryptionService
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -194,5 +195,27 @@ suspend fun RoomService.getTimelineEventsAround(
     eventsBefore.await() + startEvent + eventsAfter.await()
 }
 
-suspend fun Flow<TimelineEvent?>.firstWithContent(): TimelineEvent =
-    filterNotNull().first { it.content?.isSuccess == true }
+@Deprecated("use firstWithKeys() instead", ReplaceWith("firstWithKeys()"))
+suspend fun Flow<TimelineEvent?>.firstWithContent(): TimelineEvent = firstWithKeys()
+
+/**
+ * Returns the first value where keys have been found or [TimelineEvent.content] contains a successful or an unexpected
+ * error value.
+ */
+suspend fun Flow<TimelineEvent?>.firstWithKeys(): TimelineEvent =
+    filterNotNull().first {
+        val content = it.content ?: return@first false
+        val failure =
+            (it.content.exceptionOrNull() as? RoomEventEncryptionServiceError)?.cause
+                as? MegolmEncryptionService.DecryptMegolmError
+        content.isSuccess ||
+            when (failure) {
+                is MegolmEncryptionService.DecryptMegolmError.MegolmKeyNotFound,
+                is MegolmEncryptionService.DecryptMegolmError.MegolmKeyUnknownMessageIndex -> false
+                is MegolmEncryptionService.DecryptMegolmError.CryptoDriverError,
+                is MegolmEncryptionService.DecryptMegolmError.DeserializationError,
+                is MegolmEncryptionService.DecryptMegolmError.MegolmKeyWithheld,
+                is MegolmEncryptionService.DecryptMegolmError.ValidationFailed,
+                null -> true
+            }
+    }

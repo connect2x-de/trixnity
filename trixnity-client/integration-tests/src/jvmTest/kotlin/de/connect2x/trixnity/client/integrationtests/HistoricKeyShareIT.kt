@@ -3,7 +3,7 @@ package de.connect2x.trixnity.client.integrationtests
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.repository.exposed.exposed
 import de.connect2x.trixnity.client.verification
@@ -129,7 +129,7 @@ class HistoricKeyShareIT : TrixnityBaseTest() {
                     val content =
                         startedClient2.client.room
                             .getTimelineEvent(roomId, eventId)
-                            .firstWithContent()
+                            .firstWithKeys()
                             .content
                             ?.getOrThrow()
                     content.shouldBeInstanceOf<RoomMessageEventContent.TextBased.Text>()

@@ -2,7 +2,7 @@ package de.connect2x.trixnity.client.notification
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.client.store.StoredNotification
 import de.connect2x.trixnity.client.store.StoredNotificationUpdate
 import de.connect2x.trixnity.core.UserInfo
@@ -235,7 +235,7 @@ class EventsToNotificationUpdatesImpl(
                             withTimeoutOrNull(5.seconds) {
                                     roomService
                                         .getTimelineEvent(roomId, relatesTo.eventId) { decryptionTimeout = 5.seconds }
-                                        .firstWithContent()
+                                        .firstWithKeys()
                                 }
                                 ?.mergedEvent
                                 ?.getOrNull()

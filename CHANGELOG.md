@@ -25,6 +25,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Deprecated
 
+- `Flow<TimelineEvent?>.firstWithContent()` and replaced with `Flow<TimelineEvent?>.firstWithKeys()`
+
 ### Removed
 
 ### Fixed

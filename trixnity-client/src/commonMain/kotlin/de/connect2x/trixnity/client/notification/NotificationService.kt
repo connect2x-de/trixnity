@@ -7,7 +7,7 @@ import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.notification.Notification as Notification2
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.room.firstWithKeys
 import de.connect2x.trixnity.client.store.AccountStore
 import de.connect2x.trixnity.client.store.GlobalAccountDataStore
 import de.connect2x.trixnity.client.store.NotificationStore
@@ -488,9 +488,7 @@ class NotificationServiceImpl(
             is StoredNotificationUpdate.Content.Message ->
                 withTimeoutOrNull(5.seconds) {
                     NotificationUpdate.Content.Message(
-                        roomService
-                            .getTimelineEvent(roomId, eventId) { decryptionTimeout = 5.seconds }
-                            .firstWithContent()
+                        roomService.getTimelineEvent(roomId, eventId) { decryptionTimeout = 5.seconds }.firstWithKeys()
                     )
                 }
 
