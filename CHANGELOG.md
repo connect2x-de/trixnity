@@ -9,6 +9,20 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 5.12.0
+
+### Added
+
 - Introduced `CustomEventContentSerializerMappings` to register custom event types in the DI
 - Added `RoomKeyWithheldEventContent`
 - Store and use withheld inbound megolm keys
@@ -27,13 +41,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - `Flow<TimelineEvent?>.firstWithContent()` and replaced with `Flow<TimelineEvent?>.firstWithKeys()`
 
-### Removed
-
 ### Fixed
 
 - Fix `retryFlow` did loop instead of following existing flow-function behavior
-
-### Security
 
 ## 5.11.1
 
